@@ -2,20 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
+import StatsWidget from './components/StatsWidget';
 import { fetchDatabase, saveEntry } from './services/api';
 
 export default function App() {
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
 
-  // Today formatted as YYYY-MM-DD
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   const todayStr = `${y}-${m}-${d}`;
 
-  // Load database on start
   const loadData = useCallback(async () => {
     try {
       const db = await fetchDatabase();
@@ -30,13 +29,11 @@ export default function App() {
     loadData();
   }, [loadData]);
 
-  // Calculate day count (e.g. Day 1, Day 2...)
   const startObj = new Date(`${startDate}T00:00:00`);
   const todayObj = new Date(`${todayStr}T00:00:00`);
   const diffDays = Math.max(0, Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24)));
   const dayCount = diffDays + 1;
 
-  // Handle 1-click rating for today
   const handleSaveToday = async (entryData) => {
     const saved = await saveEntry(entryData);
     setEntries(prev => ({
@@ -46,19 +43,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#f8fafc] text-slate-900 pb-12">
+    <div className="min-h-screen flex flex-col justify-between bg-[#FFFDF5] text-black">
       
-      {/* Top Header */}
+      {/* Full-width Header */}
       <Header
         startDate={startDate}
         entries={entries}
         dayCount={dayCount}
       />
 
-      {/* Main Focus Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6">
+      {/* Main Panoramic Container */}
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-6 md:px-10 py-6">
         
-        {/* Centered Today Card */}
+        {/* Full-Width Top Hero Today Banner */}
         <TodayHero
           todayStr={todayStr}
           currentEntry={entries[todayStr] || null}
@@ -66,18 +63,33 @@ export default function App() {
           dayCount={dayCount}
         />
 
-        {/* Clean Timeline (Only starting from Day 1 / today) */}
-        <JourneyTimeline
-          startDate={startDate}
-          todayStr={todayStr}
-          entries={entries}
-        />
+        {/* Bottom 2-Column Panoramic Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          
+          {/* Left Column: Journey Timeline (7 cols) */}
+          <div className="lg:col-span-7">
+            <JourneyTimeline
+              startDate={startDate}
+              todayStr={todayStr}
+              entries={entries}
+            />
+          </div>
+
+          {/* Right Column: Real-time Stats & Metrics (5 cols) */}
+          <div className="lg:col-span-5">
+            <StatsWidget
+              entries={entries}
+              dayCount={dayCount}
+            />
+          </div>
+
+        </div>
 
       </main>
 
       {/* Subtle Footer */}
-      <footer className="w-full text-center text-xs font-mono text-slate-400 py-4">
-        <span>Daily Quality • All data saved locally in <code className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">data/entries.json</code></span>
+      <footer className="w-full text-center text-xs font-mono font-bold text-neutral-500 py-6 border-t-2 border-black/10 mt-8">
+        <span>DAILY QUALITY • All data persisted locally into <code className="text-black bg-[#FDC800] px-2 py-0.5 rounded-md border border-black">data/entries.json</code></span>
       </footer>
 
     </div>
