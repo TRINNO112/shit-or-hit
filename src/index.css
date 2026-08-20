@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --border-light: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+
+  --color-rough: #ef4444;
+  --color-down: #f97316;
+  --color-neutral: #64748b;
+  --color-good: #10b981;
+  --color-peak: #f59e0b;
+
+  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Crisp White Card */
+.white-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+}
+
+/* Tactile 1-Click Rating Buttons */
+.rating-btn {
+  border: 2px solid #f1f5f9;
+  background: #ffffff;
+  border-radius: 18px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02);
+}
+
+.rating-btn:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.06);
+}
+
+.rating-btn:active {
+  transform: scale(0.96) translateY(0);
+}
+
+/* Active Selected Button States */
+.rating-btn.active-rough {
+  border-color: #ef4444;
+  background: #fef2f2;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
+}
+
+.rating-btn.active-down {
+  border-color: #f97316;
+  background: #fff7ed;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.15);
+}
+
+.rating-btn.active-okay {
+  border-color: #64748b;
+  background: #f8fafc;
+  box-shadow: 0 4px 14px rgba(100, 116, 139, 0.15);
+}
+
+.rating-btn.active-good {
+  border-color: #10b981;
+  background: #ecfdf5;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);
+}
+
+.rating-btn.active-peak {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+}
+
+/* Inputs & Textareas */
+input, textarea {
+  font-family: inherit;
+  outline: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus {
+  background: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+}
+
+/* Animations */
+@keyframes slideUpFade {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

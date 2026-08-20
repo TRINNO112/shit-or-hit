@@ -1,0 +1,20 @@
+# Node & Build artifacts
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# PRIVATE DATA (Never commit your personal logs)
+data/
+data/entries.json
+data/*.tmp
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
