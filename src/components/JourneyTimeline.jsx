@@ -5,7 +5,8 @@ import {
   MinusCircle, 
   Zap, 
   Sparkles,
-  Calendar
+  Calendar,
+  PenLine
 } from 'lucide-react';
 import { ratingMeta } from '../services/api';
 
@@ -20,7 +21,8 @@ const IconMap = {
 export default function JourneyTimeline({ 
   startDate, 
   todayStr, 
-  entries 
+  entries,
+  onEditDay
 }) {
   const start = new Date(`${startDate}T00:00:00`);
   const today = new Date(`${todayStr}T00:00:00`);
@@ -80,41 +82,45 @@ export default function JourneyTimeline({
             return (
               <div
                 key={dateStr}
-                className={`p-4 rounded-xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] transition-all ${
+                className={`p-4 rounded-xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] transition-all group ${
                   isToday ? 'bg-[#FFFDF5] border-[2.5px]' : 'bg-white'
                 }`}
               >
                 {/* Left: Day & Date */}
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-[#FDC800] border-2 border-black flex flex-col items-center justify-center text-black shadow-[2px_2px_0px_#000000]">
+                <div className="flex items-center gap-3.5 flex-1 pr-3">
+                  <div className="w-11 h-11 rounded-xl bg-[#FDC800] border-2 border-black flex flex-col items-center justify-center text-black shadow-[2px_2px_0px_#000000] shrink-0">
                     <span className="text-[9px] font-mono font-black leading-none">DAY</span>
                     <span className="font-display font-black text-sm leading-none mt-0.5">{dayIndex}</span>
                   </div>
 
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-display font-black text-sm text-black uppercase">
                         {dateFormatted}
                       </span>
                       {isToday && (
-                        <span className="text-[9px] font-mono font-black px-2 py-0.5 rounded-full bg-black text-white">
+                        <span className="text-[9px] font-mono font-black px-2 py-0.5 rounded-full bg-black text-white shrink-0">
                           TODAY
                         </span>
                       )}
                     </div>
-                    {entry?.notes && (
+                    {entry?.notes ? (
                       <p className="text-xs font-mono text-neutral-700 line-clamp-1 mt-1 font-semibold">
                         "{entry.notes}"
+                      </p>
+                    ) : (
+                      <p className="text-[11px] font-mono text-neutral-400 mt-0.5">
+                        No reflection note
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Right: Badge */}
-                <div>
+                {/* Right: Badge & Quick Edit Trigger */}
+                <div className="flex items-center gap-2.5 shrink-0">
                   {entry ? (
                     <div 
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border-2 border-black text-xs font-display font-black uppercase text-black shadow-[2px_2px_0px_#000000]"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-black text-xs font-display font-black uppercase text-black shadow-[2px_2px_0px_#000000]"
                       style={{ backgroundColor: meta.bg }}
                     >
                       {SvgIcon && <SvgIcon className="w-4 h-4 stroke-[3]" />}
@@ -125,6 +131,15 @@ export default function JourneyTimeline({
                       PENDING
                     </span>
                   )}
+
+                  {/* Edit Button */}
+                  <button
+                    onClick={() => onEditDay({ dateStr, dayIndex, entry })}
+                    title="Edit Rating & Reflection"
+                    className="p-2 rounded-lg border-2 border-black bg-white hover:bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+                  >
+                    <PenLine className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
                 </div>
 
               </div>

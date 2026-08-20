@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AlertCircle, 
   CloudRain, 
@@ -7,9 +7,14 @@ import {
   Sparkles, 
   Check, 
   PenLine, 
-  X 
+  X,
+  Wand2,
+  Loader2,
+  Undo2,
+  Redo2,
+  RotateCcw
 } from 'lucide-react';
-import { ratingMeta } from '../services/api';
+import { ratingMeta, enhanceReflectionWithAI } from '../services/api';
 
 const IconMap = {
   AlertCircle,
@@ -28,6 +33,23 @@ export default function TodayHero({
   const [showNote, setShowNote] = useState(Boolean(currentEntry?.notes));
   const [noteText, setNoteText] = useState(currentEntry?.notes || '');
   const [syncedBadge, setSyncedBadge] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  
+  // History stack for Undo / Redo / Revert to Original
+  const [historyStack, setHistoryStack] = useState([]);
+  const [historyIdx, setHistoryIdx] = useState(-1);
+  const [originalDraft, setOriginalDraft] = useState('');
+
+  // Sync state whenever currentEntry changes
+  useEffect(() => {
+    if (currentEntry?.notes !== undefined) {
+      setNoteText(currentEntry.notes);
+      setOriginalDraft(currentEntry.notes);
+      setHistoryStack([currentEntry.notes]);
+      setHistoryIdx(0);
+      if (currentEntry.notes) setShowNote(true);
+    }
+  }, [currentEntry]);
 
   const selectedRating = currentEntry?.rating || null;
 
@@ -47,15 +69,65 @@ export default function TodayHero({
   };
 
   const handleSaveNote = async () => {
-    if (!selectedRating) return;
+    const ratingToUse = selectedRating || 3;
     await onSaveToday({
       date: todayStr,
-      rating: selectedRating,
-      verdict: ratingMeta[selectedRating]?.title || 'Verdict',
+      rating: ratingToUse,
+      verdict: ratingMeta[ratingToUse]?.title || 'Verdict',
       notes: noteText
     });
     setSyncedBadge(true);
     setTimeout(() => setSyncedBadge(false), 2500);
+  };
+
+  const handleNoteChange = (newVal) => {
+    setNoteText(newVal);
+  };
+
+  const handleAIEnhance = async () => {
+    if (!noteText || noteText.trim() === '') return;
+    
+    // Save current text before enhancement into history
+    const currentVal = noteText;
+    setIsEnhancing(true);
+    try {
+      const enhanced = await enhanceReflectionWithAI(currentVal, selectedRating || 3, todayStr);
+      
+      const newStack = historyStack.slice(0, historyIdx + 1);
+      newStack.push(enhanced);
+      setHistoryStack(newStack);
+      setHistoryIdx(newStack.length - 1);
+      setNoteText(enhanced);
+    } catch (err) {
+      console.error('AI Enhance error:', err);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleUndo = () => {
+    if (historyIdx > 0) {
+      const target = historyIdx - 1;
+      setHistoryIdx(target);
+      setNoteText(historyStack[target]);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIdx < historyStack.length - 1) {
+      const target = historyIdx + 1;
+      setHistoryIdx(target);
+      setNoteText(historyStack[target]);
+    }
+  };
+
+  const handleRevertOriginal = () => {
+    if (originalDraft !== undefined) {
+      setNoteText(originalDraft);
+      const newStack = [...historyStack, originalDraft];
+      setHistoryStack(newStack);
+      setHistoryIdx(newStack.length - 1);
+    }
   };
 
   return (
@@ -79,7 +151,7 @@ export default function TodayHero({
             {fullDate}
           </p>
           <p className="text-xs font-mono text-neutral-500 mt-1.5 font-semibold">
-            Tap an icon to punch in today's verdict in 1 click.
+            Tap an icon to punch in or change today's verdict anytime.
           </p>
         </div>
 
@@ -160,32 +232,95 @@ export default function TodayHero({
 
       </div>
 
-      {/* Expanded Note Area */}
+      {/* Expanded Note Area with AI Polish & Version History */}
       {showNote && (
         <div className="mt-5 pt-5 border-t-2 border-dashed border-black/20 text-left space-y-3">
-          <div className="flex items-center justify-between text-xs font-mono font-bold text-black">
-            <span>UNFILTERED DAILY REFLECTION</span>
-            <button 
-              onClick={() => setShowNote(false)}
-              className="hover:bg-red-200 border border-black p-1 rounded cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
+            <span className="flex items-center gap-1.5">
+              <PenLine className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>UNFILTERED DAILY DIARY REFLECTION</span>
+            </span>
+
+            <div className="flex items-center gap-2">
+              {/* Undo / Redo / Revert History Controls */}
+              <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1px_1px_0px_#000000]">
+                <button
+                  type="button"
+                  onClick={handleUndo}
+                  disabled={historyIdx <= 0}
+                  title="Undo last change"
+                  className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
+                >
+                  <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRedo}
+                  disabled={historyIdx >= historyStack.length - 1}
+                  title="Redo change"
+                  className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
+                >
+                  <Redo2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
+
+                {originalDraft && (
+                  <button
+                    type="button"
+                    onClick={handleRevertOriginal}
+                    title="Revert back to original raw text"
+                    className="px-2 py-0.5 rounded hover:bg-white text-[10px] font-black uppercase cursor-pointer text-neutral-800"
+                  >
+                    ORIGINAL
+                  </button>
+                )}
+              </div>
+
+              {/* AI Polish Button */}
+              <button
+                type="button"
+                onClick={handleAIEnhance}
+                disabled={isEnhancing || !noteText.trim()}
+                title="Polish and organize your diary entry with Gemini AI (maintains 1st person)"
+                className="neo-btn px-3.5 py-1 bg-[#FDC800] hover:bg-amber-300 text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-[2px_2px_0px_#000000]"
+              >
+                {isEnhancing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                )}
+                <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH DIARY'}</span>
+              </button>
+
+              <button 
+                onClick={() => setShowNote(false)}
+                className="hover:bg-red-200 border border-black p-1 rounded cursor-pointer ml-1"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
+
           <textarea
-            rows={2}
-            placeholder="What made today rough or legendary?"
+            rows={4}
+            placeholder="Write your raw diary thoughts here... (what went wrong, what went right, real struggles)"
             value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            className="neo-input text-xs text-black placeholder:text-neutral-500"
+            onChange={(e) => handleNoteChange(e.target.value)}
+            className="neo-input text-xs text-black placeholder:text-neutral-500 font-mono leading-relaxed"
           />
-          <div className="flex justify-end">
+
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono text-neutral-500 font-bold">
+              {historyStack.length > 1 && `Version ${historyIdx + 1} of ${historyStack.length} • `}
+              Use Undo/Original to revert anytime.
+            </span>
+
             <button
               type="button"
               onClick={handleSaveNote}
-              className="neo-btn px-5 py-2 bg-[#00E599] text-black text-xs font-mono font-black"
+              className="neo-btn px-6 py-2 bg-[#00E599] text-black text-xs font-mono font-black cursor-pointer shadow-[3px_3px_0px_#000000]"
             >
-              SAVE REFLECTION
+              SAVE DIARY ENTRY
             </button>
           </div>
         </div>

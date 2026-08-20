@@ -87,6 +87,22 @@ export async function saveEntry(entryData) {
   }
 }
 
+export async function enhanceReflectionWithAI(notes, rating, date) {
+  try {
+    const res = await fetch(`${API_BASE}/ai/enhance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes, rating, date })
+    });
+    if (!res.ok) throw new Error('AI service error');
+    const data = await res.json();
+    return data.enhancedText || notes;
+  } catch (err) {
+    console.error('AI Enhance error:', err);
+    return notes;
+  }
+}
+
 export function exportDatabaseBackup(startDate, entries) {
   const payload = {
     exportedAt: new Date().toISOString(),

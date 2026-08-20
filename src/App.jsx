@@ -4,12 +4,14 @@ import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
 import StatsWidget from './components/StatsWidget';
 import CalendarModal from './components/CalendarModal';
+import EditDayModal from './components/EditDayModal';
 import { fetchDatabase, saveEntry } from './services/api';
 
 export default function App() {
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
 
   const now = new Date();
   const y = now.getFullYear();
@@ -36,7 +38,7 @@ export default function App() {
   const diffDays = Math.max(0, Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24)));
   const dayCount = diffDays + 1;
 
-  const handleSaveToday = async (entryData) => {
+  const handleSaveEntry = async (entryData) => {
     const saved = await saveEntry(entryData);
     setEntries(prev => ({
       ...prev,
@@ -63,7 +65,7 @@ export default function App() {
         <TodayHero
           todayStr={todayStr}
           currentEntry={entries[todayStr] || null}
-          onSaveToday={handleSaveToday}
+          onSaveToday={handleSaveEntry}
           dayCount={dayCount}
         />
 
@@ -76,6 +78,7 @@ export default function App() {
               startDate={startDate}
               todayStr={todayStr}
               entries={entries}
+              onEditDay={(dayInfo) => setEditingDay(dayInfo)}
             />
           </div>
 
@@ -98,6 +101,20 @@ export default function App() {
         entries={entries}
         startDate={startDate}
         todayStr={todayStr}
+        onEditDay={(dayInfo) => {
+          setIsCalendarOpen(false);
+          setEditingDay(dayInfo);
+        }}
+      />
+
+      {/* Day Edit & AI Enhancement Modal */}
+      <EditDayModal
+        isOpen={Boolean(editingDay)}
+        onClose={() => setEditingDay(null)}
+        entryData={editingDay?.entry || entries[editingDay?.dateStr] || null}
+        dateStr={editingDay?.dateStr}
+        dayIndex={editingDay?.dayIndex || 1}
+        onSave={handleSaveEntry}
       />
 
       {/* Footer with Proper Spacing */}

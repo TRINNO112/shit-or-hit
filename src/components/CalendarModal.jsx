@@ -8,7 +8,8 @@ import {
   CloudRain,
   MinusCircle,
   Zap,
-  Sparkles
+  Sparkles,
+  PenLine
 } from 'lucide-react';
 import { ratingMeta } from '../services/api';
 
@@ -25,7 +26,8 @@ export default function CalendarModal({
   onClose, 
   entries, 
   startDate, 
-  todayStr 
+  todayStr,
+  onEditDay
 }) {
   if (!isOpen) return null;
 
@@ -55,13 +57,21 @@ export default function CalendarModal({
     
     // Check if before start date
     const isBeforeStart = dateStr < startDate;
+    const isFuture = dateStr > todayStr;
     const entry = entries[dateStr] || null;
+
+    // Calculate dayIndex from startDate
+    const startObj = new Date(`${startDate}T00:00:00`);
+    const thisObj = new Date(`${dateStr}T00:00:00`);
+    const dayIndex = Math.max(1, Math.floor((thisObj - startObj) / (1000 * 60 * 60 * 24)) + 1);
 
     days.push({
       dayNumber: d,
+      dayIndex,
       dateStr,
       isToday: dateStr === todayStr,
       isBeforeStart,
+      isFuture,
       entry
     });
   }
@@ -88,7 +98,7 @@ export default function CalendarModal({
                 {monthName}
               </h3>
               <span className="text-xs font-mono font-bold text-neutral-500">
-                Monthly quality overview
+                Click any active day to view or edit reflection
               </span>
             </div>
           </div>
@@ -139,23 +149,33 @@ export default function CalendarModal({
               <div key={`blank-${i}`} className="min-h-[58px] sm:min-h-[68px] rounded-xl bg-neutral-50 border border-neutral-200/50 opacity-20" />
             ))}
 
-            {days.map(({ dayNumber, dateStr, isToday, isBeforeStart, entry }) => {
+            {days.map(({ dayNumber, dayIndex, dateStr, isToday, isBeforeStart, isFuture, entry }) => {
               const rating = entry?.rating;
               const meta = rating ? ratingMeta[rating] : null;
               const SvgIcon = meta ? IconMap[meta.icon] : null;
+              const isEditable = !isBeforeStart && !isFuture;
 
               return (
                 <div
                   key={dateStr}
-                  className={`min-h-[58px] sm:min-h-[68px] p-2 rounded-xl border-2 border-black flex flex-col justify-between transition-all ${
+                  onClick={() => {
+                    if (isEditable && onEditDay) {
+                      onEditDay({ dateStr, dayIndex, entry });
+                    }
+                  }}
+                  className={`min-h-[58px] sm:min-h-[68px] p-2 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
                     isToday ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000000]' : 'bg-white'
-                  } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''}`}
+                  } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
                   style={{ backgroundColor: meta ? meta.bg : undefined }}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`font-mono text-[11px] font-black ${isToday ? 'bg-black text-white px-1.5 rounded' : 'text-black'}`}>
                       {dayNumber}
                     </span>
+
+                    {isEditable && (
+                      <PenLine className="w-3 h-3 text-black opacity-0 group-hover:opacity-100 transition-opacity" />
+                    )}
                   </div>
 
                   <div className="my-auto text-center">
