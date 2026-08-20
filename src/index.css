@@ -1,23 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --bg-page: #f8fafc;
-  --bg-card: #ffffff;
-  --border-light: #e2e8f0;
-  --border-subtle: #f1f5f9;
+  --bg-canvas: #FFFDF5;
+  --bg-card: #FFFFFF;
+  --border-color: #000000;
+  --border-width: 2.5px;
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-subtle: #94a3b8;
+  --shadow-offset: 4px 4px 0px #000000;
+  --shadow-offset-hover: 6px 6px 0px #000000;
+  --shadow-offset-active: 1px 1px 0px #000000;
 
-  --color-rough: #ef4444;
-  --color-down: #f97316;
-  --color-neutral: #64748b;
-  --color-good: #10b981;
-  --color-peak: #f59e0b;
+  --neo-yellow: #FDC800;
+  --neo-coral: #FF4D4D;
+  --neo-orange: #FF8A00;
+  --neo-emerald: #00E599;
+  --neo-purple: #A855F7;
+  --neo-cyan: #00D8F6;
+  --neo-slate: #E2E8F0;
 
-  --font-display: 'Outfit', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -28,11 +29,13 @@
 }
 
 body {
-  background-color: var(--bg-page);
-  color: var(--text-main);
-  font-family: var(--font-sans);
+  background-color: var(--bg-canvas);
+  color: #000000;
+  font-family: var(--font-display);
   min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(#000000 0.75px, transparent 0.75px);
+  background-size: 20px 20px;
+  background-position: 0 0;
 }
 
 .font-display {
@@ -43,89 +46,95 @@ body {
   font-family: var(--font-mono);
 }
 
-/* Crisp White Card */
-.white-card {
+/* Neobrutalist Solid Card */
+.neo-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: 24px;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
-  transition: all 0.2s ease;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-offset);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Tactile 1-Click Rating Buttons */
-.rating-btn {
-  border: 2px solid #f1f5f9;
-  background: #ffffff;
-  border-radius: 18px;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02);
-}
-
-.rating-btn:hover {
-  transform: translateY(-2px);
-  border-color: #cbd5e1;
-  box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.06);
-}
-
-.rating-btn:active {
-  transform: scale(0.96) translateY(0);
-}
-
-/* Active Selected Button States */
-.rating-btn.active-rough {
-  border-color: #ef4444;
-  background: #fef2f2;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
-}
-
-.rating-btn.active-down {
-  border-color: #f97316;
-  background: #fff7ed;
-  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.15);
-}
-
-.rating-btn.active-okay {
-  border-color: #64748b;
-  background: #f8fafc;
-  box-shadow: 0 4px 14px rgba(100, 116, 139, 0.15);
-}
-
-.rating-btn.active-good {
-  border-color: #10b981;
-  background: #ecfdf5;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);
-}
-
-.rating-btn.active-peak {
-  border-color: #f59e0b;
-  background: #fffbeb;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
-}
-
-/* Inputs & Textareas */
-input, textarea {
-  font-family: inherit;
-  outline: none;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+/* Neobrutalist Tactile Buttons */
+.neo-btn {
+  border: var(--border-width) solid var(--border-color);
   border-radius: 14px;
-  padding: 12px 16px;
-  color: var(--text-main);
-  transition: all 0.2s ease;
+  background: #FFFFFF;
+  box-shadow: var(--shadow-offset);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  font-weight: 800;
 }
 
-input:focus, textarea:focus {
-  background: #ffffff;
-  border-color: #0f172a;
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+.neo-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-offset-hover);
 }
 
-/* Animations */
-@keyframes slideUpFade {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
+.neo-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: var(--shadow-offset-active);
 }
 
-.animate-slide-up {
-  animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Neobrutalist Badges & Pills */
+.neo-pill {
+  border: 2px solid var(--border-color);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0px #000000;
+  font-weight: 800;
+}
+
+/* Neobrutalist Inputs */
+.neo-input {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 3px 3px 0px #000000;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.neo-input:focus {
+  outline: none;
+  background: #FFFDF5;
+  box-shadow: 4px 4px 0px #000000;
+  transform: translate(-1px, -1px);
+}
+
+/* Active Selected Verdict States */
+.neo-selected-1 {
+  background-color: var(--neo-coral) !important;
+  color: #000000 !important;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+.neo-selected-2 {
+  background-color: var(--neo-orange) !important;
+  color: #000000 !important;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+.neo-selected-3 {
+  background-color: var(--neo-slate) !important;
+  color: #000000 !important;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+.neo-selected-4 {
+  background-color: var(--neo-emerald) !important;
+  color: #000000 !important;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+.neo-selected-5 {
+  background-color: var(--neo-yellow) !important;
+  color: #000000 !important;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000 !important;
 }

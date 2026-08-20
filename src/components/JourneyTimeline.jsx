@@ -5,8 +5,7 @@ import {
   MinusCircle, 
   Zap, 
   Sparkles,
-  Calendar,
-  Sparkle
+  Calendar
 } from 'lucide-react';
 import { ratingMeta } from '../services/api';
 
@@ -23,7 +22,6 @@ export default function JourneyTimeline({
   todayStr, 
   entries 
 }) {
-  // Generate all dates from startDate to todayStr
   const start = new Date(`${startDate}T00:00:00`);
   const today = new Date(`${todayStr}T00:00:00`);
 
@@ -52,28 +50,27 @@ export default function JourneyTimeline({
     dayIndex++;
   }
 
-  // Reverse so newest / today is at the top/front if long, or keep chronological
   const totalLogged = Object.keys(entries).length;
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
       
       {/* Section Header */}
-      <div className="flex items-center justify-between mb-4 px-2">
+      <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-slate-400" />
-          <h3 className="font-display font-bold text-sm text-slate-800 uppercase tracking-wider">
-            Your Journey Since Day 1
+          <Calendar className="w-4 h-4 text-black stroke-[2.5]" />
+          <h3 className="font-display font-black text-sm text-black uppercase tracking-wider">
+            JOURNEY SINCE DAY 1
           </h3>
         </div>
 
-        <span className="text-xs font-mono text-slate-500">
-          {totalLogged} logged day{totalLogged === 1 ? '' : 's'}
+        <span className="text-xs font-mono font-bold px-2 py-0.5 bg-black text-white rounded-md">
+          {totalLogged} LOGGED
         </span>
       </div>
 
-      {/* Day Cards List (Starts strictly from Day 1 / today) */}
-      <div className="space-y-2.5">
+      {/* Day Cards List */}
+      <div className="space-y-3">
         {daysList.map(({ dayIndex, dateStr, dateFormatted, isToday, entry }) => {
           const rating = entry?.rating;
           const meta = rating ? ratingMeta[rating] : null;
@@ -82,53 +79,49 @@ export default function JourneyTimeline({
           return (
             <div
               key={dateStr}
-              className={`white-card p-4 flex items-center justify-between transition-all ${
-                isToday ? 'ring-2 ring-slate-900/10' : ''
+              className={`neo-card p-4 flex items-center justify-between ${
+                isToday ? 'bg-[#FFFDF5] border-[3px]' : 'bg-white'
               }`}
             >
-              {/* Left: Day number and date */}
+              {/* Left: Day & Date */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex flex-col items-center justify-center text-slate-800">
-                  <span className="text-[10px] font-mono font-bold leading-none text-slate-500">DAY</span>
+                <div className="w-11 h-11 rounded-xl bg-[#FDC800] border-2 border-black flex flex-col items-center justify-center text-black shadow-[2px_2px_0px_#000000]">
+                  <span className="text-[9px] font-mono font-black leading-none">DAY</span>
                   <span className="font-display font-black text-sm leading-none mt-0.5">{dayIndex}</span>
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-display font-bold text-sm text-slate-900">
+                    <span className="font-display font-black text-sm text-black uppercase">
                       {dateFormatted}
                     </span>
                     {isToday && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 text-white font-semibold">
-                        Today
+                      <span className="text-[9px] font-mono font-black px-2 py-0.5 rounded-full bg-black text-white">
+                        TODAY
                       </span>
                     )}
                   </div>
                   {entry?.notes && (
-                    <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 font-sans">
+                    <p className="text-xs font-mono text-neutral-700 line-clamp-1 mt-0.5">
                       "{entry.notes}"
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Right: Logged Rating Badge or Pending State */}
+              {/* Right: Badge */}
               <div>
                 {entry ? (
                   <div 
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-display font-bold"
-                    style={{
-                      backgroundColor: meta.bg,
-                      borderColor: meta.border,
-                      color: meta.color
-                    }}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-black text-xs font-display font-black uppercase text-black shadow-[2px_2px_0px_#000000]"
+                    style={{ backgroundColor: meta.bg }}
                   >
-                    {SvgIcon && <SvgIcon className="w-4 h-4 stroke-[2.5]" />}
+                    {SvgIcon && <SvgIcon className="w-3.5 h-3.5 stroke-[3]" />}
                     <span>{meta.title}</span>
                   </div>
                 ) : (
-                  <span className="text-xs font-mono text-slate-400">
-                    Not logged yet
+                  <span className="text-xs font-mono font-bold text-neutral-400">
+                    PENDING
                   </span>
                 )}
               </div>
