@@ -133,7 +133,7 @@ app.post('/api/ai/enhance', async (req, res) => {
   }
 
   const prompt = `You are a personal diary ghostwriter.
-The user wrote their raw diary notes about their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
+The user wrote their raw, detailed diary notes about their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
 
 User's raw journal notes:
 "${notes}"
@@ -141,11 +141,11 @@ User's raw journal notes:
 CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
-- Write it as a polished, candid, authentic personal diary entry written by ME about MY own day.
-- Clean up the grammar and flow, organize the thoughts naturally into 1-2 powerful diary paragraphs, and keep all my real emotions, struggles, and honest conclusions intact.
-- Do NOT sound like an AI coach or therapist. Sound like a real person writing in their private diary.
+- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
+- Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic, passionate voice.
+- Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
 
-Return ONLY the polished diary entry text.`;
+Return ONLY the complete, uncompressed polished diary entry text.`;
 
   try {
     // Call Gemini API with user-preferred model (gemini-3.5-flash-lite / gemini-2.5-flash / gemini-1.5-flash)
@@ -161,7 +161,7 @@ Return ONLY the polished diary entry text.`;
         ],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 250
+          maxOutputTokens: 2048
         }
       })
     });
@@ -173,7 +173,7 @@ Return ONLY the polished diary entry text.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 250 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
         })
       });
     }
@@ -185,7 +185,7 @@ Return ONLY the polished diary entry text.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 250 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
         })
       });
     }
