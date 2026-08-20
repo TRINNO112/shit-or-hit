@@ -302,11 +302,12 @@ export default function TodayHero({
           </div>
 
           <textarea
-            rows={4}
+            rows={6}
             placeholder="Write your raw diary thoughts here... (what went wrong, what went right, real struggles)"
             value={noteText}
             onChange={(e) => handleNoteChange(e.target.value)}
             className="neo-input text-xs text-black placeholder:text-neutral-500 font-mono leading-relaxed"
+            style={{ minHeight: '140px' }}
           />
 
           <div className="flex items-center justify-between">

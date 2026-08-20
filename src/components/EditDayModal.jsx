@@ -238,11 +238,12 @@ export default function EditDayModal({
           </div>
 
           <textarea
-            rows={5}
+            rows={6}
             placeholder="Type your reflection or edits here..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="neo-input text-xs font-mono text-black placeholder:text-neutral-500 w-full leading-relaxed"
+            style={{ minHeight: '140px' }}
           />
 
           <div className="text-[10px] font-mono text-neutral-500 font-bold text-right">

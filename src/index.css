@@ -26,6 +26,27 @@
   box-sizing: border-box;
 }
 
+/* Custom Neobrutalist Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFFDF5;
+  border-left: 2px solid #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FDC800;
+  border: 2px solid #000000;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00E599;
+}
+
 body {
   background-color: var(--bg-canvas);
   color: #000000;
@@ -85,7 +106,7 @@ body {
   font-weight: 800;
 }
 
-/* Neobrutalist Inputs with generous padding */
+/* Neobrutalist Inputs & Auto-expanding Textareas with clean scrollbars */
 .neo-input {
   border: var(--border-width) solid var(--border-color);
   border-radius: 14px;
@@ -95,6 +116,9 @@ body {
   font-family: inherit;
   font-weight: 600;
   width: 100%;
+  resize: vertical;
+  scrollbar-width: thin;
+  scrollbar-color: #FDC800 #FFFDF5;
 }
 
 .neo-input:focus {
