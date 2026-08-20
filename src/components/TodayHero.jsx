@@ -59,14 +59,14 @@ export default function TodayHero({
   };
 
   return (
-    <div className="neo-card w-full p-6 lg:p-8 mb-8 bg-white">
+    <div className="neo-card w-full mb-8 bg-white" style={{ padding: '36px 40px' }}>
       
       {/* Top Panoramic Grid */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
         
         {/* Left Side: Date & Heading */}
         <div className="text-left w-full lg:w-5/12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black text-white text-xs font-mono font-black mb-3 shadow-[2px_2px_0px_#FDC800]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-mono font-black mb-4 shadow-[2px_2px_0px_#FDC800]">
             <span>TODAY</span>
             <span>•</span>
             <span>DAY {dayCount}</span>
@@ -75,17 +75,17 @@ export default function TodayHero({
           <h2 className="font-display font-black text-4xl sm:text-5xl text-black tracking-tight uppercase leading-none">
             {dayName}
           </h2>
-          <p className="text-base font-mono font-bold text-neutral-600 mt-2">
+          <p className="text-base font-mono font-bold text-neutral-700 mt-2.5">
             {fullDate}
           </p>
-          <p className="text-xs font-mono text-neutral-500 mt-1">
+          <p className="text-xs font-mono text-neutral-500 mt-1.5 font-semibold">
             Tap an icon to punch in today's verdict in 1 click.
           </p>
         </div>
 
         {/* Right Side: 5 Chunky Tactile Buttons */}
         <div className="w-full lg:w-7/12">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
             {[1, 2, 3, 4, 5].map((val) => {
               const m = ratingMeta[val];
               const SvgIcon = IconMap[m.icon];
@@ -96,9 +96,10 @@ export default function TodayHero({
                   key={val}
                   type="button"
                   onClick={() => handleRate(val)}
-                  className={`neo-btn flex flex-col items-center justify-center p-3.5 sm:p-4 ${
+                  className={`neo-btn flex flex-col items-center justify-center p-4 ${
                     isSelected ? m.selectedClass : ''
                   }`}
+                  style={{ minHeight: '110px' }}
                 >
                   <div 
                     className="w-11 h-11 rounded-xl border-2 border-black flex items-center justify-center mb-2 shadow-[2px_2px_0px_#000000]"
@@ -107,7 +108,7 @@ export default function TodayHero({
                     <SvgIcon className="w-6 h-6 text-black stroke-[2.5]" />
                   </div>
 
-                  <span className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-tight leading-none">
+                  <span className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-tight leading-none mt-1">
                     {m.title}
                   </span>
 
@@ -123,7 +124,7 @@ export default function TodayHero({
       </div>
 
       {/* Bottom Bar: Status Verdict + Expandable Note */}
-      <div className="mt-6 pt-5 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="mt-8 pt-6 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
         {/* Active Verdict Pill */}
         {selectedRating ? (
@@ -135,7 +136,7 @@ export default function TodayHero({
               VERDICT: <strong className="uppercase">{ratingMeta[selectedRating]?.title}</strong> — {ratingMeta[selectedRating]?.desc}
             </span>
             {syncedBadge && (
-              <span className="flex items-center gap-1 bg-black text-white px-2 py-0.5 rounded-md font-mono text-[10px] uppercase font-black">
+              <span className="flex items-center gap-1 bg-black text-white px-2 py-0.5 rounded-md font-mono text-[10px] uppercase font-black ml-1">
                 <Check className="w-3 h-3 stroke-[3]" /> Saved
               </span>
             )}
@@ -150,7 +151,7 @@ export default function TodayHero({
         {!showNote && (
           <button
             onClick={() => setShowNote(true)}
-            className="text-xs font-mono font-bold text-black hover:bg-[#FDC800] border-2 border-black px-3.5 py-1.5 rounded-xl shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000000] flex items-center gap-1.5 transition-all cursor-pointer"
+            className="text-xs font-mono font-bold text-black hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000000] flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <PenLine className="w-3.5 h-3.5" />
             <span>{currentEntry?.notes ? 'Edit reflection' : '+ Add reflection note'}</span>
@@ -161,12 +162,12 @@ export default function TodayHero({
 
       {/* Expanded Note Area */}
       {showNote && (
-        <div className="mt-4 pt-4 border-t-2 border-dashed border-black/20 text-left space-y-2">
+        <div className="mt-5 pt-5 border-t-2 border-dashed border-black/20 text-left space-y-3">
           <div className="flex items-center justify-between text-xs font-mono font-bold text-black">
             <span>UNFILTERED DAILY REFLECTION</span>
             <button 
               onClick={() => setShowNote(false)}
-              className="hover:bg-red-200 border border-black p-0.5 rounded cursor-pointer"
+              className="hover:bg-red-200 border border-black p-1 rounded cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -176,13 +177,13 @@ export default function TodayHero({
             placeholder="What made today rough or legendary?"
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
-            className="neo-input w-full text-xs text-black placeholder:text-neutral-500"
+            className="neo-input text-xs text-black placeholder:text-neutral-500"
           />
           <div className="flex justify-end">
             <button
               type="button"
               onClick={handleSaveNote}
-              className="neo-btn px-4 py-1.5 bg-[#00E599] text-black text-xs font-mono font-black"
+              className="neo-btn px-5 py-2 bg-[#00E599] text-black text-xs font-mono font-black"
             >
               SAVE REFLECTION
             </button>

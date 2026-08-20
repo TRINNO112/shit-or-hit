@@ -53,25 +53,25 @@ export default function JourneyTimeline({
   const totalLogged = Object.keys(entries).length;
 
   return (
-    <div className="neo-card p-6 bg-white flex flex-col justify-between h-full">
+    <div className="neo-card bg-white flex flex-col justify-between h-full" style={{ padding: '32px 36px' }}>
       
       <div>
         {/* Section Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-6 pb-2 border-b-2 border-black/10">
+          <div className="flex items-center gap-2.5">
             <Calendar className="w-5 h-5 text-black stroke-[2.5]" />
-            <h3 className="font-display font-black text-base text-black uppercase tracking-wider">
+            <h3 className="font-display font-black text-lg text-black uppercase tracking-wider">
               JOURNEY TIMELINE
             </h3>
           </div>
 
-          <span className="text-xs font-mono font-black px-2 py-0.5 bg-black text-white rounded-md shadow-[2px_2px_0px_#FDC800]">
+          <span className="text-xs font-mono font-black px-3 py-1 bg-black text-white rounded-md shadow-[2px_2px_0px_#FDC800]">
             {totalLogged} LOGGED
           </span>
         </div>
 
         {/* Day Cards List */}
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {daysList.map(({ dayIndex, dateStr, dateFormatted, isToday, entry }) => {
             const rating = entry?.rating;
             const meta = rating ? ratingMeta[rating] : null;
@@ -80,13 +80,13 @@ export default function JourneyTimeline({
             return (
               <div
                 key={dateStr}
-                className={`p-3.5 rounded-xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] transition-all ${
+                className={`p-4 rounded-xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] transition-all ${
                   isToday ? 'bg-[#FFFDF5] border-[2.5px]' : 'bg-white'
                 }`}
               >
                 {/* Left: Day & Date */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex flex-col items-center justify-center text-black shadow-[2px_2px_0px_#000000]">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-[#FDC800] border-2 border-black flex flex-col items-center justify-center text-black shadow-[2px_2px_0px_#000000]">
                     <span className="text-[9px] font-mono font-black leading-none">DAY</span>
                     <span className="font-display font-black text-sm leading-none mt-0.5">{dayIndex}</span>
                   </div>
@@ -103,7 +103,7 @@ export default function JourneyTimeline({
                       )}
                     </div>
                     {entry?.notes && (
-                      <p className="text-xs font-mono text-neutral-700 line-clamp-1 mt-0.5">
+                      <p className="text-xs font-mono text-neutral-700 line-clamp-1 mt-1 font-semibold">
                         "{entry.notes}"
                       </p>
                     )}
@@ -114,14 +114,14 @@ export default function JourneyTimeline({
                 <div>
                   {entry ? (
                     <div 
-                      className="flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-black text-xs font-display font-black uppercase text-black shadow-[2px_2px_0px_#000000]"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border-2 border-black text-xs font-display font-black uppercase text-black shadow-[2px_2px_0px_#000000]"
                       style={{ backgroundColor: meta.bg }}
                     >
-                      {SvgIcon && <SvgIcon className="w-3.5 h-3.5 stroke-[3]" />}
+                      {SvgIcon && <SvgIcon className="w-4 h-4 stroke-[3]" />}
                       <span>{meta.title}</span>
                     </div>
                   ) : (
-                    <span className="text-xs font-mono font-bold text-neutral-400">
+                    <span className="text-xs font-mono font-bold text-neutral-400 bg-neutral-100 px-3 py-1.5 rounded-lg border border-neutral-300">
                       PENDING
                     </span>
                   )}
@@ -133,8 +133,8 @@ export default function JourneyTimeline({
         </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t-2 border-black/10 text-right">
-        <span className="text-[11px] font-mono font-bold text-neutral-500">
+      <div className="mt-8 pt-4 border-t-2 border-black/10 text-right">
+        <span className="text-xs font-mono font-bold text-neutral-500">
           Tracking forward from {startDate}
         </span>
       </div>

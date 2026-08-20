@@ -3,11 +3,13 @@ import Header from './components/Header';
 import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
 import StatsWidget from './components/StatsWidget';
+import CalendarModal from './components/CalendarModal';
 import { fetchDatabase, saveEntry } from './services/api';
 
 export default function App() {
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const now = new Date();
   const y = now.getFullYear();
@@ -45,15 +47,17 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#FFFDF5] text-black">
       
-      {/* Full-width Header */}
+      {/* Full-width Header with Calendar toggle */}
       <Header
         startDate={startDate}
         entries={entries}
         dayCount={dayCount}
+        isCalendarOpen={isCalendarOpen}
+        onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
       />
 
-      {/* Main Panoramic Container */}
-      <main className="flex-1 w-full max-w-[1440px] mx-auto px-6 md:px-10 py-6">
+      {/* Main Panoramic Container with Generous Padding */}
+      <main className="flex-1 w-full max-w-[1380px] mx-auto px-6 sm:px-10 py-6">
         
         {/* Full-Width Top Hero Today Banner */}
         <TodayHero
@@ -64,7 +68,7 @@ export default function App() {
         />
 
         {/* Bottom 2-Column Panoramic Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-4">
           
           {/* Left Column: Journey Timeline (7 cols) */}
           <div className="lg:col-span-7">
@@ -87,9 +91,18 @@ export default function App() {
 
       </main>
 
-      {/* Subtle Footer */}
-      <footer className="w-full text-center text-xs font-mono font-bold text-neutral-500 py-6 border-t-2 border-black/10 mt-8">
-        <span>DAILY QUALITY • All data persisted locally into <code className="text-black bg-[#FDC800] px-2 py-0.5 rounded-md border border-black">data/entries.json</code></span>
+      {/* Optional Month Calendar View Modal */}
+      <CalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        entries={entries}
+        startDate={startDate}
+        todayStr={todayStr}
+      />
+
+      {/* Footer with Proper Spacing */}
+      <footer className="w-full max-w-[1380px] mx-auto text-center text-xs font-mono font-bold text-neutral-600 py-8 px-6 border-t-2 border-black/10 mt-12">
+        <span>DAILY QUALITY • All data persisted locally into <code className="text-black bg-[#FDC800] px-2 py-0.5 rounded-md border border-black font-black">data/entries.json</code></span>
       </footer>
 
     </div>
