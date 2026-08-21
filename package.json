@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "bin": {
+    "verdict": "./bin/verdict.js"
+  },
   "scripts": {
     "dev:frontend": "vite",
     "dev:backend": "node server/index.js",
