@@ -103,23 +103,61 @@ export async function enhanceReflectionWithAI(notes, rating, date) {
   }
 }
 
-export async function fetchMonthlyReport(year, month, customEntries = null) {
+export async function getSavedMonthlyReport(year, month, archetypeId = null) {
+  const targetDataset = archetypeId || 'real';
+  const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+
+  try {
+    const res = await fetch(`${API_BASE}/monthly-report?year=${year}&month=${month}&archetypeId=${archetypeId || ''}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        localStorage.setItem(reportKey, JSON.stringify(json.data));
+        return json.data;
+      }
+    }
+  } catch (err) {
+    console.warn('Backend GET /api/monthly-report unavailable, checking local storage:', err);
+  }
+
+  // Check local cache
+  try {
+    const cached = localStorage.getItem(reportKey);
+    if (cached) return JSON.parse(cached);
+  } catch (e) {
+    // ignore
+  }
+
+  return null;
+}
+
+export async function fetchMonthlyReport(year, month, customEntries = null, archetypeId = null, forceReevaluate = false) {
+  const targetDataset = archetypeId || 'real';
+  const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+
   try {
     const res = await fetch(`${API_BASE}/monthly-report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ year, month, customEntries })
+      body: JSON.stringify({ year, month, customEntries, archetypeId, forceReevaluate })
     });
     if (res.ok) {
       const json = await res.json();
-      if (json.success && json.data) return json.data;
+      if (json.success && json.data) {
+        localStorage.setItem(reportKey, JSON.stringify(json.data));
+        return json.data;
+      }
     }
   } catch (err) {
     console.warn('Backend /api/monthly-report unavailable, synthesizing client-side analytics fallback:', err);
   }
 
   // Self-healing client-side computation fallback
-  return generateClientMonthlyReport(year, month, customEntries);
+  const fallback = generateClientMonthlyReport(year, month, customEntries);
+  try {
+    localStorage.setItem(reportKey, JSON.stringify(fallback));
+  } catch (e) {}
+  return fallback;
 }
 
 function generateClientMonthlyReport(year, month, customEntries = null) {

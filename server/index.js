@@ -29,8 +29,9 @@ app.use(express.json({ limit: '10mb' }));
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DATA_FILE = path.join(DATA_DIR, 'entries.json');
+const REPORTS_FILE = path.join(DATA_DIR, 'reports.json');
 
-// Ensure data directory and file exist
+// Ensure data directory and files exist
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
@@ -52,6 +53,10 @@ if (!fs.existsSync(DATA_FILE)) {
   }, null, 2), 'utf-8');
 }
 
+if (!fs.existsSync(REPORTS_FILE)) {
+  fs.writeFileSync(REPORTS_FILE, JSON.stringify({}, null, 2), 'utf-8');
+}
+
 function readDatabase() {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
@@ -71,6 +76,27 @@ function writeDatabase(data) {
   const tempPath = `${DATA_FILE}.tmp`;
   fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
   fs.renameSync(tempPath, DATA_FILE);
+}
+
+function readReports() {
+  try {
+    if (!fs.existsSync(REPORTS_FILE)) return {};
+    const raw = fs.readFileSync(REPORTS_FILE, 'utf-8');
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error('Error reading reports file:', err);
+    return {};
+  }
+}
+
+function writeReports(reports) {
+  try {
+    const tempPath = `${REPORTS_FILE}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(reports, null, 2), 'utf-8');
+    fs.renameSync(tempPath, REPORTS_FILE);
+  } catch (err) {
+    console.error('Error writing reports file:', err);
+  }
 }
 
 // Routes
@@ -227,9 +253,44 @@ function sharpenReflectionLocally(text, rating) {
   }
 }
 
-// Monthly AI Performance Dossier Report Route
+// Monthly AI Performance Dossier Report Route (GET saved report)
+app.get('/api/monthly-report', (req, res) => {
+  const { year, month, archetypeId } = req.query;
+  const targetDataset = archetypeId || 'real';
+  const reportKey = `${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+  const reportsMap = readReports();
+
+  if (reportsMap[reportKey]) {
+    return res.json({
+      success: true,
+      isSaved: true,
+      data: reportsMap[reportKey]
+    });
+  }
+
+  res.json({
+    success: true,
+    isSaved: false,
+    data: null
+  });
+});
+
+// Monthly AI Performance Dossier Report Route (POST generate / re-evaluate)
 app.post('/api/monthly-report', async (req, res) => {
-  const { year, month, customEntries } = req.body;
+  const { year, month, customEntries, archetypeId, forceReevaluate } = req.body;
+  const targetDataset = archetypeId || 'real';
+  const reportKey = `${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+  const reportsMap = readReports();
+
+  // If already evaluated and user did not request force re-evaluation, return saved report instantly!
+  if (!forceReevaluate && reportsMap[reportKey]) {
+    return res.json({
+      success: true,
+      isSaved: true,
+      data: reportsMap[reportKey]
+    });
+  }
+
   const db = readDatabase();
   
   let allEntries = db.entries || {};
@@ -255,9 +316,11 @@ app.post('/api/monthly-report', async (req, res) => {
   if (loggedCount === 0) {
     return res.json({
       success: true,
+      isSaved: false,
       data: {
         monthName: new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
         totalLogged: 0,
+        totalDaysInMonth,
         hitRate: 0,
         avgScore: 0,
         ratingCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
@@ -516,25 +579,33 @@ Return ONLY a valid JSON object matching this exact schema:
     };
   }
 
+  const finalReport = {
+    monthName,
+    year,
+    month,
+    targetDataset,
+    totalLogged: loggedCount,
+    totalDaysInMonth,
+    hitRate,
+    avgScore,
+    longestStreak,
+    longestSlump,
+    ratingCounts,
+    weekdayAverages,
+    weeklyAnalytics,
+    frictionBreakdown,
+    dayMatrix,
+    evaluatedAt: new Date().toISOString(),
+    ...aiReport
+  };
+
+  reportsMap[reportKey] = finalReport;
+  writeReports(reportsMap);
+
   res.json({
     success: true,
-    data: {
-      monthName,
-      year,
-      month,
-      totalLogged: loggedCount,
-      totalDaysInMonth,
-      hitRate,
-      avgScore,
-      longestStreak,
-      longestSlump,
-      ratingCounts,
-      weekdayAverages,
-      weeklyAnalytics,
-      frictionBreakdown,
-      dayMatrix,
-      ...aiReport
-    }
+    isSaved: true,
+    data: finalReport
   });
 });
 

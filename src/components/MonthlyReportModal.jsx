@@ -28,7 +28,7 @@ import {
   Users,
   MessageSquareQuote
 } from 'lucide-react';
-import { fetchMonthlyReport } from '../services/api';
+import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
 import { mockArchetypes } from '../data/mockArchetypes';
 import confetti from 'canvas-confetti';
 
@@ -56,8 +56,27 @@ export default function MonthlyReportModal({
     if (initialMonth) setMonth(initialMonth);
   }, [initialYear, initialMonth]);
 
-  // Load report strictly on explicit user action
-  const loadReportData = async (archetypeId = selectedArchetype, currentYear = year, currentMonth = month) => {
+  // Check and load saved report from database when modal opens or month/dataset changes
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen) {
+      getSavedMonthlyReport(year, month, selectedArchetype).then((saved) => {
+        if (isMounted) {
+          if (saved && saved.executiveSummary) {
+            setReport(saved);
+          } else {
+            setReport(null);
+          }
+        }
+      }).catch(() => {
+        if (isMounted) setReport(null);
+      });
+    }
+    return () => { isMounted = false; };
+  }, [isOpen, year, month, selectedArchetype]);
+
+  // Load / Re-evaluate report
+  const loadReportData = async (archetypeId = selectedArchetype, currentYear = year, currentMonth = month, forceReevaluate = true) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -68,7 +87,7 @@ export default function MonthlyReportModal({
           ? arch.getEntries(currentYear, currentMonth) 
           : arch.entries;
       }
-      const data = await fetchMonthlyReport(currentYear, currentMonth, customEntries);
+      const data = await fetchMonthlyReport(currentYear, currentMonth, customEntries, archetypeId, forceReevaluate);
       setReport(data);
       if (data?.hitRate >= 75) {
         confetti({
@@ -86,10 +105,9 @@ export default function MonthlyReportModal({
     }
   };
 
-  // Switching dataset ONLY selects it, never auto-fetches
+  // Switching dataset selects it and triggers saved report check
   const handleSelectArchetype = (archetypeId) => {
     setSelectedArchetype(archetypeId);
-    setReport(null);
   };
 
   // Close and clean up state
@@ -249,15 +267,17 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </button>
               </div>
 
-              {/* Evaluate Action Button (h-9) */}
+              {/* Evaluate / Re-evaluate Action Button (h-9) */}
               <button
-                onClick={() => loadReportData(selectedArchetype, year, month)}
+                onClick={() => loadReportData(selectedArchetype, year, month, true)}
                 disabled={isLoading}
-                title="Run or re-generate Gemini AI Performance Evaluation"
-                className="h-9 neo-btn px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0"
+                title={report ? "Re-evaluate Gemini AI with latest data" : "Run Gemini AI Performance Evaluation"}
+                className={`h-9 neo-btn px-4 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0 ${
+                  report ? 'bg-[#FDC800] hover:bg-amber-300' : 'bg-[#00E599] hover:bg-emerald-400'
+                }`}
               >
                 <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'EVALUATING...' : '⚡ RUN EVALUATION'}</span>
+                <span>{isLoading ? 'EVALUATING...' : report ? '🔄 RE-EVALUATE' : '⚡ RUN EVALUATION'}</span>
               </button>
 
               {/* Copy Markdown Button (h-9) */}
@@ -400,7 +420,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     : 'bg-[#00E599] text-black shadow-[3px_3px_0px_#000000]'
                 }`}>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded uppercase tracking-wider ${
                         report.hitRate < 50 ? 'bg-[#FDC800] text-black' : 'bg-black text-white'
                       }`}>
@@ -409,6 +429,11 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       {report.hitRate < 50 && (
                         <span className="text-[9px] font-mono font-black bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded uppercase">
                           RAW TRENCH SURVIVAL
+                        </span>
+                      )}
+                      {report.evaluatedAt && (
+                        <span className="text-[9px] font-mono font-bold bg-black/40 text-neutral-200 border border-white/20 px-2 py-0.5 rounded">
+                          💾 SAVED IN LOCAL DB ({new Date(report.evaluatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
                         </span>
                       )}
                     </div>
