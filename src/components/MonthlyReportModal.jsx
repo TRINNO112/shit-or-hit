@@ -148,7 +148,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-xs overflow-y-auto"
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-xs"
         onClick={onClose}
       >
         <motion.div 
@@ -156,20 +156,20 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.93, y: 25 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="neo-card w-full max-w-4xl bg-white my-auto max-h-[92vh] flex flex-col justify-between overflow-hidden relative shadow-[8px_8px_0px_#000000]"
+          className="neo-card w-full max-w-5xl bg-white my-auto h-[92vh] max-h-[92vh] flex flex-col overflow-hidden relative shadow-[8px_8px_0px_#000000]"
           style={{ padding: '0px' }}
           onClick={(e) => e.stopPropagation()}
         >
           
           {/* Top Sticky Reading Progress Tracker */}
-          <div className="sticky top-0 z-20 bg-black text-white px-6 py-2 flex items-center justify-between border-b-2 border-black">
+          <div className="sticky top-0 z-20 bg-black text-white px-5 sm:px-8 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
             <div className="flex items-center gap-2 font-mono text-xs font-black">
               <Compass className="w-3.5 h-3.5 text-[#FDC800] animate-spin" style={{ animationDuration: '6s' }} />
               <span>DOSSIER PROGRESS</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-32 sm:w-48 h-2.5 bg-neutral-800 rounded-full overflow-hidden border border-white/20">
+              <div className="w-32 sm:w-56 h-2 bg-neutral-800 rounded-full overflow-hidden border border-white/20">
                 <motion.div 
                   className="h-full bg-[#FDC800]"
                   style={{ width: `${scrollProgress}%` }}
@@ -182,34 +182,34 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* Dossier Header */}
-          <div className="px-6 sm:px-8 pt-5 pb-3.5 border-b-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 bg-[#FFFDF5]">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0">
-                <Sparkles className="w-6 h-6 text-black stroke-[2.5]" />
+          {/* Compact Sleek Dossier Header */}
+          <div className="px-5 sm:px-8 py-3 border-b-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0 bg-[#FFFDF5]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
+                <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-display font-black text-xl sm:text-2xl text-black uppercase leading-tight">
+                  <h3 className="font-display font-black text-lg sm:text-xl text-black uppercase leading-tight">
                     MONTHLY PERFORMANCE DOSSIER
                   </h3>
                   <span className="px-2 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[10px] font-black uppercase">
                     GEMINI AI
                   </span>
                 </div>
-                <span className="text-xs font-mono font-bold text-neutral-600">
-                  Deep intelligence, hidden correlations & tactical directives.
+                <span className="text-[11px] font-mono font-bold text-neutral-600">
+                  Deep behavioral intelligence & tactical directives.
                 </span>
               </div>
             </div>
 
             {/* Controls: Evaluate Action, Month Switcher & Close */}
-            <div className="flex flex-wrap items-center gap-2.5 self-end sm:self-auto">
+            <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
               <button
                 onClick={() => loadReportData(selectedArchetype, year, month)}
                 disabled={isLoading}
                 title="Run or re-generate Gemini AI Performance Evaluation"
-                className="neo-btn px-3.5 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50"
+                className="neo-btn px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50"
               >
                 <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
                 <span>{isLoading ? 'EVALUATING...' : 'RUN EVALUATION'}</span>
@@ -219,27 +219,27 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 <button
                   onClick={handlePrevMonth}
                   title="Previous Month"
-                  className="p-1.5 rounded-lg hover:bg-neutral-100 text-black cursor-pointer"
+                  className="p-1 rounded-lg hover:bg-neutral-100 text-black cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4 stroke-[3]" />
+                  <ChevronLeft className="w-3.5 h-3.5 stroke-[3]" />
                 </button>
 
-                <span className="px-3 font-mono font-black text-xs text-black uppercase">
+                <span className="px-2.5 font-mono font-black text-xs text-black uppercase">
                   {report?.monthName || `${month}/${year}`}
                 </span>
 
                 <button
                   onClick={handleNextMonth}
                   title="Next Month"
-                  className="p-1.5 rounded-lg hover:bg-neutral-100 text-black cursor-pointer"
+                  className="p-1 rounded-lg hover:bg-neutral-100 text-black cursor-pointer"
                 >
-                  <ChevronRight className="w-4 h-4 stroke-[3]" />
+                  <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
                 </button>
               </div>
 
               <button
                 onClick={onClose}
-                className="neo-btn p-2 bg-[#FF4D4D] hover:bg-red-400 text-black cursor-pointer shadow-[2px_2px_0px_#000000]"
+                className="neo-btn p-1.5 bg-[#FF4D4D] hover:bg-red-400 text-black cursor-pointer shadow-[2px_2px_0px_#000000]"
               >
                 <X className="w-4 h-4 stroke-[3]" />
               </button>
@@ -247,9 +247,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           </div>
 
           {/* 🧪 TEST DATA ARCHETYPES QUICK SWITCHER BAR */}
-          <div className="bg-neutral-100 border-b-2 border-black px-6 py-2.5 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+          <div className="bg-neutral-100 border-b-2 border-black px-5 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2 font-mono text-xs font-black text-black">
-              <span>🧪 EVALUATION DATASET:</span>
+              <span>🧪 DATASET:</span>
               {selectedArchetype ? (
                 <span className="px-2 py-0.5 rounded bg-[#FDC800] text-black text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
                   TESTING: {mockArchetypes[selectedArchetype]?.name.split(' ')[1]}
@@ -261,47 +261,47 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('highPerformer')}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === 'highPerformer'
                     ? 'bg-[#00E599] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
-                👑 High-Performer (Peak/Good)
+                👑 High-Performer
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('steadyBaseline')}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === 'steadyBaseline'
                     ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
-                🔘 Steady Baseline (Okay)
+                🔘 Steady Baseline
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('fightingUnderdog')}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === 'fightingUnderdog'
                     ? 'bg-[#FF4D4D] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
-                🔥 Fighting Underdog (Red)
+                🔥 Fighting Underdog
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSelectArchetype(null)}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === null
                     ? 'bg-black text-white shadow-[2px_2px_0px_#FDC800] scale-[1.03]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
@@ -312,11 +312,11 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* Scrollable Content Body */}
+          {/* Scrollable Content Body with min-h-0 and flex-1 */}
           <div 
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="overflow-y-auto px-6 sm:px-8 py-6 space-y-6 flex-1"
+            className="overflow-y-auto px-5 sm:px-8 py-5 space-y-5 flex-1 min-h-0"
           >
             {isLoading ? (
               <div className="py-24 flex flex-col items-center justify-center space-y-4">
