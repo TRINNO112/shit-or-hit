@@ -27,13 +27,18 @@ const IconMap = {
   Sparkles
 };
 
-// SVG Paths for morphing vector mood graphics
+// 100% Normalized 10-Point Solid Closed SVG Paths for Flawless Liquid Morphing
 const moodSvgPaths = {
-  1: "M12 2L2 22h20L12 2zm0 6l1 7h-2l1-7zm0 10a1.5 1.5 0 110-3 1.5 1.5 0 010 3z", // Warning triangle / stoic resilience
-  2: "M6 19a4 4 0 01-4-4 4 4 0 014-4h.5A6 6 0 0118 9a4.5 4.5 0 014 4.5 4.5 4.5 0 01-4.5 4.5H6z", // Cloud downpour
-  3: "M4 12h16M4 12a8 8 0 1016 0A8 8 0 004 12z", // Equilibrium circle
-  4: "M13 2L3 14h9l-1 8 10-12h-9l1-8z", // Lightning Bolt
-  5: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" // Apex Star
+  // 1: Rough — Stoic Diamond-Shield
+  1: "M12,2 L17,6 L21,11 L20,17 L16,21 L12,22 L8,21 L4,17 L3,11 L7,6 Z",
+  // 2: Down — Melancholy Teardrop
+  2: "M12,2 L14.5,6.5 L17.5,11 L18.5,15.5 L16.5,19.5 L12,22 L7.5,19.5 L5.5,15.5 L6.5,11 L9.5,6.5 Z",
+  // 3: Okay — Smooth Equilibrium Octagon / Circle
+  3: "M12,2 L18.5,4.5 L22,10 L22,16 L18.5,21.5 L12,22 L5.5,21.5 L2,16 L2,10 L5.5,4.5 Z",
+  // 4: Good — High Current 4-Point Spark
+  4: "M12,2 L14,8.5 L21,9 L15.5,14 L17.5,21 L12,16.5 L6.5,21 L8.5,14 L3,9 L10,8.5 Z",
+  // 5: Peak — Radiant 5-Point Apex Star
+  5: "M12,1.5 L15,8 L22,8.5 L16.5,13.5 L18.5,20.5 L12,16.5 L5.5,20.5 L7.5,13.5 L2,8.5 L9,8 Z"
 };
 
 export default function TodayHero({ 
@@ -181,17 +186,17 @@ export default function TodayHero({
           <motion.div
             animate={{ 
               scale: [1, 1.08, 1],
-              rotate: (activeRatingForVisual - 3) * 5
+              rotate: (activeRatingForVisual - 3) * 6
             }}
-            transition={{ type: 'spring', stiffness: 350, damping: 18 }}
+            transition={{ duration: 0.65, ease: 'easeOut' }}
             className="w-16 h-16 rounded-2xl border-[2.5px] border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0 mt-1"
             style={{ backgroundColor: ratingMeta[activeRatingForVisual]?.bg }}
           >
-            <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-black fill-black" strokeWidth="2">
+            <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-black fill-black" strokeWidth="1.5">
               <motion.path
                 d={moodSvgPaths[activeRatingForVisual]}
                 animate={{ d: moodSvgPaths[activeRatingForVisual] }}
-                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                transition={{ duration: 0.65, ease: [0.34, 1.56, 0.64, 1] }}
               />
             </svg>
           </motion.div>

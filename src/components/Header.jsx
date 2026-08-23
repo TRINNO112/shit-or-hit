@@ -8,8 +8,7 @@ export default function Header({
   entries, 
   dayCount,
   onToggleCalendar,
-  isCalendarOpen,
-  onOpenLab
+  isCalendarOpen
 }) {
   const handleExport = () => {
     exportDatabaseBackup(startDate, entries);
@@ -33,18 +32,8 @@ export default function Header({
         </div>
       </div>
 
-      {/* Actions: Animation Lab, Streak, Calendar Toggle, Backup */}
+      {/* Actions: Streak, Calendar Toggle, Backup */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Animation Lab Button */}
-        <button
-          onClick={onOpenLab}
-          title="Open Animation Studio Lab to test directions live"
-          className="px-4 py-2.5 rounded-xl bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-2 shadow-[3px_3px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer ring-2 ring-black/20"
-        >
-          <Sparkles className="w-4 h-4 stroke-[3] fill-black text-black" />
-          <span>⚡ ANIMATION LAB</span>
-        </button>
-
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00E599] border-2 border-black text-black text-xs font-mono font-black shadow-[3px_3px_0px_#000000]">
           <Flame className="w-4 h-4 text-black fill-black" />
           <span>DAY {dayCount}</span>

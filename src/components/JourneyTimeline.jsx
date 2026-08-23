@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { 
   AlertCircle, 
   CloudRain, 
@@ -72,7 +73,7 @@ export default function JourneyTimeline({
           </span>
         </div>
 
-        {/* Day Cards List */}
+        {/* Day Cards List with Framer Motion spring physics */}
         <div className="space-y-3.5">
           {daysList.map(({ dayIndex, dateStr, dateFormatted, isToday, entry }) => {
             const rating = entry?.rating;
@@ -80,8 +81,11 @@ export default function JourneyTimeline({
             const SvgIcon = meta ? IconMap[meta.icon] : null;
 
             return (
-              <div
+              <motion.div
                 key={dateStr}
+                layout
+                whileHover={{ y: -3, scale: 1.01 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 className={`p-4 rounded-xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] transition-all group ${
                   isToday ? 'bg-[#FFFDF5] border-[2.5px]' : 'bg-white'
                 }`}
@@ -132,17 +136,20 @@ export default function JourneyTimeline({
                     </span>
                   )}
 
-                  {/* Edit Button */}
-                  <button
+                  {/* Edit Button with Spring Tap Physics */}
+                  <motion.button
+                    whileHover={{ scale: 1.15, rotate: -4 }}
+                    whileTap={{ scale: 0.88, rotate: 4 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                     onClick={() => onEditDay({ dateStr, dayIndex, entry })}
                     title="Edit Rating & Reflection"
-                    className="p-2 rounded-lg border-2 border-black bg-white hover:bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+                    className="p-2 rounded-lg border-2 border-black bg-white hover:bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] cursor-pointer"
                   >
                     <PenLine className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </button>
+                  </motion.button>
                 </div>
 
-              </div>
+              </motion.div>
             );
           })}
         </div>
