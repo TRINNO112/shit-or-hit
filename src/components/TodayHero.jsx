@@ -46,7 +46,7 @@ export default function TodayHero({
   const [noteText, setNoteText] = useState(currentEntry?.notes || '');
   const [syncedBadge, setSyncedBadge] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
-  const [activeRipple, setActiveRipple] = useState(null);
+  const [sadSettle, setSadSettle] = useState(false);
   
   // History stack for Undo / Redo / Revert to Original
   const [historyStack, setHistoryStack] = useState([]);
@@ -65,27 +65,20 @@ export default function TodayHero({
   }, [currentEntry]);
 
   const selectedRating = currentEntry?.rating || null;
+  const activeRatingForVisual = selectedRating || 3;
 
   const now = new Date();
   const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
   const fullDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   const handleRate = async (val, e) => {
-    // Trigger Emotion-Toned feedback
-    const rect = e?.currentTarget?.getBoundingClientRect();
-    if (rect) {
-      setActiveRipple({
-        id: Date.now(),
-        rating: val,
-        color: ratingMeta[val]?.bg || '#FDC800'
-      });
-      setTimeout(() => setActiveRipple(null), 650);
-    }
-
-    // Only celebrate peak and good with confetti
-    if (val === 5) {
+    if (val <= 2) {
+      // Gentle melancholy sigh settle (subtle & respectful, zero seismic waves)
+      setSadSettle(true);
+      setTimeout(() => setSadSettle(false), 800);
+    } else if (val === 5) {
       confetti({
-        particleCount: 55,
+        particleCount: 60,
         spread: 65,
         origin: { y: 0.6 },
         colors: ['#FDC800', '#000000', '#00E599']
@@ -98,7 +91,6 @@ export default function TodayHero({
         colors: ['#00E599', '#000000']
       });
     }
-    // Note: Ratings 1 (Rough), 2 (Down), 3 (Okay) have stoic, calm, zero-hype feedback
 
     setSyncedBadge(true);
     await onSaveToday({
@@ -172,48 +164,60 @@ export default function TodayHero({
   };
 
   return (
-    <div className="neo-card w-full mb-8 bg-white relative overflow-hidden" style={{ padding: '36px 40px' }}>
+    <motion.div 
+      animate={sadSettle ? { y: [0, 4, 1, 0] } : {}}
+      transition={{ duration: 0.7, ease: 'easeInOut' }}
+      className="neo-card w-full mb-8 bg-white relative overflow-hidden" 
+      style={{ padding: '36px 40px' }}
+    >
       
-      {/* Emotion Ripple Indicator Overlay */}
-      <AnimatePresence>
-        {activeRipple && (
-          <motion.div
-            key={activeRipple.id}
-            initial={{ opacity: 0.4, scale: 0.8 }}
-            animate={{ opacity: 0, scale: 1.05 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="absolute inset-0 pointer-events-none rounded-2xl border-4"
-            style={{ borderColor: activeRipple.color, backgroundColor: `${activeRipple.color}08` }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Top Panoramic Grid */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
         
-        {/* Left Side: Date & Heading */}
-        <div className="text-left w-full lg:w-5/12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-mono font-black mb-4 shadow-[2px_2px_0px_#FDC800]">
-            <span>TODAY</span>
-            <span>•</span>
-            <span>DAY {dayCount}</span>
-          </div>
+        {/* Left Side: Date, Heading & Prominent Morphing Vector Emblem */}
+        <div className="text-left w-full lg:w-5/12 flex items-start gap-4">
+          
+          {/* Prominent Morphing Vector Emblem Box */}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.08, 1],
+              rotate: (activeRatingForVisual - 3) * 5
+            }}
+            transition={{ type: 'spring', stiffness: 350, damping: 18 }}
+            className="w-16 h-16 rounded-2xl border-[2.5px] border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0 mt-1"
+            style={{ backgroundColor: ratingMeta[activeRatingForVisual]?.bg }}
+          >
+            <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-black fill-black" strokeWidth="2">
+              <motion.path
+                d={moodSvgPaths[activeRatingForVisual]}
+                animate={{ d: moodSvgPaths[activeRatingForVisual] }}
+                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+              />
+            </svg>
+          </motion.div>
 
-          <h2 className="font-display font-black text-4xl sm:text-5xl text-black tracking-tight uppercase leading-none">
-            {dayName}
-          </h2>
-          <p className="text-base font-mono font-bold text-neutral-700 mt-2.5">
-            {fullDate}
-          </p>
-          <p className="text-xs font-mono text-neutral-500 mt-1.5 font-semibold">
-            Tap an icon to punch in or change today's verdict anytime.
-          </p>
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black text-white text-xs font-mono font-black mb-3 shadow-[2px_2px_0px_#FDC800]">
+              <span>TODAY</span>
+              <span>•</span>
+              <span>DAY {dayCount}</span>
+            </div>
+
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-black tracking-tight uppercase leading-none">
+              {dayName}
+            </h2>
+            <p className="text-sm font-mono font-bold text-neutral-700 mt-1.5">
+              {fullDate}
+            </p>
+            <p className="text-xs font-mono text-neutral-500 mt-1 font-semibold">
+              Hover & punch an icon to log your verdict.
+            </p>
+          </div>
         </div>
 
-        {/* Right Side: 5 Chunky Tactile Buttons with Framer Motion Spring */}
+        {/* Right Side: 5 Chunky Tactile Buttons with Direction 1 Shape-Shifting & Gliding Outline */}
         <div className="w-full lg:w-7/12">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 relative">
             {[1, 2, 3, 4, 5].map((val) => {
               const m = ratingMeta[val];
               const SvgIcon = IconMap[m.icon];
@@ -223,23 +227,43 @@ export default function TodayHero({
                 <motion.button
                   key={val}
                   type="button"
-                  whileHover={{ scale: 1.06, y: -2 }}
-                  whileTap={{ scale: 0.88, rotate: (val - 3) * 1.5 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                  whileHover={{ 
+                    scale: 1.08, 
+                    y: -5, 
+                    rotate: (val - 3) * 2.2,
+                    boxShadow: '5px 5px 0px #000000'
+                  }}
+                  whileTap={{ 
+                    scale: 0.86, 
+                    rotate: (val - 3) * -3.5 
+                  }}
+                  transition={{ type: 'spring', stiffness: 450, damping: 16 }}
                   onClick={(e) => handleRate(val, e)}
-                  className={`neo-btn flex flex-col items-center justify-center p-4 relative cursor-pointer ${
-                    isSelected ? m.selectedClass : ''
+                  className={`neo-btn flex flex-col items-center justify-center p-3 relative cursor-pointer ${
+                    isSelected ? 'ring-2 ring-black font-black' : ''
                   }`}
-                  style={{ minHeight: '110px' }}
+                  style={{ 
+                    minHeight: '110px',
+                    backgroundColor: isSelected ? m.bg : '#FFFFFF'
+                  }}
                 >
+                  {/* Gliding Selection Box Indicator from Direction 1 */}
+                  {isSelected && (
+                    <motion.div
+                      layoutId="active-cyber-box"
+                      className="absolute inset-0 rounded-2xl border-[3px] border-black pointer-events-none"
+                      transition={{ type: 'spring', stiffness: 480, damping: 26 }}
+                    />
+                  )}
+
                   <div 
-                    className="w-11 h-11 rounded-xl border-2 border-black flex items-center justify-center mb-2 shadow-[2px_2px_0px_#000000]"
+                    className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center mb-1.5 shadow-[2px_2px_0px_#000000]"
                     style={{ backgroundColor: m.bg }}
                   >
-                    <SvgIcon className="w-6 h-6 text-black stroke-[2.5]" />
+                    <SvgIcon className="w-5 h-5 text-black stroke-[2.5]" />
                   </div>
 
-                  <span className="font-display font-black text-xs sm:text-sm text-black uppercase tracking-tight leading-none mt-1">
+                  <span className="font-display font-black text-xs uppercase tracking-tight leading-none mt-1">
                     {m.title}
                   </span>
 
@@ -407,7 +431,7 @@ export default function TodayHero({
         )}
       </AnimatePresence>
 
-    </div>
+    </motion.div>
   );
 }
 
