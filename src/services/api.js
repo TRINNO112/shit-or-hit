@@ -254,6 +254,69 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
     ];
   }
 
+  const weeklyPhases = [
+    { label: 'Week 1 (Days 1–7)', days: [], sum: 0, count: 0, hits: 0 },
+    { label: 'Week 2 (Days 8–14)', days: [], sum: 0, count: 0, hits: 0 },
+    { label: 'Week 3 (Days 15–21)', days: [], sum: 0, count: 0, hits: 0 },
+    { label: 'Week 4 (Days 22–31)', days: [], sum: 0, count: 0, hits: 0 }
+  ];
+
+  let screenMentions = 0;
+  let academicMentions = 0;
+  let householdSocialMentions = 0;
+  let currentSlump = 0;
+  let longestSlump = 0;
+
+  const dayMatrix = monthEntries.map(([date, entry]) => {
+    const dayNum = parseInt(date.split('-')[2], 10);
+    const r = Number(entry.rating) || 3;
+    const noteLower = (entry.notes || '').toLowerCase();
+
+    const weekIdx = dayNum <= 7 ? 0 : dayNum <= 14 ? 1 : dayNum <= 21 ? 2 : 3;
+    weeklyPhases[weekIdx].days.push(r);
+    weeklyPhases[weekIdx].sum += r;
+    weeklyPhases[weekIdx].count++;
+    if (r >= 3) weeklyPhases[weekIdx].hits++;
+
+    if (/(reel|instagram|tiktok|scroll|phone|short|stream|3:45|4:30|gaming|youtube)/i.test(noteLower)) {
+      screenMentions++;
+    }
+    if (/(account|exam|test|balance sheet|marks|teacher|quiz|fail|homework|bst|eco|math)/i.test(noteLower)) {
+      academicMentions++;
+    }
+    if (/(gas|cylinder|brother|parent|dad|mom|fight|canteen|crush|ananya|friend|lonel)/i.test(noteLower)) {
+      householdSocialMentions++;
+    }
+
+    if (r <= 2) {
+      currentSlump++;
+      if (currentSlump > longestSlump) longestSlump = currentSlump;
+    } else {
+      currentSlump = 0;
+    }
+
+    return {
+      day: dayNum,
+      date,
+      rating: r,
+      notes: entry.notes || ''
+    };
+  });
+
+  const weeklyAnalytics = weeklyPhases.map(w => ({
+    label: w.label,
+    count: w.count,
+    avgScore: w.count > 0 ? Number((w.sum / w.count).toFixed(1)) : 0,
+    hitRate: w.count > 0 ? Math.round((w.hits / w.count) * 100) : 0
+  }));
+
+  const totalFrictionSignals = Math.max(1, screenMentions + academicMentions + householdSocialMentions);
+  const frictionBreakdown = {
+    screenDoomscrollPct: Math.round((screenMentions / totalFrictionSignals) * 100),
+    academicStressPct: Math.round((academicMentions / totalFrictionSignals) * 100),
+    householdSocialPct: Math.round((householdSocialMentions / totalFrictionSignals) * 100)
+  };
+
   return {
     monthName,
     year,
@@ -262,8 +325,12 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
     totalDaysInMonth,
     hitRate,
     avgScore,
+    longestSlump,
     ratingCounts,
     weekdayAverages,
+    weeklyAnalytics,
+    frictionBreakdown,
+    dayMatrix,
     personaTitle,
     executiveSummary,
     hiddenFacts,

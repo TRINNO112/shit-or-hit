@@ -21,7 +21,11 @@ import {
   Compass,
   Calendar,
   Lock,
-  Play
+  Play,
+  Activity,
+  Smartphone,
+  BookOpen,
+  Users
 } from 'lucide-react';
 import { fetchMonthlyReport } from '../services/api';
 import { mockArchetypes } from '../data/mockArchetypes';
@@ -41,6 +45,7 @@ export default function MonthlyReportModal({
   const [error, setError] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [activeDayNote, setActiveDayNote] = useState(null);
 
   const scrollContainerRef = useRef(null);
 
@@ -50,7 +55,7 @@ export default function MonthlyReportModal({
     if (initialMonth) setMonth(initialMonth);
   }, [initialYear, initialMonth]);
 
-  // Load report with real data or custom archetype (Explicitly user-triggered)
+  // Load report strictly on explicit user action
   const loadReportData = async (archetypeId = selectedArchetype, currentYear = year, currentMonth = month) => {
     setIsLoading(true);
     setError(null);
@@ -80,10 +85,16 @@ export default function MonthlyReportModal({
     }
   };
 
+  // Switching dataset ONLY selects it, never auto-fetches
   const handleSelectArchetype = (archetypeId) => {
     setSelectedArchetype(archetypeId);
     setReport(null);
-    loadReportData(archetypeId, year, month);
+  };
+
+  // Close and clean up state
+  const handleClose = () => {
+    setReport(null);
+    onClose();
   };
 
   // Handle scroll tracking
@@ -120,6 +131,7 @@ export default function MonthlyReportModal({
     const text = `# 📊 MONTHLY PERFORMANCE INTELLIGENCE DOSSIER: ${report.monthName}
 **Persona Archetype:** ${report.personaTitle}
 **Hit Rate:** ${report.hitRate}% | **Average Quality:** ${report.avgScore}/5.0 (${report.totalLogged} days logged)
+**Longest Slump:** ${report.longestSlump || 0} consecutive rough days
 
 ## 📌 Executive Summary
 ${report.executiveSummary}
@@ -153,7 +165,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/75 backdrop-blur-xs"
-        onClick={onClose}
+        onClick={handleClose}
       >
         <motion.div 
           key="dossier-modal-card"
@@ -167,10 +179,10 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         >
           
           {/* Top Sticky Reading Progress Tracker */}
-          <div className="bg-black text-white px-5 sm:px-6 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
+          <div className="bg-black text-white px-5 sm:px-7 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
             <div className="flex items-center gap-2 font-mono text-[11px] font-black">
               <Compass className="w-3.5 h-3.5 text-[#FDC800] animate-spin" style={{ animationDuration: '6s' }} />
-              <span>MONTHLY DOSSIER INTELLIGENCE</span>
+              <span>MONTHLY PERFORMANCE INTELLIGENCE DOSSIER</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -187,7 +199,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* Clean Single-Line Header */}
+          {/* Single-Line Clean Header */}
           <div className="px-5 sm:px-7 py-3 border-b-2 border-black/10 flex items-center justify-between gap-4 shrink-0 bg-[#FFFDF5]">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
@@ -208,7 +220,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               </div>
             </div>
 
-            {/* Controls: Month Switcher, Evaluate, Copy & Close (Single Line Flex-Nowrap) */}
+            {/* Controls: Month Switcher, Evaluate, Copy & Close */}
             <div className="flex items-center gap-2 shrink-0">
               {/* Month Navigator */}
               <div className="flex items-center bg-white border-2 border-black rounded-xl p-0.5 shadow-[2px_2px_0px_#000000]">
@@ -233,15 +245,15 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </button>
               </div>
 
-              {/* Evaluate Button */}
+              {/* Evaluate Action Button */}
               <button
                 onClick={() => loadReportData(selectedArchetype, year, month)}
                 disabled={isLoading}
                 title="Run or re-generate Gemini AI Performance Evaluation"
-                className="neo-btn px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0"
+                className="neo-btn px-3.5 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0"
               >
                 <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'EVALUATING...' : 'RUN EVALUATION'}</span>
+                <span>{isLoading ? 'EVALUATING...' : '⚡ RUN EVALUATION'}</span>
               </button>
 
               {/* Copy Markdown (if report ready) */}
@@ -258,7 +270,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
               {/* Close Button */}
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="w-8 h-8 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
                 title="Close Dossier"
               >
@@ -268,12 +280,12 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           </div>
 
           {/* 🧪 TEST DATASET QUICK SWITCHER BAR */}
-          <div className="bg-neutral-100 border-b-2 border-black px-5 sm:px-6 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="bg-neutral-100 border-b-2 border-black px-5 sm:px-7 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2 font-mono text-xs font-black text-black">
-              <span>🧪 DATASET:</span>
+              <span>🧪 ACTIVE TARGET DATASET:</span>
               {selectedArchetype ? (
                 <span className="px-2 py-0.5 rounded bg-[#FF8A00] text-black text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
-                  TESTING: ARYAN'S CHRONICLES (31 DAYS)
+                  TESTING: ARYAN'S CHRONICLES (30 IN HELL, 1 CLUTCH WIN)
                 </span>
               ) : (
                 <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shadow-[1px_1px_0px_#FDC800]">
@@ -286,25 +298,25 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('strugglingStudent')}
-                className={`px-2.5 py-0.5 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
+                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
                   selectedArchetype === 'strugglingStudent'
                     ? 'bg-[#FF8A00] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
-                🎓 Aryan's Chronicles (Struggling Student — 31 Days)
+                🎓 Aryan's Chronicles (30 Days in Hell, 1 Win)
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSelectArchetype(null)}
-                className={`px-2.5 py-0.5 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
+                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
                   selectedArchetype === null
                     ? 'bg-black text-white shadow-[2px_2px_0px_#FDC800] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
-                ↩️ My Real Data
+                ↩️ My Real Database
               </button>
             </div>
           </div>
@@ -313,27 +325,27 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           <div 
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 space-y-3.5"
+            className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-7 py-4 space-y-4"
           >
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl bg-[#FDC800] border-3 border-black flex items-center justify-center animate-bounce shadow-[4px_4px_0px_#000000]">
-                    <Sparkles className="w-7 h-7 text-black" />
+                  <div className="w-16 h-16 rounded-2xl bg-[#FDC800] border-3 border-black flex items-center justify-center animate-bounce shadow-[4px_4px_0px_#000000]">
+                    <Sparkles className="w-8 h-8 text-black" />
                   </div>
                 </div>
                 <div className="text-center space-y-1">
-                  <h4 className="font-display font-black text-base text-black uppercase">
-                    Synthesizing Monthly Performance Intelligence...
+                  <h4 className="font-display font-black text-lg text-black uppercase">
+                    Synthesizing Performance Intelligence...
                   </h4>
                   <p className="text-xs font-mono text-neutral-600">
-                    Gemini AI is examining 31 daily notes, friction points, and behavioral turnaround momentum.
+                    Gemini AI is examining 31 daily notes, friction root causes, and behavioral trajectory.
                   </p>
                 </div>
               </div>
             ) : error ? (
-              <div className="p-5 rounded-2xl border-2 border-black bg-red-100 shadow-[3px_3px_0px_#000000] text-center space-y-3">
-                <AlertCircle className="w-7 h-7 text-red-600 mx-auto" />
+              <div className="p-6 rounded-2xl border-2 border-black bg-red-100 shadow-[3px_3px_0px_#000000] text-center space-y-3">
+                <AlertCircle className="w-8 h-8 text-red-600 mx-auto" />
                 <h4 className="font-display font-black text-sm text-black uppercase">
                   Could Not Generate Monthly Intelligence
                 </h4>
@@ -342,48 +354,41 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </p>
                 <button
                   onClick={() => loadReportData(selectedArchetype, year, month)}
-                  className="neo-btn px-4 py-1.5 bg-black text-[#FDC800] text-xs font-mono font-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+                  className="neo-btn px-4 py-2 bg-black text-[#FDC800] text-xs font-mono font-black shadow-[2px_2px_0px_#000000] cursor-pointer"
                 >
                   RETRY SYNTHESIS
                 </button>
               </div>
             ) : !report ? (
               /* Privacy-First Ready to Synthesize Launcher Screen */
-              <div className="p-6 rounded-2xl border-2 border-black bg-[#FFFDF5] shadow-[3px_3px_0px_#000000] text-center space-y-4 max-w-2xl mx-auto my-4">
-                <div className="w-12 h-12 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center mx-auto shadow-[2px_2px_0px_#000000]">
-                  <Lock className="w-6 h-6 text-black stroke-[2.5]" />
+              <div className="p-8 sm:p-12 rounded-3xl border-3 border-black bg-[#FFFDF5] shadow-[6px_6px_0px_#000000] text-center space-y-6 max-w-2xl mx-auto my-6">
+                <div className="w-16 h-16 rounded-2xl bg-[#00E599] border-3 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_#000000]">
+                  <Lock className="w-8 h-8 text-black stroke-[2.5]" />
                 </div>
                 
-                <div className="space-y-1">
-                  <h4 className="font-display font-black text-xl uppercase text-black">
+                <div className="space-y-2">
+                  <h4 className="font-display font-black text-2xl uppercase text-black">
                     READY FOR MONTHLY EVALUATION
                   </h4>
-                  <p className="text-xs font-mono text-neutral-700 max-w-md mx-auto leading-relaxed">
-                    <strong>100% Privacy Protected:</strong> Your daily notes and verdicts stay local on your device. Click below to send your entries to Gemini AI for deep behavioral pattern discovery and battle directives.
+                  <p className="text-xs font-mono text-neutral-700 max-w-lg mx-auto leading-relaxed">
+                    <strong>100% Privacy Lock Active:</strong> Your verdicts and diary notes remain strictly local on your device. Click the button below when you are ready to evaluate {selectedArchetype ? "Aryan's 31-Day Struggle" : "your real database"}.
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                   <button
                     onClick={() => loadReportData(selectedArchetype, year, month)}
-                    className="neo-btn px-5 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase flex items-center gap-2 shadow-[2px_2px_0px_#000000] cursor-pointer"
+                    className="neo-btn px-6 py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-sm uppercase flex items-center gap-2 shadow-[3px_3px_0px_#000000] cursor-pointer"
                   >
                     <Wand2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>⚡ RUN EVALUATION ({new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSelectArchetype('strugglingStudent')}
-                    className="neo-btn px-4 py-2.5 bg-white hover:bg-amber-50 text-black font-mono font-black text-xs flex items-center gap-1.5 border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
-                  >
-                    <span>🎓 TEST ARYAN'S 31-DAY STORY</span>
+                    <span>⚡ RUN EVALUATION ({selectedArchetype ? "ARYAN'S 31 DAYS" : `${new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`})</span>
                   </button>
                 </div>
               </div>
             ) : report ? (
               <>
-                {/* Persona Archetype Banner with Dynamic Stoic or High-Velocity Styling */}
-                <div className={`p-4 rounded-xl border-2 border-black flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shrink-0 ${
+                {/* Persona Archetype Banner with Homie Tough-Love Styling */}
+                <div className={`p-4 sm:p-5 rounded-2xl border-2 border-black flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shrink-0 ${
                   report.hitRate < 50 
                     ? 'bg-[#1C1917] text-white shadow-[3px_3px_0px_#FDC800]' 
                     : report.hitRate >= 80 
@@ -399,28 +404,28 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       </span>
                       {report.hitRate < 50 && (
                         <span className="text-[9px] font-mono font-black bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded uppercase">
-                          STOIC RESILIENCE
+                          RAW TRENCH SURVIVAL
                         </span>
                       )}
                     </div>
 
-                    <h4 className={`font-display font-black text-xl sm:text-2xl uppercase tracking-tight mt-1 ${
+                    <h4 className={`font-display font-black text-xl sm:text-2xl uppercase tracking-tight mt-1.5 ${
                       report.hitRate < 50 ? 'text-white' : 'text-black'
                     }`}>
                       "{report.personaTitle}"
                     </h4>
-                    <p className={`text-xs font-mono font-bold mt-1 leading-relaxed ${
+                    <p className={`text-xs font-mono font-bold mt-1 leading-relaxed max-w-3xl ${
                       report.hitRate < 50 ? 'text-neutral-300' : 'text-neutral-800'
                     }`}>
                       {report.executiveSummary}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
-                    <div className={`px-3.5 py-1.5 rounded-lg border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 self-end md:self-auto">
+                    <div className={`px-3 py-1.5 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
-                      <span className="block text-[9px] font-mono font-bold text-neutral-400">HIT RATE</span>
+                      <span className="block text-[8px] font-mono font-bold text-neutral-400">HIT RATE</span>
                       <span className={`font-display font-black text-lg leading-none mt-0.5 ${
                         report.hitRate < 50 ? 'text-[#FF4D4D]' : 'text-black'
                       }`}>
@@ -428,21 +433,196 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       </span>
                     </div>
 
-                    <div className={`px-3.5 py-1.5 rounded-lg border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                    <div className={`px-3 py-1.5 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
-                      <span className="block text-[9px] font-mono font-bold text-neutral-400">AVG SCORE</span>
+                      <span className="block text-[8px] font-mono font-bold text-neutral-400">AVG SCORE</span>
                       <span className="font-display font-black text-lg leading-none mt-0.5 text-black">
                         {report.avgScore}
+                      </span>
+                    </div>
+
+                    <div className={`px-3 py-1.5 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                      report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
+                    }`}>
+                      <span className="block text-[8px] font-mono font-bold text-neutral-400">MAX SLUMP</span>
+                      <span className="font-display font-black text-lg leading-none mt-0.5 text-[#FF8A00]">
+                        {report.longestSlump || 0}d
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* 2-Column Analytics Grid */}
+                {/* 📊 DEEP ANALYTICS ROW: Weekly Trajectory & Friction Leak Factors */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+                  
+                  {/* Left: Weekly Phase Trajectory (7 cols) */}
+                  <div className="md:col-span-7 p-4 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-black/10">
+                      <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
+                        <Activity className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                        <span>WEEKLY PHASE VELOCITY TRAJECTORY</span>
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-neutral-500">
+                        Avg Score / 5.0
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 pt-1">
+                      {report.weeklyAnalytics?.map((week, idx) => (
+                        <div key={idx} className="p-2.5 rounded-lg border border-black/20 bg-neutral-50 flex flex-col justify-between">
+                          <span className="text-[10px] font-mono font-black uppercase text-neutral-600 truncate">
+                            Week {idx + 1}
+                          </span>
+                          <div className="my-1.5 flex items-baseline gap-1">
+                            <span className="font-display font-black text-xl text-black">
+                              {week.avgScore || '—'}
+                            </span>
+                            <span className="text-[9px] font-mono font-bold text-neutral-500">
+                              / 5.0
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full bg-neutral-200 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full ${week.avgScore >= 3.5 ? 'bg-[#00E599]' : week.avgScore >= 2.5 ? 'bg-[#FDC800]' : 'bg-[#FF8A00]'}`}
+                              style={{ width: `${Math.min(100, (week.avgScore / 5.0) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right: Friction Root-Cause Leak Distribution (5 cols) */}
+                  <div className="md:col-span-5 p-4 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-black/10">
+                      <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-[#FF4D4D] stroke-[2.5]" />
+                        <span>FRICTION ROOT-CAUSE LEAK FACTOR</span>
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-neutral-500">
+                        DIARY KEYWORDS
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 pt-1">
+                      <div>
+                        <div className="flex justify-between text-[10px] font-mono font-bold text-black mb-0.5">
+                          <span className="flex items-center gap-1">
+                            <Smartphone className="w-3 h-3 text-purple-600" />
+                            <span>Screen Doomscrolling & 3 AM Traps</span>
+                          </span>
+                          <span>{report.frictionBreakdown?.screenDoomscrollPct || 0}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                          <div className="h-full bg-purple-500" style={{ width: `${report.frictionBreakdown?.screenDoomscrollPct || 0}%` }} />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-[10px] font-mono font-bold text-black mb-0.5">
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="w-3 h-3 text-red-600" />
+                            <span>Academic Pressure & Balance Sheets</span>
+                          </span>
+                          <span>{report.frictionBreakdown?.academicStressPct || 0}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                          <div className="h-full bg-[#FF4D4D]" style={{ width: `${report.frictionBreakdown?.academicStressPct || 0}%` }} />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-[10px] font-mono font-bold text-black mb-0.5">
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3 text-amber-600" />
+                            <span>Family Chores, Chaos & Canteen FOMO</span>
+                          </span>
+                          <span>{report.frictionBreakdown?.householdSocialPct || 0}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                          <div className="h-full bg-[#FF8A00]" style={{ width: `${report.frictionBreakdown?.householdSocialPct || 0}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* 🗓️ 31-DAY HIGH-DENSITY MICRO-VERDICT MATRIX */}
+                {report.dayMatrix && report.dayMatrix.length > 0 && (
+                  <div className="p-4 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-2">
+                    <div className="flex items-center justify-between pb-1 border-b border-black/10">
+                      <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                        <span>31-DAY MICRO-VERDICT MATRIX (CLICK ANY DAY TO INSPECT NOTES)</span>
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-neutral-500">
+                        {report.dayMatrix.length} DAYS LOGGED
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-7 sm:grid-cols-11 md:grid-cols-16 lg:grid-cols-31 gap-1.5 pt-1">
+                      {report.dayMatrix.map((item) => {
+                        const isSelected = activeDayNote?.day === item.day;
+                        const bg = item.rating === 5 ? 'bg-[#FDC800]' : item.rating === 4 ? 'bg-[#00E599]' : item.rating === 3 ? 'bg-neutral-300' : item.rating === 2 ? 'bg-[#FF8A00]' : 'bg-[#FF4D4D]';
+                        return (
+                          <button
+                            key={item.day}
+                            type="button"
+                            onClick={() => setActiveDayNote(isSelected ? null : item)}
+                            className={`p-1 rounded-lg border-2 border-black flex flex-col items-center justify-center transition-all cursor-pointer ${bg} ${
+                              isSelected ? 'ring-2 ring-black scale-110 shadow-[2px_2px_0px_#000000]' : 'hover:scale-105'
+                            }`}
+                            title={`Day ${item.day}: Rating ${item.rating}/5`}
+                          >
+                            <span className="text-[9px] font-mono font-black text-black leading-none">
+                              {item.day}
+                            </span>
+                            <span className="text-[8px] font-mono font-bold text-black mt-0.5">
+                              {item.rating}★
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Expandable Day Note Inspector */}
+                    {activeDayNote && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="p-3 rounded-lg border-2 border-black bg-amber-50 shadow-[2px_2px_0px_#000000] mt-2 flex items-start justify-between gap-3"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded bg-black text-[#FDC800] font-mono font-black text-[10px]">
+                              DAY {activeDayNote.day} ({activeDayNote.date})
+                            </span>
+                            <span className="font-mono font-black text-xs text-black">
+                              Rating: {activeDayNote.rating}/5.0
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-mono text-neutral-800 leading-snug">
+                            {activeDayNote.notes || "No extra diary notes logged for this day."}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveDayNote(null)}
+                          className="p-1 rounded bg-black text-white hover:bg-neutral-800 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {/* 2-Column Weekday Heatmap & Rating Breakdown */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
                   
-                  {/* Left Col: Weekday Momentum Heatmap (7 cols) */}
+                  {/* Left: Weekday Heatmap */}
                   <div className="lg:col-span-7 p-3.5 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-2 pb-1 border-b border-black/10">
                       <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
@@ -454,7 +634,6 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       </span>
                     </div>
 
-                    {/* Bar chart for Mon - Sun */}
                     <div className="grid grid-cols-7 gap-2 items-end pt-2 h-28">
                       {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
                         const score = report.weekdayAverages?.[day] || 0;
@@ -483,7 +662,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     </div>
                   </div>
 
-                  {/* Right Col: Rating Breakdown (5 cols) */}
+                  {/* Right: Verdict Breakdown */}
                   <div className="lg:col-span-5 p-3.5 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-2 pb-1 border-b border-black/10">
                       <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
@@ -527,12 +706,12 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                 </div>
 
-                {/* 🔍 Hidden Behavioral Patterns & Correlations */}
+                {/* 🔍 Hidden Behavioral Patterns & Correlations (Raw Homie Observations) */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-black stroke-[2.5]" />
                     <h5 className="font-display font-black text-xs text-black uppercase tracking-wider">
-                      HIDDEN BEHAVIORAL CORRELATIONS & DISCOVERIES
+                      HIDDEN BEHAVIORAL CORRELATIONS & HOMIE OBSERVATIONS
                     </h5>
                   </div>
 
@@ -581,7 +760,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
                 </div>
 
-                {/* 🎯 Next Month Tactical Directives */}
+                {/* 🎯 Next Month Homie Battle Directives */}
                 <div className="p-4 rounded-xl border-2 border-black bg-black text-white shadow-[3px_3px_0px_#FDC800] space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 font-display font-black text-xs uppercase text-[#FDC800]">

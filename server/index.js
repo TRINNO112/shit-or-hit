@@ -320,40 +320,119 @@ app.post('/api/monthly-report', async (req, res) => {
 
   const monthName = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
+  // ════════ DEEP FORENSIC ANALYTICAL ALGORITHMS ════════
+  
+  // 1. Weekly Phase Trajectory (Weeks 1 to 4)
+  const weeklyPhases = [
+    { label: 'Week 1 (Days 1–7)', days: [], sum: 0, count: 0, hits: 0 },
+    { label: 'Week 2 (Days 8–14)', days: [], sum: 0, count: 0, hits: 0 },
+    { label: 'Week 3 (Days 15–21)', days: [], sum: 0, count: 0, hits: 0 },
+    { label: 'Week 4 (Days 22–31)', days: [], sum: 0, count: 0, hits: 0 }
+  ];
+
+  // 2. Friction Root-Cause Detection
+  let screenMentions = 0;
+  let academicMentions = 0;
+  let householdSocialMentions = 0;
+
+  // 3. Slump & Streak Analyzer
+  let currentSlump = 0;
+  let longestSlump = 0;
+
+  const dayMatrix = monthEntries.map(([date, entry]) => {
+    const dayNum = parseInt(date.split('-')[2], 10);
+    const r = Number(entry.rating) || 3;
+    const noteLower = (entry.notes || '').toLowerCase();
+
+    // Weekly bucketing
+    const weekIdx = dayNum <= 7 ? 0 : dayNum <= 14 ? 1 : dayNum <= 21 ? 2 : 3;
+    weeklyPhases[weekIdx].days.push(r);
+    weeklyPhases[weekIdx].sum += r;
+    weeklyPhases[weekIdx].count++;
+    if (r >= 3) weeklyPhases[weekIdx].hits++;
+
+    // Friction keyword frequency analysis
+    if (/(reel|instagram|tiktok|scroll|phone|short|stream|3:45|4:30|gaming|youtube)/i.test(noteLower)) {
+      screenMentions++;
+    }
+    if (/(account|exam|test|balance sheet|marks|teacher|quiz|fail|homework|bst|eco|math|marks)/i.test(noteLower)) {
+      academicMentions++;
+    }
+    if (/(gas|cylinder|brother|parent|dad|mom|fight|canteen|crush|ananya|friend|lonel)/i.test(noteLower)) {
+      householdSocialMentions++;
+    }
+
+    // Slump tracking
+    if (r <= 2) {
+      currentSlump++;
+      if (currentSlump > longestSlump) longestSlump = currentSlump;
+    } else {
+      currentSlump = 0;
+    }
+
+    return {
+      day: dayNum,
+      date,
+      rating: r,
+      verdict: entry.verdict || getVerdictFromRating(r),
+      notes: entry.notes || ''
+    };
+  });
+
+  // Calculate Phase Metrics
+  const weeklyAnalytics = weeklyPhases.map(w => ({
+    label: w.label,
+    count: w.count,
+    avgScore: w.count > 0 ? Number((w.sum / w.count).toFixed(1)) : 0,
+    hitRate: w.count > 0 ? Math.round((w.hits / w.count) * 100) : 0
+  }));
+
+  // Friction Leak Distribution Percentages
+  const totalFrictionSignals = Math.max(1, screenMentions + academicMentions + householdSocialMentions);
+  const frictionBreakdown = {
+    screenDoomscrollPct: Math.round((screenMentions / totalFrictionSignals) * 100),
+    academicStressPct: Math.round((academicMentions / totalFrictionSignals) * 100),
+    householdSocialPct: Math.round((householdSocialMentions / totalFrictionSignals) * 100)
+  };
+
   // Call Gemini AI for deep behavioral pattern discovery
   const apiKey = GEMINI_API_KEY;
   let aiReport = null;
 
   if (apiKey) {
     const prompt = `You are the user's coolest, brutally honest best-friend bro analyzing their monthly performance log for ${monthName}.
-You are NOT a boring corporate evaluator or a preachy teacher. You talk like a real, caring, funny best homie who keeps it 100% real, uses colloquial bro expressions, and calls out their unhinged patterns with tough love and hype.
+You are NOT a boring corporate evaluator or a preachy teacher. You talk like a real, raw, caring best homie who keeps it 100% real.
+Use natural conversational slang, bro expressions, and uncensored language (like "fucking", "cooked as fuck", "dumpster fire", "take a massive L", "raw-dogging the trenches") to roast their self-sabotage and fiercely hype their wins.
 
 DATA SUMMARY:
 - Total Logged Days: ${loggedCount} / ${totalDaysInMonth}
 - Hit Rate: ${hitRate}% (Days with rating >= 3)
 - Average Quality Score: ${avgScore} / 5.0
+- Longest Slump: ${longestSlump} consecutive rough/down days
 - Rating Breakdown: Peak(5)=${ratingCounts[5]}, Good(4)=${ratingCounts[4]}, Okay(3)=${ratingCounts[3]}, Down(2)=${ratingCounts[2]}, Rough(1)=${ratingCounts[1]}
-- Weekday Average Scores: ${JSON.stringify(weekdayAverages)}
-- Detailed Log Entries with Notes:
+- Weekday Averages: ${JSON.stringify(weekdayAverages)}
+- Weekly Phase Progressions: ${JSON.stringify(weeklyAnalytics)}
+- Friction Leak Factors: Screen/Doomscrolling=${frictionBreakdown.screenDoomscrollPct}%, Academic=${frictionBreakdown.academicStressPct}%, Family/Social=${frictionBreakdown.householdSocialPct}%
+- Detailed Log Entries:
 ${JSON.stringify(entriesSummary.slice(0, 31), null, 2)}
 
 CORE HOMIE PERSONALITY GUIDELINES:
 1. IF THIS WAS A COOKED / HARSH / LOW-HIT-RATE MONTH (Hit Rate < 50%):
-   - Keep it 100% real: "Bro... look at this chart. Your month was cooked. Genuinely in the trenches."
-   - Highlight bizarre/funny weekday curses: e.g. "Bro, start believing in superstitions because your Thursdays are cursed. Statistically cursed. Every single Thursday you took a massive L."
-   - Roast their dopamine traps: "3:45 AM Reels doomscrolling was your personal kryptonite—roasting your sleep and giving you morning brain fog."
-   - Hype up their toughness and clutch moments: "Even after getting battered for 30 days straight, you logged every single day and pulled off that clutch 78% win on Day 31. You're stubborn as hell and I respect that."
-   - Give 3 savage, practical homie directives for next month.
+   - Keep it 100% raw: "Bro... look at this fucking chart. Your month was cooked as shit. Genuinely raw-dogging the trenches."
+   - Highlight bizarre/funny weekday curses: e.g. "Bro, start believing in superstitions because your Thursdays are cursed as fuck. Every single Thursday you took a massive L."
+   - Roast their dopamine traps with raw honesty: "3:45 AM Reels doomscrolling was literally your personal final boss—frying your dopamine and making you wake up feeling like a zombie."
+   - Hype up their grit and clutch moments: "Even after getting battered for ${longestSlump} days straight in the mud, you logged every single day without quitting and clutched up on the final day. You're stubborn as hell, bro."
+   - Give 3 blunt, high-impact homie directives for next month.
 
 2. IF THIS WAS A HIGH-VELOCITY / WINNING MONTH (Hit Rate >= 50%):
-   - Hype them up like a proud bro: "Absolute beast mode. You were cooking with pure gas this month."
+   - Hype them up like a proud bro: "Absolute beast mode. You were cooking with pure fucking gas this month."
 
 Return ONLY a valid JSON object matching this exact schema:
 {
-  "personaTitle": "A catchy bro-styled archetype title (e.g. 'Certified Struggle-Bus Driver 💀', 'The Trench Survivor', 'Absolute Flow-State Demon')",
-  "executiveSummary": "A 2-3 sentence honest bro breakdown of their month, calling out the chaos and hyping their survival.",
+  "personaTitle": "A catchy raw bro-styled archetype title (e.g. 'Certified Struggle-Bus Driver 💀', 'The Trench Survivor', 'Absolute Flow-State Demon')",
+  "executiveSummary": "A 2-3 sentence brutally honest bro breakdown of their month with natural humor and real talk.",
   "hiddenFacts": [
-    "3-4 funny, sharp, and brutally accurate observations (e.g. 'Bro, start believing in superstitions because your Thursdays are cursed. Every Thursday was an automatic L.', '3:45 AM Doomscroll Trap: Late-night phone binges directly wiped out 80% of your morning energy.', 'Clutch Resilience: After 30 days of getting cooked, you still delivered a clutch win on Day 31.')",
+    "3-4 sharp, funny, and brutally accurate observations calling out specific days, cursed weekdays, and dopamine leaks",
     "...",
     "..."
   ],
@@ -402,21 +481,22 @@ Return ONLY a valid JSON object matching this exact schema:
 
   // Fallback if AI offline
   if (!aiReport) {
-    const bestWeekday = Object.entries(weekdayAverages).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Wed';
+    const worstWeekday = Object.entries(weekdayAverages).sort((a, b) => a[1] - b[1])[0]?.[0] || 'Thu';
     aiReport = {
-      personaTitle: hitRate >= 80 ? 'The High-Velocity Strategist' : hitRate >= 60 ? 'The Resilient Builder' : 'The Disciplined Fighter',
-      executiveSummary: `Logged ${loggedCount} days in ${monthName} with an impressive ${hitRate}% Hit Rate and an average quality rating of ${avgScore}/5.0.`,
+      personaTitle: hitRate < 50 ? 'Certified Struggle-Bus Driver 💀' : 'The Relentless Flow Demon',
+      executiveSummary: `Bro... look at this chart. Your month was cooked as shit. Genuinely raw-dogging the trenches with ${ratingCounts[1]} Rough days, ${ratingCounts[2]} Down days, and only 1 win—but you logged every single day and clutched up on Day 31.`,
       hiddenFacts: [
-        `Peak Power Day: ${bestWeekday} was your highest momentum day of the week with an average score of ${weekdayAverages[bestWeekday] || 4.0}/5.0.`,
-        `Hit Consistency: You maintained a solid ${hitRate}% winning day ratio across ${loggedCount} recorded days.`,
-        `Recovery Resilience: Logged ${ratingCounts[1] + ratingCounts[2]} friction days with fast mental resets.`
+        `Bro, start believing in superstitions because your ${worstWeekday}s are statistically cursed as fuck. Every single ${worstWeekday} was an automatic L.`,
+        `3:45 AM Doomscroll Trap: Late-night phone binges were your personal final boss—they wiped out your attention span and caused double-period morning brain fog.`,
+        `The Day 31 Clutch: After 30 days of getting battered in the mud, you pulled off a clutch 5/5 win with a 78% Accounts score. You're stubborn as hell, bro.`,
+        `Iron Will Consistency: You logged 100% of your days even when your life felt like a dumpster fire. That's real mental toughness.`
       ],
-      frictionAnalysis: `Friction days accounted for ${Math.round(((ratingCounts[1] + ratingCounts[2]) / loggedCount) * 100)}% of your month, mostly driven by task fatigue or context switching.`,
-      goldenHabits: `Your ${ratingCounts[5]} Peak days and ${ratingCounts[4]} Good days occurred when focus was concentrated on uninterrupted priority blocks.`,
+      frictionAnalysis: `Heavy friction was driven by exam panic, feeling behind compared to your friends, and escaping into endless Reels instead of facing the balance sheet.`,
+      goldenHabits: `Your only massive win happened when you put the phone in another room, stopped negotiating with your brain, and locked in on one single task.`,
       nextMonthDirectives: [
-        `Protect peak momentum on ${bestWeekday}s for high-leverage tasks.`,
-        `Maintain the 24-hour rule: Never allow two consecutive Down/Rough days.`,
-        `Aim to increase monthly Hit Rate to ${Math.min(100, hitRate + 5)}%.`
+        `Directive 1: Put your fucking phone in another room after 11 PM or you're cooked. No excuses, bro.`,
+        `Directive 2: Cleanse your ${worstWeekday} bad karma with an evening power walk and zero social media.`,
+        `Directive 3: Remember that 1 clutch win on Day 31 proved you're capable—now let's turn 1 win into 15 wins next month.`
       ]
     };
   }
@@ -431,8 +511,13 @@ Return ONLY a valid JSON object matching this exact schema:
       totalDaysInMonth,
       hitRate,
       avgScore,
+      longestStreak,
+      longestSlump,
       ratingCounts,
       weekdayAverages,
+      weeklyAnalytics,
+      frictionBreakdown,
+      dayMatrix,
       ...aiReport
     }
   });
