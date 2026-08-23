@@ -203,8 +203,18 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               </div>
             </div>
 
-            {/* Controls: Month Switcher & Close */}
-            <div className="flex items-center gap-2.5 self-end sm:self-auto">
+            {/* Controls: Evaluate Action, Month Switcher & Close */}
+            <div className="flex flex-wrap items-center gap-2.5 self-end sm:self-auto">
+              <button
+                onClick={() => loadReportData(selectedArchetype, year, month)}
+                disabled={isLoading}
+                title="Run or re-generate Gemini AI Performance Evaluation"
+                className="neo-btn px-3.5 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50"
+              >
+                <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
+                <span>{isLoading ? 'EVALUATING...' : 'RUN EVALUATION'}</span>
+              </button>
+
               <div className="flex items-center bg-white border-2 border-black rounded-xl p-1 shadow-[2px_2px_0px_#000000]">
                 <button
                   onClick={handlePrevMonth}
@@ -238,8 +248,17 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
           {/* 🧪 TEST DATA ARCHETYPES QUICK SWITCHER BAR */}
           <div className="bg-neutral-100 border-b-2 border-black px-6 py-2.5 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
-            <div className="flex items-center gap-1.5 font-mono text-xs font-black text-black">
-              <span>🧪 TEST ARCHETYPES:</span>
+            <div className="flex items-center gap-2 font-mono text-xs font-black text-black">
+              <span>🧪 EVALUATION DATASET:</span>
+              {selectedArchetype ? (
+                <span className="px-2 py-0.5 rounded bg-[#FDC800] text-black text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
+                  TESTING: {mockArchetypes[selectedArchetype]?.name.split(' ')[1]}
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shadow-[1px_1px_0px_#FDC800]">
+                  MY REAL DATABASE
+                </span>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -308,6 +327,78 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 <span className="text-xs font-mono text-neutral-500">
                   Correlating ratings, note reflections, weekday heatmaps, and streak momentum
                 </span>
+              </div>
+            ) : report?.totalLogged === 0 ? (
+              /* High-impact Empty State with 1-Click Launchers */
+              <div className="p-8 sm:p-10 rounded-2xl border-2 border-black bg-[#FFFDF5] shadow-[6px_6px_0px_#000000] text-center space-y-6">
+                <div className="w-16 h-16 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_#000000]">
+                  <Sparkles className="w-8 h-8 text-black stroke-[2.5]" />
+                </div>
+
+                <div>
+                  <h4 className="font-display font-black text-2xl uppercase text-black">
+                    NO REAL LOGS FOR {report.monthName} YET
+                  </h4>
+                  <p className="text-xs font-mono font-bold text-neutral-600 max-w-md mx-auto mt-1.5">
+                    You haven't logged entries for this month yet. You can either log verdicts in the tracker or test the Gemini AI evaluation right now using one of the 3 pre-built trial archetypes below!
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                  <button
+                    onClick={() => handleSelectArchetype('highPerformer')}
+                    className="neo-btn p-5 bg-white hover:bg-emerald-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
+                  >
+                    <div>
+                      <span className="text-xl">👑</span>
+                      <h5 className="font-display font-black text-sm uppercase text-black mt-2">
+                        HIGH-PERFORMER
+                      </h5>
+                      <p className="text-[11px] font-mono text-neutral-600 mt-1">
+                        85% Peak/Good days, intense flow states, fast shipping.
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-mono font-black bg-[#00E599] text-black px-2 py-1 rounded mt-4 text-center">
+                      TEST THIS PROFILE →
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => handleSelectArchetype('steadyBaseline')}
+                    className="neo-btn p-5 bg-white hover:bg-amber-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
+                  >
+                    <div>
+                      <span className="text-xl">🔘</span>
+                      <h5 className="font-display font-black text-sm uppercase text-black mt-2">
+                        STEADY BASELINE
+                      </h5>
+                      <p className="text-[11px] font-mono text-neutral-600 mt-1">
+                        70% Okay days, standard work routines, consistent pace.
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-mono font-black bg-[#FDC800] text-black px-2 py-1 rounded mt-4 text-center">
+                      TEST THIS PROFILE →
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => handleSelectArchetype('fightingUnderdog')}
+                    className="neo-btn p-5 bg-white hover:bg-red-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
+                  >
+                    <div>
+                      <span className="text-xl">🔥</span>
+                      <h5 className="font-display font-black text-sm uppercase text-black mt-2">
+                        FIGHTING UNDERDOG
+                      </h5>
+                      <p className="text-[11px] font-mono text-neutral-600 mt-1">
+                        75% Rough/Down days, outage battles, burnout resistance.
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-mono font-black bg-[#FF4D4D] text-black px-2 py-1 rounded mt-4 text-center">
+                      TEST THIS PROFILE →
+                    </span>
+                  </button>
+                </div>
               </div>
             ) : report ? (
               <>
