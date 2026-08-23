@@ -28,19 +28,20 @@ export default function CalendarModal({
   entries, 
   startDate, 
   todayStr,
-  onEditDay
+  onEditDay,
+  onOpenMonthlyReport
 }) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const month = currentDate.getMonth() + 1; // 1-indexed for report
 
-  const handlePrev = () => setCurrentDate(new Date(year, month - 1, 1));
-  const handleNext = () => setCurrentDate(new Date(year, month + 1, 1));
+  const handlePrev = () => setCurrentDate(new Date(year, month - 2, 1));
+  const handleNext = () => setCurrentDate(new Date(year, month, 1));
 
   const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
   const totalDays = lastDay.getDate();
 
   const startDay = firstDay.getDay();
@@ -48,7 +49,7 @@ export default function CalendarModal({
 
   const days = [];
   for (let d = 1; d <= totalDays; d++) {
-    const dObj = new Date(year, month, d);
+    const dObj = new Date(year, month - 1, d);
     const yStr = dObj.getFullYear();
     const mStr = String(dObj.getMonth() + 1).padStart(2, '0');
     const dStr = String(dObj.getDate()).padStart(2, '0');
@@ -96,8 +97,8 @@ export default function CalendarModal({
             onClick={(e) => e.stopPropagation()}
           >
             
-            {/* Sticky Header with prominent, unmissable Close button */}
-            <div className="flex items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0">
+            {/* Sticky Header with prominent AI Report & Close buttons */}
+            <div className="flex flex-wrap items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0 gap-2">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
                   <CalIcon className="w-5 h-5 text-black stroke-[2.5]" />
@@ -112,7 +113,19 @@ export default function CalendarModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
+                {/* Launch AI Report for this specific month */}
+                {onOpenMonthlyReport && (
+                  <button
+                    onClick={() => onOpenMonthlyReport({ year, month })}
+                    title={`Generate AI Performance Report for ${monthName}`}
+                    className="neo-btn px-3 py-1.5 bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>AI REPORT</span>
+                  </button>
+                )}
+
                 <button
                   onClick={handlePrev}
                   title="Previous Month"

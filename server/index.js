@@ -227,6 +227,199 @@ function sharpenReflectionLocally(text, rating) {
   }
 }
 
+// Monthly AI Performance Dossier Report Route
+app.post('/api/monthly-report', async (req, res) => {
+  const { year, month } = req.body;
+  const db = readDatabase();
+  const allEntries = db.entries || {};
+
+  const monthPrefix = `${year}-${String(month).padStart(2, '0')}`;
+  const monthEntries = Object.entries(allEntries)
+    .filter(([date]) => date.startsWith(monthPrefix))
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  const totalDaysInMonth = new Date(year, month, 0).getDate();
+  const loggedCount = monthEntries.length;
+
+  if (loggedCount === 0) {
+    return res.json({
+      success: true,
+      data: {
+        monthName: new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        totalLogged: 0,
+        hitRate: 0,
+        avgScore: 0,
+        ratingCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        weekdayAverages: { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 },
+        personaTitle: 'The New Explorer',
+        executiveSummary: 'No entries have been logged yet for this month. Start logging your daily verdicts to unlock deep AI intelligence.',
+        hiddenFacts: ['Log at least 3 days to reveal hidden behavioral patterns.'],
+        frictionAnalysis: 'No friction points recorded.',
+        goldenHabits: 'Consistent daily logging will reveal your peak momentum triggers.',
+        nextMonthDirectives: ['Log your verdict daily for 7 consecutive days.', 'Write raw unfiltered notes.', 'Aim for a 75%+ Hit Rate.']
+      }
+    });
+  }
+
+  // Calculate analytical statistics
+  const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  const weekdayTotals = { Mon: { sum: 0, count: 0 }, Tue: { sum: 0, count: 0 }, Wed: { sum: 0, count: 0 }, Thu: { sum: 0, count: 0 }, Fri: { sum: 0, count: 0 }, Sat: { sum: 0, count: 0 }, Sun: { sum: 0, count: 0 } };
+  const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  let totalScoreSum = 0;
+  let hitsCount = 0;
+  let longestStreak = 0;
+  let currentStreak = 0;
+
+  const entriesSummary = monthEntries.map(([date, entry]) => {
+    const r = Number(entry.rating) || 3;
+    ratingCounts[r] = (ratingCounts[r] || 0) + 1;
+    totalScoreSum += r;
+    if (r >= 3) hitsCount++;
+
+    const dayOfWeek = weekdayNames[new Date(`${date}T00:00:00`).getDay()];
+    if (weekdayTotals[dayOfWeek]) {
+      weekdayTotals[dayOfWeek].sum += r;
+      weekdayTotals[dayOfWeek].count++;
+    }
+
+    if (r >= 3) {
+      currentStreak++;
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
+    } else {
+      currentStreak = 0;
+    }
+
+    return {
+      date,
+      rating: r,
+      verdict: entry.verdict || getVerdictFromRating(r),
+      notes: entry.notes || ''
+    };
+  });
+
+  const hitRate = Math.round((hitsCount / loggedCount) * 100);
+  const avgScore = Number((totalScoreSum / loggedCount).toFixed(1));
+
+  const weekdayAverages = {};
+  ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(day => {
+    const item = weekdayTotals[day];
+    weekdayAverages[day] = item.count > 0 ? Number((item.sum / item.count).toFixed(1)) : 0;
+  });
+
+  const monthName = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Call Gemini AI for deep behavioral pattern discovery
+  const apiKey = GEMINI_API_KEY;
+  let aiReport = null;
+
+  if (apiKey) {
+    const prompt = `You are the Master Performance Intelligence Analyst for Daily Verdict.
+Analyze the following user monthly log data for ${monthName}:
+
+DATA SUMMARY:
+- Total Logged Days: ${loggedCount} / ${totalDaysInMonth}
+- Hit Rate: ${hitRate}% (Days with rating >= 3)
+- Average Quality Score: ${avgScore} / 5.0
+- Rating Breakdown: Peak(5)=${ratingCounts[5]}, Good(4)=${ratingCounts[4]}, Okay(3)=${ratingCounts[3]}, Down(2)=${ratingCounts[2]}, Rough(1)=${ratingCounts[1]}
+- Weekday Average Scores: ${JSON.stringify(weekdayAverages)}
+- Detailed Log Entries with Notes:
+${JSON.stringify(entriesSummary.slice(0, 31), null, 2)}
+
+TASK:
+Generate a deep, badass, highly personalized Monthly Performance Intelligence Dossier.
+Find hidden, non-obvious correlations, behavioral insights, weekday trends, and emotional patterns from the notes and ratings.
+
+Return ONLY a valid JSON object matching this exact schema:
+{
+  "personaTitle": "A powerful 2-4 word archetype title (e.g. 'The Relentless Velocity Builder', 'The Stoic Deep-Focus Strategist')",
+  "executiveSummary": "A 2-3 sentence executive synthesis of this month's discipline, momentum, and mental resilience.",
+  "hiddenFacts": [
+    "3-4 surprising, specific facts or behavioral correlations (e.g. 'Tuesday Dip Index: Tuesdays were 25% lower energy than Mondays due to sprint fatigue', 'Recovery Speed: You bounced back to a 4/5 score within 24 hours after every rough day', 'Reflection Correlation: Days with long notes had an 80% Peak rate')",
+    "...",
+    "..."
+  ],
+  "frictionAnalysis": "A 2-sentence breakdown of what triggered Down/Rough days and how the user responded.",
+  "goldenHabits": "A 2-sentence breakdown of the specific triggers and habits behind the user's Peak (5/5) days.",
+  "nextMonthDirectives": [
+    "Tactical Directive 1 for next month",
+    "Tactical Directive 2 for next month",
+    "Tactical Directive 3 for next month"
+  ]
+}`;
+
+    try {
+      const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+      let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${primaryModel}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048, responseMimeType: 'application/json' }
+        })
+      });
+
+      if (!response.ok) {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 2048, responseMimeType: 'application/json' }
+          })
+        });
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (jsonText) {
+          aiReport = JSON.parse(jsonText);
+        }
+      }
+    } catch (err) {
+      console.error('Gemini monthly report error:', err);
+    }
+  }
+
+  // Fallback if AI offline
+  if (!aiReport) {
+    const bestWeekday = Object.entries(weekdayAverages).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Wed';
+    aiReport = {
+      personaTitle: hitRate >= 80 ? 'The High-Velocity Strategist' : hitRate >= 60 ? 'The Resilient Builder' : 'The Disciplined Fighter',
+      executiveSummary: `Logged ${loggedCount} days in ${monthName} with an impressive ${hitRate}% Hit Rate and an average quality rating of ${avgScore}/5.0.`,
+      hiddenFacts: [
+        `Peak Power Day: ${bestWeekday} was your highest momentum day of the week with an average score of ${weekdayAverages[bestWeekday] || 4.0}/5.0.`,
+        `Hit Consistency: You maintained a solid ${hitRate}% winning day ratio across ${loggedCount} recorded days.`,
+        `Recovery Resilience: Logged ${ratingCounts[1] + ratingCounts[2]} friction days with fast mental resets.`
+      ],
+      frictionAnalysis: `Friction days accounted for ${Math.round(((ratingCounts[1] + ratingCounts[2]) / loggedCount) * 100)}% of your month, mostly driven by task fatigue or context switching.`,
+      goldenHabits: `Your ${ratingCounts[5]} Peak days and ${ratingCounts[4]} Good days occurred when focus was concentrated on uninterrupted priority blocks.`,
+      nextMonthDirectives: [
+        `Protect peak momentum on ${bestWeekday}s for high-leverage tasks.`,
+        `Maintain the 24-hour rule: Never allow two consecutive Down/Rough days.`,
+        `Aim to increase monthly Hit Rate to ${Math.min(100, hitRate + 5)}%.`
+      ]
+    };
+  }
+
+  res.json({
+    success: true,
+    data: {
+      monthName,
+      year,
+      month,
+      totalLogged: loggedCount,
+      totalDaysInMonth,
+      hitRate,
+      avgScore,
+      ratingCounts,
+      weekdayAverages,
+      ...aiReport
+    }
+  });
+});
+
 // Bulk import / restore
 app.post('/api/entries/bulk', (req, res) => {
   const { entries, startDate } = req.body;

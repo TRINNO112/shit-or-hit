@@ -98,26 +98,41 @@ export async function enhanceReflectionWithAI(notes, rating, date) {
     const data = await res.json();
     return data.enhancedText || notes;
   } catch (err) {
-    console.error('AI Enhance error:', err);
+    console.error('Enhance reflection failed:', err);
     return notes;
+  }
+}
+
+export async function fetchMonthlyReport(year, month) {
+  try {
+    const res = await fetch(`${API_BASE}/monthly-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year, month })
+    });
+    if (!res.ok) throw new Error('Failed to generate monthly report');
+    const json = await res.json();
+    return json.data;
+  } catch (err) {
+    console.error('fetchMonthlyReport error:', err);
+    throw err;
   }
 }
 
 export function exportDatabaseBackup(startDate, entries) {
   const payload = {
-    exportedAt: new Date().toISOString(),
-    appName: 'Daily Quality Tracker (Neobrutalism Edition)',
+    version: '1.0',
+    exportDate: new Date().toISOString(),
     startDate,
     totalEntries: Object.keys(entries).length,
     entries
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `daily-quality-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute('href', dataStr);
+  downloadAnchor.setAttribute('download', `daily_verdict_backup_${new Date().toISOString().slice(0, 10)}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
 }

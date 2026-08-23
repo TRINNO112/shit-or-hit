@@ -5,12 +5,18 @@ import JourneyTimeline from './components/JourneyTimeline';
 import StatsWidget from './components/StatsWidget';
 import CalendarModal from './components/CalendarModal';
 import EditDayModal from './components/EditDayModal';
+import MonthlyReportModal from './components/MonthlyReportModal';
 import { fetchDatabase, saveEntry } from './services/api';
 
 export default function App() {
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isMonthlyReportOpen, setIsMonthlyReportOpen] = useState(false);
+  const [reportTargetMonth, setReportTargetMonth] = useState({
+    year: new Date().getFullYear(),
+    month: new Date().getMonth() + 1
+  });
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
 
   const now = new Date();
@@ -46,16 +52,29 @@ export default function App() {
     }));
   };
 
+  const handleOpenMonthlyReport = (customTarget) => {
+    if (customTarget?.year && customTarget?.month) {
+      setReportTargetMonth(customTarget);
+    } else {
+      setReportTargetMonth({
+        year: now.getFullYear(),
+        month: now.getMonth() + 1
+      });
+    }
+    setIsMonthlyReportOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#FFFDF5] text-black">
       
-      {/* Full-width Header with Calendar toggle */}
+      {/* Full-width Header with Calendar & Monthly Dossier toggles */}
       <Header
         startDate={startDate}
         entries={entries}
         dayCount={dayCount}
         isCalendarOpen={isCalendarOpen}
         onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
+        onOpenMonthlyReport={() => handleOpenMonthlyReport()}
       />
 
       {/* Main Panoramic Container with Generous Padding */}
@@ -104,6 +123,7 @@ export default function App() {
         onEditDay={(dayInfo) => {
           setEditingDay(dayInfo);
         }}
+        onOpenMonthlyReport={(target) => handleOpenMonthlyReport(target)}
       />
 
       {/* Day Edit & AI Enhancement Modal */}
@@ -114,6 +134,14 @@ export default function App() {
         dateStr={editingDay?.dateStr}
         dayIndex={editingDay?.dayIndex || 1}
         onSave={handleSaveEntry}
+      />
+
+      {/* Monthly Performance Intelligence Dossier Modal */}
+      <MonthlyReportModal
+        isOpen={isMonthlyReportOpen}
+        onClose={() => setIsMonthlyReportOpen(false)}
+        initialYear={reportTargetMonth.year}
+        initialMonth={reportTargetMonth.month}
       />
 
       {/* Footer with Proper Spacing */}

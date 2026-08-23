@@ -8,7 +8,8 @@ export default function Header({
   entries, 
   dayCount,
   onToggleCalendar,
-  isCalendarOpen
+  isCalendarOpen,
+  onOpenMonthlyReport
 }) {
   const handleExport = () => {
     exportDatabaseBackup(startDate, entries);
@@ -32,12 +33,22 @@ export default function Header({
         </div>
       </div>
 
-      {/* Actions: Streak, Calendar Toggle, Backup */}
+      {/* Actions: Streak, Monthly Dossier, Calendar Toggle, Backup */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00E599] border-2 border-black text-black text-xs font-mono font-black shadow-[3px_3px_0px_#000000]">
           <Flame className="w-4 h-4 text-black fill-black" />
           <span>DAY {dayCount}</span>
         </div>
+
+        {/* Monthly Performance Intelligence Dossier Button */}
+        <MagneticButton
+          onClick={onOpenMonthlyReport}
+          title="Open Monthly AI Performance Intelligence Dossier"
+          className="px-4 py-2.5 rounded-xl bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-2 shadow-[3px_3px_0px_#000000] cursor-pointer"
+        >
+          <Sparkles className="w-4 h-4 stroke-[2.5]" />
+          <span>MONTHLY DOSSIER</span>
+        </MagneticButton>
 
         {/* Calendar Toggle Button with Magnetic Cursor Attraction */}
         <MagneticButton
