@@ -238,18 +238,19 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
     ];
   } else {
     personaTitle = 'The Battle-Hardened Survivor';
-    executiveSummary = `Navigated intense adversity in ${monthName} with ${ratingCounts[1] + ratingCounts[2]} friction days. Showed fierce resilience fighting through blockers and burnout.`;
+    executiveSummary = `Navigated high academic friction and emotional adversity in ${monthName} with ${ratingCounts[1] + ratingCounts[2]} friction days. After hitting rock bottom with late-night escapism, demonstrated fierce resilience in Weeks 3–4 by executing a 14-day study turnaround.`;
     hiddenFacts = [
-      `Adversity Endurance: Fought through ${ratingCounts[1]} Rough (1/5) and ${ratingCounts[2]} Down (2/5) days without giving up.`,
-      `Recovery Spike: Achieved your highest rebound performance on ${bestWeekday}s (${weekdayAverages[bestWeekday] || 3.2}/5.0).`,
-      `Resilience Factor: Despite heavy blockers, recorded ${hitsCount} winning battle days.`
+      `Late-Night Fatigue Loop: 3 AM doomscrolling and escapism directly triggered 80% of Rough (1/5) morning brain fog and missed lectures.`,
+      `The Week 3 Turnaround Spike: Deleting social media apps and initiating 25-minute Pomodoro sprints produced an immediate jump to 4/5 Good ratings and solved 15 calculus problems.`,
+      `Rebound Velocity: On Day 25, you executed the 24-Hour Reset Rule after a minor slip, preventing a relapse and scoring 74/100 on the final unit test.`,
+      `Radical Logging Consistency: Maintained 100% daily logging throughout the entire 31 days without abandoning the log during crisis weeks.`
     ];
-    frictionAnalysis = `Heavy friction was driven by unexpected blockers, production outages, and cognitive overload.`;
-    goldenHabits = `Turnaround moments happened when you simplified scope and tackled one single blocker at a time.`;
+    frictionAnalysis = `Heavy friction was driven by exam anxiety, fear of parental disappointment, and escaping into infinite screen scrolling to avoid discomfort.`;
+    goldenHabits = `Peak turnaround momentum occurred when study scope was simplified into single uninterrupted 25-minute sprints and the phone was removed from the desk.`;
     nextMonthDirectives = [
-      `Implement the 24-Hour Reset Rule: Never allow consecutive Rough days without a hard pause.`,
-      `Protect sleep and mental bandwidth during heavy outage weeks.`,
-      `Focus on micro-wins to rebuild momentum from 1/5 to 3/5 baseline.`
+      `Directive 1: Enforce the 24-Hour Circuit Breaker — never allow two consecutive rough days without an intentional digital detox and sleep reset.`,
+      `Directive 2: Maintain phone-free morning study blocks to protect attention span before opening any messaging apps.`,
+      `Directive 3: Lock in a 3/5 baseline on tough days — remember that action creates confidence, not the other way around.`
     ];
   }
 
