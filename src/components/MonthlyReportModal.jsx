@@ -341,7 +341,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   RETRY SYNTHESIS
                 </button>
               </div>
-            ) : !report && (!monthEntries || monthEntries.length === 0) ? (
+            ) : (!report || report.totalLogged === 0) ? (
               <div className="p-8 rounded-2xl border-2 border-black bg-neutral-50 shadow-[4px_4px_0px_#000000] text-center space-y-4">
                 <FileText className="w-10 h-10 text-neutral-400 mx-auto" />
                 <div>
