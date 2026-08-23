@@ -201,13 +201,13 @@ async function launchApp() {
   if (!isFrontendRunning) {
     let frontendChild;
     if (fs.existsSync(viteBin)) {
-      frontendChild = spawn(nodeExec, [viteBin], {
+      frontendChild = spawn(nodeExec, [viteBin, '--force'], {
         cwd: ROOT_DIR,
         stdio: 'inherit',
         env: { ...process.env }
       });
     } else {
-      frontendChild = spawn('npx', ['vite'], {
+      frontendChild = spawn('npx', ['vite', '--force'], {
         cwd: ROOT_DIR,
         stdio: 'inherit',
         shell: true,
