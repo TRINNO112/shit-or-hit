@@ -34,6 +34,7 @@ export default function MonthlyReportModal({
   const [report, setReport] = useState(null);
   const [selectedArchetype, setSelectedArchetype] = useState(null); // null = real data
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -48,6 +49,7 @@ export default function MonthlyReportModal({
   // Load report with real data or custom archetype
   const loadReportData = async (archetypeId = selectedArchetype, currentYear = year, currentMonth = month) => {
     setIsLoading(true);
+    setError(null);
     try {
       let customEntries = null;
       if (archetypeId && mockArchetypes[archetypeId]) {
@@ -66,6 +68,7 @@ export default function MonthlyReportModal({
       }
     } catch (err) {
       console.error('Failed to load monthly report:', err);
+      setError(err.message || 'Failed to generate monthly intelligence report.');
     } finally {
       setIsLoading(false);
     }
