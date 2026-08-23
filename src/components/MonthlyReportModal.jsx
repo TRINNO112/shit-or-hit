@@ -148,62 +148,62 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-xs"
+        className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-3 bg-black/75 backdrop-blur-xs"
         onClick={onClose}
       >
         <motion.div 
-          initial={{ opacity: 0, scale: 0.93, y: 25 }}
+          initial={{ opacity: 0, scale: 0.94, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.93, y: 25 }}
+          exit={{ opacity: 0, scale: 0.94, y: 20 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="neo-card w-full max-w-5xl bg-white my-auto h-[92vh] max-h-[92vh] flex flex-col overflow-hidden relative shadow-[8px_8px_0px_#000000]"
+          className="neo-card w-[97vw] max-w-[1360px] my-auto h-[96vh] max-h-[96vh] flex flex-col overflow-hidden relative shadow-[8px_8px_0px_#000000]"
           style={{ padding: '0px' }}
           onClick={(e) => e.stopPropagation()}
         >
           
           {/* Top Sticky Reading Progress Tracker */}
-          <div className="sticky top-0 z-20 bg-black text-white px-5 sm:px-8 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
-            <div className="flex items-center gap-2 font-mono text-xs font-black">
+          <div className="sticky top-0 z-20 bg-black text-white px-5 sm:px-6 py-1 flex items-center justify-between border-b-2 border-black shrink-0">
+            <div className="flex items-center gap-2 font-mono text-[11px] font-black">
               <Compass className="w-3.5 h-3.5 text-[#FDC800] animate-spin" style={{ animationDuration: '6s' }} />
               <span>DOSSIER PROGRESS</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-32 sm:w-56 h-2 bg-neutral-800 rounded-full overflow-hidden border border-white/20">
+              <div className="w-36 sm:w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-white/20">
                 <motion.div 
                   className="h-full bg-[#FDC800]"
                   style={{ width: `${scrollProgress}%` }}
                   transition={{ ease: 'easeOut', duration: 0.15 }}
                 />
               </div>
-              <span className="font-mono text-xs font-black text-[#FDC800] w-12 text-right">
+              <span className="font-mono text-[11px] font-black text-[#FDC800] w-12 text-right">
                 {scrollProgress}%
               </span>
             </div>
           </div>
 
-          {/* Compact Sleek Dossier Header */}
-          <div className="px-5 sm:px-8 py-3 border-b-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0 bg-[#FFFDF5]">
+          {/* Compact Panoramic Dossier Header */}
+          <div className="px-5 sm:px-6 py-2.5 border-b-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shrink-0 bg-[#FFFDF5]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
                 <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-display font-black text-lg sm:text-xl text-black uppercase leading-tight">
+                  <h3 className="font-display font-black text-lg text-black uppercase leading-none">
                     MONTHLY PERFORMANCE DOSSIER
                   </h3>
-                  <span className="px-2 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[10px] font-black uppercase">
+                  <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase">
                     GEMINI AI
                   </span>
                 </div>
-                <span className="text-[11px] font-mono font-bold text-neutral-600">
-                  Deep behavioral intelligence & tactical directives.
+                <span className="text-[10px] font-mono font-bold text-neutral-600">
+                  Deep behavioral intelligence, hidden patterns & next month battle plan.
                 </span>
               </div>
             </div>
 
-            {/* Controls: Evaluate Action, Month Switcher & Close */}
+            {/* Controls: Evaluate Action, Copy, Month Switcher & Close */}
             <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
               <button
                 onClick={() => loadReportData(selectedArchetype, year, month)}
@@ -215,7 +215,16 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 <span>{isLoading ? 'EVALUATING...' : 'RUN EVALUATION'}</span>
               </button>
 
-              <div className="flex items-center bg-white border-2 border-black rounded-xl p-1 shadow-[2px_2px_0px_#000000]">
+              <button
+                onClick={handleCopyMarkdown}
+                title="Copy Dossier Markdown to Clipboard"
+                className="neo-btn px-2.5 py-1.5 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
+                <span className="hidden sm:inline">{copied ? 'COPIED' : 'COPY'}</span>
+              </button>
+
+              <div className="flex items-center bg-white border-2 border-black rounded-xl p-0.5 shadow-[2px_2px_0px_#000000]">
                 <button
                   onClick={handlePrevMonth}
                   title="Previous Month"
@@ -224,7 +233,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   <ChevronLeft className="w-3.5 h-3.5 stroke-[3]" />
                 </button>
 
-                <span className="px-2.5 font-mono font-black text-xs text-black uppercase">
+                <span className="px-2 font-mono font-black text-xs text-black uppercase">
                   {report?.monthName || `${month}/${year}`}
                 </span>
 
@@ -240,6 +249,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               <button
                 onClick={onClose}
                 className="neo-btn p-1.5 bg-[#FF4D4D] hover:bg-red-400 text-black cursor-pointer shadow-[2px_2px_0px_#000000]"
+                title="Close Dossier"
               >
                 <X className="w-4 h-4 stroke-[3]" />
               </button>
@@ -247,7 +257,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           </div>
 
           {/* 🧪 TEST DATA ARCHETYPES QUICK SWITCHER BAR */}
-          <div className="bg-neutral-100 border-b-2 border-black px-5 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="bg-neutral-100 border-b-2 border-black px-5 sm:px-6 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2 font-mono text-xs font-black text-black">
               <span>🧪 DATASET:</span>
               {selectedArchetype ? (
@@ -265,9 +275,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('highPerformer')}
-                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-0.5 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === 'highPerformer'
-                    ? 'bg-[#00E599] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
+                    ? 'bg-[#00E599] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
@@ -277,9 +287,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('steadyBaseline')}
-                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-0.5 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === 'steadyBaseline'
-                    ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
+                    ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
@@ -289,9 +299,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('fightingUnderdog')}
-                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-0.5 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === 'fightingUnderdog'
-                    ? 'bg-[#FF4D4D] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
+                    ? 'bg-[#FF4D4D] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
@@ -301,9 +311,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               <button
                 type="button"
                 onClick={() => handleSelectArchetype(null)}
-                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-0.5 rounded-lg border-2 border-black font-mono text-[11px] font-black cursor-pointer transition-all ${
                   selectedArchetype === null
-                    ? 'bg-black text-white shadow-[2px_2px_0px_#FDC800] scale-[1.03]'
+                    ? 'bg-black text-white shadow-[2px_2px_0px_#FDC800] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
@@ -402,31 +412,31 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               </div>
             ) : report ? (
               <>
-                {/* Persona Archetype Banner */}
-                <div className="p-6 rounded-2xl border-2 border-black bg-[#FDC800] shadow-[4px_4px_0px_#000000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                {/* Compact Persona Archetype Banner */}
+                <div className="p-3.5 sm:p-4 rounded-xl border-2 border-black bg-[#FDC800] shadow-[3px_3px_0px_#000000] flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shrink-0">
                   <div>
-                    <span className="text-[10px] font-mono font-black bg-black text-white px-2.5 py-1 rounded-md uppercase tracking-wider">
+                    <span className="text-[9px] font-mono font-black bg-black text-white px-2 py-0.5 rounded uppercase tracking-wider">
                       MONTHLY PERSONA ARCHETYPE
                     </span>
-                    <h4 className="font-display font-black text-2xl sm:text-3xl text-black uppercase tracking-tight mt-2">
+                    <h4 className="font-display font-black text-xl sm:text-2xl text-black uppercase tracking-tight mt-1">
                       "{report.personaTitle}"
                     </h4>
-                    <p className="text-xs font-mono font-bold text-neutral-800 mt-1 max-w-xl leading-relaxed">
+                    <p className="text-xs font-mono font-bold text-neutral-800 mt-0.5 leading-relaxed">
                       {report.executiveSummary}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="px-4 py-3 rounded-xl border-2 border-black bg-white text-center shadow-[2px_2px_0px_#000000]">
-                      <span className="block text-[10px] font-mono font-bold text-neutral-500">HIT RATE</span>
-                      <span className="font-display font-black text-2xl text-black leading-none mt-0.5">
+                  <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
+                    <div className="px-3.5 py-1.5 rounded-lg border-2 border-black bg-white text-center shadow-[2px_2px_0px_#000000]">
+                      <span className="block text-[9px] font-mono font-bold text-neutral-500">HIT RATE</span>
+                      <span className="font-display font-black text-lg text-black leading-none mt-0.5">
                         {report.hitRate}%
                       </span>
                     </div>
 
-                    <div className="px-4 py-3 rounded-xl border-2 border-black bg-white text-center shadow-[2px_2px_0px_#000000]">
-                      <span className="block text-[10px] font-mono font-bold text-neutral-500">AVG SCORE</span>
-                      <span className="font-display font-black text-2xl text-black leading-none mt-0.5">
+                    <div className="px-3.5 py-1.5 rounded-lg border-2 border-black bg-white text-center shadow-[2px_2px_0px_#000000]">
+                      <span className="block text-[9px] font-mono font-bold text-neutral-500">AVG SCORE</span>
+                      <span className="font-display font-black text-lg text-black leading-none mt-0.5">
                         {report.avgScore}
                       </span>
                     </div>
@@ -434,13 +444,13 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </div>
 
                 {/* 2-Column Analytics Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
                   
                   {/* Left Col: Weekday Momentum Heatmap (7 cols) */}
-                  <div className="lg:col-span-7 p-5 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] flex flex-col justify-between">
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-black/10">
+                  <div className="lg:col-span-7 p-3.5 sm:p-4 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-black/10">
                       <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
-                        <TrendingUp className="w-4 h-4 text-black stroke-[2.5]" />
+                        <TrendingUp className="w-3.5 h-3.5 text-black stroke-[2.5]" />
                         <span>WEEKDAY MOMENTUM DISTRIBUTION</span>
                       </span>
                       <span className="text-[10px] font-mono font-bold text-neutral-500">
@@ -449,26 +459,26 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     </div>
 
                     {/* Bar chart for Mon - Sun */}
-                    <div className="grid grid-cols-7 gap-2 items-end pt-4 h-36">
+                    <div className="grid grid-cols-7 gap-2 items-end pt-2 h-28">
                       {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
                         const score = report.weekdayAverages?.[day] || 0;
-                        const heightPct = Math.max(12, Math.round((score / 5.0) * 100));
+                        const heightPct = Math.max(14, Math.round((score / 5.0) * 100));
                         const isHigh = score >= 4.0;
 
                         return (
-                          <div key={day} className="flex flex-col items-center gap-1.5 h-full justify-end">
-                            <span className="text-[10px] font-mono font-black text-black">
+                          <div key={day} className="flex flex-col items-center gap-1 h-full justify-end">
+                            <span className="text-[9px] font-mono font-black text-black">
                               {score > 0 ? score : '—'}
                             </span>
                             <motion.div 
                               initial={{ height: 0 }}
                               animate={{ height: `${heightPct}%` }}
-                              transition={{ duration: 0.6, ease: 'easeOut' }}
-                              className={`w-full rounded-t-lg border-2 border-black shadow-[2px_2px_0px_#000000] ${
+                              transition={{ duration: 0.5, ease: 'easeOut' }}
+                              className={`w-full rounded-t-md border-2 border-black shadow-[1px_1px_0px_#000000] ${
                                 isHigh ? 'bg-[#00E599]' : score >= 3 ? 'bg-[#FDC800]' : score > 0 ? 'bg-[#FF8A00]' : 'bg-neutral-100'
                               }`}
                             />
-                            <span className="text-[10px] font-mono font-black uppercase text-neutral-700">
+                            <span className="text-[9px] font-mono font-black uppercase text-neutral-700">
                               {day}
                             </span>
                           </div>
@@ -478,10 +488,10 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
 
                   {/* Right Col: Rating Breakdown (5 cols) */}
-                  <div className="lg:col-span-5 p-5 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] flex flex-col justify-between">
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-black/10">
+                  <div className="lg:col-span-5 p-3.5 sm:p-4 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-black/10">
                       <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
-                        <Layers className="w-4 h-4 text-black stroke-[2.5]" />
+                        <Layers className="w-3.5 h-3.5 text-black stroke-[2.5]" />
                         <span>VERDICT BREAKDOWN</span>
                       </span>
                       <span className="text-[10px] font-mono font-black text-black">
@@ -489,7 +499,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       </span>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {[
                         { label: 'Peak (5/5)', count: report.ratingCounts?.[5] || 0, bg: '#FDC800' },
                         { label: 'Good (4/5)', count: report.ratingCounts?.[4] || 0, bg: '#00E599' },
@@ -499,16 +509,16 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       ].map(item => {
                         const pct = report.totalLogged > 0 ? Math.round((item.count / report.totalLogged) * 100) : 0;
                         return (
-                          <div key={item.label} className="space-y-1">
-                            <div className="flex justify-between text-[11px] font-mono font-bold text-black">
+                          <div key={item.label} className="space-y-0.5">
+                            <div className="flex justify-between text-[10px] font-mono font-bold text-black">
                               <span>{item.label}</span>
                               <span>{item.count}d ({pct}%)</span>
                             </div>
-                            <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                            <div className="h-1.5 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
                               <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${pct}%` }}
-                                transition={{ duration: 0.5, ease: 'easeOut' }}
+                                transition={{ duration: 0.4, ease: 'easeOut' }}
                                 className="h-full"
                                 style={{ backgroundColor: item.bg }}
                               />
@@ -521,28 +531,28 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                 </div>
 
-                {/* 🔍 Hidden Behavioral Patterns & Correlations (The Star Feature!) */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
-                    <h5 className="font-display font-black text-sm text-black uppercase tracking-wider">
+                {/* 🔍 Hidden Behavioral Patterns & Correlations */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                    <h5 className="font-display font-black text-xs text-black uppercase tracking-wider">
                       HIDDEN BEHAVIORAL CORRELATIONS & DISCOVERIES
                     </h5>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                     {report.hiddenFacts?.map((fact, idx) => (
                       <motion.div
                         key={idx}
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1, duration: 0.4 }}
-                        className="p-4 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[3px_3px_0px_#000000] flex items-start gap-3"
+                        transition={{ delay: idx * 0.08, duration: 0.35 }}
+                        className="p-3 rounded-lg border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] flex items-start gap-2.5"
                       >
-                        <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-[1px_1px_0px_#FDC800]">
+                        <div className="w-5 h-5 rounded bg-black text-white flex items-center justify-center font-mono font-black text-[10px] shrink-0 shadow-[1px_1px_0px_#FDC800]">
                           #{idx + 1}
                         </div>
-                        <p className="text-xs font-mono font-bold text-neutral-800 leading-relaxed">
+                        <p className="text-[11px] font-mono font-bold text-neutral-800 leading-snug">
                           {fact}
                         </p>
                       </motion.div>
@@ -551,47 +561,47 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </div>
 
                 {/* Side-by-Side: Friction Analysis vs Golden Triggers */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Friction Breakdown */}
-                  <div className="p-5 rounded-2xl border-2 border-black bg-red-50/50 shadow-[3px_3px_0px_#000000] space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-display font-black uppercase text-black">
-                      <AlertTriangle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5]" />
+                  <div className="p-3.5 rounded-xl border-2 border-black bg-red-50/60 shadow-[2px_2px_0px_#000000] space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-display font-black uppercase text-black">
+                      <AlertTriangle className="w-3.5 h-3.5 text-[#FF4D4D] stroke-[2.5]" />
                       <span>FRICTION & BOTTLENECK ANALYSIS</span>
                     </div>
-                    <p className="text-xs font-mono font-semibold text-neutral-800 leading-relaxed">
+                    <p className="text-[11px] font-mono font-semibold text-neutral-800 leading-relaxed">
                       {report.frictionAnalysis}
                     </p>
                   </div>
 
                   {/* Peak Triggers */}
-                  <div className="p-5 rounded-2xl border-2 border-black bg-emerald-50/50 shadow-[3px_3px_0px_#000000] space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-display font-black uppercase text-black">
-                      <Zap className="w-4 h-4 text-[#00E599] stroke-[2.5] fill-[#00E599]" />
+                  <div className="p-3.5 rounded-xl border-2 border-black bg-emerald-50/60 shadow-[2px_2px_0px_#000000] space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-display font-black uppercase text-black">
+                      <Zap className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5] fill-[#00E599]" />
                       <span>PEAK (5/5) MOMENTUM TRIGGERS</span>
                     </div>
-                    <p className="text-xs font-mono font-semibold text-neutral-800 leading-relaxed">
+                    <p className="text-[11px] font-mono font-semibold text-neutral-800 leading-relaxed">
                       {report.goldenHabits}
                     </p>
                   </div>
                 </div>
 
                 {/* 🎯 Next Month Tactical Directives */}
-                <div className="p-6 rounded-2xl border-2 border-black bg-black text-white shadow-[4px_4px_0px_#FDC800] space-y-4">
+                <div className="p-4 rounded-xl border-2 border-black bg-black text-white shadow-[3px_3px_0px_#FDC800] space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-display font-black text-sm uppercase text-[#FDC800]">
-                      <Award className="w-5 h-5 stroke-[2.5]" />
+                    <div className="flex items-center gap-2 font-display font-black text-xs uppercase text-[#FDC800]">
+                      <Award className="w-4 h-4 stroke-[2.5]" />
                       <span>NEXT MONTH TACTICAL BATTLE DIRECTIVES</span>
                     </div>
-                    <span className="text-[10px] font-mono font-black bg-[#FDC800] text-black px-2 py-0.5 rounded">
+                    <span className="text-[9px] font-mono font-black bg-[#FDC800] text-black px-1.5 py-0.5 rounded">
                       ACTION PLAN
                     </span>
                   </div>
 
-                  <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                     {report.nextMonthDirectives?.map((directive, idx) => (
-                      <div key={idx} className="flex items-start gap-3 bg-neutral-900 p-3 rounded-xl border border-white/20">
-                        <CheckCircle2 className="w-4 h-4 text-[#00E599] shrink-0 mt-0.5 stroke-[2.5]" />
-                        <span className="text-xs font-mono font-bold text-neutral-200">
+                      <div key={idx} className="flex items-start gap-2 bg-neutral-900 p-2.5 rounded-lg border border-white/20">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#00E599] shrink-0 mt-0.5 stroke-[2.5]" />
+                        <span className="text-[11px] font-mono font-bold text-neutral-200 leading-snug">
                           <strong>Directive {idx + 1}:</strong> {directive}
                         </span>
                       </div>
@@ -599,32 +609,15 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
                 </div>
 
+                {/* Subtitle attribution note */}
+                <div className="text-center pt-1 pb-2">
+                  <span className="text-[10px] font-mono font-bold text-neutral-500">
+                    💡 Performance intelligence synthesized from {report?.totalLogged || 0} logged days in {report?.monthName}.
+                  </span>
+                </div>
+
               </>
             ) : null}
-          </div>
-
-          {/* Dossier Footer */}
-          <div className="px-6 sm:px-8 py-4 border-t-2 border-black/10 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 bg-[#FFFDF5]">
-            <span className="text-xs font-mono font-bold text-neutral-600">
-              💡 Intelligence derived from {report?.totalLogged || 0} logged days in {report?.monthName}.
-            </span>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleCopyMarkdown}
-                className="neo-btn px-4 py-2 bg-white hover:bg-[#FDC800] text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
-                <span>{copied ? 'COPIED TO CLIPBOARD' : 'COPY DOSSIER'}</span>
-              </button>
-
-              <button
-                onClick={onClose}
-                className="neo-btn px-6 py-2 bg-[#00E599] text-black text-xs font-mono font-black cursor-pointer shadow-[2px_2px_0px_#000000]"
-              >
-                CLOSE DOSSIER
-              </button>
-            </div>
           </div>
 
         </motion.div>
