@@ -11,6 +11,7 @@ yarn-error.log*
 # PRIVATE DATA (Never commit your personal logs)
 data/
 data/entries.json
+data/reports.json
 data/*.tmp
 
 # IDE & OS
