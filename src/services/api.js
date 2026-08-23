@@ -123,8 +123,17 @@ export async function fetchMonthlyReport(year, month, customEntries = null) {
 }
 
 function generateClientMonthlyReport(year, month, customEntries = null) {
-  let allEntries = customEntries;
-  if (!allEntries) {
+  let allEntries = {};
+  if (customEntries) {
+    if (Array.isArray(customEntries)) {
+      allEntries = customEntries.reduce((acc, e) => {
+        if (e && e.date) acc[e.date] = e;
+        return acc;
+      }, {});
+    } else if (typeof customEntries === 'object') {
+      allEntries = customEntries;
+    }
+  } else {
     const cached = localStorage.getItem('goodness_db');
     allEntries = cached ? JSON.parse(cached).entries || {} : {};
   }

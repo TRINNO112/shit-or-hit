@@ -231,7 +231,18 @@ function sharpenReflectionLocally(text, rating) {
 app.post('/api/monthly-report', async (req, res) => {
   const { year, month, customEntries } = req.body;
   const db = readDatabase();
-  const allEntries = (customEntries && typeof customEntries === 'object') ? customEntries : (db.entries || {});
+  
+  let allEntries = db.entries || {};
+  if (customEntries) {
+    if (Array.isArray(customEntries)) {
+      allEntries = customEntries.reduce((acc, e) => {
+        if (e && e.date) acc[e.date] = e;
+        return acc;
+      }, {});
+    } else if (typeof customEntries === 'object') {
+      allEntries = customEntries;
+    }
+  }
 
   const monthPrefix = `${year}-${String(month).padStart(2, '0')}`;
   const monthEntries = Object.entries(allEntries)

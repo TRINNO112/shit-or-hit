@@ -19,7 +19,9 @@ import {
   Check, 
   Layers, 
   Compass,
-  Calendar
+  Calendar,
+  Lock,
+  Play
 } from 'lucide-react';
 import { fetchMonthlyReport } from '../services/api';
 import { mockArchetypes } from '../data/mockArchetypes';
@@ -48,7 +50,7 @@ export default function MonthlyReportModal({
     if (initialMonth) setMonth(initialMonth);
   }, [initialYear, initialMonth]);
 
-  // Load report with real data or custom archetype
+  // Load report with real data or custom archetype (Explicitly user-triggered)
   const loadReportData = async (archetypeId = selectedArchetype, currentYear = year, currentMonth = month) => {
     setIsLoading(true);
     setError(null);
@@ -56,7 +58,9 @@ export default function MonthlyReportModal({
       let customEntries = null;
       if (archetypeId && mockArchetypes[archetypeId]) {
         const arch = mockArchetypes[archetypeId];
-        customEntries = arch.entries || (typeof arch.generateEntries === 'function' ? arch.generateEntries(currentYear, currentMonth) : null);
+        customEntries = typeof arch.getEntries === 'function' 
+          ? arch.getEntries(currentYear, currentMonth) 
+          : arch.entries;
       }
       const data = await fetchMonthlyReport(currentYear, currentMonth, customEntries);
       setReport(data);
@@ -76,14 +80,9 @@ export default function MonthlyReportModal({
     }
   };
 
-  // Fetch report on mount or when year/month changes
-  useEffect(() => {
-    if (!isOpen) return;
-    loadReportData(selectedArchetype, year, month);
-  }, [isOpen, year, month]);
-
   const handleSelectArchetype = (archetypeId) => {
     setSelectedArchetype(archetypeId);
+    setReport(null); // Reset to allow explicit evaluation
     loadReportData(archetypeId, year, month);
   };
 
@@ -101,21 +100,19 @@ export default function MonthlyReportModal({
   };
 
   const handlePrevMonth = () => {
-    if (month === 1) {
-      setYear(y => y - 1);
-      setMonth(12);
-    } else {
-      setMonth(m => m - 1);
-    }
+    const newMonth = month === 1 ? 12 : month - 1;
+    const newYear = month === 1 ? year - 1 : year;
+    setYear(newYear);
+    setMonth(newMonth);
+    setReport(null);
   };
 
   const handleNextMonth = () => {
-    if (month === 12) {
-      setYear(y => y + 1);
-      setMonth(1);
-    } else {
-      setMonth(m => m + 1);
-    }
+    const newMonth = month === 12 ? 1 : month + 1;
+    const newYear = month === 12 ? year + 1 : year;
+    setYear(newYear);
+    setMonth(newMonth);
+    setReport(null);
   };
 
   const handleCopyMarkdown = () => {
@@ -153,19 +150,11 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-xs"
-        onClick={onClose}
+        transition={{ duration: 0.15 }}
+        className="fixed inset-0 z-50 flex flex-col w-screen h-screen bg-[#FFFDF5] p-0 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.93, y: 25 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.93, y: 20 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-          className="neo-card w-[96vw] max-w-[1360px] my-auto h-[92vh] max-h-[92vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative"
-          style={{ padding: '0px' }}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="w-full h-full flex flex-col overflow-hidden">
           
           {/* Top Sticky Reading Progress Tracker */}
           <div className="bg-black text-white px-5 sm:px-8 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
@@ -215,20 +204,22 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 onClick={() => loadReportData(selectedArchetype, year, month)}
                 disabled={isLoading}
                 title="Run or re-generate Gemini AI Performance Evaluation"
-                className="neo-btn px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50"
+                className="neo-btn px-3.5 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50"
               >
                 <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'EVALUATING...' : 'RUN EVALUATION'}</span>
+                <span>{isLoading ? 'EVALUATING...' : '⚡ RUN EVALUATION'}</span>
               </button>
 
-              <button
-                onClick={handleCopyMarkdown}
-                title="Copy Dossier Markdown to Clipboard"
-                className="neo-btn px-2.5 py-1.5 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
-                <span className="hidden sm:inline">{copied ? 'COPIED' : 'COPY'}</span>
-              </button>
+              {report && (
+                <button
+                  onClick={handleCopyMarkdown}
+                  title="Copy Dossier Markdown to Clipboard"
+                  className="neo-btn px-2.5 py-1.5 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
+                  <span className="hidden sm:inline">{copied ? 'COPIED' : 'COPY'}</span>
+                </button>
+              )}
 
               <div className="flex items-center bg-white border-2 border-black rounded-xl p-0.5 shadow-[2px_2px_0px_#000000]">
                 <button
@@ -240,7 +231,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </button>
 
                 <span className="px-2.5 font-mono font-black text-xs text-black uppercase">
-                  {report?.monthName || `${month}/${year}`}
+                  {report?.monthName || new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </span>
 
                 <button
@@ -309,7 +300,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           <div 
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4"
+            className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 py-4 space-y-4"
           >
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -343,44 +334,43 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   RETRY SYNTHESIS
                 </button>
               </div>
-            ) : (!report || report.totalLogged === 0) ? (
-              <div className="p-8 rounded-2xl border-2 border-black bg-neutral-50 shadow-[4px_4px_0px_#000000] text-center space-y-4">
-                <FileText className="w-10 h-10 text-neutral-400 mx-auto" />
-                <div>
-                  <h4 className="font-display font-black text-lg text-black uppercase">
-                    No Logs Recorded For {report?.monthName || `${month}/${year}`}
+            ) : !report ? (
+              /* Privacy-First Ready to Synthesize Launcher Screen */
+              <div className="p-6 sm:p-10 rounded-2xl border-2 border-black bg-[#FFFDF5] shadow-[4px_4px_0px_#000000] text-center space-y-6 max-w-3xl mx-auto my-6">
+                <div className="w-14 h-14 rounded-2xl bg-[#00E599] border-2 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_#000000]">
+                  <Lock className="w-7 h-7 text-black stroke-[2.5]" />
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-display font-black text-2xl uppercase text-black">
+                    READY FOR MONTHLY EVALUATION
                   </h4>
-                  <p className="text-xs font-mono text-neutral-600 max-w-md mx-auto mt-1">
-                    Log your daily verdicts in the calendar, or test the Gemini Intelligence engine using Aryan's 31-day struggling student story.
+                  <p className="text-xs font-mono text-neutral-700 max-w-lg mx-auto leading-relaxed">
+                    <strong>100% Privacy Protected:</strong> Your daily notes and verdicts stay local on your device. Click the button below to send your entries to Gemini AI for deep behavioral pattern discovery and next month battle directives.
                   </p>
                 </div>
 
-                <div className="max-w-xl mx-auto pt-2">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => loadReportData(selectedArchetype, year, month)}
+                    className="neo-btn px-6 py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-sm uppercase flex items-center gap-2 shadow-[3px_3px_0px_#000000] cursor-pointer"
+                  >
+                    <Wand2 className="w-4 h-4 stroke-[2.5]" />
+                    <span>⚡ RUN EVALUATION FOR {new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                  </button>
+
                   <button
                     onClick={() => handleSelectArchetype('strugglingStudent')}
-                    className="w-full neo-btn p-5 bg-white hover:bg-amber-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
+                    className="neo-btn px-5 py-3 bg-white hover:bg-amber-50 text-black font-mono font-black text-xs flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">🎓</span>
-                        <h5 className="font-display font-black text-sm uppercase text-black">
-                          ARYAN'S CHRONICLES (STRUGGLING STUDENT — 31 DAYS)
-                        </h5>
-                      </div>
-                      <p className="text-[11px] font-mono text-neutral-600 mt-2 leading-relaxed">
-                        Exam anxiety, 38/100 math failure, 3:30 AM Reels doomscrolling, chemistry lab rejection, turning point catalyst, and a Week 3 recovery up to 74%.
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-mono font-black bg-[#FF8A00] text-black px-3 py-1.5 rounded mt-4 text-center border border-black shadow-[1px_1px_0px_#000000]">
-                      EVALUATE THIS 31-DAY STUDENT STORY →
-                    </span>
+                    <span>🎓 EVALUATE ARYAN'S 31-DAY STORY</span>
                   </button>
                 </div>
               </div>
             ) : report ? (
               <>
                 {/* Persona Archetype Banner with Dynamic Stoic or High-Velocity Styling */}
-                <div className={`p-3.5 sm:p-4 rounded-xl border-2 border-black flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shrink-0 ${
+                <div className={`p-4 sm:p-5 rounded-2xl border-2 border-black flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shrink-0 ${
                   report.hitRate < 50 
                     ? 'bg-[#1C1917] text-white shadow-[3px_3px_0px_#FDC800]' 
                     : report.hitRate >= 80 
@@ -401,12 +391,12 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       )}
                     </div>
 
-                    <h4 className={`font-display font-black text-xl sm:text-2xl uppercase tracking-tight mt-1 ${
+                    <h4 className={`font-display font-black text-xl sm:text-2xl uppercase tracking-tight mt-1.5 ${
                       report.hitRate < 50 ? 'text-white' : 'text-black'
                     }`}>
                       "{report.personaTitle}"
                     </h4>
-                    <p className={`text-xs font-mono font-bold mt-0.5 leading-relaxed ${
+                    <p className={`text-xs font-mono font-bold mt-1 leading-relaxed max-w-3xl ${
                       report.hitRate < 50 ? 'text-neutral-300' : 'text-neutral-800'
                     }`}>
                       {report.executiveSummary}
@@ -414,22 +404,22 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
 
                   <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
-                    <div className={`px-3.5 py-1.5 rounded-lg border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                    <div className={`px-4 py-2 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
                       <span className="block text-[9px] font-mono font-bold text-neutral-400">HIT RATE</span>
-                      <span className={`font-display font-black text-lg leading-none mt-0.5 ${
+                      <span className={`font-display font-black text-xl leading-none mt-0.5 ${
                         report.hitRate < 50 ? 'text-[#FF4D4D]' : 'text-black'
                       }`}>
                         {report.hitRate}%
                       </span>
                     </div>
 
-                    <div className={`px-3.5 py-1.5 rounded-lg border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                    <div className={`px-4 py-2 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
                       <span className="block text-[9px] font-mono font-bold text-neutral-400">AVG SCORE</span>
-                      <span className="font-display font-black text-lg leading-none mt-0.5 text-black">
+                      <span className="font-display font-black text-xl leading-none mt-0.5 text-black">
                         {report.avgScore}
                       </span>
                     </div>
@@ -437,10 +427,10 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </div>
 
                 {/* 2-Column Analytics Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                   
                   {/* Left Col: Weekday Momentum Heatmap (7 cols) */}
-                  <div className="lg:col-span-7 p-3.5 sm:p-4 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
+                  <div className="lg:col-span-7 p-4 sm:p-5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-black/10">
                       <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
                         <TrendingUp className="w-3.5 h-3.5 text-black stroke-[2.5]" />
@@ -452,7 +442,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     </div>
 
                     {/* Bar chart for Mon - Sun */}
-                    <div className="grid grid-cols-7 gap-2 items-end pt-2 h-28">
+                    <div className="grid grid-cols-7 gap-2 items-end pt-2 h-32">
                       {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
                         const score = report.weekdayAverages?.[day] || 0;
                         const heightPct = Math.max(14, Math.round((score / 5.0) * 100));
@@ -481,7 +471,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
 
                   {/* Right Col: Rating Breakdown (5 cols) */}
-                  <div className="lg:col-span-5 p-3.5 sm:p-4 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
+                  <div className="lg:col-span-5 p-4 sm:p-5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-black/10">
                       <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1.5">
                         <Layers className="w-3.5 h-3.5 text-black stroke-[2.5]" />
@@ -507,7 +497,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                               <span>{item.label}</span>
                               <span>{item.count}d ({pct}%)</span>
                             </div>
-                            <div className="h-1.5 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                            <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
                               <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${pct}%` }}
@@ -533,14 +523,14 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     </h5>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {report.hiddenFacts?.map((fact, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.08, duration: 0.35 }}
-                        className="p-3 rounded-lg border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] flex items-start gap-2.5"
+                        className="p-3.5 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] flex items-start gap-3"
                       >
                         <div className="w-5 h-5 rounded bg-black text-white flex items-center justify-center font-mono font-black text-[10px] shrink-0 shadow-[1px_1px_0px_#FDC800]">
                           #{idx + 1}
@@ -554,9 +544,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </div>
 
                 {/* Side-by-Side: Friction Analysis vs Golden Triggers */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   {/* Friction Breakdown */}
-                  <div className="p-3.5 rounded-xl border-2 border-black bg-red-50/60 shadow-[2px_2px_0px_#000000] space-y-1">
+                  <div className="p-4 rounded-2xl border-2 border-black bg-red-50/60 shadow-[2px_2px_0px_#000000] space-y-1.5">
                     <div className="flex items-center gap-1.5 text-xs font-display font-black uppercase text-black">
                       <AlertTriangle className="w-3.5 h-3.5 text-[#FF4D4D] stroke-[2.5]" />
                       <span>ROOT-CAUSE FRICTION & BOTTLENECK ANALYSIS</span>
@@ -567,7 +557,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
 
                   {/* Peak Triggers */}
-                  <div className="p-3.5 rounded-xl border-2 border-black bg-emerald-50/60 shadow-[2px_2px_0px_#000000] space-y-1">
+                  <div className="p-4 rounded-2xl border-2 border-black bg-emerald-50/60 shadow-[2px_2px_0px_#000000] space-y-1.5">
                     <div className="flex items-center gap-1.5 text-xs font-display font-black uppercase text-black">
                       <Zap className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5] fill-[#00E599]" />
                       <span>{report.hitRate < 50 ? 'REBOUND MOMENTS & SURVIVAL TRIGGERS' : 'PEAK (5/5) MOMENTUM TRIGGERS'}</span>
@@ -579,20 +569,20 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </div>
 
                 {/* 🎯 Next Month Tactical Directives */}
-                <div className="p-4 rounded-xl border-2 border-black bg-black text-white shadow-[3px_3px_0px_#FDC800] space-y-2.5">
+                <div className="p-4 sm:p-5 rounded-2xl border-2 border-black bg-black text-white shadow-[3px_3px_0px_#FDC800] space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 font-display font-black text-xs uppercase text-[#FDC800]">
                       <Award className="w-4 h-4 stroke-[2.5]" />
                       <span>{report.hitRate < 50 ? 'EMERGENCY TURNAROUND & RECOVERY PROTOCOL' : 'NEXT MONTH TACTICAL BATTLE DIRECTIVES'}</span>
                     </div>
-                    <span className="text-[9px] font-mono font-black bg-[#FDC800] text-black px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] font-mono font-black bg-[#FDC800] text-black px-2 py-0.5 rounded">
                       ACTION PLAN
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                     {report.nextMonthDirectives?.map((directive, idx) => (
-                      <div key={idx} className="flex items-start gap-2 bg-neutral-900 p-2.5 rounded-lg border border-white/20">
+                      <div key={idx} className="flex items-start gap-2 bg-neutral-900 p-3 rounded-xl border border-white/20">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#00E599] shrink-0 mt-0.5 stroke-[2.5]" />
                         <span className="text-[11px] font-mono font-bold text-neutral-200 leading-snug">
                           <strong>Directive {idx + 1}:</strong> {directive}
@@ -603,7 +593,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </div>
 
                 {/* Subtitle attribution note */}
-                <div className="text-center pt-1 pb-2">
+                <div className="text-center pt-1 pb-3">
                   <span className="text-[10px] font-mono font-bold text-neutral-500">
                     💡 Performance intelligence synthesized from {report?.totalLogged || 0} logged days in {report?.monthName}.
                   </span>
@@ -613,7 +603,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             ) : null}
           </div>
 
-        </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );
