@@ -1,151 +1,176 @@
-// 3 Complete 30-Day Realistic Test Datasets with Daily Diary Snippets
+// Authentic 31-Day Narrative Story of Aryan (The Struggling Student)
+// Detailed day-by-day story covering exam setbacks, 3 AM doomscrolling, social anxiety, 
+// a turning point catalyst, and a gradual 4-week resilience turnaround.
 
 export const mockArchetypes = {
-  highPerformer: {
-    id: 'highPerformer',
-    name: '👑 High-Performer (Apex Momentum)',
-    description: '85% Peak/Good days, deep flow states, high output, zero rough days.',
-    generateEntries: (year = 2026, month = 8) => {
-      const entries = {};
-      const totalDays = new Date(year, month, 0).getDate();
+  strugglingStudent: {
+    id: 'strugglingStudent',
+    name: '🎓 Aryan\'s Chronicles (The Struggling Student — 31 Days)',
+    shortDesc: 'Exam anxiety, 3 AM Reels doomscrolling, parent pressure, and a Week 3 resilience rebound.',
+    color: '#FF8A00',
+    entries: [
+      // ════════ WEEK 1: Academic Setbacks & Escapism (Days 1–7) ════════
+      {
+        date: '2026-08-01',
+        rating: 1, // Rough
+        note: 'Got back Math mid-term paper: scored 38/100. Teacher gave a harsh public warning in class. Felt sick with embarrassment and couldn\'t muster the courage to tell mom and dad.'
+      },
+      {
+        date: '2026-08-02',
+        rating: 1, // Rough
+        note: 'Drowning in anxiety about the marks. Instead of studying, escaped into 5 straight hours of Instagram Reels and YouTube Shorts until 3:45 AM. Feel completely stuck in a loop.'
+      },
+      {
+        date: '2026-08-03',
+        rating: 2, // Down
+        note: 'Slept through morning alarm. Arrived 20 mins late to Physics lecture. Terrible brain fog all day; couldn\'t process a single concept written on the blackboard.'
+      },
+      {
+        date: '2026-08-04',
+        rating: 1, // Rough
+        note: 'Parents found out about the Math marks during dinner. Dad was furious, mom looked heartbroken. Heavy arguments. Went to bed feeling completely useless and inadequate.'
+      },
+      {
+        date: '2026-08-05',
+        rating: 2, // Down
+        note: 'Tried sitting at the library desk after school, but kept picking up my phone every 4 minutes. Read only 2 pages in 3 hours. Attention span feels completely shattered.'
+      },
+      {
+        date: '2026-08-06',
+        rating: 3, // Okay
+        note: 'Saturday: Cleaned up my chaotic study desk. Turned off phone WiFi for 2 hours and actually solved 5 Chemistry practice questions. A tiny breather.'
+      },
+      {
+        date: '2026-08-07',
+        rating: 2, // Down
+        note: 'Sunday night dread kicked in hard. Stared at the ceiling thinking about upcoming pop quizzes. Felt lonely and disconnected from everyone.'
+      },
 
-      const notesCatalog = [
-        "Crushed the core architecture refactoring in a 4-hour uninterrupted flow state. All unit tests green.",
-        "Delivered the client demo ahead of schedule. Feedback was overwhelmingly positive. Energy is electric.",
-        "Woke up at 6 AM, hit a 5km personal record, and shipped 3 major features before lunch.",
-        "High focus session with the team. Unblocked critical bottlenecks and planned next sprint flawlessly.",
-        "Optimized database query latency by 60%. Everything feels fast, crisp, and dialed in.",
-        "Solid momentum day. Wrapped up documentation and closed all open pull requests.",
-        "Maintained intense discipline during review cycles. Clear mind, zero distractions.",
-        "Great execution. Solved an edge-case memory leak that was pending for weeks.",
-        "Full velocity. Deployed staging environment seamlessly without downtime.",
-        "Deep strategic planning for Q4. High alignment with stakeholders and clear roadmap."
-      ];
+      // ════════ WEEK 2: Social Anxiety & Distraction Trap (Days 8–15) ════════
+      {
+        date: '2026-08-08',
+        rating: 1, // Rough
+        note: 'Group project announced for Biology. Got paired with the class toppers and felt so insecure that I didn\'t speak up once. Feared they think I\'m dead weight.'
+      },
+      {
+        date: '2026-08-09',
+        rating: 2, // Down
+        note: 'Gathered courage to talk to chemistry lab crush after class; froze up, stammered, said something awkward, and walked away mortified. Overanalyzed it for 6 hours.'
+      },
+      {
+        date: '2026-08-10',
+        rating: 1, // Rough
+        note: 'Saw everyone posting weekend party stories on Instagram with their friend groups and dates. Intense wave of FOMO, loneliness, and self-doubt.'
+      },
+      {
+        date: '2026-08-11',
+        rating: 2, // Down
+        note: 'Mindless gaming stream binge until 4:15 AM to numb out the loneliness. Woke up with a pounding headache and skipped first period English.'
+      },
+      {
+        date: '2026-08-12',
+        rating: 1, // Rough
+        note: 'Unannounced Physics pop quiz: couldn\'t remember basic rotational motion formulas. Left half the answer sheet blank. Felt like I\'m sinking deeper into a hole.'
+      },
+      {
+        date: '2026-08-13',
+        rating: 2, // Down
+        note: 'Friday evening exhaustion. Sat on the couch doing infinite scrolling on TikTok for 4 hours without even noticing where the evening went.'
+      },
+      {
+        date: '2026-08-14',
+        rating: 3, // Okay
+        note: 'Went for a 45-minute evening walk outside leaving phone in my drawer. Breezy air helped clear the heavy fog in my head.'
+      },
+      {
+        date: '2026-08-15',
+        rating: 2, // Down
+        note: 'Procrastinated on Monday\'s submission all afternoon. Late-night panic sprint trying to write lab notes half-asleep.'
+      },
 
-      for (let d = 1; d <= totalDays; d++) {
-        const dStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        // 5 (55%), 4 (35%), 3 (10%)
-        const roll = (d * 7) % 100;
-        let rating = 5;
-        let verdict = 'Peak';
-        if (roll < 55) {
-          rating = 5;
-          verdict = 'Peak';
-        } else if (roll < 90) {
-          rating = 4;
-          verdict = 'Good';
-        } else {
-          rating = 3;
-          verdict = 'Okay';
-        }
+      // ════════ WEEK 3: The Catalyst & Breaking the Loop (Days 16–23) ════════
+      {
+        date: '2026-08-16',
+        rating: 1, // Rough
+        note: 'Breaking point: Forgot the English assignment deadline and received a zero. Stood outside school staring at the sky and realized: I cannot keep living like this.'
+      },
+      {
+        date: '2026-08-17',
+        rating: 3, // Okay
+        note: 'Catalyst Day: Deleted Instagram and TikTok apps from phone. Set up a 25-min Pomodoro timer and completed 2 full hours of focused math problem-solving without distractions.'
+      },
+      {
+        date: '2026-08-18',
+        rating: 4, // Good
+        note: 'First major win in weeks! Solved 15 calculus derivative problems correctly without checking the solution manual. Felt a forgotten spark of self-confidence.'
+      },
+      {
+        date: '2026-08-19',
+        rating: 3, // Okay
+        note: 'Maintained the social media detox. Attended all classes, sat in the front row, and asked the Physics teacher one clarifying question after class. He was encouraging.'
+      },
+      {
+        date: '2026-08-20',
+        rating: 4, // Good
+        note: 'Finished my Biology lab report 24 hours before the deadline! Went to bed at 11:00 PM for the first time this entire month. Woke up without brain fog.'
+      },
+      {
+        date: '2026-08-21',
+        rating: 3, // Okay
+        note: 'Saturday group study at the public library with a classmate. Stayed on task for 3 solid hours. Didn\'t feel behind anymore.'
+      },
+      {
+        date: '2026-08-22',
+        rating: 4, // Good
+        note: 'Attempted a timed practice mock test for Chemistry: scored 68%! Still have weak areas to polish, but seeing tangible proof of recovery was huge.'
+      },
+      {
+        date: '2026-08-23',
+        rating: 3, // Okay
+        note: 'Balanced Sunday: Did 2 hours of revision, went for a run, helped mom with groceries. Kept my baseline stable.'
+      },
 
-        entries[dStr] = {
-          date: dStr,
-          rating,
-          verdict,
-          notes: notesCatalog[d % notesCatalog.length]
-        };
+      // ════════ WEEK 4: Relapse, Reset & Rebuilding Baseline (Days 24–31) ════════
+      {
+        date: '2026-08-24',
+        rating: 2, // Down
+        note: 'Rainy Tuesday setback: Got bored and re-downloaded Instagram for 90 minutes. Felt guilt creeping in, but reminded myself not to let one slip spiral into a ruined week.'
+      },
+      {
+        date: '2026-08-25',
+        rating: 3, // Okay
+        note: 'Applied the 24-Hour Reset Rule: Immediately uninstalled the app again, drank a glass of water, and completed the Chemistry numericals set.'
+      },
+      {
+        date: '2026-08-26',
+        rating: 4, // Good
+        note: 'Mathematics Unit Test Day: Wrote with clear calm focus. Finished all questions with 5 minutes to spare for checking errors. No panic attacks.'
+      },
+      {
+        date: '2026-08-27',
+        rating: 4, // Good
+        note: 'Got Math Unit Test results back: 74/100! From 38 to 74 in three weeks! The teacher wrote "Tremendous improvement, keep this momentum" on the paper.'
+      },
+      {
+        date: '2026-08-28',
+        rating: 3, // Okay
+        note: 'Showed the test paper to parents at dinner. Dad gave me a quiet nod of respect and mom smiled. Felt a heavy weight lift off my shoulders.'
+      },
+      {
+        date: '2026-08-29',
+        rating: 3, // Okay
+        note: 'Weekend preparation: Made clean formula flashcards for upcoming finals. Routine feels predictable and manageable now.'
+      },
+      {
+        date: '2026-08-30',
+        rating: 4, // Good
+        note: 'Completed the entire monthly study checklist. Realized that feeling confident doesn\'t come before action; action creates confidence.'
+      },
+      {
+        date: '2026-08-31',
+        rating: 5, // Peak
+        note: 'End of August Reflection: Survived one of the hardest academic and emotional months of my life. From 3 AM doomscrolling and failing to a 14-day study streak and 74% test score. I stayed in the fight.'
       }
-      return entries;
-    }
-  },
-
-  steadyBaseline: {
-    id: 'steadyBaseline',
-    name: '🔘 Steady Baseline (Equilibrium)',
-    description: '70% Okay/Baseline days, normal routine, consistent maintenance pace.',
-    generateEntries: (year = 2026, month = 8) => {
-      const entries = {};
-      const totalDays = new Date(year, month, 0).getDate();
-
-      const notesCatalog = [
-        "Normal working day. Attended 3 routine standups and answered backlog support tickets.",
-        "Steady progress on maintenance tasks. Nothing extraordinary, but held the line.",
-        "Felt a bit sluggish after lunch, but managed to finish the weekly report on time.",
-        "Standard Thursday routine. Completed code reviews and planned tomorrow's schedule.",
-        "A few unexpected meeting interruptions, but maintained composure and finished tasks.",
-        "Productive morning followed by an average afternoon. Met all basic deliverables.",
-        "Weekend rest and light chores. Recovered energy for the upcoming work week.",
-        "Routine deployment checks. Everything remained stable without surprises.",
-        "Balanced workday. Fixed two minor UI styling tickets and logged off on time."
-      ];
-
-      for (let d = 1; d <= totalDays; d++) {
-        const dStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        // 3 (70%), 4 (15%), 2 (15%)
-        const roll = (d * 11) % 100;
-        let rating = 3;
-        let verdict = 'Okay';
-        if (roll < 70) {
-          rating = 3;
-          verdict = 'Okay';
-        } else if (roll < 85) {
-          rating = 4;
-          verdict = 'Good';
-        } else {
-          rating = 2;
-          verdict = 'Down';
-        }
-
-        entries[dStr] = {
-          date: dStr,
-          rating,
-          verdict,
-          notes: notesCatalog[d % notesCatalog.length]
-        };
-      }
-      return entries;
-    }
-  },
-
-  fightingUnderdog: {
-    id: 'fightingUnderdog',
-    name: '🔥 Fighting Underdog (Red Struggle)',
-    description: '75% Rough/Down days, heavy friction, production blockers, burnout battles.',
-    generateEntries: (year = 2026, month = 8) => {
-      const entries = {};
-      const totalDays = new Date(year, month, 0).getDate();
-
-      const notesCatalog = [
-        "Critical production outage at 2 AM. Spent 8 hours fighting broken database migrations. Pure chaos and exhaustion.",
-        "Severe mental fatigue today. Context switched between 6 conflicting priorities and got virtually nothing done.",
-        "Stuck on an elusive concurrency deadlock bug all day. Frustration levels were at an all-time high.",
-        "Sleep deprivation caught up with me. Couldn't focus for more than 15 minutes without zoning out.",
-        "Rough day. Missed a crucial milestone due to third-party API outage and server crashes.",
-        "Heavy burnout symptoms. Struggled to write basic code. Pushed through by sheer stubborn willpower.",
-        "Overwhelming backlog and team miscommunication. Spent the day putting out fires instead of building.",
-        "Managed a slight recovery. Fixed one critical bug and got 4 hours of focused work done.",
-        "Tough setbacks again. Requirements got changed last minute, forcing me to discard 3 days of work."
-      ];
-
-      for (let d = 1; d <= totalDays; d++) {
-        const dStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        // 1 (45%), 2 (30%), 3 (20%), 4 (5%)
-        const roll = (d * 13) % 100;
-        let rating = 1;
-        let verdict = 'Rough';
-        if (roll < 45) {
-          rating = 1;
-          verdict = 'Rough';
-        } else if (roll < 75) {
-          rating = 2;
-          verdict = 'Down';
-        } else if (roll < 95) {
-          rating = 3;
-          verdict = 'Okay';
-        } else {
-          rating = 4;
-          verdict = 'Good';
-        }
-
-        entries[dStr] = {
-          date: dStr,
-          rating,
-          verdict,
-          notes: notesCatalog[d % notesCatalog.length]
-        };
-      }
-      return entries;
-    }
+    ]
   }
 };

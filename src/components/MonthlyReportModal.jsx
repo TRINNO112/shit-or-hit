@@ -147,11 +147,19 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-        className="fixed inset-0 z-50 flex flex-col p-0 bg-[#FFFDF5] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-xs"
+        onClick={onClose}
       >
-        <div className="w-full h-full flex flex-col overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.93, y: 25 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.93, y: 20 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+          className="neo-card w-[96vw] max-w-[1360px] my-auto h-[92vh] max-h-[92vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative"
+          style={{ padding: '0px' }}
+          onClick={(e) => e.stopPropagation()}
+        >
           
           {/* Top Sticky Reading Progress Tracker */}
           <div className="bg-black text-white px-5 sm:px-8 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
@@ -249,13 +257,13 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* 🧪 TEST DATA ARCHETYPES QUICK SWITCHER BAR */}
+          {/* 🧪 TEST DATASET QUICK SWITCHER BAR */}
           <div className="bg-neutral-100 border-b-2 border-black px-5 sm:px-8 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2 font-mono text-xs font-black text-black">
               <span>🧪 DATASET:</span>
               {selectedArchetype ? (
-                <span className="px-2 py-0.5 rounded bg-[#FDC800] text-black text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
-                  TESTING: {mockArchetypes[selectedArchetype]?.name.split(' ')[1]}
+                <span className="px-2 py-0.5 rounded bg-[#FF8A00] text-black text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
+                  TESTING: ARYAN'S CHRONICLES (31 DAYS)
                 </span>
               ) : (
                 <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shadow-[1px_1px_0px_#FDC800]">
@@ -264,41 +272,17 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => handleSelectArchetype('highPerformer')}
+                onClick={() => handleSelectArchetype('strugglingStudent')}
                 className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
-                  selectedArchetype === 'highPerformer'
-                    ? 'bg-[#00E599] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
+                  selectedArchetype === 'strugglingStudent'
+                    ? 'bg-[#FF8A00] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
                 }`}
               >
-                👑 High-Performer
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSelectArchetype('steadyBaseline')}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
-                  selectedArchetype === 'steadyBaseline'
-                    ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
-                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
-                }`}
-              >
-                🔘 Steady Baseline
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSelectArchetype('fightingUnderdog')}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
-                  selectedArchetype === 'fightingUnderdog'
-                    ? 'bg-[#FF4D4D] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
-                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
-                }`}
-              >
-                🔥 Fighting Underdog
+                🎓 Aryan's Chronicles (Struggling Student — 31 Days)
               </button>
 
               <button
@@ -315,90 +299,74 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* Scrollable Content Body with min-h-0 and flex-1 */}
+          {/* Scrollable Dossier Content Area */}
           <div 
-            ref={scrollContainerRef}
+            ref={scrollRef}
             onScroll={handleScroll}
-            className="overflow-y-auto px-5 sm:px-8 py-5 space-y-5 flex-1 min-h-0"
+            className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4"
           >
             {isLoading ? (
-              <div className="py-24 flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-10 h-10 text-black animate-spin stroke-[2.5]" />
-                <p className="font-mono text-sm font-black uppercase text-black">
-                  Synthesizing Deep Monthly Intelligence with Gemini...
-                </p>
-                <span className="text-xs font-mono text-neutral-500">
-                  Correlating ratings, note reflections, weekday heatmaps, and streak momentum
-                </span>
-              </div>
-            ) : report?.totalLogged === 0 ? (
-              /* High-impact Empty State with 1-Click Launchers */
-              <div className="p-8 sm:p-10 rounded-2xl border-2 border-black bg-[#FFFDF5] shadow-[6px_6px_0px_#000000] text-center space-y-6">
-                <div className="w-16 h-16 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_#000000]">
-                  <Sparkles className="w-8 h-8 text-black stroke-[2.5]" />
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-2xl bg-[#FDC800] border-3 border-black flex items-center justify-center animate-bounce shadow-[4px_4px_0px_#000000]">
+                    <Sparkles className="w-8 h-8 text-black" />
+                  </div>
                 </div>
-
-                <div>
-                  <h4 className="font-display font-black text-2xl uppercase text-black">
-                    NO REAL LOGS FOR {report.monthName} YET
+                <div className="text-center space-y-1">
+                  <h4 className="font-display font-black text-lg text-black uppercase">
+                    Synthesizing Monthly Performance Intelligence...
                   </h4>
-                  <p className="text-xs font-mono font-bold text-neutral-600 max-w-md mx-auto mt-1.5">
-                    You haven't logged entries for this month yet. You can either log verdicts in the tracker or test the Gemini AI evaluation right now using one of the 3 pre-built trial archetypes below!
+                  <p className="text-xs font-mono text-neutral-600">
+                    Gemini AI is examining daily notes, friction points, and behavioral momentum.
+                  </p>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="p-6 rounded-2xl border-2 border-black bg-red-100 shadow-[4px_4px_0px_#000000] text-center space-y-3">
+                <AlertCircle className="w-8 h-8 text-red-600 mx-auto" />
+                <h4 className="font-display font-black text-base text-black uppercase">
+                  Could Not Generate Monthly Intelligence
+                </h4>
+                <p className="text-xs font-mono text-neutral-700 max-w-md mx-auto">
+                  {error}
+                </p>
+                <button
+                  onClick={() => loadReportData(selectedArchetype, year, month)}
+                  className="neo-btn px-4 py-2 bg-black text-[#FDC800] text-xs font-mono font-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+                >
+                  RETRY SYNTHESIS
+                </button>
+              </div>
+            ) : !report && (!monthEntries || monthEntries.length === 0) ? (
+              <div className="p-8 rounded-2xl border-2 border-black bg-neutral-50 shadow-[4px_4px_0px_#000000] text-center space-y-4">
+                <FileText className="w-10 h-10 text-neutral-400 mx-auto" />
+                <div>
+                  <h4 className="font-display font-black text-lg text-black uppercase">
+                    No Logs Recorded For {report?.monthName || `${month}/${year}`}
+                  </h4>
+                  <p className="text-xs font-mono text-neutral-600 max-w-md mx-auto mt-1">
+                    Log your daily verdicts in the calendar, or test the Gemini Intelligence engine using Aryan's 31-day struggling student story.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div className="max-w-xl mx-auto pt-2">
                   <button
-                    onClick={() => handleSelectArchetype('highPerformer')}
-                    className="neo-btn p-5 bg-white hover:bg-emerald-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
+                    onClick={() => handleSelectArchetype('strugglingStudent')}
+                    className="w-full neo-btn p-5 bg-white hover:bg-amber-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
                   >
                     <div>
-                      <span className="text-xl">👑</span>
-                      <h5 className="font-display font-black text-sm uppercase text-black mt-2">
-                        HIGH-PERFORMER
-                      </h5>
-                      <p className="text-[11px] font-mono text-neutral-600 mt-1">
-                        85% Peak/Good days, intense flow states, fast shipping.
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🎓</span>
+                        <h5 className="font-display font-black text-sm uppercase text-black">
+                          ARYAN'S CHRONICLES (STRUGGLING STUDENT — 31 DAYS)
+                        </h5>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600 mt-2 leading-relaxed">
+                        Exam anxiety, 38/100 math failure, 3:30 AM Reels doomscrolling, chemistry lab rejection, turning point catalyst, and a Week 3 recovery up to 74%.
                       </p>
                     </div>
-                    <span className="text-[10px] font-mono font-black bg-[#00E599] text-black px-2 py-1 rounded mt-4 text-center">
-                      TEST THIS PROFILE →
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSelectArchetype('steadyBaseline')}
-                    className="neo-btn p-5 bg-white hover:bg-amber-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
-                  >
-                    <div>
-                      <span className="text-xl">🔘</span>
-                      <h5 className="font-display font-black text-sm uppercase text-black mt-2">
-                        STEADY BASELINE
-                      </h5>
-                      <p className="text-[11px] font-mono text-neutral-600 mt-1">
-                        70% Okay days, standard work routines, consistent pace.
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-mono font-black bg-[#FDC800] text-black px-2 py-1 rounded mt-4 text-center">
-                      TEST THIS PROFILE →
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSelectArchetype('fightingUnderdog')}
-                    className="neo-btn p-5 bg-white hover:bg-red-50 text-left flex flex-col justify-between border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] cursor-pointer"
-                  >
-                    <div>
-                      <span className="text-xl">🔥</span>
-                      <h5 className="font-display font-black text-sm uppercase text-black mt-2">
-                        FIGHTING UNDERDOG
-                      </h5>
-                      <p className="text-[11px] font-mono text-neutral-600 mt-1">
-                        75% Rough/Down days, outage battles, burnout resistance.
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-mono font-black bg-[#FF4D4D] text-black px-2 py-1 rounded mt-4 text-center">
-                      TEST THIS PROFILE →
+                    <span className="text-[10px] font-mono font-black bg-[#FF8A00] text-black px-3 py-1.5 rounded mt-4 text-center border border-black shadow-[1px_1px_0px_#000000]">
+                      EVALUATE THIS 31-DAY STUDENT STORY →
                     </span>
                   </button>
                 </div>
@@ -639,7 +607,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             ) : null}
           </div>
 
-        </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
