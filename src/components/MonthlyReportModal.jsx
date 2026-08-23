@@ -187,50 +187,30 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* Compact Header */}
-          <div className="px-5 sm:px-6 py-2.5 border-b-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shrink-0 bg-[#FFFDF5]">
-            <div className="flex items-center gap-3">
+          {/* Clean Single-Line Header */}
+          <div className="px-5 sm:px-7 py-3 border-b-2 border-black/10 flex items-center justify-between gap-4 shrink-0 bg-[#FFFDF5]">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
                 <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-display font-black text-lg text-black uppercase leading-none">
+                  <h3 className="font-display font-black text-base sm:text-lg text-black uppercase leading-none tracking-tight truncate">
                     MONTHLY PERFORMANCE DOSSIER
                   </h3>
-                  <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase">
+                  <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase shrink-0">
                     GEMINI AI
                   </span>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-neutral-600">
+                <span className="text-[10px] font-mono font-bold text-neutral-500 hidden sm:block truncate mt-0.5">
                   Deep behavioral intelligence, root-cause forensics & tactical battle plan.
                 </span>
               </div>
             </div>
 
-            {/* Controls: Evaluate Action, Copy, Month Switcher & Close */}
-            <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
-              <button
-                onClick={() => loadReportData(selectedArchetype, year, month)}
-                disabled={isLoading}
-                title="Run or re-generate Gemini AI Performance Evaluation"
-                className="neo-btn px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50"
-              >
-                <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'EVALUATING...' : '⚡ RUN EVALUATION'}</span>
-              </button>
-
-              {report && (
-                <button
-                  onClick={handleCopyMarkdown}
-                  title="Copy Dossier Markdown to Clipboard"
-                  className="neo-btn px-2.5 py-1.5 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
-                  <span className="hidden sm:inline">{copied ? 'COPIED' : 'COPY'}</span>
-                </button>
-              )}
-
+            {/* Controls: Month Switcher, Evaluate, Copy & Close (Single Line Flex-Nowrap) */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Month Navigator */}
               <div className="flex items-center bg-white border-2 border-black rounded-xl p-0.5 shadow-[2px_2px_0px_#000000]">
                 <button
                   onClick={handlePrevMonth}
@@ -240,8 +220,8 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   <ChevronLeft className="w-3.5 h-3.5 stroke-[3]" />
                 </button>
 
-                <span className="px-2 font-mono font-black text-xs text-black uppercase">
-                  {report?.monthName || new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                <span className="px-2 font-mono font-black text-xs text-black uppercase select-none">
+                  {report?.monthName || new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </span>
 
                 <button
@@ -253,9 +233,33 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </button>
               </div>
 
+              {/* Evaluate Button */}
+              <button
+                onClick={() => loadReportData(selectedArchetype, year, month)}
+                disabled={isLoading}
+                title="Run or re-generate Gemini AI Performance Evaluation"
+                className="neo-btn px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
+                <span>{isLoading ? 'EVALUATING...' : 'RUN EVALUATION'}</span>
+              </button>
+
+              {/* Copy Markdown (if report ready) */}
+              {report && (
+                <button
+                  onClick={handleCopyMarkdown}
+                  title="Copy Dossier Markdown to Clipboard"
+                  className="neo-btn px-2.5 py-1.5 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
+                  <span className="hidden md:inline">{copied ? 'COPIED' : 'COPY'}</span>
+                </button>
+              )}
+
+              {/* Close Button */}
               <button
                 onClick={onClose}
-                className="neo-btn p-1.5 bg-[#FF4D4D] hover:bg-red-400 text-black cursor-pointer shadow-[2px_2px_0px_#000000]"
+                className="w-8 h-8 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
                 title="Close Dossier"
               >
                 <X className="w-4 h-4 stroke-[3]" />
