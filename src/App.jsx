@@ -5,12 +5,14 @@ import JourneyTimeline from './components/JourneyTimeline';
 import StatsWidget from './components/StatsWidget';
 import CalendarModal from './components/CalendarModal';
 import EditDayModal from './components/EditDayModal';
+import AnimationLab from './components/AnimationLab';
 import { fetchDatabase, saveEntry } from './services/api';
 
 export default function App() {
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isLabOpen, setIsLabOpen] = useState(false);
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
 
   const now = new Date();
@@ -49,13 +51,14 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#FFFDF5] text-black">
       
-      {/* Full-width Header with Calendar toggle */}
+      {/* Full-width Header with Calendar & Animation Lab toggle */}
       <Header
         startDate={startDate}
         entries={entries}
         dayCount={dayCount}
         isCalendarOpen={isCalendarOpen}
         onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
+        onOpenLab={() => setIsLabOpen(true)}
       />
 
       {/* Main Panoramic Container with Generous Padding */}
@@ -115,6 +118,12 @@ export default function App() {
         dateStr={editingDay?.dateStr}
         dayIndex={editingDay?.dayIndex || 1}
         onSave={handleSaveEntry}
+      />
+
+      {/* Animation Laboratory Modal / Showcase */}
+      <AnimationLab
+        isOpen={isLabOpen}
+        onClose={() => setIsLabOpen(false)}
       />
 
       {/* Footer with Proper Spacing */}
