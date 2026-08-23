@@ -1,6 +1,7 @@
 import React from 'react';
 import { Zap, Flame, Download, Calendar, Sparkles } from 'lucide-react';
 import { exportDatabaseBackup } from '../services/api';
+import MagneticButton from './MagneticButton';
 
 export default function Header({ 
   startDate, 
@@ -49,16 +50,16 @@ export default function Header({
           <span>DAY {dayCount}</span>
         </div>
 
-        {/* Calendar Toggle Button */}
-        <button
+        {/* Calendar Toggle Button with Magnetic Cursor Attraction */}
+        <MagneticButton
           onClick={onToggleCalendar}
-          className={`px-4 py-2.5 rounded-xl border-2 border-black text-black text-xs font-mono font-black flex items-center gap-2 shadow-[3px_3px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl border-2 border-black text-black text-xs font-mono font-black flex items-center gap-2 shadow-[3px_3px_0px_#000000] cursor-pointer ${
             isCalendarOpen ? 'bg-[#FDC800]' : 'bg-white'
           }`}
         >
           <Calendar className="w-4 h-4 stroke-[2.5]" />
           <span>{isCalendarOpen ? 'CLOSE CALENDAR' : 'CALENDAR'}</span>
-        </button>
+        </MagneticButton>
 
         {/* Backup Button */}
         <button

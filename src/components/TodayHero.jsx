@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   AlertCircle, 
   CloudRain, 
@@ -15,6 +16,8 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { ratingMeta, enhanceReflectionWithAI } from '../services/api';
+import MagneticButton from './MagneticButton';
+import confetti from 'canvas-confetti';
 
 const IconMap = {
   AlertCircle,
@@ -22,6 +25,15 @@ const IconMap = {
   MinusCircle,
   Zap,
   Sparkles
+};
+
+// SVG Paths for morphing vector mood graphics
+const moodSvgPaths = {
+  1: "M12 2L2 22h20L12 2zm0 6l1 7h-2l1-7zm0 10a1.5 1.5 0 110-3 1.5 1.5 0 010 3z", // Warning triangle / stoic resilience
+  2: "M6 19a4 4 0 01-4-4 4 4 0 014-4h.5A6 6 0 0118 9a4.5 4.5 0 014 4.5 4.5 4.5 0 01-4.5 4.5H6z", // Cloud downpour
+  3: "M4 12h16M4 12a8 8 0 1016 0A8 8 0 004 12z", // Equilibrium circle
+  4: "M13 2L3 14h9l-1 8 10-12h-9l1-8z", // Lightning Bolt
+  5: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" // Apex Star
 };
 
 export default function TodayHero({ 
@@ -34,6 +46,7 @@ export default function TodayHero({
   const [noteText, setNoteText] = useState(currentEntry?.notes || '');
   const [syncedBadge, setSyncedBadge] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [activeRipple, setActiveRipple] = useState(null);
   
   // History stack for Undo / Redo / Revert to Original
   const [historyStack, setHistoryStack] = useState([]);
@@ -57,7 +70,36 @@ export default function TodayHero({
   const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
   const fullDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  const handleRate = async (val) => {
+  const handleRate = async (val, e) => {
+    // Trigger Emotion-Toned feedback
+    const rect = e?.currentTarget?.getBoundingClientRect();
+    if (rect) {
+      setActiveRipple({
+        id: Date.now(),
+        rating: val,
+        color: ratingMeta[val]?.bg || '#FDC800'
+      });
+      setTimeout(() => setActiveRipple(null), 650);
+    }
+
+    // Only celebrate peak and good with confetti
+    if (val === 5) {
+      confetti({
+        particleCount: 55,
+        spread: 65,
+        origin: { y: 0.6 },
+        colors: ['#FDC800', '#000000', '#00E599']
+      });
+    } else if (val === 4) {
+      confetti({
+        particleCount: 25,
+        spread: 45,
+        origin: { y: 0.65 },
+        colors: ['#00E599', '#000000']
+      });
+    }
+    // Note: Ratings 1 (Rough), 2 (Down), 3 (Okay) have stoic, calm, zero-hype feedback
+
     setSyncedBadge(true);
     await onSaveToday({
       date: todayStr,
@@ -87,7 +129,6 @@ export default function TodayHero({
   const handleAIEnhance = async () => {
     if (!noteText || noteText.trim() === '') return;
     
-    // Save current text before enhancement into history
     const currentVal = noteText;
     setIsEnhancing(true);
     try {
@@ -131,8 +172,23 @@ export default function TodayHero({
   };
 
   return (
-    <div className="neo-card w-full mb-8 bg-white" style={{ padding: '36px 40px' }}>
+    <div className="neo-card w-full mb-8 bg-white relative overflow-hidden" style={{ padding: '36px 40px' }}>
       
+      {/* Emotion Ripple Indicator Overlay */}
+      <AnimatePresence>
+        {activeRipple && (
+          <motion.div
+            key={activeRipple.id}
+            initial={{ opacity: 0.4, scale: 0.8 }}
+            animate={{ opacity: 0, scale: 1.05 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="absolute inset-0 pointer-events-none rounded-2xl border-4"
+            style={{ borderColor: activeRipple.color, backgroundColor: `${activeRipple.color}08` }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Top Panoramic Grid */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
         
@@ -155,7 +211,7 @@ export default function TodayHero({
           </p>
         </div>
 
-        {/* Right Side: 5 Chunky Tactile Buttons */}
+        {/* Right Side: 5 Chunky Tactile Buttons with Framer Motion Spring */}
         <div className="w-full lg:w-7/12">
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
             {[1, 2, 3, 4, 5].map((val) => {
@@ -164,11 +220,14 @@ export default function TodayHero({
               const isSelected = selectedRating === val;
 
               return (
-                <button
+                <motion.button
                   key={val}
                   type="button"
-                  onClick={() => handleRate(val)}
-                  className={`neo-btn flex flex-col items-center justify-center p-4 ${
+                  whileHover={{ scale: 1.06, y: -2 }}
+                  whileTap={{ scale: 0.88, rotate: (val - 3) * 1.5 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                  onClick={(e) => handleRate(val, e)}
+                  className={`neo-btn flex flex-col items-center justify-center p-4 relative cursor-pointer ${
                     isSelected ? m.selectedClass : ''
                   }`}
                   style={{ minHeight: '110px' }}
@@ -187,7 +246,7 @@ export default function TodayHero({
                   <span className="text-[10px] font-mono font-bold text-neutral-600 mt-1">
                     {val}/5
                   </span>
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -195,138 +254,160 @@ export default function TodayHero({
 
       </div>
 
-      {/* Bottom Bar: Status Verdict + Expandable Note */}
+      {/* Bottom Bar: Morphing Vector Status Verdict + Expandable Note */}
       <div className="mt-8 pt-6 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
-        {/* Active Verdict Pill */}
+        {/* Active Verdict Pill with Live Morphing SVG Path */}
         {selectedRating ? (
-          <div 
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl border-2 border-black text-xs font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
+          <motion.div 
+            layout
+            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+            className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 border-black text-xs font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
             style={{ backgroundColor: ratingMeta[selectedRating]?.bg }}
           >
+            {/* Morphing SVG Graphic */}
+            <svg viewBox="0 0 24 24" className="w-4 h-4 stroke-black fill-black shrink-0" strokeWidth="2">
+              <motion.path
+                d={moodSvgPaths[selectedRating] || moodSvgPaths[3]}
+                animate={{ d: moodSvgPaths[selectedRating] || moodSvgPaths[3] }}
+                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              />
+            </svg>
+
             <span>
               VERDICT: <strong className="uppercase">{ratingMeta[selectedRating]?.title}</strong> — {ratingMeta[selectedRating]?.desc}
             </span>
+
             {syncedBadge && (
               <span className="flex items-center gap-1 bg-black text-white px-2 py-0.5 rounded-md font-mono text-[10px] uppercase font-black ml-1">
                 <Check className="w-3 h-3 stroke-[3]" /> Saved
               </span>
             )}
-          </div>
+          </motion.div>
         ) : (
           <span className="text-xs font-mono font-bold text-neutral-500">
             No verdict logged yet for today.
           </span>
         )}
 
-        {/* Note Toggle Button */}
+        {/* Note Toggle Button with Magnetic Cursor Attraction */}
         {!showNote && (
-          <button
+          <MagneticButton
             onClick={() => setShowNote(true)}
-            className="text-xs font-mono font-bold text-black hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000000] flex items-center gap-1.5 transition-all cursor-pointer"
+            className="text-xs font-mono font-bold text-black bg-white hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer"
           >
             <PenLine className="w-3.5 h-3.5" />
             <span>{currentEntry?.notes ? 'Edit reflection' : '+ Add reflection note'}</span>
-          </button>
+          </MagneticButton>
         )}
 
       </div>
 
-      {/* Expanded Note Area with AI Polish & Version History */}
-      {showNote && (
-        <div className="mt-5 pt-5 border-t-2 border-dashed border-black/20 text-left space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
-            <span className="flex items-center gap-1.5">
-              <PenLine className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>UNFILTERED DAILY DIARY REFLECTION</span>
-            </span>
+      {/* Expanded Note Area with Smooth Spring Physics */}
+      <AnimatePresence>
+        {showNote && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+            className="overflow-hidden mt-5 pt-5 border-t-2 border-dashed border-black/20 text-left space-y-3"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
+              <span className="flex items-center gap-1.5">
+                <PenLine className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>UNFILTERED DAILY DIARY REFLECTION</span>
+              </span>
 
-            <div className="flex items-center gap-2">
-              {/* Undo / Redo / Revert History Controls */}
-              <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1px_1px_0px_#000000]">
-                <button
-                  type="button"
-                  onClick={handleUndo}
-                  disabled={historyIdx <= 0}
-                  title="Undo last change"
-                  className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
-                >
-                  <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleRedo}
-                  disabled={historyIdx >= historyStack.length - 1}
-                  title="Redo change"
-                  className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
-                >
-                  <Redo2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                </button>
-
-                {originalDraft && (
+              <div className="flex items-center gap-2">
+                {/* Undo / Redo / Revert History Controls */}
+                <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1px_1px_0px_#000000]">
                   <button
                     type="button"
-                    onClick={handleRevertOriginal}
-                    title="Revert back to original raw text"
-                    className="px-2 py-0.5 rounded hover:bg-white text-[10px] font-black uppercase cursor-pointer text-neutral-800"
+                    onClick={handleUndo}
+                    disabled={historyIdx <= 0}
+                    title="Undo last change"
+                    className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
                   >
-                    ORIGINAL
+                    <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
-                )}
+
+                  <button
+                    type="button"
+                    onClick={handleRedo}
+                    disabled={historyIdx >= historyStack.length - 1}
+                    title="Redo change"
+                    className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
+                  >
+                    <Redo2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
+
+                  {originalDraft && (
+                    <button
+                      type="button"
+                      onClick={handleRevertOriginal}
+                      title="Revert back to original raw text"
+                      className="px-2 py-0.5 rounded hover:bg-white text-[10px] font-black uppercase cursor-pointer text-neutral-800"
+                    >
+                      ORIGINAL
+                    </button>
+                  )}
+                </div>
+
+                {/* AI Polish Button */}
+                <button
+                  type="button"
+                  onClick={handleAIEnhance}
+                  disabled={isEnhancing || !noteText.trim()}
+                  title="Polish and organize your diary entry with Gemini AI (maintains 1st person)"
+                  className="neo-btn px-3.5 py-1 bg-[#FDC800] hover:bg-amber-300 text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-[2px_2px_0px_#000000]"
+                >
+                  {isEnhancing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                  )}
+                  <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH DIARY'}</span>
+                </button>
+
+                <button 
+                  onClick={() => setShowNote(false)}
+                  className="hover:bg-red-200 border border-black p-1 rounded cursor-pointer ml-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
-
-              {/* AI Polish Button */}
-              <button
-                type="button"
-                onClick={handleAIEnhance}
-                disabled={isEnhancing || !noteText.trim()}
-                title="Polish and organize your diary entry with Gemini AI (maintains 1st person)"
-                className="neo-btn px-3.5 py-1 bg-[#FDC800] hover:bg-amber-300 text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-[2px_2px_0px_#000000]"
-              >
-                {isEnhancing ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                )}
-                <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH DIARY'}</span>
-              </button>
-
-              <button 
-                onClick={() => setShowNote(false)}
-                className="hover:bg-red-200 border border-black p-1 rounded cursor-pointer ml-1"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
             </div>
-          </div>
 
-          <textarea
-            rows={6}
-            placeholder="Write your raw diary thoughts here... (what went wrong, what went right, real struggles)"
-            value={noteText}
-            onChange={(e) => handleNoteChange(e.target.value)}
-            className="neo-input text-xs text-black placeholder:text-neutral-500 font-mono leading-relaxed"
-            style={{ minHeight: '140px' }}
-          />
+            <textarea
+              rows={6}
+              placeholder="Write your raw diary thoughts here... (what went wrong, what went right, real struggles)"
+              value={noteText}
+              onChange={(e) => handleNoteChange(e.target.value)}
+              className="neo-input text-xs text-black placeholder:text-neutral-500 font-mono leading-relaxed"
+              style={{ minHeight: '140px' }}
+            />
 
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono text-neutral-500 font-bold">
-              {historyStack.length > 1 && `Version ${historyIdx + 1} of ${historyStack.length} • `}
-              Use Undo/Original to revert anytime.
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono text-neutral-500 font-bold">
+                {historyStack.length > 1 && `Version ${historyIdx + 1} of ${historyStack.length} • `}
+                Use Undo/Original to revert anytime.
+              </span>
 
-            <button
-              type="button"
-              onClick={handleSaveNote}
-              className="neo-btn px-6 py-2 bg-[#00E599] text-black text-xs font-mono font-black cursor-pointer shadow-[3px_3px_0px_#000000]"
-            >
-              SAVE DIARY ENTRY
-            </button>
-          </div>
-        </div>
-      )}
+              <MagneticButton
+                onClick={handleSaveNote}
+                className="neo-btn px-6 py-2 bg-[#00E599] text-black text-xs font-mono font-black cursor-pointer shadow-[3px_3px_0px_#000000]"
+              >
+                SAVE DIARY ENTRY
+              </MagneticButton>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
 }
+
