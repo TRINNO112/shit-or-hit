@@ -12,6 +12,8 @@ import {
   Award, 
   Zap, 
   AlertTriangle, 
+  AlertCircle,
+  FileText,
   CheckCircle2, 
   Copy, 
   Check, 
