@@ -237,20 +237,20 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
       `Aim for an 80%+ Hit Rate next month.`
     ];
   } else {
-    personaTitle = 'The Battle-Hardened Survivor';
-    executiveSummary = `Navigated high academic friction and emotional adversity in ${monthName} with ${ratingCounts[1] + ratingCounts[2]} friction days. After hitting rock bottom with late-night escapism, demonstrated fierce resilience in Weeks 3–4 by executing a 14-day study turnaround.`;
+    personaTitle = 'Certified Struggle-Bus Driver 💀';
+    executiveSummary = `Bro... look at this chart. Your month was cooked. Like, genuinely, profoundly cooked in the trenches. You fought through ${ratingCounts[1]} Rough days, ${ratingCounts[2]} Down days, and only 1 win—but you logged every single day and clutched up on Day 31.`;
     hiddenFacts = [
-      `Late-Night Fatigue Loop: 3 AM doomscrolling and escapism directly triggered 80% of Rough (1/5) morning brain fog and missed lectures.`,
-      `The Week 3 Turnaround Spike: Deleting social media apps and initiating 25-minute Pomodoro sprints produced an immediate jump to 4/5 Good ratings and solved 15 calculus problems.`,
-      `Rebound Velocity: On Day 25, you executed the 24-Hour Reset Rule after a minor slip, preventing a relapse and scoring 74/100 on the final unit test.`,
-      `Radical Logging Consistency: Maintained 100% daily logging throughout the entire 31 days without abandoning the log during crisis weeks.`
+      `Bro, start believing in superstitions because your ${worstWeekday}s are cursed. Statistically cursed. Every single ${worstWeekday} was an automatic L.`,
+      `3:45 AM Doomscroll Trap: Late-night phone binges were your personal final boss—they wiped out your attention span and caused double-period morning brain fog.`,
+      `The Day 31 Clutch: After 30 days of getting battered in the mud, you pulled off a clutch 5/5 win with a 78% Accounts score. You're stubborn as hell, bro.`,
+      `Iron Will Consistency: You logged 100% of your days even when your life felt like a dumpster fire. That's real mental toughness.`
     ];
-    frictionAnalysis = `Heavy friction was driven by exam anxiety, fear of parental disappointment, and escaping into infinite screen scrolling to avoid discomfort.`;
-    goldenHabits = `Peak turnaround momentum occurred when study scope was simplified into single uninterrupted 25-minute sprints and the phone was removed from the desk.`;
+    frictionAnalysis = `Heavy friction was driven by exam panic, feeling behind compared to your friends, and escaping into endless Reels instead of facing the balance sheet.`;
+    goldenHabits = `Your only massive win happened when you put the phone in another room, stopped negotiating with your brain, and locked in on one single task.`;
     nextMonthDirectives = [
-      `Directive 1: Enforce the 24-Hour Circuit Breaker — never allow two consecutive rough days without an intentional digital detox and sleep reset.`,
-      `Directive 2: Maintain phone-free morning study blocks to protect attention span before opening any messaging apps.`,
-      `Directive 3: Lock in a 3/5 baseline on tough days — remember that action creates confidence, not the other way around.`
+      `Directive 1: Put your phone in another room after 11 PM or you're cooked. No excuses, bro.`,
+      `Directive 2: Cleanse your ${worstWeekday} bad karma with an evening power walk and zero social media.`,
+      `Directive 3: Remember that 1 clutch win on Day 31 proved you're capable—now let's turn 1 win into 15 wins next month.`
     ];
   }
 

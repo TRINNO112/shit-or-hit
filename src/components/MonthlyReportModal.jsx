@@ -161,7 +161,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 25 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="w-full max-w-5xl h-[90vh] max-h-[90vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative"
+          className="w-[96vw] max-w-[1400px] h-[92vh] max-h-[92vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative"
           style={{ padding: '0px' }}
           onClick={(e) => e.stopPropagation()}
         >
