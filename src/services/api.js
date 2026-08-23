@@ -103,12 +103,12 @@ export async function enhanceReflectionWithAI(notes, rating, date) {
   }
 }
 
-export async function fetchMonthlyReport(year, month) {
+export async function fetchMonthlyReport(year, month, customEntries = null) {
   try {
     const res = await fetch(`${API_BASE}/monthly-report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ year, month })
+      body: JSON.stringify({ year, month, customEntries })
     });
     if (!res.ok) throw new Error('Failed to generate monthly report');
     const json = await res.json();

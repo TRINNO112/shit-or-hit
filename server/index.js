@@ -229,9 +229,9 @@ function sharpenReflectionLocally(text, rating) {
 
 // Monthly AI Performance Dossier Report Route
 app.post('/api/monthly-report', async (req, res) => {
-  const { year, month } = req.body;
+  const { year, month, customEntries } = req.body;
   const db = readDatabase();
-  const allEntries = db.entries || {};
+  const allEntries = (customEntries && typeof customEntries === 'object') ? customEntries : (db.entries || {});
 
   const monthPrefix = `${year}-${String(month).padStart(2, '0')}`;
   const monthEntries = Object.entries(allEntries)

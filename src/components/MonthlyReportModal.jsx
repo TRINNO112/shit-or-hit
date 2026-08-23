@@ -20,6 +20,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { fetchMonthlyReport } from '../services/api';
+import { mockArchetypes } from '../data/mockArchetypes';
 import confetti from 'canvas-confetti';
 
 export default function MonthlyReportModal({ 
@@ -31,6 +32,7 @@ export default function MonthlyReportModal({
   const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
   const [report, setReport] = useState(null);
+  const [selectedArchetype, setSelectedArchetype] = useState(null); // null = real data
   const [isLoading, setIsLoading] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -43,36 +45,41 @@ export default function MonthlyReportModal({
     if (initialMonth) setMonth(initialMonth);
   }, [initialYear, initialMonth]);
 
-  // Fetch report whenever month/year changes and modal is open
+  // Load report with real data or custom archetype
+  const loadReportData = async (archetypeId = selectedArchetype, currentYear = year, currentMonth = month) => {
+    setIsLoading(true);
+    try {
+      let customEntries = null;
+      if (archetypeId && mockArchetypes[archetypeId]) {
+        customEntries = mockArchetypes[archetypeId].generateEntries(currentYear, currentMonth);
+      }
+      const data = await fetchMonthlyReport(currentYear, currentMonth, customEntries);
+      setReport(data);
+      if (data?.hitRate >= 75) {
+        confetti({
+          particleCount: 40,
+          spread: 60,
+          origin: { y: 0.5 },
+          colors: ['#FDC800', '#00E599', '#000000']
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load monthly report:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch report on mount or when year/month changes
   useEffect(() => {
     if (!isOpen) return;
-
-    let isMounted = true;
-    const loadReport = async () => {
-      setIsLoading(true);
-      try {
-        const data = await fetchMonthlyReport(year, month);
-        if (isMounted) {
-          setReport(data);
-          if (data?.hitRate >= 75) {
-            confetti({
-              particleCount: 40,
-              spread: 60,
-              origin: { y: 0.5 },
-              colors: ['#FDC800', '#00E599', '#000000']
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load monthly report:', err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    loadReport();
-    return () => { isMounted = false; };
+    loadReportData(selectedArchetype, year, month);
   }, [isOpen, year, month]);
+
+  const handleSelectArchetype = (archetypeId) => {
+    setSelectedArchetype(archetypeId);
+    loadReportData(archetypeId, year, month);
+  };
 
   // Handle scroll tracking
   const handleScroll = () => {
@@ -176,14 +183,14 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           </div>
 
           {/* Dossier Header */}
-          <div className="px-6 sm:px-8 pt-6 pb-4 border-b-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 bg-[#FFFDF5]">
+          <div className="px-6 sm:px-8 pt-5 pb-3.5 border-b-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 bg-[#FFFDF5]">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0">
                 <Sparkles className="w-6 h-6 text-black stroke-[2.5]" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-display font-black text-2xl text-black uppercase leading-tight">
+                  <h3 className="font-display font-black text-xl sm:text-2xl text-black uppercase leading-tight">
                     MONTHLY PERFORMANCE DOSSIER
                   </h3>
                   <span className="px-2 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[10px] font-black uppercase">
@@ -225,6 +232,63 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 className="neo-btn p-2 bg-[#FF4D4D] hover:bg-red-400 text-black cursor-pointer shadow-[2px_2px_0px_#000000]"
               >
                 <X className="w-4 h-4 stroke-[3]" />
+              </button>
+            </div>
+          </div>
+
+          {/* 🧪 TEST DATA ARCHETYPES QUICK SWITCHER BAR */}
+          <div className="bg-neutral-100 border-b-2 border-black px-6 py-2.5 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+            <div className="flex items-center gap-1.5 font-mono text-xs font-black text-black">
+              <span>🧪 TEST ARCHETYPES:</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleSelectArchetype('highPerformer')}
+                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                  selectedArchetype === 'highPerformer'
+                    ? 'bg-[#00E599] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
+                }`}
+              >
+                👑 High-Performer (Peak/Good)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectArchetype('steadyBaseline')}
+                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                  selectedArchetype === 'steadyBaseline'
+                    ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
+                }`}
+              >
+                🔘 Steady Baseline (Okay)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectArchetype('fightingUnderdog')}
+                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                  selectedArchetype === 'fightingUnderdog'
+                    ? 'bg-[#FF4D4D] text-black shadow-[2px_2px_0px_#000000] scale-[1.03]'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
+                }`}
+              >
+                🔥 Fighting Underdog (Red)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectArchetype(null)}
+                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                  selectedArchetype === null
+                    ? 'bg-black text-white shadow-[2px_2px_0px_#FDC800] scale-[1.03]'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
+                }`}
+              >
+                ↩️ My Real Data
               </button>
             </div>
           </div>
