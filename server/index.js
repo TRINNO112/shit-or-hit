@@ -326,25 +326,32 @@ DATA SUMMARY:
 - Detailed Log Entries with Notes:
 ${JSON.stringify(entriesSummary.slice(0, 31), null, 2)}
 
-TASK:
-Generate a deep, badass, highly personalized Monthly Performance Intelligence Dossier.
-Find hidden, non-obvious correlations, behavioral insights, weekday trends, and emotional patterns from the notes and ratings.
+CORE PSYCHOLOGICAL & ANALYTICAL GUIDELINES:
+1. IF THIS WAS A HARSH / ROUGH / LOW-SCORE MONTH (Hit Rate < 50% or High Rough/Down counts):
+   - DO NOT shame, lecture, or sound alarmed.
+   - FRAME WITH STOIC DIGNITY: Commend the user for staying in the arena and logging honestly (e.g. Archetypes like 'The Battle-Tested Stoic', 'The Storm Navigator', 'The Resilient Fighter').
+   - ROOT-CAUSE FORENSICS: Identify the real systemic leaks (e.g., fatigue spillover, context switching, outage firefights, broken sleep).
+   - HIGHLIGHT HIDDEN MICRO-WINS: Spot the days they fought back (rebound spikes, streak resets, perseverance).
+   - EMERGENCY TURNAROUND DIRECTIVES: Provide 3 concrete, low-friction recovery rules (e.g. The 24-Hour Circuit Breaker, Lowering baseline target to 3/5 Okay first, Single Non-Negotiable Anchor Win).
+
+2. IF THIS WAS A BALANCED OR HIGH-VELOCITY MONTH (Hit Rate >= 50%):
+   - Highlight flow-state mastery, peak power weekdays, and proactive momentum defense.
 
 Return ONLY a valid JSON object matching this exact schema:
 {
-  "personaTitle": "A powerful 2-4 word archetype title (e.g. 'The Relentless Velocity Builder', 'The Stoic Deep-Focus Strategist')",
-  "executiveSummary": "A 2-3 sentence executive synthesis of this month's discipline, momentum, and mental resilience.",
+  "personaTitle": "A powerful 2-4 word archetype title (e.g. 'The Battle-Tested Stoic', 'The Relentless Velocity Builder')",
+  "executiveSummary": "A 2-3 sentence executive synthesis focusing on resilience, momentum, and truth-to-reality.",
   "hiddenFacts": [
-    "3-4 surprising, specific facts or behavioral correlations (e.g. 'Tuesday Dip Index: Tuesdays were 25% lower energy than Mondays due to sprint fatigue', 'Recovery Speed: You bounced back to a 4/5 score within 24 hours after every rough day', 'Reflection Correlation: Days with long notes had an 80% Peak rate')",
+    "3-4 surprising, specific facts or behavioral correlations (e.g. 'Tuesday Fatigue Drag: Tuesdays triggered a 30% momentum dip that spilled into Wednesday mornings', 'Rebound Velocity: On Day 14, after 3 rough days, you snapped the slump with a 4/5 Good rating', 'Honesty Consistency: Maintained 100% daily logging during heavy crisis weeks')",
     "...",
     "..."
   ],
-  "frictionAnalysis": "A 2-sentence breakdown of what triggered Down/Rough days and how the user responded.",
-  "goldenHabits": "A 2-sentence breakdown of the specific triggers and habits behind the user's Peak (5/5) days.",
+  "frictionAnalysis": "A 2-sentence forensic breakdown of what triggered Down/Rough days and the underlying bottleneck.",
+  "goldenHabits": "A 2-sentence breakdown of what triggered turnaround moments, micro-wins, or Peak (5/5) days.",
   "nextMonthDirectives": [
-    "Tactical Directive 1 for next month",
-    "Tactical Directive 2 for next month",
-    "Tactical Directive 3 for next month"
+    "Directive 1: Concrete tactical rule for next month",
+    "Directive 2: Concrete tactical rule for next month",
+    "Directive 3: Concrete tactical rule for next month"
   ]
 }`;
 
