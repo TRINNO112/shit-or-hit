@@ -51,7 +51,8 @@ export default function MonthlyReportModal({
     try {
       let customEntries = null;
       if (archetypeId && mockArchetypes[archetypeId]) {
-        customEntries = mockArchetypes[archetypeId].generateEntries(currentYear, currentMonth);
+        const arch = mockArchetypes[archetypeId];
+        customEntries = arch.entries || (typeof arch.generateEntries === 'function' ? arch.generateEntries(currentYear, currentMonth) : null);
       }
       const data = await fetchMonthlyReport(currentYear, currentMonth, customEntries);
       setReport(data);
@@ -301,7 +302,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
           {/* Scrollable Dossier Content Area */}
           <div 
-            ref={scrollRef}
+            ref={scrollContainerRef}
             onScroll={handleScroll}
             className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4"
           >
