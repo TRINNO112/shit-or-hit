@@ -237,18 +237,26 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
       `Aim for an 80%+ Hit Rate next month.`
     ];
   } else {
-    personaTitle = 'Certified Struggle-Bus Driver 💀';
-    executiveSummary = `Bro... look at this chart. Your month was cooked. Like, genuinely, profoundly cooked in the trenches. You fought through ${ratingCounts[1]} Rough days, ${ratingCounts[2]} Down days, and only 1 win—but you logged every single day and clutched up on Day 31.`;
+    personaTitle = 'The 3:45 AM Dopamine Goblin 👺';
+    executiveSummary = `Bro... look at this chart. Your month was cooked as shit. Genuinely raw-dogging the trenches with ${ratingCounts[1]} Rough days, ${ratingCounts[2]} Down days, and only 1 win—but you logged every single day and clutched up on Day 31.`;
+    homieLetter = [
+      `Listen to me bro: this month was an absolute blender. You had failed Accounts papers, public teacher callouts, morning stomach cramps in class, family tension over gas cylinders, and sitting in the canteen watching your friends flex their dating life while you felt completely invisible. I hear you, and that shit genuinely hurts.`,
+      `Now let's talk about the self-inflicted damage: you kept treating 3:45 AM Reels doomscrolling like a coping mechanism, when in reality it was frying your dopamine receptors and guaranteeing next-day morning migraines. Spilling chai all over 15 completed project pages was peak tragic comedy, but the endless phone avoidance was the real bottleneck.`,
+      `Here is why you're built different though: despite 30 consecutive days of pure hell and feeling like a clown on the terrace, you never stopped logging. You didn't delete the database, you didn't give up, and when the big 50-mark Accounts unit test landed on Day 31, you dropped a massive 78% (39/50) clutch win and earned your dad's proud nod at dinner.`,
+      `For next month, we take that exact bulldog resilience and apply it daily. Put your phone in another room at 11 PM, stop letting one awkward hallway moment ruin your week, and lock in on your revision. You proved you have the horsepower—now let's make it consistent.`
+    ];
     hiddenFacts = [
-      `Bro, start believing in superstitions because your ${worstWeekday}s are cursed. Statistically cursed. Every single ${worstWeekday} was an automatic L.`,
-      `3:45 AM Doomscroll Trap: Late-night phone binges were your personal final boss—they wiped out your attention span and caused double-period morning brain fog.`,
-      `The Day 31 Clutch: After 30 days of getting battered in the mud, you pulled off a clutch 5/5 win with a 78% Accounts score. You're stubborn as hell, bro.`,
-      `Iron Will Consistency: You logged 100% of your days even when your life felt like a dumpster fire. That's real mental toughness.`
+      `Bro, start believing in superstitions because your ${worstWeekday}s are statistically cursed as fuck with an automatic L.`,
+      `3:45 AM Doomscroll Trap: Late-night phone binges were your personal final boss—they wiped out your attention span and caused morning brain fog.`,
+      `Spilled Chai & Tragic Comedy: Spilling hot chai all over completed BST project pages is proof the universe had personal beef with you on Day 20.`,
+      `Accounts PTSD: You spent 30 days fighting for your life against partnership balance sheets, only to drop a massive 78% redemption arc on Day 31.`,
+      `Iron Will Consistency: You logged 100% of your days across all 31 days even when your life felt like a dumpster fire. That's real mental toughness.`,
+      `The Day 31 Clutch: After a whole month in the mud, you proved that action creates confidence and earned genuine respect at home.`
     ];
     frictionAnalysis = `Heavy friction was driven by exam panic, feeling behind compared to your friends, and escaping into endless Reels instead of facing the balance sheet.`;
     goldenHabits = `Your only massive win happened when you put the phone in another room, stopped negotiating with your brain, and locked in on one single task.`;
     nextMonthDirectives = [
-      `Directive 1: Put your phone in another room after 11 PM or you're cooked. No excuses, bro.`,
+      `Directive 1: Put your fucking phone in another room after 11 PM or you're cooked. No excuses, bro.`,
       `Directive 2: Cleanse your ${worstWeekday} bad karma with an evening power walk and zero social media.`,
       `Directive 3: Remember that 1 clutch win on Day 31 proved you're capable—now let's turn 1 win into 15 wins next month.`
     ];

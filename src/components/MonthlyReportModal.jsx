@@ -25,7 +25,8 @@ import {
   Activity,
   Smartphone,
   BookOpen,
-  Users
+  Users,
+  MessageSquareQuote
 } from 'lucide-react';
 import { fetchMonthlyReport } from '../services/api';
 import { mockArchetypes } from '../data/mockArchetypes';
@@ -136,6 +137,9 @@ export default function MonthlyReportModal({
 ## 📌 Executive Summary
 ${report.executiveSummary}
 
+## 💬 Real Talk From Your Bro (Deep Dive)
+${report.homieLetter?.map(p => `${p}\n\n`).join('') || ''}
+
 ## 🔍 Hidden Behavioral Patterns & Facts
 ${report.hiddenFacts?.map(f => `- ${f}`).join('\n')}
 
@@ -199,7 +203,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* Single-Line Clean Header */}
+          {/* Single-Line Clean Header with 100% Uniform Control Heights */}
           <div className="px-5 sm:px-7 py-3 border-b-2 border-black/10 flex items-center justify-between gap-4 shrink-0 bg-[#FFFDF5]">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
@@ -220,10 +224,10 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               </div>
             </div>
 
-            {/* Controls: Month Switcher, Evaluate, Copy & Close */}
+            {/* Controls: 100% Uniform h-9 (36px) Heights */}
             <div className="flex items-center gap-2 shrink-0">
-              {/* Month Navigator */}
-              <div className="flex items-center bg-white border-2 border-black rounded-xl p-0.5 shadow-[2px_2px_0px_#000000]">
+              {/* Month Navigator (h-9) */}
+              <div className="h-9 flex items-center bg-white border-2 border-black rounded-xl px-1 shadow-[2px_2px_0px_#000000]">
                 <button
                   onClick={handlePrevMonth}
                   title="Previous Month"
@@ -245,33 +249,33 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </button>
               </div>
 
-              {/* Evaluate Action Button */}
+              {/* Evaluate Action Button (h-9) */}
               <button
                 onClick={() => loadReportData(selectedArchetype, year, month)}
                 disabled={isLoading}
                 title="Run or re-generate Gemini AI Performance Evaluation"
-                className="neo-btn px-3.5 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0"
+                className="h-9 neo-btn px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0"
               >
                 <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
                 <span>{isLoading ? 'EVALUATING...' : '⚡ RUN EVALUATION'}</span>
               </button>
 
-              {/* Copy Markdown (if report ready) */}
+              {/* Copy Markdown Button (h-9) */}
               {report && (
                 <button
                   onClick={handleCopyMarkdown}
                   title="Copy Dossier Markdown to Clipboard"
-                  className="neo-btn px-2.5 py-1.5 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
+                  className="h-9 neo-btn px-3 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
                   <span className="hidden md:inline">{copied ? 'COPIED' : 'COPY'}</span>
                 </button>
               )}
 
-              {/* Close Button */}
+              {/* Close Button (w-9 h-9) */}
               <button
                 onClick={handleClose}
-                className="w-8 h-8 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
+                className="w-9 h-9 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
                 title="Close Dossier"
               >
                 <X className="w-4 h-4 stroke-[3]" />
@@ -339,7 +343,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     Synthesizing Performance Intelligence...
                   </h4>
                   <p className="text-xs font-mono text-neutral-600">
-                    Gemini AI is examining 31 daily notes, friction root causes, and behavioral trajectory.
+                    Gemini AI is reading your 31 diary entries, finding root causes, and writing your real-talk analysis.
                   </p>
                 </div>
               </div>
@@ -452,6 +456,29 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     </div>
                   </div>
                 </div>
+
+                {/* 💬 REAL TALK FROM YOUR BRO: DEEP-DIVE PARAGRAPHS */}
+                {report.homieLetter && report.homieLetter.length > 0 && (
+                  <div className="p-5 sm:p-6 rounded-2xl border-2 border-black bg-[#FFFBEA] shadow-[3px_3px_0px_#000000] space-y-3">
+                    <div className="flex items-center gap-2 pb-2 border-b border-black/10">
+                      <span className="text-xl">💬</span>
+                      <h4 className="font-display font-black text-sm uppercase text-black flex items-center gap-2">
+                        <span>REAL TALK FROM YOUR BRO: THE UNFILTERED DEEP DIVE</span>
+                        <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase">
+                          LISTENING TO YOU
+                        </span>
+                      </h4>
+                    </div>
+
+                    <div className="space-y-3">
+                      {report.homieLetter.map((paragraph, pIdx) => (
+                        <p key={pIdx} className="text-xs sm:text-[13px] font-mono text-neutral-900 leading-relaxed font-semibold">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* 📊 DEEP ANALYTICS ROW: Weekly Trajectory & Friction Leak Factors */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
@@ -592,7 +619,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       <motion.div 
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="p-3 rounded-lg border-2 border-black bg-amber-50 shadow-[2px_2px_0px_#000000] mt-2 flex items-start justify-between gap-3"
+                        className="p-3.5 rounded-lg border-2 border-black bg-amber-50 shadow-[2px_2px_0px_#000000] mt-2 flex items-start justify-between gap-3"
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
@@ -603,7 +630,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                               Rating: {activeDayNote.rating}/5.0
                             </span>
                           </div>
-                          <p className="text-[11px] font-mono text-neutral-800 leading-snug">
+                          <p className="text-xs font-mono text-neutral-800 leading-snug">
                             {activeDayNote.notes || "No extra diary notes logged for this day."}
                           </p>
                         </div>
@@ -706,7 +733,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                 </div>
 
-                {/* 🔍 Hidden Behavioral Patterns & Correlations (Raw Homie Observations) */}
+                {/* 🔍 Hidden Behavioral Patterns & Homie Observations (Full 6 Items) */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-black stroke-[2.5]" />
@@ -722,7 +749,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.08, duration: 0.35 }}
-                        className="p-3 rounded-lg border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] flex items-start gap-2.5"
+                        className="p-3.5 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] flex items-start gap-2.5"
                       >
                         <div className="w-5 h-5 rounded bg-black text-white flex items-center justify-center font-mono font-black text-[10px] shrink-0 shadow-[1px_1px_0px_#FDC800]">
                           #{idx + 1}

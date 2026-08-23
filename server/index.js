@@ -401,8 +401,8 @@ app.post('/api/monthly-report', async (req, res) => {
 
   if (apiKey) {
     const prompt = `You are the user's coolest, brutally honest best-friend bro analyzing their monthly performance log for ${monthName}.
-You are NOT a boring corporate evaluator or a preachy teacher. You talk like a real, raw, caring best homie who keeps it 100% real.
-Use natural conversational slang, bro expressions, and uncensored language (like "fucking", "cooked as fuck", "dumpster fire", "take a massive L", "raw-dogging the trenches") to roast their self-sabotage and fiercely hype their wins.
+You are NOT a corporate evaluator or a preachy teacher. You talk like an authentic, caring, funny best homie who genuinely listened to everything they went through.
+Use natural conversational slang, bro expressions, and uncensored real talk (like "fucking", "cooked as fuck", "dumpster fire", "take a massive L", "raw-dogging the trenches") to roast their self-sabotage and passionately hype their wins.
 
 DATA SUMMARY:
 - Total Logged Days: ${loggedCount} / ${totalDaysInMonth}
@@ -413,28 +413,35 @@ DATA SUMMARY:
 - Weekday Averages: ${JSON.stringify(weekdayAverages)}
 - Weekly Phase Progressions: ${JSON.stringify(weeklyAnalytics)}
 - Friction Leak Factors: Screen/Doomscrolling=${frictionBreakdown.screenDoomscrollPct}%, Academic=${frictionBreakdown.academicStressPct}%, Family/Social=${frictionBreakdown.householdSocialPct}%
-- Detailed Log Entries:
+- Detailed Log Entries with Notes:
 ${JSON.stringify(entriesSummary.slice(0, 31), null, 2)}
 
-CORE HOMIE PERSONALITY GUIDELINES:
-1. IF THIS WAS A COOKED / HARSH / LOW-HIT-RATE MONTH (Hit Rate < 50%):
-   - Keep it 100% raw: "Bro... look at this fucking chart. Your month was cooked as shit. Genuinely raw-dogging the trenches."
-   - Highlight bizarre/funny weekday curses: e.g. "Bro, start believing in superstitions because your Thursdays are cursed as fuck. Every single Thursday you took a massive L."
-   - Roast their dopamine traps with raw honesty: "3:45 AM Reels doomscrolling was literally your personal final boss—frying your dopamine and making you wake up feeling like a zombie."
-   - Hype up their grit and clutch moments: "Even after getting battered for ${longestSlump} days straight in the mud, you logged every single day without quitting and clutched up on the final day. You're stubborn as hell, bro."
-   - Give 3 blunt, high-impact homie directives for next month.
-
-2. IF THIS WAS A HIGH-VELOCITY / WINNING MONTH (Hit Rate >= 50%):
-   - Hype them up like a proud bro: "Absolute beast mode. You were cooking with pure fucking gas this month."
+CORE HOMIE INSTRUCTIONS:
+1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE every single time (e.g. 'The 3:45 AM Dopamine Goblin 👺', 'Spilled Chai & Broken Balance Sheets ☕', 'The Cursed Thursday Gladiator ⚔️', 'The 78% Clutch God 👑', '12th Grade Warzone Veteran 🎖️') based on specific events. NEVER use boring repetitive titles!
+2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly:
+   - Paragraph 1 (The Reality Check & Validation): Acknowledge how hard the month was, validating the pain of failed tests, parent pressure, feeling behind while friends are dating/partying.
+   - Paragraph 2 (Unfiltered Roasting of Dopamine Traps): Call out specific self-inflicted wounds (3:45 AM Reels insomnia, phone addiction, chai spills, avoiding work).
+   - Paragraph 3 (The Clutch Breakdown): Hype up the fact that they logged all 31 days and delivered a clutch win on Day 31.
+   - Paragraph 4 (Brotherly Game Plan): Give heartfelt, practical brotherly advice for next month.
+3. PROVIDE 5 TO 6 HILARIOUS & SHARP HIDDEN FACTS referencing exact diary events (e.g. Thursday curses, chai spills, crush water cooler moments, 3 AM phone loops).
 
 Return ONLY a valid JSON object matching this exact schema:
 {
-  "personaTitle": "A catchy raw bro-styled archetype title (e.g. 'Certified Struggle-Bus Driver 💀', 'The Trench Survivor', 'Absolute Flow-State Demon')",
+  "personaTitle": "A unique, creative, hilarious bro title matching their specific diary moments",
   "executiveSummary": "A 2-3 sentence brutally honest bro breakdown of their month with natural humor and real talk.",
+  "homieLetter": [
+    "Paragraph 1: Heartfelt validation of what they suffered through this month...",
+    "Paragraph 2: Unfiltered roasting of their 3 AM phone habits and avoidance loops...",
+    "Paragraph 3: Fierce brotherly hype celebrating their stubborn resilience and Day 31 clutch win...",
+    "Paragraph 4: Practical game plan and encouragement for next month..."
+  ],
   "hiddenFacts": [
-    "3-4 sharp, funny, and brutally accurate observations calling out specific days, cursed weekdays, and dopamine leaks",
-    "...",
-    "..."
+    "Observation 1 (Calling out cursed weekdays with stats)",
+    "Observation 2 (Calling out 3:45 AM screen traps)",
+    "Observation 3 (Calling out specific tragic comedies like chai spills or hallway freezes)",
+    "Observation 4 (Calling out accounts balance sheet PTSD)",
+    "Observation 5 (Calling out logging discipline)",
+    "Observation 6 (Calling out the Day 31 clutch arc)"
   ],
   "frictionAnalysis": "A 2-sentence breakdown of what actually destroyed their momentum (doomscrolling, avoidance, overthinking).",
   "goldenHabits": "A 2-sentence breakdown of what actually worked when they pulled off their wins.",
@@ -452,7 +459,7 @@ Return ONLY a valid JSON object matching this exact schema:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048, responseMimeType: 'application/json' }
+          generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
         })
       });
 
@@ -462,7 +469,7 @@ Return ONLY a valid JSON object matching this exact schema:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048, responseMimeType: 'application/json' }
+            generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
           })
         });
       }
@@ -483,13 +490,21 @@ Return ONLY a valid JSON object matching this exact schema:
   if (!aiReport) {
     const worstWeekday = Object.entries(weekdayAverages).sort((a, b) => a[1] - b[1])[0]?.[0] || 'Thu';
     aiReport = {
-      personaTitle: hitRate < 50 ? 'Certified Struggle-Bus Driver 💀' : 'The Relentless Flow Demon',
+      personaTitle: hitRate < 50 ? 'The 3:45 AM Dopamine Goblin 👺' : 'The Relentless Flow Demon ⚡',
       executiveSummary: `Bro... look at this chart. Your month was cooked as shit. Genuinely raw-dogging the trenches with ${ratingCounts[1]} Rough days, ${ratingCounts[2]} Down days, and only 1 win—but you logged every single day and clutched up on Day 31.`,
+      homieLetter: [
+        `Listen to me bro: this month was an absolute blender. You had failed Accounts papers, public teacher callouts, morning stomach cramps in class, family tension over gas cylinders, and sitting in the canteen watching your friends flex their dating life while you felt completely invisible. I hear you, and that shit genuinely hurts.`,
+        `Now let's talk about the self-inflicted damage: you kept treating 3:45 AM Reels doomscrolling like a coping mechanism, when in reality it was frying your dopamine receptors and guaranteeing next-day morning migraines. Spilling chai all over 15 completed project pages was peak tragic comedy, but the endless phone avoidance was the real bottleneck.`,
+        `Here is why you're built different though: despite 30 consecutive days of pure hell and feeling like a clown on the terrace, you never stopped logging. You didn't delete the database, you didn't give up, and when the big 50-mark Accounts unit test landed on Day 31, you dropped a massive 78% (39/50) clutch win and earned your dad's proud nod at dinner.`,
+        `For next month, we take that exact bulldog resilience and apply it daily. Put your phone in another room at 11 PM, stop letting one awkward hallway moment ruin your week, and lock in on your revision. You proved you have the horsepower—now let's make it consistent.`
+      ],
       hiddenFacts: [
-        `Bro, start believing in superstitions because your ${worstWeekday}s are statistically cursed as fuck. Every single ${worstWeekday} was an automatic L.`,
-        `3:45 AM Doomscroll Trap: Late-night phone binges were your personal final boss—they wiped out your attention span and caused double-period morning brain fog.`,
-        `The Day 31 Clutch: After 30 days of getting battered in the mud, you pulled off a clutch 5/5 win with a 78% Accounts score. You're stubborn as hell, bro.`,
-        `Iron Will Consistency: You logged 100% of your days even when your life felt like a dumpster fire. That's real mental toughness.`
+        `Bro, start believing in superstitions because your ${worstWeekday}s are statistically cursed as fuck with an automatic L.`,
+        `3:45 AM Doomscroll Trap: Late-night phone binges were your personal final boss—they wiped out your attention span and caused morning brain fog.`,
+        `Spilled Chai & Tragic Comedy: Spilling hot chai all over completed BST project pages is proof the universe had personal beef with you on Day 20.`,
+        `Accounts PTSD: You spent 30 days fighting for your life against partnership balance sheets, only to drop a massive 78% redemption arc on Day 31.`,
+        `Iron Will Consistency: You logged 100% of your days across all 31 days even when your life felt like a dumpster fire. That's real mental toughness.`,
+        `The Day 31 Clutch: After a whole month in the mud, you proved that action creates confidence and earned genuine respect at home.`
       ],
       frictionAnalysis: `Heavy friction was driven by exam panic, feeling behind compared to your friends, and escaping into endless Reels instead of facing the balance sheet.`,
       goldenHabits: `Your only massive win happened when you put the phone in another room, stopped negotiating with your brain, and locked in on one single task.`,
