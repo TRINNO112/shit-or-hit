@@ -13,6 +13,7 @@
 ## 🚀 Key Features
 
 ### 1. 🎯 Daily 5-Tier Verdict Tracker
+
 - **5-Star Neobrutalist Scale**:
   - `1★ Rough (Shit)`: Red-alert friction days, high stress, lost battles.
   - `2★ Down`: Sub-par baseline, fatigue, low-focus days.
@@ -23,6 +24,7 @@
 - **Smart Reflection Enhancer**: AI-assisted sharpening that turns chaotic stream-of-consciousness diary notes into actionable, structured takeaways.
 
 ### 2. 📊 Monthly Performance Intelligence Dossier
+
 - **100% Privacy Lock Architecture**: Verdicts and diary notes stay strictly local on your device. Evaluations run only when you explicitly trigger them.
 - **Persistent Local Dossier Database**: Evaluated dossiers are saved in `data/reports.json` and client storage. Open past months anytime with instant zero-latency loading without repeating API calls.
 - **💬 Real Talk From Your Bro (Unfiltered Homie Letter)**:
@@ -37,14 +39,17 @@
   - Keyword frequency analysis measuring screen doomscrolling %, academic/work stress %, and family/social friction %.
 
 ### 3. 🧪 Built-In Authentic Test Archetypes
+
 - **🎓 Aryan's Chronicles (30 Days in Hell, 1 Win)**:
   - Authentic 31-day diary of an Indian 12th Grade Commerce student fighting TS Grewal partnership balance sheets, 3:45 AM Instagram insomnia, spilled chai tragedies, and hallway freezes—culminating in a legendary 78% Accounts unit test clutch on Day 31.
 
 ### 4. ⌨️ Developer CLI Tooling
+
 - Log verdicts directly from your terminal:
-  ```bash
-  node bin/verdict.js 5 "Clutched the 78% Accounts unit test! Dad was proud."
-  ```
+
+```bash
+node bin/verdict.js 5 "Clutched the 78% Accounts unit test! Dad was proud."
+```
 
 ---
 
@@ -70,11 +75,14 @@
 ## 🏁 Getting Started
 
 ### 1. Prerequisites
+
 - **Node.js**: v18.0.0 or higher
 - **npm**: v9.0.0 or higher
 
 ### 2. Installation
+
 Clone the repository and install dependencies:
+
 ```bash
 git clone https://github.com/your-username/shit-or-hit.git
 cd shit-or-hit
@@ -82,7 +90,9 @@ npm install
 ```
 
 ### 3. Configuration
+
 Create a `.env` file in the root directory:
+
 ```env
 PORT=5001
 GEMINI_API_KEY=your_google_gemini_api_key_here
@@ -90,12 +100,15 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
 ### 4. Running Locally
+
 Start both the Vite frontend and the backend API server concurrently:
+
 ```bash
 npm run dev
 ```
 
 The application will be live at:
+
 - **Frontend**: `http://localhost:5173`
 - **Backend API**: `http://localhost:5001`
 
