@@ -179,26 +179,33 @@ export default function TodayHero({
       {/* Top Panoramic Grid */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
         
-        {/* Left Side: Date, Heading & Prominent Morphing Vector Emblem */}
+        {/* Left Side: Date, Heading & Prominent Emblem Box */}
         <div className="text-left w-full lg:w-5/12 flex items-start gap-4">
           
-          {/* Prominent Morphing Vector Emblem Box */}
+          {/* Prominent Dynamic Vector Emblem Box with Crisp Icons & Spring Morph */}
           <motion.div
             animate={{ 
-              scale: [1, 1.08, 1],
-              rotate: (activeRatingForVisual - 3) * 6
+              scale: [1, 1.06, 1],
+              rotate: (activeRatingForVisual - 3) * 4
             }}
-            transition={{ duration: 0.65, ease: 'easeOut' }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
             className="w-16 h-16 rounded-2xl border-[2.5px] border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0 mt-1"
             style={{ backgroundColor: ratingMeta[activeRatingForVisual]?.bg }}
           >
-            <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-black fill-black" strokeWidth="1.5">
-              <motion.path
-                d={moodSvgPaths[activeRatingForVisual]}
-                animate={{ d: moodSvgPaths[activeRatingForVisual] }}
-                transition={{ duration: 0.65, ease: [0.34, 1.56, 0.64, 1] }}
-              />
-            </svg>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeRatingForVisual}
+                initial={{ scale: 0.4, rotate: -30, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 0.4, rotate: 30, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+                className="w-8 h-8 flex items-center justify-center"
+              >
+                {React.createElement(IconMap[ratingMeta[activeRatingForVisual]?.icon] || Sparkles, {
+                  className: "w-8 h-8 text-black stroke-[2.5]"
+                })}
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
 
           <div>
@@ -220,7 +227,7 @@ export default function TodayHero({
           </div>
         </div>
 
-        {/* Right Side: 5 Chunky Tactile Buttons with Direction 1 Shape-Shifting & Gliding Outline */}
+        {/* Right Side: 5 Chunky Tactile Buttons with Direction 1 Shape-Shifting & Seamless Active Outline */}
         <div className="w-full lg:w-7/12">
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 relative">
             {[1, 2, 3, 4, 5].map((val) => {
@@ -244,19 +251,17 @@ export default function TodayHero({
                   }}
                   transition={{ type: 'spring', stiffness: 450, damping: 16 }}
                   onClick={(e) => handleRate(val, e)}
-                  className={`neo-btn flex flex-col items-center justify-center p-3 relative cursor-pointer ${
-                    isSelected ? 'ring-2 ring-black font-black' : ''
-                  }`}
+                  className="neo-btn flex flex-col items-center justify-center p-3 relative cursor-pointer"
                   style={{ 
                     minHeight: '110px',
                     backgroundColor: isSelected ? m.bg : '#FFFFFF'
                   }}
                 >
-                  {/* Gliding Selection Box Indicator from Direction 1 */}
+                  {/* Seamless Active Selection Highlight (Hugs perimeter with ZERO red gap) */}
                   {isSelected && (
                     <motion.div
                       layoutId="active-cyber-box"
-                      className="absolute inset-0 rounded-2xl border-[3px] border-black pointer-events-none"
+                      className="absolute -inset-[2px] rounded-2xl border-[3px] border-black pointer-events-none"
                       transition={{ type: 'spring', stiffness: 480, damping: 26 }}
                     />
                   )}
@@ -283,27 +288,22 @@ export default function TodayHero({
 
       </div>
 
-      {/* Bottom Bar: Morphing Vector Status Verdict + Expandable Note */}
+      {/* Bottom Bar: Status Verdict + Expandable Note */}
       <div className="mt-8 pt-6 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
-        {/* Active Verdict Pill with Live Morphing SVG Path */}
+        {/* Active Verdict Pill with Crisp Icon */}
         {selectedRating ? (
           <motion.div 
             layout
             initial={{ opacity: 0, y: 8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 450, damping: 25 }}
-            className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 border-black text-xs font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl border-2 border-black text-xs font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
             style={{ backgroundColor: ratingMeta[selectedRating]?.bg }}
           >
-            {/* Morphing SVG Graphic */}
-            <svg viewBox="0 0 24 24" className="w-4 h-4 stroke-black fill-black shrink-0" strokeWidth="2">
-              <motion.path
-                d={moodSvgPaths[selectedRating] || moodSvgPaths[3]}
-                animate={{ d: moodSvgPaths[selectedRating] || moodSvgPaths[3] }}
-                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-              />
-            </svg>
+            {React.createElement(IconMap[ratingMeta[selectedRating]?.icon] || Sparkles, {
+              className: "w-4 h-4 text-black stroke-[3] shrink-0"
+            })}
 
             <span>
               VERDICT: <strong className="uppercase">{ratingMeta[selectedRating]?.title}</strong> — {ratingMeta[selectedRating]?.desc}

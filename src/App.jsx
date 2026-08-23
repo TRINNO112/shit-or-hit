@@ -102,7 +102,6 @@ export default function App() {
         startDate={startDate}
         todayStr={todayStr}
         onEditDay={(dayInfo) => {
-          setIsCalendarOpen(false);
           setEditingDay(dayInfo);
         }}
       />
