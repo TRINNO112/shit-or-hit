@@ -3,7 +3,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
+import net from 'net';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,16 +48,17 @@ if (command === 'help' || command === '--help' || command === '-h') {
 ⚡ DAILY VERDICT CLI ⚡
 
 Usage:
-  verdict                          Open the app directly in your browser
+  verdict                          Auto-start dev servers & launch web app in browser
+  verdict dev                      Start development servers and launch browser
   verdict log <1-5> [note...]      Quickly record today's mood rating & note
   verdict status                   View streak and today's logged verdict
-  verdict dev                      Start background servers & launch browser
+  verdict help                     Display this help message
 
 Examples:
-  verdict log 5 Crushed all goals today!
-  verdict log 1 Failed accounts exam, terrible morning
-  verdict status
   verdict
+  verdict log 5 Crushed all goals today!
+  verdict log 1 Rough day, reset tomorrow
+  verdict status
 `);
   process.exit(0);
 }
@@ -118,13 +120,146 @@ if (command === 'status' || command === 'info') {
   process.exit(0);
 }
 
-// Open Browser / Start Server
-console.log(`⚡ Launching Daily Verdict...`);
-const startCmd = process.platform === 'win32' ? 'start http://localhost:5173' : 'open http://localhost:5173';
-exec(startCmd, (err) => {
-  if (err) {
-    console.log(`Could not launch browser automatically. Open http://localhost:5173 in your browser.`);
-  } else {
-    console.log(`Opened http://localhost:5173`);
+// Helper: check if port is open
+function checkPortOpen(port, host = '127.0.0.1') {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(400);
+    socket.on('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.on('error', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+}
+
+function openBrowser(url) {
+  const startCmd = process.platform === 'win32'
+    ? `start ${url}`
+    : process.platform === 'darwin'
+    ? `open ${url}`
+    : `xdg-open ${url}`;
+
+  exec(startCmd, (err) => {
+    if (err) {
+      console.log(`⚠️  Could not launch browser automatically. Please open ${url} manually.`);
+    } else {
+      console.log(`🌐 Browser launched: ${url}`);
+    }
+  });
+}
+
+// Main Launcher
+async function launchApp() {
+  const APP_PORT = 5173;
+  const BACKEND_PORT = 5001;
+  const APP_URL = `http://localhost:${APP_PORT}`;
+
+  const isFrontendRunning = await checkPortOpen(APP_PORT);
+  const isBackendRunning = await checkPortOpen(BACKEND_PORT);
+
+  if (isFrontendRunning && isBackendRunning) {
+    console.log(`⚡ Daily Verdict dev servers are already active!`);
+    console.log(`🌐 Opening ${APP_URL}...`);
+    openBrowser(APP_URL);
+    return;
   }
-});
+
+  console.log(`\n==================================================`);
+  console.log(`⚡ STARTING DAILY VERDICT DEVELOPMENT ENVIRONMENT`);
+  console.log(`==================================================`);
+  console.log(`🚀 Booting Frontend (Vite) & Backend (Express)...`);
+  console.log(`🌐 Web App:  ${APP_URL}`);
+  console.log(`📡 Backend:  http://localhost:${BACKEND_PORT}`);
+  console.log(`--------------------------------------------------\n`);
+
+  const nodeExec = process.execPath;
+  const viteBin = path.join(ROOT_DIR, 'node_modules', 'vite', 'bin', 'vite.js');
+  const serverScript = path.join(ROOT_DIR, 'server', 'index.js');
+
+  const children = [];
+
+  // Start Backend Express Server
+  if (!isBackendRunning) {
+    const backendChild = spawn(nodeExec, [serverScript], {
+      cwd: ROOT_DIR,
+      stdio: 'inherit',
+      env: { ...process.env }
+    });
+    children.push(backendChild);
+  }
+
+  // Start Frontend Vite Server
+  if (!isFrontendRunning) {
+    let frontendChild;
+    if (fs.existsSync(viteBin)) {
+      frontendChild = spawn(nodeExec, [viteBin], {
+        cwd: ROOT_DIR,
+        stdio: 'inherit',
+        env: { ...process.env }
+      });
+    } else {
+      frontendChild = spawn('npx', ['vite'], {
+        cwd: ROOT_DIR,
+        stdio: 'inherit',
+        shell: true,
+        env: { ...process.env }
+      });
+    }
+    children.push(frontendChild);
+  }
+
+  // Watch for server to be ready and trigger browser
+  let browserOpened = false;
+  const pollTimer = setInterval(async () => {
+    if (browserOpened) {
+      clearInterval(pollTimer);
+      return;
+    }
+    const ready = await checkPortOpen(APP_PORT);
+    if (ready) {
+      browserOpened = true;
+      clearInterval(pollTimer);
+      console.log(`\n🟢 Dev server is live! Opening browser...`);
+      openBrowser(APP_URL);
+    }
+  }, 400);
+
+  // Safety fallback after 15s
+  setTimeout(() => {
+    if (!browserOpened) {
+      clearInterval(pollTimer);
+      console.log(`\n⚠️  Opening browser at ${APP_URL}...`);
+      openBrowser(APP_URL);
+    }
+  }, 15000);
+
+  // Handle termination signals
+  const cleanup = () => {
+    children.forEach((child) => {
+      if (child && !child.killed) {
+        if (process.platform === 'win32') {
+          try {
+            exec(`taskkill /pid ${child.pid} /T /F`, () => {});
+          } catch (e) {}
+        } else {
+          child.kill('SIGINT');
+        }
+      }
+    });
+    process.exit(0);
+  };
+
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
+}
+
+launchApp();
