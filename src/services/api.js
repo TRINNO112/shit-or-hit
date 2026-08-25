@@ -138,19 +138,71 @@ export async function saveEntry(entryData) {
 }
 
 export async function enhanceReflectionWithAI(notes, rating, date) {
+  if (!notes || notes.trim() === '') return notes;
+
+  // 1. Try local dev backend if running
   try {
     const res = await fetch(`${API_BASE}/ai/enhance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes, rating, date })
     });
-    if (!res.ok) throw new Error('AI service error');
-    const data = await res.json();
-    return data.enhancedText || notes;
+    if (res.ok) {
+      const data = await res.json();
+      if (data.enhancedText) return data.enhancedText;
+    }
   } catch (err) {
-    console.error('Enhance reflection failed:', err);
-    return notes;
+    // Backend offline (e.g. GitHub Pages static deployment)
   }
+
+  // 2. Direct client-side Gemini fallback
+  try {
+    let apiKey = null;
+    try {
+      const { fetchCloudGeminiApiKey } = await import('./firebase');
+      apiKey = await fetchCloudGeminiApiKey();
+    } catch (e) {}
+
+    if (!apiKey && typeof import.meta !== 'undefined' && import.meta.env) {
+      apiKey = import.meta.env.VITE_GEMINI_API_KEY || null;
+    }
+
+    if (apiKey) {
+      const prompt = `You are a personal diary ghostwriter.
+The user wrote their raw diary notes about their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
+
+User's raw journal notes:
+"${notes}"
+
+CRITICAL INSTRUCTIONS:
+- You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
+- NEVER use "You" or "Your" under any circumstances.
+- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
+- Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic voice.
+- Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
+
+Return ONLY the complete polished diary entry text.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text && text.trim()) return text.trim();
+      }
+    }
+  } catch (err) {
+    console.error('Direct Gemini Polish error:', err);
+  }
+
+  return notes;
 }
 
 export async function getSavedMonthlyReport(year, month, archetypeId = null) {

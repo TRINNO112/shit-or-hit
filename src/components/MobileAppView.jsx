@@ -28,9 +28,12 @@ import {
   BookOpen,
   Users,
   Compass,
-  X
+  X,
+  RotateCcw,
+  Undo2,
+  Redo2
 } from 'lucide-react';
-import { ratingMeta, exportDatabaseBackup, fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
+import { ratingMeta, exportDatabaseBackup, fetchMonthlyReport, getSavedMonthlyReport, enhanceReflectionWithAI } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
 import confetti from 'canvas-confetti';
 import JourneyTimeline from './JourneyTimeline';
@@ -63,6 +66,12 @@ export default function MobileAppView({
   const [authLoading, setAuthLoading] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
 
+  // AI Polish State & History Stack
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [historyStack, setHistoryStack] = useState([]);
+  const [historyIdx, setHistoryIdx] = useState(-1);
+  const [originalDraft, setOriginalDraft] = useState('');
+
   // Embedded Calendar State
   const [calendarDate, setCalendarDate] = useState(new Date());
   
@@ -85,6 +94,9 @@ export default function MobileAppView({
   useEffect(() => {
     if (entries[todayStr]?.notes !== undefined) {
       setNoteText(entries[todayStr].notes);
+      setOriginalDraft(entries[todayStr].notes);
+      setHistoryStack([entries[todayStr].notes]);
+      setHistoryIdx(0);
     }
   }, [entries, todayStr]);
 
@@ -186,6 +198,62 @@ export default function MobileAppView({
       if (cleanPrev.includes(tag)) return prev;
       return cleanPrev ? `${cleanPrev} • [${tag}]` : `[${tag}]`;
     });
+  };
+
+  const handleAIEnhance = async () => {
+    if (!noteText || noteText.trim() === '') return;
+    triggerHaptic('medium');
+    playSound('click');
+    const currentVal = noteText;
+    setIsEnhancing(true);
+    try {
+      const enhanced = await enhanceReflectionWithAI(currentVal, selectedRating || 3, todayStr);
+      if (enhanced && enhanced !== currentVal) {
+        triggerHaptic('success');
+        playSound('chime');
+        confetti({ particleCount: 35, spread: 55, origin: { y: 0.6 }, colors: ['#FDC800', '#00E599', '#000000'] });
+        const newStack = historyStack.slice(0, historyIdx + 1);
+        newStack.push(enhanced);
+        setHistoryStack(newStack);
+        setHistoryIdx(newStack.length - 1);
+        setNoteText(enhanced);
+      }
+    } catch (err) {
+      console.error('AI Enhance error:', err);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleUndo = () => {
+    if (historyIdx > 0) {
+      triggerHaptic('light');
+      playSound('click');
+      const target = historyIdx - 1;
+      setHistoryIdx(target);
+      setNoteText(historyStack[target]);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIdx < historyStack.length - 1) {
+      triggerHaptic('light');
+      playSound('click');
+      const target = historyIdx + 1;
+      setHistoryIdx(target);
+      setNoteText(historyStack[target]);
+    }
+  };
+
+  const handleRevertOriginal = () => {
+    if (originalDraft !== undefined) {
+      triggerHaptic('medium');
+      playSound('click');
+      setNoteText(originalDraft);
+      const newStack = [...historyStack, originalDraft];
+      setHistoryStack(newStack);
+      setHistoryIdx(newStack.length - 1);
+    }
   };
 
   const handleRate = async (val) => {
@@ -1138,6 +1206,7 @@ export default function MobileAppView({
                   </div>
                 </div>
 
+                {/* Textarea */}
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
@@ -1145,7 +1214,57 @@ export default function MobileAppView({
                   className="flex-1 w-full p-3.5 rounded-2xl border-2 border-black bg-white font-mono text-xs text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto"
                 />
 
-                <div className="flex items-center justify-between text-[10px] font-mono font-bold text-neutral-500 pt-1 shrink-0">
+                {/* AI Polish Toolbar & History Controls */}
+                <div className="flex items-center justify-between gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={handleAIEnhance}
+                    disabled={isEnhancing || !noteText || !noteText.trim()}
+                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
+                      isEnhancing ? 'bg-amber-100 opacity-70 animate-pulse' : 'bg-[#FDC800] hover:bg-amber-400'
+                    } disabled:opacity-40 disabled:cursor-not-allowed`}
+                    title="Polish and organize your diary entry with Gemini AI (maintains 1st person)"
+                  >
+                    <Wand2 className={`w-3.5 h-3.5 ${isEnhancing ? 'animate-spin' : ''}`} />
+                    <span>{isEnhancing ? 'POLISHING...' : '✨ AI POLISH DIARY'}</span>
+                  </button>
+
+                  {/* History controls (Undo, Redo, Revert) */}
+                  {historyStack.length > 1 && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handleUndo}
+                        disabled={historyIdx <= 0}
+                        className="p-1.5 rounded-lg border border-black bg-white hover:bg-neutral-100 disabled:opacity-30 cursor-pointer shadow-[1px_1px_0px_#000000]"
+                        title="Undo AI edit"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRedo}
+                        disabled={historyIdx >= historyStack.length - 1}
+                        className="p-1.5 rounded-lg border border-black bg-white hover:bg-neutral-100 disabled:opacity-30 cursor-pointer shadow-[1px_1px_0px_#000000]"
+                        title="Redo AI edit"
+                      >
+                        <Redo2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRevertOriginal}
+                        disabled={noteText === originalDraft}
+                        className="px-2 py-1 rounded-lg border border-black bg-neutral-100 hover:bg-neutral-200 text-[10px] font-mono font-bold disabled:opacity-30 cursor-pointer flex items-center gap-1 shadow-[1px_1px_0px_#000000]"
+                        title="Revert to original raw draft"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Revert</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] font-mono font-bold text-neutral-500 pt-0.5 shrink-0">
                   <span>{noteText.length} characters</span>
                   <span>💾 Auto-synced with rating</span>
                 </div>
