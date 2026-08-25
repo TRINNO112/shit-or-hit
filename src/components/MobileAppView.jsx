@@ -335,26 +335,26 @@ export default function MobileAppView({
   return (
     <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-28 select-none relative">
       
-      {/* 📱 TOP PROMINENT APP BAR (Enlarged Bold Typography) */}
-      <header className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-4 py-3.5 flex items-center justify-between shadow-[0_2px_0px_#000000]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
-            <Zap className="w-5 h-5 text-black stroke-[3] fill-black" />
+      {/* 📱 TOP COMPACT APP BAR (Guaranteed Single-Line Layout) */}
+      <header className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between shadow-[0_2px_0px_#000000]">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+            <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[3] fill-black" />
           </div>
-          <div>
-            <h1 className="font-display font-black text-lg sm:text-xl uppercase leading-none tracking-tight">
+          <div className="min-w-0">
+            <h1 className="font-display font-black text-sm sm:text-base uppercase leading-none tracking-tight whitespace-nowrap">
               Daily Verdict
             </h1>
-            <span className="text-xs font-mono font-bold text-neutral-600 block mt-1">
+            <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate max-w-[120px] sm:max-w-[200px]">
               {isWhitelisted ? `☁️ ${user.displayName || 'Cloud Synced'}` : 'Offline Local Mode'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Day Streak Pill */}
-          <div className="flex items-center gap-1 px-3 py-1 rounded-xl bg-[#00E599] border-2 border-black font-mono text-xs sm:text-sm font-black shadow-[2px_2px_0px_#000000]">
-            <Flame className="w-4 h-4 fill-black text-black" />
+          <div className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl bg-[#00E599] border-2 border-black font-mono text-[11px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000]">
+            <Flame className="w-3.5 h-3.5 fill-black text-black" />
             <span>DAY {dayCount}</span>
           </div>
 
@@ -365,7 +365,7 @@ export default function MobileAppView({
                 triggerHaptic('light');
                 setShowUserModal(true);
               }}
-              className={`p-2 rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer ${
                 isWhitelisted ? 'bg-[#00E599]' : 'bg-neutral-200'
               }`}
               title={user.email}
@@ -379,9 +379,9 @@ export default function MobileAppView({
                 handleGoogleLogin();
               }}
               disabled={authLoading}
-              className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black font-mono text-xs font-black flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer transition-colors"
+              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black font-mono text-xs font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-colors"
             >
-              <LogIn className="w-4 h-4 stroke-[2.5]" />
+              <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>SYNC</span>
             </button>
           )}
@@ -392,7 +392,7 @@ export default function MobileAppView({
               triggerHaptic('light');
               exportDatabaseBackup(startDate, entries);
             }}
-            className="p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
             title="Download JSON Backup"
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
