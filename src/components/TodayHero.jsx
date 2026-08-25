@@ -227,9 +227,9 @@ export default function TodayHero({
           </div>
         </div>
 
-        {/* Right Side: 5 Chunky Tactile Buttons with Direction 1 Shape-Shifting & Seamless Active Outline */}
+        {/* Right Side: 5 Chunky Tactile 1-Tap Buttons Balanced Across All Screen Sizes */}
         <div className="w-full lg:w-7/12">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 relative">
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 relative">
             {[1, 2, 3, 4, 5].map((val) => {
               const m = ratingMeta[val];
               const SvgIcon = IconMap[m.icon];
@@ -240,24 +240,23 @@ export default function TodayHero({
                   key={val}
                   type="button"
                   whileHover={{ 
-                    scale: 1.08, 
-                    y: -5, 
-                    rotate: (val - 3) * 2.2,
-                    boxShadow: '5px 5px 0px #000000'
+                    scale: 1.06, 
+                    y: -4, 
+                    boxShadow: '4px 4px 0px #000000'
                   }}
                   whileTap={{ 
-                    scale: 0.86, 
-                    rotate: (val - 3) * -3.5 
+                    scale: 0.88, 
+                    rotate: (val - 3) * -2.5 
                   }}
                   transition={{ type: 'spring', stiffness: 450, damping: 16 }}
                   onClick={(e) => handleRate(val, e)}
-                  className="neo-btn flex flex-col items-center justify-center p-3 relative cursor-pointer"
+                  className="neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative cursor-pointer"
                   style={{ 
-                    minHeight: '110px',
+                    minHeight: '82px',
                     backgroundColor: isSelected ? m.bg : '#FFFFFF'
                   }}
                 >
-                  {/* Seamless Active Selection Highlight (Hugs perimeter with ZERO red gap) */}
+                  {/* Seamless Active Selection Highlight */}
                   {isSelected && (
                     <motion.div
                       layoutId="active-cyber-box"
@@ -267,17 +266,17 @@ export default function TodayHero({
                   )}
 
                   <div 
-                    className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center mb-1.5 shadow-[2px_2px_0px_#000000]"
+                    className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 shadow-[1.5px_1.5px_0px_#000000]"
                     style={{ backgroundColor: m.bg }}
                   >
-                    <SvgIcon className="w-5 h-5 text-black stroke-[2.5]" />
+                    <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
                   </div>
 
-                  <span className="font-display font-black text-xs uppercase tracking-tight leading-none mt-1">
+                  <span className="font-display font-black text-[10px] sm:text-xs uppercase tracking-tight leading-none truncate max-w-full">
                     {m.title}
                   </span>
 
-                  <span className="text-[10px] font-mono font-bold text-neutral-600 mt-1">
+                  <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neutral-600 mt-0.5 sm:mt-1">
                     {val}/5
                   </span>
                 </motion.button>

@@ -48,7 +48,31 @@ export const ratingMeta = {
   }
 };
 
+import { 
+  getCurrentUser, 
+  saveCloudEntry, 
+  fetchCloudEntries, 
+  saveCloudReport, 
+  fetchCloudReport, 
+  isEmailWhitelisted 
+} from './firebase';
+
 export async function fetchDatabase() {
+  const currentUser = getCurrentUser();
+  if (currentUser && isEmailWhitelisted(currentUser.email)) {
+    try {
+      const cloudEntries = await fetchCloudEntries(currentUser.uid);
+      if (Object.keys(cloudEntries).length > 0) {
+        const dates = Object.keys(cloudEntries).sort();
+        const startDate = dates[0] || new Date().toISOString().slice(0, 10);
+        localStorage.setItem('goodness_db', JSON.stringify({ startDate, entries: cloudEntries }));
+        return { startDate, entries: cloudEntries };
+      }
+    } catch (err) {
+      console.warn('Firestore fetch failed, falling back to local:', err);
+    }
+  }
+
   try {
     const res = await fetch(`${API_BASE}/entries`);
     if (!res.ok) throw new Error('Failed to fetch entries');
@@ -68,6 +92,15 @@ export async function fetchDatabase() {
 }
 
 export async function saveEntry(entryData) {
+  const currentUser = getCurrentUser();
+  if (currentUser && isEmailWhitelisted(currentUser.email)) {
+    try {
+      await saveCloudEntry(currentUser.uid, entryData);
+    } catch (err) {
+      console.warn('Firestore cloud save error:', err);
+    }
+  }
+
   try {
     const res = await fetch(`${API_BASE}/entries`, {
       method: 'POST',
