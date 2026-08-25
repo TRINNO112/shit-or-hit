@@ -144,9 +144,14 @@ export default function App() {
         initialMonth={reportTargetMonth.month}
       />
 
-      {/* Footer with Proper Spacing */}
-      <footer className="w-full max-w-[1380px] mx-auto text-center text-xs font-mono font-bold text-neutral-600 py-8 px-6 border-t-2 border-black/10 mt-12">
-        <span>DAILY QUALITY • All data persisted locally into <code className="text-black bg-[#FDC800] px-2 py-0.5 rounded-md border border-black font-black">data/entries.json</code></span>
+      {/* Footer with Generous Spacing & Mobile Breathing Room */}
+      <footer className="w-full max-w-[1380px] mx-auto text-center text-xs font-mono font-bold text-neutral-600 py-10 px-6 border-t-2 border-black/10 mt-14 mb-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+        <span className="px-3 py-1 bg-black text-[#FDC800] rounded-lg text-[11px] font-black uppercase shadow-[2px_2px_0px_#000000]">
+          DAILY QUALITY
+        </span>
+        <span className="text-neutral-700 font-bold">
+          All data persisted locally into <code className="text-black bg-[#FDC800] px-2 py-0.5 rounded-md border border-black font-black">data/entries.json</code>
+        </span>
       </footer>
 
     </div>

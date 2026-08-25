@@ -221,31 +221,43 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* Single-Line Clean Header with 100% Uniform Control Heights */}
-          <div className="px-5 sm:px-7 py-3 border-b-2 border-black/10 flex items-center justify-between gap-4 shrink-0 bg-[#FFFDF5]">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
-                <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-display font-black text-base sm:text-lg text-black uppercase leading-none tracking-tight truncate">
-                    MONTHLY PERFORMANCE DOSSIER
-                  </h3>
-                  <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase shrink-0">
-                    GEMINI AI
+          {/* Mobile-Optimized Clean Header */}
+          <div className="px-3.5 sm:px-7 py-2 sm:py-3 border-b-2 border-black/10 flex flex-col gap-2 shrink-0 bg-[#FFFDF5]">
+            {/* Row 1: Title & Pinned Close Button */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <h3 className="font-display font-black text-sm sm:text-lg text-black uppercase leading-none tracking-tight truncate">
+                      MONTHLY DOSSIER
+                    </h3>
+                    <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase shrink-0">
+                      GEMINI AI
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-neutral-500 hidden md:block truncate mt-0.5">
+                    Deep behavioral intelligence, root-cause forensics & tactical battle plan.
                   </span>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-neutral-500 hidden sm:block truncate mt-0.5">
-                  Deep behavioral intelligence, root-cause forensics & tactical battle plan.
-                </span>
               </div>
+
+              {/* Pinned Close Button */}
+              <button
+                onClick={handleClose}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
+                title="Close Dossier"
+              >
+                <X className="w-4 h-4 stroke-[3]" />
+              </button>
             </div>
 
-            {/* Controls: 100% Uniform h-9 (36px) Heights */}
-            <div className="flex items-center gap-2 shrink-0">
-              {/* Month Navigator (h-9) */}
-              <div className="h-9 flex items-center bg-white border-2 border-black rounded-xl px-1 shadow-[2px_2px_0px_#000000]">
+            {/* Row 2: Controls (Month Switcher, Evaluate Button, Copy Button) */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {/* Month Navigator */}
+              <div className="h-8 sm:h-9 flex items-center bg-white border-2 border-black rounded-xl px-1 shadow-[2px_2px_0px_#000000]">
                 <button
                   onClick={handlePrevMonth}
                   title="Previous Month"
@@ -267,62 +279,54 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 </button>
               </div>
 
-              {/* Evaluate / Re-evaluate Action Button (h-9) */}
-              <button
-                onClick={() => loadReportData(selectedArchetype, year, month, true)}
-                disabled={isLoading}
-                title={report ? "Re-evaluate Gemini AI with latest data" : "Run Gemini AI Performance Evaluation"}
-                className={`h-9 neo-btn px-4 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0 ${
-                  report ? 'bg-[#FDC800] hover:bg-amber-300' : 'bg-[#00E599] hover:bg-emerald-400'
-                }`}
-              >
-                <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
-                <span>{isLoading ? 'EVALUATING...' : report ? '🔄 RE-EVALUATE' : '⚡ RUN EVALUATION'}</span>
-              </button>
-
-              {/* Copy Markdown Button (h-9) */}
-              {report && (
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
-                  onClick={handleCopyMarkdown}
-                  title="Copy Dossier Markdown to Clipboard"
-                  className="h-9 neo-btn px-3 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
+                  onClick={() => loadReportData(selectedArchetype, year, month, true)}
+                  disabled={isLoading}
+                  title={report ? "Re-evaluate Gemini AI with latest data" : "Run Gemini AI Performance Evaluation"}
+                  className={`h-8 sm:h-9 neo-btn px-2.5 sm:px-4 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0 ${
+                    report ? 'bg-[#FDC800] hover:bg-amber-300' : 'bg-[#00E599] hover:bg-emerald-400'
+                  }`}
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
-                  <span className="hidden md:inline">{copied ? 'COPIED' : 'COPY'}</span>
+                  <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
+                  <span>{isLoading ? 'EVALUATING...' : report ? '🔄 RE-EVALUATE' : '⚡ RUN EVALUATION'}</span>
                 </button>
-              )}
 
-              {/* Close Button (w-9 h-9) */}
-              <button
-                onClick={handleClose}
-                className="w-9 h-9 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
-                title="Close Dossier"
-              >
-                <X className="w-4 h-4 stroke-[3]" />
-              </button>
+                {report && (
+                  <button
+                    onClick={handleCopyMarkdown}
+                    title="Copy Dossier Markdown to Clipboard"
+                    className="h-8 sm:h-9 neo-btn px-2.5 sm:px-3 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
+                    <span className="hidden sm:inline">{copied ? 'COPIED' : 'COPY'}</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
           {/* 🧪 TEST DATASET QUICK SWITCHER BAR */}
-          <div className="bg-neutral-100 border-b-2 border-black px-5 sm:px-7 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
-            <div className="flex items-center gap-2 font-mono text-xs font-black text-black">
-              <span>🧪 ACTIVE TARGET DATASET:</span>
+          <div className="bg-neutral-100 border-b-2 border-black px-3.5 sm:px-7 py-1.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 font-mono text-[11px] sm:text-xs font-black text-black">
+              <span>🧪 TARGET DATASET:</span>
               {selectedArchetype ? (
-                <span className="px-2 py-0.5 rounded bg-[#FF8A00] text-black text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
-                  TESTING: ARYAN'S CHRONICLES (30 IN HELL, 1 CLUTCH WIN)
+                <span className="px-1.5 py-0.5 rounded bg-[#FF8A00] text-black text-[9px] sm:text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
+                  ARYAN'S CHRONICLES (30 IN HELL, 1 WIN)
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shadow-[1px_1px_0px_#FDC800]">
+                <span className="px-1.5 py-0.5 rounded bg-black text-white text-[9px] sm:text-[10px] font-black uppercase shadow-[1px_1px_0px_#FDC800]">
                   MY REAL DATABASE
                 </span>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => handleSelectArchetype('strugglingStudent')}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] sm:text-xs font-black cursor-pointer transition-all ${
                   selectedArchetype === 'strugglingStudent'
                     ? 'bg-[#FF8A00] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
@@ -334,7 +338,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               <button
                 type="button"
                 onClick={() => handleSelectArchetype(null)}
-                className={`px-3 py-1 rounded-lg border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] sm:text-xs font-black cursor-pointer transition-all ${
                   selectedArchetype === null
                     ? 'bg-black text-white shadow-[2px_2px_0px_#FDC800] scale-[1.02]'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
@@ -349,7 +353,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           <div 
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-7 py-4 space-y-4"
+            className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-7 py-3 sm:py-4 space-y-3 sm:space-y-4"
           >
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -412,7 +416,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             ) : report ? (
               <>
                 {/* Persona Archetype Banner with Homie Tough-Love Styling */}
-                <div className={`p-4 sm:p-5 rounded-2xl border-2 border-black flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shrink-0 ${
+                <div className={`p-3.5 sm:p-5 rounded-2xl border-2 border-black flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 shrink-0 ${
                   report.hitRate < 50 
                     ? 'bg-[#1C1917] text-white shadow-[3px_3px_0px_#FDC800]' 
                     : report.hitRate >= 80 
@@ -420,7 +424,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     : 'bg-[#00E599] text-black shadow-[3px_3px_0px_#000000]'
                 }`}>
                   <div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded uppercase tracking-wider ${
                         report.hitRate < 50 ? 'bg-[#FDC800] text-black' : 'bg-black text-white'
                       }`}>
@@ -438,7 +442,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       )}
                     </div>
 
-                    <h4 className={`font-display font-black text-xl sm:text-2xl uppercase tracking-tight mt-1.5 ${
+                    <h4 className={`font-display font-black text-lg sm:text-2xl uppercase tracking-tight mt-1.5 ${
                       report.hitRate < 50 ? 'text-white' : 'text-black'
                     }`}>
                       "{report.personaTitle}"
@@ -450,32 +454,32 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 shrink-0 self-end md:self-auto">
-                    <div className={`px-3 py-1.5 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                  <div className="grid grid-cols-3 gap-2 w-full md:w-auto shrink-0 pt-1 md:pt-0">
+                    <div className={`px-2 py-1.5 sm:px-3 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
                       <span className="block text-[8px] font-mono font-bold text-neutral-400">HIT RATE</span>
-                      <span className={`font-display font-black text-lg leading-none mt-0.5 ${
+                      <span className={`font-display font-black text-base sm:text-lg leading-none mt-0.5 ${
                         report.hitRate < 50 ? 'text-[#FF4D4D]' : 'text-black'
                       }`}>
                         {report.hitRate}%
                       </span>
                     </div>
 
-                    <div className={`px-3 py-1.5 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                    <div className={`px-2 py-1.5 sm:px-3 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
                       <span className="block text-[8px] font-mono font-bold text-neutral-400">AVG SCORE</span>
-                      <span className="font-display font-black text-lg leading-none mt-0.5 text-black">
+                      <span className="font-display font-black text-base sm:text-lg leading-none mt-0.5 text-black">
                         {report.avgScore}
                       </span>
                     </div>
 
-                    <div className={`px-3 py-1.5 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                    <div className={`px-2 py-1.5 sm:px-3 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
                       <span className="block text-[8px] font-mono font-bold text-neutral-400">MAX SLUMP</span>
-                      <span className="font-display font-black text-lg leading-none mt-0.5 text-[#FF8A00]">
+                      <span className="font-display font-black text-base sm:text-lg leading-none mt-0.5 text-[#FF8A00]">
                         {report.longestSlump || 0}d
                       </span>
                     </div>
