@@ -6,9 +6,21 @@ import StatsWidget from './components/StatsWidget';
 import CalendarModal from './components/CalendarModal';
 import EditDayModal from './components/EditDayModal';
 import MonthlyReportModal from './components/MonthlyReportModal';
+import MobileAppView from './components/MobileAppView';
 import { fetchDatabase, saveEntry } from './services/api';
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return isMobile;
+}
+
 export default function App() {
+  const isMobile = useIsMobile();
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -65,68 +77,81 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FFFDF5] text-black">
+    <div className="min-h-screen bg-[#FFFDF5] text-black">
       
-      {/* Full-width Header with Calendar & Monthly Dossier toggles */}
-      <Header
-        startDate={startDate}
-        entries={entries}
-        dayCount={dayCount}
-        isCalendarOpen={isCalendarOpen}
-        onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
-        onOpenMonthlyReport={() => handleOpenMonthlyReport()}
-      />
-
-      {/* Main Panoramic Container with Generous Padding */}
-      <main className="flex-1 w-full max-w-[1380px] mx-auto px-6 sm:px-10 py-6">
-        
-        {/* Full-Width Top Hero Today Banner */}
-        <TodayHero
-          todayStr={todayStr}
-          currentEntry={entries[todayStr] || null}
-          onSaveToday={handleSaveEntry}
+      {/* 📱 DEDICATED NATIVE MOBILE APP INTERFACE (Screens < 768px) */}
+      {isMobile ? (
+        <MobileAppView
+          startDate={startDate}
+          entries={entries}
           dayCount={dayCount}
+          todayStr={todayStr}
+          onSaveToday={handleSaveEntry}
+          onOpenMonthlyReport={() => handleOpenMonthlyReport()}
+          onEditDay={(dayInfo) => setEditingDay(dayInfo)}
         />
+      ) : (
+        /* 💻 FULL PANORAMIC DESKTOP EXPERIENCE (Screens >= 768px) */
+        <div className="min-h-screen flex flex-col justify-between">
+          <Header
+            startDate={startDate}
+            entries={entries}
+            dayCount={dayCount}
+            isCalendarOpen={isCalendarOpen}
+            onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
+            onOpenMonthlyReport={() => handleOpenMonthlyReport()}
+            onSyncRefresh={loadData}
+          />
 
-        {/* Bottom 2-Column Panoramic Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-4">
-          
-          {/* Left Column: Journey Timeline (7 cols) */}
-          <div className="lg:col-span-7">
-            <JourneyTimeline
-              startDate={startDate}
+          <main className="flex-1 w-full max-w-[1380px] mx-auto px-6 sm:px-10 py-6">
+            <TodayHero
               todayStr={todayStr}
-              entries={entries}
-              onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-            />
-          </div>
-
-          {/* Right Column: Real-time Stats & Metrics (5 cols) */}
-          <div className="lg:col-span-5">
-            <StatsWidget
-              entries={entries}
+              currentEntry={entries[todayStr] || null}
+              onSaveToday={handleSaveEntry}
               dayCount={dayCount}
             />
-          </div>
 
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-4">
+              <div className="lg:col-span-7">
+                <JourneyTimeline
+                  startDate={startDate}
+                  todayStr={todayStr}
+                  entries={entries}
+                  onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                />
+              </div>
+
+              <div className="lg:col-span-5">
+                <StatsWidget
+                  entries={entries}
+                  dayCount={dayCount}
+                />
+              </div>
+            </div>
+          </main>
+
+          <footer className="w-full max-w-[1380px] mx-auto text-center text-xs font-mono font-bold text-neutral-600 py-10 px-6 border-t-2 border-black/10 mt-14 mb-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <span className="px-3 py-1 bg-black text-[#FDC800] rounded-lg text-[11px] font-black uppercase shadow-[2px_2px_0px_#000000]">
+              DAILY QUALITY
+            </span>
+            <span className="text-neutral-700 font-bold">
+              All data persisted locally into <code className="text-black bg-[#FDC800] px-2 py-0.5 rounded-md border border-black font-black">data/entries.json</code>
+            </span>
+          </footer>
         </div>
+      )}
 
-      </main>
-
-      {/* Optional Month Calendar View Modal */}
+      {/* Shared Modals */}
       <CalendarModal
         isOpen={isCalendarOpen}
         onClose={() => setIsCalendarOpen(false)}
         entries={entries}
         startDate={startDate}
         todayStr={todayStr}
-        onEditDay={(dayInfo) => {
-          setEditingDay(dayInfo);
-        }}
+        onEditDay={(dayInfo) => setEditingDay(dayInfo)}
         onOpenMonthlyReport={(target) => handleOpenMonthlyReport(target)}
       />
 
-      {/* Day Edit & AI Enhancement Modal */}
       <EditDayModal
         isOpen={Boolean(editingDay)}
         onClose={() => setEditingDay(null)}
@@ -136,23 +161,12 @@ export default function App() {
         onSave={handleSaveEntry}
       />
 
-      {/* Monthly Performance Intelligence Dossier Modal */}
       <MonthlyReportModal
         isOpen={isMonthlyReportOpen}
         onClose={() => setIsMonthlyReportOpen(false)}
         initialYear={reportTargetMonth.year}
         initialMonth={reportTargetMonth.month}
       />
-
-      {/* Footer with Generous Spacing & Mobile Breathing Room */}
-      <footer className="w-full max-w-[1380px] mx-auto text-center text-xs font-mono font-bold text-neutral-600 py-10 px-6 border-t-2 border-black/10 mt-14 mb-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-        <span className="px-3 py-1 bg-black text-[#FDC800] rounded-lg text-[11px] font-black uppercase shadow-[2px_2px_0px_#000000]">
-          DAILY QUALITY
-        </span>
-        <span className="text-neutral-700 font-bold">
-          All data persisted locally into <code className="text-black bg-[#FDC800] px-2 py-0.5 rounded-md border border-black font-black">data/entries.json</code>
-        </span>
-      </footer>
 
     </div>
   );
