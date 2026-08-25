@@ -15,15 +15,20 @@ import {
   ChevronLeft,
   CheckCircle2,
   LogIn,
-  LogOut,
   AlertCircle,
   CloudRain,
   MinusCircle,
   Wand2,
-  Copy,
   Lock,
   Activity,
-  Layers
+  Layers,
+  TrendingUp,
+  AlertTriangle,
+  Smartphone,
+  BookOpen,
+  Users,
+  Compass,
+  X
 } from 'lucide-react';
 import { ratingMeta, exportDatabaseBackup, fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
@@ -68,7 +73,7 @@ export default function MobileAppView({
   const [dossierReport, setDossierReport] = useState(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [dossierError, setDossierError] = useState(null);
-  const [dossierCopied, setDossierCopied] = useState(false);
+  const [activeDayNote, setActiveDayNote] = useState(null);
 
   useEffect(() => {
     const unsub = subscribeAuthState((currentUser) => {
@@ -184,7 +189,7 @@ export default function MobileAppView({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-20 select-none">
+    <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-28 select-none relative">
       
       {/* 📱 TOP COMPACT APP BAR */}
       <header className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-4 py-2.5 flex items-center justify-between shadow-[0_2px_0px_#000000]">
@@ -479,7 +484,7 @@ export default function MobileAppView({
       )}
 
       {/* ========================================================= */}
-      {/* 🧠 TAB 3: DEDICATED FULL-SCREEN MONTHLY DOSSIER */}
+      {/* 🧠 TAB 3: COMPLETE RICH NATIVE MONTHLY DOSSIER */}
       {/* ========================================================= */}
       {activeTab === 'dossier' && (
         <main className="flex-1 px-3.5 py-3 space-y-3 max-w-lg mx-auto w-full">
@@ -564,7 +569,7 @@ export default function MobileAppView({
                 Synthesizing Monthly Dossier...
               </h4>
               <p className="text-[10px] font-mono text-neutral-600">
-                Gemini AI is analyzing behavioral patterns and drafting real-talk advice.
+                Gemini AI is analyzing behavioral patterns, calculating forensics, and drafting real-talk advice.
               </p>
             </div>
           ) : dossierError ? (
@@ -581,7 +586,7 @@ export default function MobileAppView({
           ) : dossierReport ? (
             <div className="space-y-3">
               
-              {/* Persona Archetype Card */}
+              {/* 1. Persona Archetype Card */}
               <div className={`p-3.5 rounded-2xl border-2 border-black space-y-2 shadow-[2.5px_2.5px_0px_#000000] ${
                 dossierReport.hitRate < 50 ? 'bg-[#1C1917] text-white' : 'bg-[#FDC800] text-black'
               }`}>
@@ -592,7 +597,7 @@ export default function MobileAppView({
                     MONTHLY PERSONA
                   </span>
                   <span className="text-[9px] font-mono font-bold opacity-80">
-                    💾 Saved
+                    💾 Saved in Local DB
                   </span>
                 </div>
 
@@ -636,7 +641,7 @@ export default function MobileAppView({
                 </div>
               </div>
 
-              {/* Real Talk Homie Letter */}
+              {/* 2. Real Talk Homie Letter */}
               {dossierReport.homieLetter && dossierReport.homieLetter.length > 0 && (
                 <div className="p-3.5 rounded-2xl border-2 border-black bg-[#FFFBEA] shadow-[2.5px_2.5px_0px_#000000] space-y-2">
                   <div className="flex items-center gap-1.5 pb-1.5 border-b border-black/10">
@@ -655,12 +660,267 @@ export default function MobileAppView({
                 </div>
               )}
 
+              {/* 3. Weekly Phase Velocity Trajectory */}
+              {dossierReport.weeklyAnalytics && dossierReport.weeklyAnalytics.length > 0 && (
+                <div className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-black/10">
+                    <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1">
+                      <Activity className="w-3.5 h-3.5" />
+                      <span>WEEKLY PHASE VELOCITY</span>
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-neutral-500">
+                      Score / 5.0
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-1.5 pt-1">
+                    {dossierReport.weeklyAnalytics.map((week, idx) => (
+                      <div key={idx} className="p-2 rounded-lg border border-black/20 bg-neutral-50 text-center">
+                        <span className="text-[9px] font-mono font-black uppercase text-neutral-600 block">
+                          Wk {idx + 1}
+                        </span>
+                        <span className="font-display font-black text-base text-black block my-0.5">
+                          {week.avgScore || '—'}
+                        </span>
+                        <div className="h-1.5 w-full bg-neutral-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${week.avgScore >= 3.5 ? 'bg-[#00E599]' : week.avgScore >= 2.5 ? 'bg-[#FDC800]' : 'bg-[#FF8A00]'}`}
+                            style={{ width: `${Math.min(100, (week.avgScore / 5.0) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 4. Friction Root-Cause Leak Breakdown */}
+              {dossierReport.frictionBreakdown && (
+                <div className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-black/10">
+                    <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5 text-[#FF4D4D]" />
+                      <span>FRICTION LEAK FACTOR</span>
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-neutral-500">
+                      DIARY KEYWORDS
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 pt-0.5">
+                    <div>
+                      <div className="flex justify-between text-[10px] font-mono font-bold text-black mb-0.5">
+                        <span className="flex items-center gap-1">
+                          <Smartphone className="w-3 h-3 text-purple-600" />
+                          <span>Screen Doomscrolling & 3 AM</span>
+                        </span>
+                        <span>{dossierReport.frictionBreakdown.screenDoomscrollPct || 0}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                        <div className="h-full bg-purple-500" style={{ width: `${dossierReport.frictionBreakdown.screenDoomscrollPct || 0}%` }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-[10px] font-mono font-bold text-black mb-0.5">
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-3 h-3 text-red-600" />
+                          <span>Academic Pressure & Accounts</span>
+                        </span>
+                        <span>{dossierReport.frictionBreakdown.academicStressPct || 0}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                        <div className="h-full bg-[#FF4D4D]" style={{ width: `${dossierReport.frictionBreakdown.academicStressPct || 0}%` }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-[10px] font-mono font-bold text-black mb-0.5">
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3 text-amber-600" />
+                          <span>Social Friction & Canteen FOMO</span>
+                        </span>
+                        <span>{dossierReport.frictionBreakdown.householdSocialPct || 0}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                        <div className="h-full bg-[#FF8A00]" style={{ width: `${dossierReport.frictionBreakdown.householdSocialPct || 0}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. 31-Day Micro-Verdict Matrix */}
+              {dossierReport.dayMatrix && dossierReport.dayMatrix.length > 0 && (
+                <div className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-black/10">
+                    <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-black" />
+                      <span>31-DAY MICRO-VERDICT MATRIX</span>
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-neutral-500">
+                      {dossierReport.dayMatrix.length}d Logged
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 pt-1">
+                    {dossierReport.dayMatrix.map((item) => {
+                      const isSelected = activeDayNote?.day === item.day;
+                      const bg = item.rating === 5 ? 'bg-[#FDC800]' : item.rating === 4 ? 'bg-[#00E599]' : item.rating === 3 ? 'bg-neutral-300' : item.rating === 2 ? 'bg-[#FF8A00]' : 'bg-[#FF4D4D]';
+                      return (
+                        <button
+                          key={item.day}
+                          type="button"
+                          onClick={() => setActiveDayNote(isSelected ? null : item)}
+                          className={`p-1 rounded-lg border-2 border-black flex flex-col items-center justify-center transition-all cursor-pointer ${bg} ${
+                            isSelected ? 'ring-2 ring-black scale-105 shadow-[2px_2px_0px_#000000]' : ''
+                          }`}
+                        >
+                          <span className="text-[9px] font-mono font-black text-black leading-none">
+                            {item.day}
+                          </span>
+                          <span className="text-[8px] font-mono font-bold text-black">
+                            {item.rating}★
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Note Inspector Card */}
+                  {activeDayNote && (
+                    <div className="p-2.5 rounded-xl border-2 border-black bg-amber-50 shadow-[1.5px_1.5px_0px_#000000] mt-2 flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.2 rounded bg-black text-[#FDC800] font-mono font-black text-[9px]">
+                            DAY {activeDayNote.day} ({activeDayNote.date})
+                          </span>
+                          <span className="font-mono font-black text-[10px] text-black">
+                            Rating: {activeDayNote.rating}/5.0
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-mono text-neutral-800 leading-snug">
+                          {activeDayNote.notes || "No extra diary notes logged."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setActiveDayNote(null)}
+                        className="p-1 rounded bg-black text-white cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 6. Weekday Momentum Distribution */}
+              {dossierReport.weekdayAverages && (
+                <div className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-black/10">
+                    <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      <span>WEEKDAY MOMENTUM</span>
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-neutral-500">
+                      Score / 5.0
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 items-end pt-1 h-24">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                      const score = dossierReport.weekdayAverages?.[day] || 0;
+                      const heightPct = Math.max(15, Math.round((score / 5.0) * 100));
+
+                      return (
+                        <div key={day} className="flex flex-col items-center gap-0.5 h-full justify-end">
+                          <span className="text-[8px] font-mono font-black text-black">
+                            {score > 0 ? score : '—'}
+                          </span>
+                          <div 
+                            style={{ height: `${heightPct}%` }}
+                            className={`w-full rounded-t-md border border-black ${
+                              score >= 4 ? 'bg-[#00E599]' : score >= 3 ? 'bg-[#FDC800]' : score > 0 ? 'bg-[#FF8A00]' : 'bg-neutral-100'
+                            }`}
+                          />
+                          <span className="text-[8px] font-mono font-black uppercase text-neutral-700">
+                            {day}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 7. Verdict Breakdown */}
+              {dossierReport.ratingCounts && (
+                <div className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-black/10">
+                    <span className="font-display font-black text-xs uppercase text-black flex items-center gap-1">
+                      <Layers className="w-3.5 h-3.5" />
+                      <span>VERDICT BREAKDOWN</span>
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-neutral-500">
+                      {dossierReport.totalLogged} Days
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {[
+                      { label: 'Peak (5/5)', count: dossierReport.ratingCounts?.[5] || 0, bg: '#FDC800' },
+                      { label: 'Good (4/5)', count: dossierReport.ratingCounts?.[4] || 0, bg: '#00E599' },
+                      { label: 'Okay (3/5)', count: dossierReport.ratingCounts?.[3] || 0, bg: '#CBD5E1' },
+                      { label: 'Down (2/5)', count: dossierReport.ratingCounts?.[2] || 0, bg: '#FF8A00' },
+                      { label: 'Rough (1/5)', count: dossierReport.ratingCounts?.[1] || 0, bg: '#FF4D4D' }
+                    ].map(item => {
+                      const pct = dossierReport.totalLogged > 0 ? Math.round((item.count / dossierReport.totalLogged) * 100) : 0;
+                      return (
+                        <div key={item.label} className="space-y-0.5">
+                          <div className="flex justify-between text-[10px] font-mono font-bold text-black">
+                            <span>{item.label}</span>
+                            <span>{item.count}d ({pct}%)</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-neutral-100 rounded-full border border-black/20 overflow-hidden">
+                            <div className="h-full" style={{ width: `${pct}%`, backgroundColor: item.bg }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 8. 6 Hidden Behavioral Correlations */}
+              {dossierReport.hiddenCorrelations && dossierReport.hiddenCorrelations.length > 0 && (
+                <div className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-2">
+                  <div className="flex items-center gap-1.5 pb-1 border-b border-black/10">
+                    <Compass className="w-3.5 h-3.5 text-black" />
+                    <h4 className="font-display font-black text-xs uppercase text-black">
+                      HIDDEN BEHAVIORAL DISCOVERIES
+                    </h4>
+                  </div>
+                  <div className="space-y-2 pt-0.5">
+                    {dossierReport.hiddenCorrelations.map((c, idx) => (
+                      <div key={idx} className="p-2.5 rounded-xl border border-black/20 bg-neutral-50 flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-black text-[#FDC800] font-mono font-black text-[9px] flex items-center justify-center shrink-0">
+                          #{idx + 1}
+                        </span>
+                        <p className="text-[11px] font-mono font-semibold text-neutral-900 leading-snug">
+                          {c}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           ) : (
             <div className="p-6 rounded-2xl border-2 border-black bg-white text-center space-y-3 shadow-[2px_2px_0px_#000000]">
               <Lock className="w-8 h-8 text-[#00E599] mx-auto stroke-[2.5]" />
               <h4 className="font-display font-black text-sm uppercase text-black">
-                Ready to Evaluate
+                Ready for Evaluation
               </h4>
               <p className="text-[11px] font-mono text-neutral-600">
                 Tap the button above to run Gemini AI performance forensics for this month.
@@ -816,8 +1076,8 @@ export default function MobileAppView({
         )}
       </AnimatePresence>
 
-      {/* 📱 BOTTOM STICKY NATIVE APP NAVIGATION BAR */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t-2 border-black py-1.5 px-2 flex items-center justify-around shadow-[0_-2px_0px_#000000]">
+      {/* 📱 SOLID OPAQUE BOTTOM NATIVE APP NAVIGATION BAR (0px Bleed Barrier) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#FFFFFF] border-t-3 border-black py-2 px-3 flex items-center justify-around shadow-[0_-4px_0px_#000000]">
         
         {/* Tab 1: Log Today */}
         <button
