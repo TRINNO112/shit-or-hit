@@ -52,43 +52,60 @@ import {
   getCurrentUser, 
   saveCloudEntry, 
   fetchCloudEntries, 
+  batchSaveCloudEntries,
   saveCloudReport, 
   fetchCloudReport, 
   isEmailWhitelisted 
 } from './firebase';
 
 export async function fetchDatabase() {
+  // 1. First fetch local data from server API or localStorage
+  let localData = { startDate: new Date().toISOString().slice(0, 10), entries: {} };
+  try {
+    const res = await fetch(`${API_BASE}/entries`);
+    if (res.ok) {
+      const json = await res.json();
+      localData = {
+        startDate: json.startDate || new Date().toISOString().slice(0, 10),
+        entries: json.data || {}
+      };
+    }
+  } catch (e) {
+    const cached = localStorage.getItem('goodness_db');
+    if (cached) {
+      try { localData = JSON.parse(cached); } catch (err) {}
+    }
+  }
+
+  // 2. If user is logged in with whitelisted Firebase account, sync with Firestore
   const currentUser = getCurrentUser();
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
       const cloudEntries = await fetchCloudEntries(currentUser.uid);
-      if (Object.keys(cloudEntries).length > 0) {
-        const dates = Object.keys(cloudEntries).sort();
-        const startDate = dates[0] || new Date().toISOString().slice(0, 10);
-        localStorage.setItem('goodness_db', JSON.stringify({ startDate, entries: cloudEntries }));
-        return { startDate, entries: cloudEntries };
+      const cloudCount = Object.keys(cloudEntries).length;
+      const localCount = Object.keys(localData.entries || {}).length;
+
+      // If local has data but Firestore is empty, auto-upload local database to Firestore
+      if (localCount > 0 && cloudCount === 0) {
+        console.log('☁️ Auto-populating empty Firestore with local database entries...');
+        await batchSaveCloudEntries(currentUser.uid, localData.entries);
+        return localData;
+      }
+
+      // If Firestore has data, merge and use Firestore
+      if (cloudCount > 0) {
+        const mergedEntries = { ...localData.entries, ...cloudEntries };
+        const dates = Object.keys(mergedEntries).sort();
+        const startDate = dates[0] || localData.startDate;
+        localStorage.setItem('goodness_db', JSON.stringify({ startDate, entries: mergedEntries }));
+        return { startDate, entries: mergedEntries };
       }
     } catch (err) {
-      console.warn('Firestore fetch failed, falling back to local:', err);
+      console.warn('Firestore sync failed, using local database:', err);
     }
   }
 
-  try {
-    const res = await fetch(`${API_BASE}/entries`);
-    if (!res.ok) throw new Error('Failed to fetch entries');
-    const json = await res.json();
-    return {
-      startDate: json.startDate || new Date().toISOString().slice(0, 10),
-      entries: json.data || {}
-    };
-  } catch (err) {
-    const cached = localStorage.getItem('goodness_db');
-    if (cached) return JSON.parse(cached);
-    return {
-      startDate: new Date().toISOString().slice(0, 10),
-      entries: {}
-    };
-  }
+  return localData;
 }
 
 export async function saveEntry(entryData) {

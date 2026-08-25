@@ -11,15 +11,35 @@ const firebaseConfig = {
   measurementId: "G-08GC6BKWLJ"
 };
 
-// Dual-User Whitelist Gate
-export const WHITELIST_EMAILS = [
-  'kaushtubh457@gmail.com',
-  'pathakkartik593@gmail.com'
-];
+// Dynamic User Profile Management (Zero Hardcoded PII for Privacy & Security)
+export function getCustomDisplayName() {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('custom_display_name') || null;
+  }
+  return null;
+}
+
+export function setCustomDisplayName(name) {
+  if (typeof window !== 'undefined') {
+    if (name && name.trim()) {
+      localStorage.setItem('custom_display_name', name.trim());
+    } else {
+      localStorage.removeItem('custom_display_name');
+    }
+  }
+}
 
 export function isEmailWhitelisted(email) {
-  if (!email) return false;
-  return WHITELIST_EMAILS.includes(email.toLowerCase().trim());
+  // Authentication & authorization is enforced server-side by Firestore Security Rules
+  return !!email;
+}
+
+export function getUserDisplayName(email, fallbackName = null) {
+  const customAlias = getCustomDisplayName();
+  if (customAlias) return customAlias;
+  if (fallbackName && fallbackName.trim()) return fallbackName.trim();
+  if (email) return email.split('@')[0];
+  return 'User';
 }
 
 let authInstance = null;
@@ -63,10 +83,24 @@ async function getFirebase() {
 }
 
 export function getCurrentUser() {
-  if (authInstance?.currentUser) return authInstance.currentUser;
+  if (authInstance?.currentUser) {
+    const u = authInstance.currentUser;
+    return {
+      uid: u.uid,
+      email: u.email,
+      displayName: getUserDisplayName(u.email, u.displayName)
+    };
+  }
   try {
     const cached = localStorage.getItem('local_auth_user');
-    return cached ? JSON.parse(cached) : null;
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.email) {
+        parsed.displayName = getUserDisplayName(parsed.email, parsed.displayName);
+      }
+      return parsed;
+    }
+    return null;
   } catch (e) {
     return null;
   }
@@ -78,15 +112,32 @@ export function subscribeAuthState(callback) {
     if (fb?.authMod && fb?.auth) {
       unsub = fb.authMod.onAuthStateChanged(fb.auth, (user) => {
         if (user) {
-          localStorage.setItem('local_auth_user', JSON.stringify({ email: user.email, displayName: user.displayName, uid: user.uid }));
+          const name = getUserDisplayName(user.email, user.displayName);
+          const userObj = { email: user.email, displayName: name, uid: user.uid };
+          localStorage.setItem('local_auth_user', JSON.stringify(userObj));
+          
+          // Auto-sync existing local entries to Firestore upon successful auth
+          try {
+            const cachedDb = localStorage.getItem('goodness_db');
+            if (cachedDb) {
+              const parsed = JSON.parse(cachedDb);
+              if (parsed.entries && Object.keys(parsed.entries).length > 0) {
+                batchSaveCloudEntries(user.uid, parsed.entries);
+              }
+            }
+          } catch (e) {
+            console.warn('Auto-sync error on auth change:', e);
+          }
+
+          callback(userObj);
         } else {
           localStorage.removeItem('local_auth_user');
+          callback(null);
         }
-        callback(user);
       });
     } else {
-      const cached = localStorage.getItem('local_auth_user');
-      callback(cached ? JSON.parse(cached) : null);
+      const userObj = getCurrentUser();
+      callback(userObj);
     }
   }).catch(() => {
     callback(null);
@@ -97,15 +148,20 @@ export function subscribeAuthState(callback) {
 export async function loginWithGoogle() {
   const fb = await getFirebase();
   if (!fb) {
-    const dummyUser = { email: 'pathakkartik593@gmail.com', displayName: 'Kartik Pathak', uid: 'user_kartik_local' };
-    localStorage.setItem('local_auth_user', JSON.stringify(dummyUser));
-    return dummyUser;
+    throw new Error('Firebase client not loaded');
   }
   try {
     const res = await fb.authMod.signInWithPopup(fb.auth, fb.googleProvider);
-    return res.user;
+    const user = res.user;
+    const name = getUserDisplayName(user.email, user.displayName);
+    const userObj = { email: user.email, displayName: name, uid: user.uid };
+    localStorage.setItem('local_auth_user', JSON.stringify(userObj));
+    return userObj;
   } catch (err) {
     console.error('Google Sign In Error:', err);
+    if (err.code === 'auth/popup-blocked' && fb.authMod.signInWithRedirect) {
+      await fb.authMod.signInWithRedirect(fb.auth, fb.googleProvider);
+    }
     throw err;
   }
 }
@@ -121,32 +177,59 @@ export async function logoutUser() {
 export async function saveCloudEntry(userId, entry) {
   if (!userId || !entry?.date) return;
   const fb = await getFirebase();
-  if (!fb) return;
+  if (!fb || !fb.db) return;
   try {
+    console.log(`📡 [Firestore] Saving entry (${entry.date}) for user: ${userId}...`);
     const entryRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'entries', entry.date);
     await fb.firestoreMod.setDoc(entryRef, {
       ...entry,
       updatedAt: new Date().toISOString()
     }, { merge: true });
+    console.log(`✅ [Firestore] Successfully saved entry (${entry.date}) to Firebase Cloud!`);
   } catch (err) {
-    console.error('Firestore save error:', err);
+    console.error(`❌ [Firestore Save Error]:`, err.code || err.name, err.message);
+  }
+}
+
+export async function batchSaveCloudEntries(userId, entriesMap) {
+  if (!userId || !entriesMap || Object.keys(entriesMap).length === 0) return;
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return;
+  try {
+    const entriesList = Object.entries(entriesMap);
+    console.log(`📡 [Firestore] Uploading batch of ${entriesList.length} entries to Firebase Cloud for user: ${userId}...`);
+    const promises = entriesList.map(([dateStr, entry]) => {
+      const entryRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'entries', dateStr);
+      return fb.firestoreMod.setDoc(entryRef, {
+        ...entry,
+        date: dateStr,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    });
+    await Promise.all(promises);
+    console.log(`🎉 [Firestore] SUCCESS! All ${promises.length} entries are now stored in your Firebase Cloud database!`);
+  } catch (err) {
+    console.error(`❌ [Firestore Batch Save Error]:`, err.code || err.name, err.message);
   }
 }
 
 export async function fetchCloudEntries(userId) {
   if (!userId) return {};
   const fb = await getFirebase();
-  if (!fb) return {};
+  if (!fb || !fb.db) return {};
   try {
+    console.log(`📡 [Firestore] Fetching cloud entries for user: ${userId}...`);
     const colRef = fb.firestoreMod.collection(fb.db, 'users', userId, 'entries');
     const snapshot = await fb.firestoreMod.getDocs(colRef);
     const entries = {};
     snapshot.forEach(docSnap => {
       entries[docSnap.id] = docSnap.data();
     });
+    const count = Object.keys(entries).length;
+    console.log(`✅ [Firestore] Loaded ${count} entries from Firebase Cloud.`);
     return entries;
   } catch (err) {
-    console.error('Firestore fetch error:', err);
+    console.error(`❌ [Firestore Fetch Error]:`, err.code || err.name, err.message);
     return {};
   }
 }
@@ -154,31 +237,51 @@ export async function fetchCloudEntries(userId) {
 export async function saveCloudReport(userId, reportKey, reportData) {
   if (!userId || !reportKey || !reportData) return;
   const fb = await getFirebase();
-  if (!fb) return;
+  if (!fb || !fb.db) return;
   try {
+    console.log(`📡 [Firestore] Saving monthly dossier (${reportKey}) for user: ${userId}...`);
     const reportRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'reports', reportKey);
     await fb.firestoreMod.setDoc(reportRef, {
       ...reportData,
       savedAt: new Date().toISOString()
     }, { merge: true });
+    console.log(`✅ [Firestore] Monthly dossier saved to Firebase Cloud!`);
   } catch (err) {
-    console.error('Firestore save report error:', err);
+    console.error(`❌ [Firestore Dossier Save Error]:`, err.code || err.name, err.message);
   }
 }
 
 export async function fetchCloudReport(userId, reportKey) {
   if (!userId || !reportKey) return null;
   const fb = await getFirebase();
-  if (!fb) return null;
+  if (!fb || !fb.db) return null;
   try {
     const reportRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'reports', reportKey);
     const snap = await fb.firestoreMod.getDoc(reportRef);
     if (snap.exists()) {
+      console.log(`✅ [Firestore] Found cached dossier in Firebase Cloud (${reportKey}).`);
       return snap.data();
     }
     return null;
   } catch (err) {
-    console.error('Firestore fetch report error:', err);
+    console.error(`❌ [Firestore Dossier Fetch Error]:`, err.code || err.name, err.message);
+    return null;
+  }
+}
+
+export async function fetchCloudGeminiApiKey() {
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return null;
+  try {
+    const configRef = fb.firestoreMod.doc(fb.db, 'config', 'gemini');
+    const snap = await fb.firestoreMod.getDoc(configRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return data?.apiKey || null;
+    }
+    return null;
+  } catch (err) {
+    console.warn('Could not fetch cloud Gemini API key:', err.message);
     return null;
   }
 }

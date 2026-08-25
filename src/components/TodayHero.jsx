@@ -341,7 +341,7 @@ export default function TodayHero({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-            className="overflow-hidden mt-5 pt-5 border-t-2 border-dashed border-black/20 text-left space-y-3"
+            className="mt-5 pt-5 pb-3 border-t-2 border-dashed border-black/20 text-left space-y-3.5"
           >
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
               <span className="flex items-center gap-1.5">
@@ -390,7 +390,7 @@ export default function TodayHero({
                   onClick={handleAIEnhance}
                   disabled={isEnhancing || !noteText.trim()}
                   title="Polish and organize your diary entry with Gemini AI (maintains 1st person)"
-                  className="neo-btn px-3.5 py-1 bg-[#FDC800] hover:bg-amber-300 text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-[2px_2px_0px_#000000]"
+                  className="px-3.5 py-1.5 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-[2px_2px_0px_#000000]"
                 >
                   {isEnhancing ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -402,9 +402,9 @@ export default function TodayHero({
 
                 <button 
                   onClick={() => setShowNote(false)}
-                  className="hover:bg-red-200 border border-black p-1 rounded cursor-pointer ml-1"
+                  className="hover:bg-red-200 border-2 border-black p-1.5 rounded-xl cursor-pointer ml-1 shadow-[1px_1px_0px_#000000]"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
                 </button>
               </div>
             </div>
@@ -418,18 +418,19 @@ export default function TodayHero({
               style={{ minHeight: '140px' }}
             />
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 pb-1">
               <span className="text-[11px] font-mono text-neutral-500 font-bold">
                 {historyStack.length > 1 && `Version ${historyIdx + 1} of ${historyStack.length} • `}
                 Use Undo/Original to revert anytime.
               </span>
 
-              <MagneticButton
+              <button
+                type="button"
                 onClick={handleSaveNote}
-                className="neo-btn px-6 py-2 bg-[#00E599] text-black text-xs font-mono font-black cursor-pointer shadow-[3px_3px_0px_#000000]"
+                className="px-6 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black text-xs font-mono font-black border-2 border-black rounded-xl cursor-pointer shadow-[3px_3px_0px_#000000] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000000]"
               >
                 SAVE DIARY ENTRY
-              </MagneticButton>
+              </button>
             </div>
           </motion.div>
         )}
