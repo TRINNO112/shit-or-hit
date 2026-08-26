@@ -34,20 +34,20 @@ export default function AestheticCardExportModal({
     if (!isOpen) return;
 
     const canvas = document.createElement('canvas');
-    const width = format === 'wallpaper' ? 1080 : 1080;
+    const width = 1080;
     const height = format === 'wallpaper' ? 1920 : 1080;
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
 
-    // 1. Background Fill
+    // 1. Background Fill & Texture
     ctx.fillStyle = '#FFFDF5';
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Subtle Neo-Brutalist Grid Pattern
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
-    ctx.lineWidth = 2;
-    const gridSize = 60;
+    // 2. High-Contrast Neo-Brutalist Grid Lines
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.lineWidth = 2.5;
+    const gridSize = 72;
     for (let x = 0; x < width; x += gridSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -61,96 +61,138 @@ export default function AestheticCardExportModal({
       ctx.stroke();
     }
 
-    // 3. Thick Outer Border & Shadow Frame
+    // 3. Thick Outer Double Border
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 16;
-    ctx.strokeRect(40, 40, width - 80, height - 80);
+    ctx.lineWidth = 18;
+    ctx.strokeRect(36, 36, width - 72, height - 72);
+    ctx.lineWidth = 4;
+    ctx.strokeRect(54, 54, width - 108, height - 108);
 
-    // 4. Header Top Badge: DAILY VERDICT & DAY NUMBER
-    const headerY = format === 'wallpaper' ? 160 : 120;
+    // 4. Header Section
+    const headerY = format === 'wallpaper' ? 110 : 85;
     
-    // Zap Logo Box
-    ctx.fillStyle = '#FDC800';
-    ctx.fillRect(80, headerY, 90, 90);
-    ctx.strokeRect(80, headerY, 90, 90);
+    // Top Ribbon / Sticker
     ctx.fillStyle = '#000000';
-    ctx.font = '900 52px monospace';
-    ctx.fillText('⚡', 95, headerY + 65);
+    ctx.fillRect(80, headerY, 260, 44);
+    ctx.fillStyle = '#FDC800';
+    ctx.font = '900 20px monospace';
+    ctx.fillText('⚡ DAILY ACCOUNTABILITY', 95, headerY + 28);
 
-    // App Title
+    // App Branding Block
+    const brandY = headerY + 65;
+    ctx.fillStyle = '#FDC800';
+    ctx.fillRect(80, brandY, 96, 96);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(80, brandY, 96, 96);
+    
+    // Lightning Icon
+    ctx.fillStyle = '#000000';
+    ctx.font = '900 56px sans-serif';
+    ctx.fillText('⚡', 100, brandY + 70);
+
+    // Title
+    ctx.fillStyle = '#000000';
+    ctx.font = '900 52px sans-serif';
+    ctx.fillText('DAILY VERDICT', 196, brandY + 50);
+
+    ctx.fillStyle = '#555555';
+    ctx.font = '800 24px monospace';
+    ctx.fillText(formattedDate.toUpperCase(), 196, brandY + 86);
+
+    // Day Streak Banner
+    ctx.fillStyle = '#00E599';
+    ctx.fillRect(width - 320, brandY, 240, 96);
+    ctx.strokeRect(width - 320, brandY, 240, 96);
+    ctx.fillStyle = '#000000';
+    ctx.font = '900 38px monospace';
+    ctx.fillText(`DAY ${dayCount}`, width - 290, brandY + 60);
+
+    // Mood Character / Badge Metadata Map
+    const moodMeta = {
+      5: { emoji: '👑', tag: 'GOD MODE • UNSTOPPABLE', persona: '(⌐■_■) PEAK FLOW', color: '#FDC800' },
+      4: { emoji: '🔥', tag: 'LOCKED IN • MOMENTUM', persona: '(•̀ᴗ•́)و FOCUS CHAD', color: '#00E599' },
+      3: { emoji: '⚡', tag: 'SOLID BASELINE • HELD LINE', persona: '(•_•) STOIC SUSTAINER', color: '#CBD5E1' },
+      2: { emoji: '🌧️', tag: 'LOW BATTERY • DRAGGING', persona: '(T_T) SLOW PROGRESS', color: '#FF8A00' },
+      1: { emoji: '👺', tag: '3:45 AM DOPAMINE GOBLIN', persona: '(X_X) TRENCH SURVIVOR', color: '#FF4D4D' }
+    };
+    const currentMood = moodMeta[rating] || moodMeta[3];
+
+    // 5. Massive Center Score Card with Drop Shadow
+    const cardY = format === 'wallpaper' ? 330 : 270;
+    const cardWidth = width - 160;
+    const cardHeight = format === 'wallpaper' ? 440 : 330;
+
+    // Drop Shadow
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(88, cardY + 12, cardWidth, cardHeight);
+
+    // Main Card
+    ctx.fillStyle = meta.bg;
+    ctx.fillRect(80, cardY, cardWidth, cardHeight);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(80, cardY, cardWidth, cardHeight);
+
+    // Mood Pill Badge
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(115, cardY + 36, 380, 48);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 22px monospace';
+    ctx.fillText(`${currentMood.emoji} ${currentMood.tag}`, 135, cardY + 68);
+
+    // Stars Rating
     ctx.fillStyle = '#000000';
     ctx.font = '900 48px sans-serif';
-    ctx.fillText('DAILY VERDICT', 190, headerY + 45);
-
-    ctx.fillStyle = '#666666';
-    ctx.font = '700 24px monospace';
-    ctx.fillText(formattedDate.toUpperCase(), 190, headerY + 80);
-
-    // Day Streak Pill on Right
-    ctx.fillStyle = '#00E599';
-    ctx.fillRect(width - 290, headerY, 210, 80);
-    ctx.strokeRect(width - 290, headerY, 210, 80);
-    ctx.fillStyle = '#000000';
-    ctx.font = '900 32px monospace';
-    ctx.fillText(`DAY ${dayCount}`, width - 265, headerY + 52);
-
-    // 5. Huge Center Verdict Score Badge
-    const centerY = format === 'wallpaper' ? 640 : 420;
-    const cardWidth = width - 160;
-    const cardHeight = format === 'wallpaper' ? 380 : 280;
-
-    // Card drop shadow
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(88, centerY + 8, cardWidth, cardHeight);
-
-    // Card fill
-    ctx.fillStyle = meta.bg;
-    ctx.fillRect(80, centerY, cardWidth, cardHeight);
-    ctx.strokeRect(80, centerY, cardWidth, cardHeight);
-
-    // Score Stars
-    ctx.fillStyle = '#000000';
-    ctx.font = '900 42px sans-serif';
     const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-    ctx.fillText(stars, 120, centerY + 80);
+    ctx.fillText(stars, 115, cardY + 140);
 
     // Huge Verdict Title
-    ctx.font = '900 76px sans-serif';
-    ctx.fillText(verdict.toUpperCase(), 120, centerY + 180);
+    ctx.font = '900 84px sans-serif';
+    ctx.fillText(verdict.toUpperCase(), 115, cardY + 240);
 
-    // Score Subtitle
-    ctx.font = '700 30px monospace';
-    ctx.fillText(`SCORE: ${rating}.0 / 5.0 • ${meta.desc.toUpperCase()}`, 120, centerY + 240);
-
-    // 6. Reflection Quote Section
-    const quoteY = format === 'wallpaper' ? 1100 : 740;
-    const quoteHeight = format === 'wallpaper' ? 560 : 220;
-
+    // Score Details & Persona
     ctx.fillStyle = '#000000';
-    ctx.fillRect(88, quoteY + 8, cardWidth, quoteHeight);
+    ctx.font = '800 30px monospace';
+    ctx.fillText(`QUALITY SCORE: ${rating}.0 / 5.0`, 115, cardY + 310);
 
+    ctx.font = '700 24px monospace';
+    ctx.fillStyle = '#222222';
+    ctx.fillText(`ARCHETYPE: ${currentMood.persona}`, 115, cardY + 360);
+
+    // 6. Reflection Quote / Raw Diary Section
+    const quoteY = format === 'wallpaper' ? 820 : 640;
+    const quoteHeight = format === 'wallpaper' ? 820 : 310;
+
+    // Drop Shadow
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(88, quoteY + 12, cardWidth, quoteHeight);
+
+    // Quote Box Fill
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(80, quoteY, cardWidth, quoteHeight);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 8;
     ctx.strokeRect(80, quoteY, cardWidth, quoteHeight);
 
-    // Quote Tag
+    // Quote Section Header Tape
     ctx.fillStyle = '#FDC800';
-    ctx.fillRect(110, quoteY + 30, 260, 44);
-    ctx.strokeRect(110, quoteY + 30, 260, 44);
+    ctx.fillRect(115, quoteY + 36, 320, 48);
+    ctx.strokeRect(115, quoteY + 36, 320, 48);
     ctx.fillStyle = '#000000';
-    ctx.font = '900 20px monospace';
-    ctx.fillText('RAW REFLECTION', 130, quoteY + 60);
+    ctx.font = '900 22px monospace';
+    ctx.fillText('📖 RAW DIARY REFLECTION', 135, quoteY + 68);
 
-    // Multiline Text Wrap for Notes
+    // Notes Multiline Wrap
     ctx.fillStyle = '#000000';
-    ctx.font = '600 28px monospace';
+    ctx.font = format === 'wallpaper' ? '600 32px monospace' : '600 26px monospace';
     
     const maxTextWidth = cardWidth - 80;
     const words = notes.split(' ');
     let line = '';
-    let textY = quoteY + 130;
-    const lineHeight = 44;
-    const maxLines = format === 'wallpaper' ? 9 : 2;
+    let textY = quoteY + 140;
+    const lineHeight = format === 'wallpaper' ? 52 : 40;
+    const maxLines = format === 'wallpaper' ? 12 : 4;
     let linesCount = 0;
 
     for (let n = 0; n < words.length; n++) {
@@ -171,11 +213,26 @@ export default function AestheticCardExportModal({
     }
     ctx.fillText(line, 120, textY);
 
-    // 7. Footer: User Brand & Watermark
-    const footerY = format === 'wallpaper' ? 1800 : 1010;
-    ctx.fillStyle = '#888888';
-    ctx.font = '700 22px monospace';
-    ctx.fillText(`LOGGED BY ${displayName.toUpperCase()} • DAILY VERDICT`, 80, footerY);
+    // 7. Footer: Barcode, Identity & Watermark
+    const footerY = format === 'wallpaper' ? 1730 : 980;
+
+    // Simulated Neo-Brutalist Barcode
+    ctx.fillStyle = '#000000';
+    const barcodeX = width - 260;
+    const barcodeWidths = [4, 8, 2, 6, 12, 4, 8, 2, 10, 4, 6, 8, 4, 12, 6, 4];
+    let curX = barcodeX;
+    for (let b = 0; b < barcodeWidths.length; b++) {
+      ctx.fillRect(curX, footerY - 40, barcodeWidths[b], 40);
+      curX += barcodeWidths[b] + 4;
+    }
+
+    ctx.fillStyle = '#000000';
+    ctx.font = '900 24px monospace';
+    ctx.fillText(`LOGGED BY ${displayName.toUpperCase()}`, 80, footerY - 15);
+
+    ctx.fillStyle = '#666666';
+    ctx.font = '700 18px monospace';
+    ctx.fillText('VERDICT OS • UNFILTERED ACCOUNTABILITY ENGINE', 80, footerY + 15);
 
     setPreviewUrl(canvas.toDataURL('image/png'));
     canvasRef.current = canvas;

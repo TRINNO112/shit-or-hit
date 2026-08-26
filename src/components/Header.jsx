@@ -11,6 +11,7 @@ export default function Header({
   onToggleCalendar,
   isCalendarOpen,
   onOpenMonthlyReport,
+  onOpenWallpaper,
   onSyncRefresh
 }) {
   const [user, setUser] = useState(null);
