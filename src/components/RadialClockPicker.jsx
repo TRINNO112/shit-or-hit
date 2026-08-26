@@ -1,65 +1,26 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, RotateCcw, Bell, BellOff, X, Check } from 'lucide-react';
+import { Clock, X, Check, Sparkles } from 'lucide-react';
 
-// ---- design tokens -------------------------------------------------------
-const COLORS = {
-  bg: '#0A0B10',
-  panel: '#14161F',
-  panelBorder: '#242635',
-  track: '#242737',
-  textPrimary: '#F3EFE6',
-  textMuted: '#82869B',
-  amber: '#FFB454',
-  amberSoft: 'rgba(255,180,84,0.16)',
-  amberGlow: 'rgba(255,180,84,0.55)',
-  cyan: '#57E2C9',
-  cyanSoft: 'rgba(87,226,201,0.16)',
-  cyanGlow: 'rgba(87,226,201,0.5)',
-  alert: '#FF8A5B',
-  alertGlow: 'rgba(255,138,91,0.55)',
+// ---- Streetwear Design System Tokens ------------------------------------
+const THEME = {
+  bg: '#FFFDF5',
+  card: '#FFFFFF',
+  border: '#000000',
+  track: '#E2E8F0',
+  yellow: '#FDC800',
+  emerald: '#00E599',
+  black: '#000000',
+  muted: '#64748B'
 };
 
-// ---- geometry -------------------------------------------------------------
-const SIZE = 400;
-const CENTER = 200;
-const R_TRACK = 130;
-const STROKE = 16;
+// ---- Geometry Configuration ---------------------------------------------
+const SIZE = 360;
+const CENTER = 180;
+const R_TRACK = 115;
+const STROKE = 14;
 const CIRC = 2 * Math.PI * R_TRACK;
 
-// ---- audio ------------------------------------------------------------
-function useBeeper() {
-  const ctxRef = useRef(null);
-  const ensure = useCallback(() => {
-    if (!ctxRef.current && typeof window !== 'undefined') {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (AC) ctxRef.current = new AC();
-    }
-    if (ctxRef.current && ctxRef.current.state === 'suspended') ctxRef.current.resume();
-    return ctxRef.current;
-  }, []);
-  const beep = useCallback((times = 3, freq = 880) => {
-    const ctx = ensure();
-    if (!ctx) return;
-    let t = ctx.currentTime;
-    for (let i = 0; i < times; i++) {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.28, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.3);
-      t += 0.38;
-    }
-  }, [ensure]);
-  return { ensure, beep };
-}
-
-// ---- helpers ----------------------------------------------------------
 const pad = (n) => String(n).padStart(2, '0');
 
 function pointOnCircle(radius, angleDeg) {
@@ -79,153 +40,57 @@ function angleFromClientPoint(svgEl, clientX, clientY) {
   return deg;
 }
 
-function formatRingsIn(now, hour24, minute) {
-  const target = new Date(now);
-  target.setHours(hour24, minute, 0, 0);
-  if (target <= now) target.setDate(target.getDate() + 1);
-  const diffMin = Math.round((target - now) / 60000);
-  const h = Math.floor(diffMin / 60);
-  const m = diffMin % 60;
-  if (h > 0) return `rings in ${h}h ${m}m`;
-  if (m > 0) return `rings in ${m}m`;
-  return 'rings in under a minute';
-}
-
-// ---- main component -----------------------------------------------------
 export default function RadialClockPicker({
   isOpen,
   onClose,
   initialTime = '21:00',
   onSave
 }) {
-  const [mode, setMode] = useState('alarm'); // 'timer' | 'alarm'
-  const { ensure, beep } = useBeeper();
-
-  // live clock, ticks every second regardless of mode
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  // ---------------- timer state ----------------
-  const [durationMin, setDurationMin] = useState(10);
-  const [remainingSec, setRemainingSec] = useState(10 * 60);
-  const [phase, setPhase] = useState('idle'); // idle | running | paused | finished
-  const totalSecRef = useRef(10 * 60);
-
-  useEffect(() => {
-    if (phase !== 'running') return;
-    const id = setInterval(() => {
-      setRemainingSec((prev) => {
-        if (prev <= 1) {
-          clearInterval(id);
-          setPhase('finished');
-          beep(4, 740);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [phase, beep]);
-
-  const setDuration = (min) => {
-    setDurationMin(min);
-    setRemainingSec(min * 60);
-  };
-
-  const handleStartPause = () => {
-    ensure();
-    if (phase === 'running') {
-      setPhase('paused');
-    } else if (phase === 'idle' || phase === 'paused') {
-      totalSecRef.current = phase === 'idle' ? durationMin * 60 : totalSecRef.current;
-      setPhase('running');
-    } else if (phase === 'finished') {
-      setPhase('idle');
-      setRemainingSec(durationMin * 60);
-    }
-  };
-
-  const handleReset = () => {
-    setPhase('idle');
-    setRemainingSec(durationMin * 60);
-    totalSecRef.current = durationMin * 60;
-  };
-
-  // ---------------- alarm state ----------------
-  const parseInitialAlarm = () => {
-    const [h, m] = (initialTime || '21:00').split(':').map(Number);
+  // Parse initial 24h time into 12h + AM/PM
+  const parseTime = (timeStr) => {
+    const [h, m] = (timeStr || '21:00').split(':').map(Number);
     const pm = h >= 12;
-    const h12 = h % 12;
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
     return {
-      raw: h12 * 60 + (m || 0),
-      pm
+      hour: hour12,
+      minute: m || 0,
+      isPM: pm
     };
   };
 
-  const [alarmMinutesRaw, setAlarmMinutesRaw] = useState(() => parseInitialAlarm().raw); // 0..719, 12h dial, snapped to 5
-  const [isPM, setIsPM] = useState(() => parseInitialAlarm().pm);
-  const [alarmOn, setAlarmOn] = useState(true);
-  const [ringing, setRinging] = useState(false);
-  const ringIntervalRef = useRef(null);
-
-  const hourPart = Math.floor(alarmMinutesRaw / 60); // 0..11
-  const alarmMinute = alarmMinutesRaw % 60;
-  const displayHour = hourPart === 0 ? 12 : hourPart;
-  const hour24 = (hourPart % 12) + (isPM ? 12 : 0);
-
-  const triggerRing = useCallback(() => {
-    setRinging(true);
-    beep(2, 660);
-    ringIntervalRef.current = setInterval(() => beep(2, 660), 2000);
-  }, [beep]);
-
-  const dismissRing = useCallback(() => {
-    setRinging(false);
-    if (ringIntervalRef.current) {
-      clearInterval(ringIntervalRef.current);
-      ringIntervalRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => () => {
-    if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
-  }, []);
+  const initialParsed = parseTime(initialTime);
+  const [hour, setHour] = useState(initialParsed.hour);
+  const [minute, setMinute] = useState(initialParsed.minute);
+  const [isPM, setIsPM] = useState(initialParsed.isPM);
+  const [activeUnit, setActiveUnit] = useState('hour'); // 'hour' | 'minute'
 
   useEffect(() => {
-    if (!alarmOn || ringing) return;
-    if (now.getSeconds() === 0 && now.getHours() === hour24 && now.getMinutes() === alarmMinute) {
-      triggerRing();
+    if (isOpen) {
+      const p = parseTime(initialTime);
+      setHour(p.hour);
+      setMinute(p.minute);
+      setIsPM(p.isPM);
+      setActiveUnit('hour');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [now]);
+  }, [isOpen, initialTime]);
 
-  const toggleAlarmOn = () => {
-    ensure();
-    if (ringing) dismissRing();
-    setAlarmOn((v) => !v);
-  };
-
-  // ---------------- dial drag handling ----------------
+  // ---------------- Dial Drag Math ----------------
   const svgRef = useRef(null);
   const draggingRef = useRef(false);
 
   const applyAngle = useCallback((deg) => {
-    if (mode === 'timer') {
-      let val = Math.round(deg / 6);
-      if (val === 0) val = 60;
-      setDuration(val);
+    if (activeUnit === 'hour') {
+      // 12 hours -> each hour is 30 degrees
+      let hVal = Math.round(deg / 30);
+      if (hVal === 0) hVal = 12;
+      setHour(hVal);
     } else {
-      let raw = Math.round((deg / 360) * 720 / 5) * 5;
-      raw = raw % 720;
-      setAlarmMinutesRaw(raw);
+      // 60 minutes -> snapped to 5 or exact minute
+      let mVal = Math.round(deg / 6);
+      if (mVal === 60) mVal = 0;
+      setMinute(mVal);
     }
-  }, [mode]);
-
-  const dialLocked =
-    (mode === 'timer' && phase !== 'idle') || (mode === 'alarm' && ringing);
+  }, [activeUnit]);
 
   const handleMove = useCallback((e) => {
     if (!draggingRef.current || !svgRef.current) return;
@@ -240,7 +105,7 @@ export default function RadialClockPicker({
   }, [handleMove]);
 
   const handleDown = (e) => {
-    if (dialLocked || !svgRef.current) return;
+    if (!svgRef.current) return;
     draggingRef.current = true;
     const p = e.touches ? e.touches[0] : e;
     applyAngle(angleFromClientPoint(svgRef.current, p.clientX, p.clientY));
@@ -253,56 +118,39 @@ export default function RadialClockPicker({
     window.removeEventListener('pointerup', handleUp);
   }, [handleMove, handleUp]);
 
-  // ---------------- derived visual values ----------------
-  const accent = mode === 'timer' ? COLORS.amber : COLORS.cyan;
-  const accentSoft = mode === 'timer' ? COLORS.amberSoft : COLORS.cyanSoft;
-  const accentGlow = mode === 'timer' ? COLORS.amberGlow : COLORS.cyanGlow;
-
-  const alerting = (mode === 'timer' && phase === 'finished') || (mode === 'alarm' && ringing);
-  const dialColor = alerting ? COLORS.alert : accent;
-  const dialGlow = alerting ? COLORS.alertGlow : accentGlow;
-
+  // ---------------- Visual Math ----------------
   let fraction;
-  if (mode === 'timer') {
-    fraction = phase === 'running' || phase === 'paused'
-      ? remainingSec / (totalSecRef.current || 1)
-      : durationMin / 60;
+  if (activeUnit === 'hour') {
+    fraction = (hour % 12) / 12;
   } else {
-    fraction = alarmMinutesRaw / 720;
+    fraction = minute / 60;
   }
-  fraction = Math.max(0, Math.min(1, fraction));
   const dashOffset = CIRC * (1 - fraction);
   const handlePt = pointOnCircle(R_TRACK, fraction * 360);
 
-  const active = (mode === 'timer' && phase === 'running') || (mode === 'alarm' && (alarmOn || ringing));
-
-  // tick marks
+  // 12 Outer Number Labels
   const ticks = Array.from({ length: 12 }, (_, i) => {
     const deg = i * 30;
-    const major = mode === 'alarm' ? true : i % 3 === 0;
-    const inner = pointOnCircle(148, deg);
-    const outer = pointOnCircle(major ? 168 : 158, deg);
-    const label = pointOnCircle(186, deg);
-    const labelText = mode === 'timer' ? String(i * 5) : String(i === 0 ? 12 : i);
-    return { deg, major, inner, outer, label, labelText, i };
+    const inner = pointOnCircle(132, deg);
+    const outer = pointOnCircle(142, deg);
+    const label = pointOnCircle(158, deg);
+    const labelText = activeUnit === 'hour' 
+      ? String(i === 0 ? 12 : i) 
+      : pad(i * 5 === 60 ? 0 : i * 5);
+    return { deg, inner, outer, label, labelText, i };
   });
 
-  const timerLabel =
-    phase === 'finished'
-      ? "time's up"
-      : phase === 'running'
-      ? 'counting down'
-      : phase === 'paused'
-      ? 'paused'
-      : 'drag dial to set minutes';
+  const handleConfirm = () => {
+    let finalHour24 = hour;
+    if (isPM && finalHour24 < 12) finalHour24 += 12;
+    if (!isPM && finalHour24 === 12) finalHour24 = 0;
 
-  if (!isOpen) return null;
-
-  const handleSaveSelectedTime = () => {
-    const formatted = `${String(hour24).padStart(2, '0')}:${String(alarmMinute).padStart(2, '0')}`;
+    const formatted = `${pad(finalHour24)}:${pad(minute)}`;
     if (onSave) onSave(formatted);
     if (onClose) onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -310,322 +158,258 @@ export default function RadialClockPicker({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 overflow-y-auto"
+        className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
         onClick={onClose}
       >
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
-          @keyframes rc-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
-          @keyframes rc-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
-          .rc-pulse { animation: rc-pulse 1.3s ease-in-out infinite; }
-          .rc-blink { animation: rc-blink 1s steps(1) infinite; }
-          .rc-mono { font-family: 'Space Mono', monospace; }
-          .rc-btn { transition: transform .12s ease, background .2s ease, border-color .2s ease; }
-          .rc-btn:active { transform: scale(0.94); }
-        `}</style>
-
         <motion.div
-          initial={{ scale: 0.92, y: 15 }}
+          initial={{ scale: 0.94, y: 15 }}
           animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.92, y: 15 }}
+          exit={{ scale: 0.94, y: 15 }}
           onClick={(e) => e.stopPropagation()}
-          style={{
-            width: '100%',
-            maxWidth: 400,
-            background: `linear-gradient(180deg, #171922, ${COLORS.panel})`,
-            border: `2px solid ${COLORS.panelBorder}`,
-            borderRadius: 28,
-            padding: '24px 24px 26px',
-            boxShadow: '0 30px 60px -20px rgba(0,0,0,0.8)',
-            fontFamily: "'Space Grotesk', sans-serif",
-            color: COLORS.textPrimary
-          }}
+          className="w-full max-w-sm bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-6 shadow-[8px_8px_0px_#000000] space-y-4 text-center select-none"
         >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{
-              fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
-              color: COLORS.textMuted, fontWeight: 700,
-            }}>
-              LATE&nbsp;NIGHT&nbsp;DIAL
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span className="rc-mono" style={{ fontSize: 12, color: COLORS.textMuted }}>
-                {pad(now.getHours() % 12 === 0 ? 12 : now.getHours() % 12)}:{pad(now.getMinutes())}:{pad(now.getSeconds())}
-                <span style={{ marginLeft: 4 }}>{now.getHours() >= 12 ? 'pm' : 'am'}</span>
-              </span>
+          <div className="flex items-center justify-between border-b-2 border-black/10 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                <Clock className="w-4 h-4 text-black stroke-[2.5]" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-display font-black text-base uppercase leading-tight text-black">
+                  Reminder Clock
+                </h3>
+                <span className="text-[11px] font-mono text-neutral-600">
+                  Drag dial to set exact time
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-xl bg-white hover:bg-neutral-200 border-2 border-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all"
+            >
+              <X className="w-4 h-4 text-black stroke-[2.5]" />
+            </button>
+          </div>
+
+          {/* Digital Time Readout & Unit Switcher */}
+          <div className="bg-white border-2 border-black p-2.5 rounded-2xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-2">
+            
+            {/* Hours Button */}
+            <button
+              type="button"
+              onClick={() => setActiveUnit('hour')}
+              className={`flex-1 py-1.5 rounded-xl font-display font-black text-2xl transition-all cursor-pointer ${
+                activeUnit === 'hour'
+                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                  : 'bg-neutral-100 text-neutral-600 hover:text-black border border-black/10'
+              }`}
+            >
+              {pad(hour)}
+            </button>
+
+            <span className="font-display font-black text-2xl text-black">:</span>
+
+            {/* Minutes Button */}
+            <button
+              type="button"
+              onClick={() => setActiveUnit('minute')}
+              className={`flex-1 py-1.5 rounded-xl font-display font-black text-2xl transition-all cursor-pointer ${
+                activeUnit === 'minute'
+                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                  : 'bg-neutral-100 text-neutral-600 hover:text-black border border-black/10'
+              }`}
+            >
+              {pad(minute)}
+            </button>
+
+            {/* AM / PM Toggle */}
+            <div className="flex flex-col gap-1 shrink-0 ml-1">
               <button
                 type="button"
-                onClick={onClose}
-                className="rc-btn"
-                style={{
-                  background: COLORS.track,
-                  border: `1px solid ${COLORS.panelBorder}`,
-                  borderRadius: 10,
-                  padding: 4,
-                  cursor: 'pointer',
-                  color: COLORS.textMuted,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
+                onClick={() => setIsPM(false)}
+                className={`px-2.5 py-0.5 rounded-lg font-mono text-xs font-black cursor-pointer transition-all border ${
+                  !isPM
+                    ? 'bg-black text-[#FDC800] border-black shadow-[1px_1px_0px_#000000]'
+                    : 'bg-neutral-100 text-neutral-500 border-black/20 hover:bg-neutral-200'
+                }`}
               >
-                <X size={16} />
+                AM
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPM(true)}
+                className={`px-2.5 py-0.5 rounded-lg font-mono text-xs font-black cursor-pointer transition-all border ${
+                  isPM
+                    ? 'bg-black text-[#FDC800] border-black shadow-[1px_1px_0px_#000000]'
+                    : 'bg-neutral-100 text-neutral-500 border-black/20 hover:bg-neutral-200'
+                }`}
+              >
+                PM
               </button>
             </div>
           </div>
 
-          {/* Mode Toggle */}
-          <div style={{
-            display: 'flex', background: COLORS.track, borderRadius: 14, padding: 4, marginBottom: 18,
-          }}>
-            {['timer', 'alarm'].map((m) => (
-              <button
-                key={m}
-                type="button"
-                className="rc-btn"
-                onClick={() => setMode(m)}
-                style={{
-                  flex: 1, border: 'none', cursor: 'pointer', padding: '9px 0',
-                  borderRadius: 10, fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 13, fontWeight: 600, letterSpacing: '0.03em',
-                  textTransform: 'uppercase',
-                  background: mode === m ? (m === 'timer' ? COLORS.amberSoft : COLORS.cyanSoft) : 'transparent',
-                  color: mode === m ? (m === 'timer' ? COLORS.amber : COLORS.cyan) : COLORS.textMuted,
-                }}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-
-          {/* Dial View */}
-          <div style={{ position: 'relative', width: '100%', touchAction: 'none' }}>
+          {/* SVG Radial Drag Dial (Streetwear Aesthetic) */}
+          <div className="relative w-full max-w-[310px] mx-auto touch-none select-none">
             <svg
               ref={svgRef}
               viewBox={`0 0 ${SIZE} ${SIZE}`}
-              style={{ width: '100%', display: 'block', cursor: dialLocked ? 'default' : 'grab' }}
+              className="w-full block cursor-grab active:cursor-grabbing"
+              onPointerDown={handleDown}
             >
-              <defs>
-                <radialGradient id="rcGlow" cx="50%" cy="50%" r="65%">
-                  <stop offset="0%" stopColor={dialColor} stopOpacity="0.14" />
-                  <stop offset="100%" stopColor={dialColor} stopOpacity="0" />
-                </radialGradient>
-                <filter id="rcBlur" x="-60%" y="-60%" width="220%" height="220%">
-                  <feGaussianBlur stdDeviation="7" result="b" />
-                  <feMerge>
-                    <feMergeNode in="b" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
+              {/* Background Dial Base */}
+              <circle
+                cx={CENTER}
+                cy={CENTER}
+                r={168}
+                fill="#FFFFFF"
+                stroke="#000000"
+                strokeWidth={3}
+              />
 
-              <circle cx={CENTER} cy={CENTER} r={190} fill="url(#rcGlow)" />
-
-              {/* Ticks */}
+              {/* Number Ticks & Labels */}
               {ticks.map((t) => (
                 <g key={t.i}>
                   <line
-                    x1={t.inner.x} y1={t.inner.y} x2={t.outer.x} y2={t.outer.y}
-                    stroke={t.major ? COLORS.textMuted : COLORS.panelBorder}
-                    strokeWidth={t.major ? 2 : 1.5}
+                    x1={t.inner.x}
+                    y1={t.inner.y}
+                    x2={t.outer.x}
+                    y2={t.outer.y}
+                    stroke="#000000"
+                    strokeWidth={2}
                     strokeLinecap="round"
                   />
-                  {t.major && (
-                    <text
-                      x={t.label.x} y={t.label.y}
-                      textAnchor="middle" dominantBaseline="middle"
-                      className="rc-mono"
-                      fontSize="13"
-                      fill={COLORS.textMuted}
-                    >
-                      {t.labelText}
-                    </text>
-                  )}
+                  <text
+                    x={t.label.x}
+                    y={t.label.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="font-mono font-black"
+                    fontSize="14"
+                    fill="#111111"
+                  >
+                    {t.labelText}
+                  </text>
                 </g>
               ))}
 
-              {/* Track */}
+              {/* Inactive Track Ring */}
               <circle
-                cx={CENTER} cy={CENTER} r={R_TRACK} fill="none"
-                stroke={COLORS.track} strokeWidth={STROKE}
+                cx={CENTER}
+                cy={CENTER}
+                r={R_TRACK}
+                fill="none"
+                stroke={THEME.track}
+                strokeWidth={STROKE}
               />
 
-              {/* Progress */}
+              {/* Active Progress Arc */}
               <circle
-                cx={CENTER} cy={CENTER} r={R_TRACK} fill="none"
-                stroke={dialColor} strokeWidth={STROKE} strokeLinecap="round"
-                strokeDasharray={CIRC} strokeDashoffset={dashOffset}
+                cx={CENTER}
+                cy={CENTER}
+                r={R_TRACK}
+                fill="none"
+                stroke={activeUnit === 'hour' ? THEME.yellow : THEME.emerald}
+                strokeWidth={STROKE}
+                strokeLinecap="round"
+                strokeDasharray={CIRC}
+                strokeDashoffset={dashOffset}
                 transform={`rotate(-90 ${CENTER} ${CENTER})`}
-                filter={active || alerting ? 'url(#rcBlur)' : undefined}
-                className={alerting ? 'rc-pulse' : undefined}
-                style={{ transition: draggingRef.current ? 'none' : 'stroke-dashoffset 0.25s ease' }}
+                style={{ transition: draggingRef.current ? 'none' : 'stroke-dashoffset 0.15s ease' }}
               />
 
-              {/* Invisible wide hit-ring for dragging */}
+              {/* Wide Invisible Hit-Area for Touch/Pointer Drag */}
               <circle
-                cx={CENTER} cy={CENTER} r={R_TRACK} fill="none"
-                stroke="transparent" strokeWidth={70}
-                onPointerDown={handleDown}
-                style={{ cursor: dialLocked ? 'default' : 'grab', pointerEvents: dialLocked ? 'none' : 'stroke' }}
+                cx={CENTER}
+                cy={CENTER}
+                r={R_TRACK}
+                fill="none"
+                stroke="transparent"
+                strokeWidth={60}
+                style={{ cursor: 'grab' }}
               />
 
-              {/* Handle */}
+              {/* Center Pivot Hub */}
               <circle
-                cx={handlePt.x} cy={handlePt.y} r={13}
-                fill={COLORS.panel} stroke={dialColor} strokeWidth={4}
-                filter={active || alerting ? 'url(#rcBlur)' : undefined}
-                className={alerting ? 'rc-pulse' : undefined}
+                cx={CENTER}
+                cy={CENTER}
+                r={10}
+                fill="#000000"
+              />
+
+              {/* Rotating Pointer Handle */}
+              <circle
+                cx={handlePt.x}
+                cy={handlePt.y}
+                r={14}
+                fill="#FFFFFF"
+                stroke="#000000"
+                strokeWidth={3.5}
+                style={{ pointerEvents: 'none' }}
+              />
+              <circle
+                cx={handlePt.x}
+                cy={handlePt.y}
+                r={6}
+                fill={activeUnit === 'hour' ? THEME.yellow : THEME.emerald}
                 style={{ pointerEvents: 'none' }}
               />
             </svg>
 
-            {/* Center Readout */}
-            <div style={{
-              position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
-            }}>
-              {mode === 'timer' ? (
-                <>
-                  <div className="rc-mono" style={{ fontSize: 46, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '0.02em' }}>
-                    {pad(Math.floor(remainingSec / 60))}:{pad(remainingSec % 60)}
-                  </div>
-                  <div style={{
-                    marginTop: 6, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
-                    color: phase === 'finished' ? COLORS.alert : COLORS.textMuted,
-                  }} className={phase === 'finished' ? 'rc-blink' : undefined}>
-                    {timerLabel}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="rc-mono" style={{ fontSize: 40, fontWeight: 700, color: COLORS.textPrimary, letterSpacing: '0.02em' }}>
-                    {displayHour}:{pad(alarmMinute)}
-                    <span style={{ fontSize: 16, marginLeft: 6, color: COLORS.textMuted }}>{isPM ? 'PM' : 'AM'}</span>
-                  </div>
-                  <div style={{
-                    marginTop: 6, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
-                    color: ringing ? COLORS.alert : COLORS.textMuted,
-                  }} className={ringing ? 'rc-blink' : undefined}>
-                    {ringing ? 'wake up' : alarmOn ? formatRingsIn(now, hour24, alarmMinute) : 'alarm off'}
-                  </div>
-                </>
-              )}
+            {/* Dial Center Unit Badge */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="px-2.5 py-0.5 rounded-full bg-neutral-100 border border-black/20 font-mono text-[10px] font-black uppercase text-neutral-700">
+                SETTING {activeUnit.toUpperCase()}
+              </span>
             </div>
           </div>
 
-          {/* Controls */}
-          {mode === 'timer' ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 18, marginTop: 20 }}>
+          {/* 4 Quick Preset Chips */}
+          <div className="grid grid-cols-4 gap-1.5 pt-1">
+            {[
+              { label: '8:00 PM', h: 8, m: 0, pm: true },
+              { label: '9:00 PM', h: 9, m: 0, pm: true },
+              { label: '10:00 PM', h: 10, m: 0, pm: true },
+              { label: '11:00 PM', h: 11, m: 0, pm: true }
+            ].map(item => (
               <button
+                key={item.label}
                 type="button"
-                className="rc-btn"
-                onClick={handleReset}
-                aria-label="Reset timer"
-                style={{
-                  width: 46, height: 46, borderRadius: '50%', border: `1px solid ${COLORS.panelBorder}`,
-                  background: COLORS.track, color: COLORS.textMuted, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                onClick={() => {
+                  setHour(item.h);
+                  setMinute(item.m);
+                  setIsPM(item.pm);
                 }}
+                className={`py-1.5 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${
+                  hour === item.h && minute === item.m && isPM === item.pm
+                    ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                    : 'bg-white hover:bg-neutral-100 text-neutral-700'
+                }`}
               >
-                <RotateCcw size={18} />
+                {item.label}
               </button>
-              <button
-                type="button"
-                className="rc-btn"
-                onClick={handleStartPause}
-                aria-label={phase === 'running' ? 'Pause timer' : 'Start timer'}
-                style={{
-                  width: 64, height: 64, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                  background: alerting ? COLORS.alert : COLORS.amber,
-                  color: '#1A1300', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: `0 0 24px ${alerting ? COLORS.alertGlow : COLORS.amberGlow}`,
-                }}
-              >
-                {phase === 'running'
-                  ? <Pause size={24} fill="#1A1300" />
-                  : <Play size={24} fill="#1A1300" style={{ marginLeft: 3 }} />}
-              </button>
-              <div style={{ width: 46 }} />
-            </div>
-          ) : (
-            <div style={{ marginTop: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 14 }}>
-                {['AM', 'PM'].map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    className="rc-btn"
-                    onClick={() => setIsPM(p === 'PM')}
-                    disabled={ringing}
-                    style={{
-                      padding: '7px 18px', borderRadius: 10, cursor: ringing ? 'default' : 'pointer',
-                      fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: '0.05em',
-                      border: `1.5px solid ${(p === 'PM') === isPM ? COLORS.cyan : COLORS.panelBorder}`,
-                      background: (p === 'PM') === isPM ? COLORS.cyanSoft : 'transparent',
-                      color: (p === 'PM') === isPM ? COLORS.cyan : COLORS.textMuted,
-                      fontWeight: 700
-                    }}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
+            ))}
+          </div>
 
-              {ringing ? (
-                <button
-                  type="button"
-                  className="rc-btn rc-pulse"
-                  onClick={dismissRing}
-                  style={{
-                    width: '100%', padding: '12px 0', borderRadius: 14, border: 'none', cursor: 'pointer',
-                    background: COLORS.alert, color: '#2A0F00', fontWeight: 700, fontSize: 14,
-                    letterSpacing: '0.04em', textTransform: 'uppercase',
-                    boxShadow: `0 0 24px ${COLORS.alertGlow}`,
-                  }}
-                >
-                  DISMISS
-                </button>
-              ) : (
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button
-                    type="button"
-                    className="rc-btn"
-                    onClick={toggleAlarmOn}
-                    style={{
-                      flex: 1, padding: '12px 0', borderRadius: 14, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      border: `1px solid ${alarmOn ? COLORS.cyan : COLORS.panelBorder}`,
-                      background: alarmOn ? COLORS.cyanSoft : COLORS.track,
-                      color: alarmOn ? COLORS.cyan : COLORS.textMuted,
-                      fontWeight: 600, fontSize: 13,
-                    }}
-                  >
-                    {alarmOn ? <Bell size={15} /> : <BellOff size={15} />}
-                    {alarmOn ? 'ALARM ON' : 'ALARM OFF'}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="rc-btn"
-                    onClick={handleSaveSelectedTime}
-                    style={{
-                      flex: 1.2, padding: '12px 0', borderRadius: 14, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      border: 'none',
-                      background: COLORS.cyan,
-                      color: '#0A0B10',
-                      fontWeight: 800, fontSize: 13,
-                      boxShadow: `0 0 20px ${COLORS.cyanGlow}`
-                    }}
-                  >
-                    <Check size={16} strokeWidth={3} />
-                    SET REMINDER
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Action Footer */}
+          <div className="flex items-center gap-2.5 pt-2 border-t-2 border-black/10">
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 text-black font-mono text-xs font-black rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+            >
+              CANCEL
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              className="flex-1 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-xl border-3 border-black shadow-[2.5px_2.5px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>SET REMINDER TIME</span>
+            </button>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
