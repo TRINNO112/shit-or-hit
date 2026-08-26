@@ -275,7 +275,8 @@ export async function getSavedMonthlyReport(year, month, archetypeId = null) {
 
 export async function fetchMonthlyReport(year, month, customEntries = null, archetypeId = null, forceReevaluate = false) {
   const targetDataset = archetypeId || 'real';
-  const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+  const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+  const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
 
   // Check cached report if not forcing reevaluation
   if (!forceReevaluate) {
@@ -290,7 +291,7 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
     const res = await fetch(`${API_BASE}/monthly-report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ year, month, customEntries, archetypeId, forceReevaluate })
+      body: JSON.stringify({ year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage })
     });
     if (res.ok) {
       const json = await res.json();
@@ -304,14 +305,14 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
   }
 
   // 2. Direct client-side forensic synthesis with live Gemini AI fallback
-  const fallback = await generateClientMonthlyReport(year, month, customEntries);
+  const fallback = await generateClientMonthlyReport(year, month, customEntries, preferredLanguage);
   try {
     localStorage.setItem(reportKey, JSON.stringify(fallback));
   } catch (e) {}
   return fallback;
 }
 
-async function generateClientMonthlyReport(year, month, customEntries = null) {
+async function generateClientMonthlyReport(year, month, customEntries = null, preferredLanguage = 'auto') {
   let allEntries = {};
   if (customEntries) {
     if (Array.isArray(customEntries)) {
@@ -543,6 +544,15 @@ async function generateClientMonthlyReport(year, month, customEntries = null) {
     }
 
     if (apiKey) {
+      let languageRule = '';
+      if (preferredLanguage === 'english') {
+        languageRule = 'STRICT LANGUAGE MANDATE: The user has selected ENGLISH as their preferred language. You MUST write the personaTitle, executiveSummary, homieLetter, and hiddenFacts 100% in polished, high-impact English. Do NOT use Hinglish or any Hindi phrases under any circumstance.';
+      } else if (preferredLanguage === 'hinglish') {
+        languageRule = 'STRICT LANGUAGE MANDATE: The user has selected HINGLISH. Write the personaTitle, executiveSummary, and homieLetter in authentic, witty, expressive conversational Hinglish (Hindi in Roman script).';
+      } else {
+        languageRule = 'LANGUAGE MIRRORING MANDATE: Automatically detect the language of the diary entries. If the notes are written in English, write the entire dossier 100% in pure English (ZERO Hinglish/Hindi words). If written in Hinglish, write in natural Hinglish.';
+      }
+
       const prompt = `You are the user's brutally honest, hilarious, deeply caring bro/best-friend and forensic habit analyst evaluating their daily life log for ${monthName}.
 
 DATA SUMMARY:
@@ -559,7 +569,7 @@ CORE INSTRUCTIONS:
 1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE based on specific diary events.
 2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly with real validation, playful roasting, resilience celebration, and a brotherly game plan.
 3. PROVIDE 5 TO 6 SHARP HIDDEN FACTS referencing exact diary events.
-4. MULTILINGUAL & HINGLISH MIRRORING: Detect the dominant language/dialect used in the diary entries (e.g. English, Hinglish / Romanized Hindi, Hindi). You MUST write the personaTitle, executiveSummary, homieLetter, and hiddenFacts in the EXACT SAME LANGUAGE and linguistic blend. If the user wrote entries in Hinglish (e.g. "aaj accounts test kharab gaya", "phone scroll karte karte 3 baje"), write the homie letter and observations in authentic, natural, witty bro Hinglish (e.g. "Sun mere bhai, is mahine tune sach me bohot jhela hai...").
+4. ${languageRule}
 
 Return ONLY a valid JSON object matching:
 {

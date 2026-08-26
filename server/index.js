@@ -282,9 +282,9 @@ app.get('/api/monthly-report', (req, res) => {
 
 // Monthly AI Performance Dossier Report Route (POST generate / re-evaluate)
 app.post('/api/monthly-report', async (req, res) => {
-  const { year, month, customEntries, archetypeId, forceReevaluate } = req.body;
+  const { year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage = 'auto' } = req.body;
   const targetDataset = archetypeId || 'real';
-  const reportKey = `${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+  const reportKey = `${targetDataset}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
   const reportsMap = readReports();
 
   // If already evaluated and user did not request force re-evaluation, return saved report instantly!
@@ -468,9 +468,16 @@ app.post('/api/monthly-report', async (req, res) => {
   let aiReport = null;
 
   if (apiKey) {
-    const prompt = `You are the user's coolest, brutally honest best-friend bro analyzing their monthly performance log for ${monthName}.
-You are NOT a corporate evaluator or a preachy teacher. You talk like an authentic, caring, funny best homie who genuinely listened to everything they went through.
-Use natural conversational slang, bro expressions, and uncensored real talk (like "fucking", "cooked as fuck", "dumpster fire", "take a massive L", "raw-dogging the trenches") to roast their self-sabotage and passionately hype their wins.
+    let languageRule = '';
+    if (preferredLanguage === 'english') {
+      languageRule = 'STRICT LANGUAGE MANDATE: The user has selected ENGLISH as their preferred language. You MUST write the personaTitle, executiveSummary, homieLetter, and hiddenFacts 100% in polished, high-impact English. Do NOT use Hinglish or any Hindi phrases under any circumstance.';
+    } else if (preferredLanguage === 'hinglish') {
+      languageRule = 'STRICT LANGUAGE MANDATE: The user has selected HINGLISH. Write the personaTitle, executiveSummary, and homieLetter in authentic, witty, expressive conversational Hinglish (Hindi in Roman script).';
+    } else {
+      languageRule = 'LANGUAGE MIRRORING MANDATE: Automatically detect the language of the diary entries. If the notes are written in English, write the entire dossier 100% in pure English (ZERO Hinglish/Hindi words). If written in Hinglish, write in natural Hinglish.';
+    }
+
+    const prompt = `You are the user's brutally honest, hilarious, deeply caring bro/best-friend and forensic habit analyst evaluating their daily life log for ${monthName}.
 
 DATA SUMMARY:
 - Total Logged Days: ${loggedCount} / ${totalDaysInMonth}
@@ -485,15 +492,10 @@ DATA SUMMARY:
 ${JSON.stringify(entriesSummary.slice(0, 31), null, 2)}
 
 CORE HOMIE INSTRUCTIONS:
-1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE every single time (e.g. 'The 3:45 AM Dopamine Goblin 👺', 'Spilled Chai & Broken Balance Sheets ☕', 'The Cursed Thursday Gladiator ⚔️', 'The 78% Clutch God 👑', '12th Grade Warzone Veteran 🎖️') based on specific events. NEVER use boring repetitive titles!
-2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly:
-   - Paragraph 1 (The Reality Check & Validation): Acknowledge how hard the month was, validating the pain of failed tests, parent pressure, feeling behind while friends are dating/partying.
-   - Paragraph 2 (Unfiltered Roasting of Dopamine Traps): Call out specific self-inflicted wounds (3:45 AM Reels insomnia, phone addiction, chai spills, avoiding work).
-   - Paragraph 3 (The Clutch Breakdown): Hype up the fact that they logged all 31 days and delivered a clutch win on Day 31.
-   - Paragraph 4 (Brotherly Game Plan): Give heartfelt, practical brotherly advice for next month.
-3. PROVIDE 5 TO 6 HILARIOUS & SHARP HIDDEN FACTS referencing exact diary events (e.g. Thursday curses, chai spills, crush water cooler moments, 3 AM phone loops).
-
-4. MULTILINGUAL & HINGLISH MIRRORING: Detect the dominant language/dialect used in the diary entries (e.g. English, Hinglish / Romanized Hindi, Hindi). You MUST write the personaTitle, executiveSummary, homieLetter, and hiddenFacts in the EXACT SAME LANGUAGE and linguistic blend. If the user wrote entries in Hinglish (e.g. "aaj accounts test kharab gaya", "phone scroll karte karte 3 baje"), write the homie letter and observations in authentic, natural, witty bro Hinglish (e.g. "Sun mere bhai, is mahine tune sach me bohot jhela hai...").
+1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE every single time based on specific events.
+2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly with real validation, playful roasting, resilience celebration, and a brotherly game plan.
+3. PROVIDE 5 TO 6 HILARIOUS & SHARP HIDDEN FACTS referencing exact diary events.
+4. ${languageRule}
 
 Return ONLY a valid JSON object matching this exact schema:
 {
