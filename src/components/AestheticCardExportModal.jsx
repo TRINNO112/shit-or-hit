@@ -766,11 +766,11 @@ export default function AestheticCardExportModal({
           initial={{ scale: 0.94, y: 15 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.94, y: 15 }}
-          className="w-full max-w-lg bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-3.5"
+          className="w-full max-w-lg bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-5 shadow-[6px_6px_0px_#000000] space-y-3 max-h-[88vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-black/10 pb-2.5">
+          {/* Pinned Header */}
+          <div className="flex items-center justify-between border-b-2 border-black/10 pb-2.5 shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
                 <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
@@ -794,135 +794,140 @@ export default function AestheticCardExportModal({
             </button>
           </div>
 
-          {/* 📅 Date Navigator (Spacious with Wide Gap between Date and Day) */}
-          <div className="flex items-center justify-between bg-white border-2 border-black p-2 rounded-2xl shadow-[2px_2px_0px_#000000]">
-            <button
-              type="button"
-              onClick={() => handleShiftDay(-1)}
-              className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all shrink-0"
-              title="Previous Day"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 stroke-[3]" />
-              <span className="hidden sm:inline">PREV</span>
-            </button>
+          {/* Scrollable Middle Container */}
+          <div className="space-y-3 overflow-y-auto flex-1 pr-1">
 
-            {/* Centered with Distinct Wide Gap */}
-            <div className="flex items-center justify-center gap-4 sm:gap-8 flex-1 px-2">
-              <input
-                type="date"
-                value={selectedDateStr}
-                onChange={(e) => setSelectedDateStr(e.target.value)}
-                className="bg-neutral-100 border-2 border-black rounded-xl px-2.5 py-1.5 font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer focus:outline-none"
-              />
-              <span className="px-3 py-1.5 rounded-xl bg-black text-[#FDC800] text-xs font-mono font-black shrink-0 shadow-[1.5px_1.5px_0px_#000000]">
-                DAY {activeDayCount}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleShiftDay(1)}
-              className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all shrink-0"
-              title="Next Day"
-            >
-              <span className="hidden sm:inline">NEXT</span>
-              <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
-            </button>
-          </div>
-
-          {/* Format Tabs & Distinct Themes */}
-          <div className="space-y-2">
-            {/* Format Selector with Concise Labels: Story Poster & Feed Card */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
+            {/* 📅 Date Navigator (Spacious with Wide Gap between Date and Day) */}
+            <div className="flex items-center justify-between bg-white border-2 border-black p-2 rounded-2xl shadow-[2px_2px_0px_#000000]">
               <button
                 type="button"
-                onClick={() => setFormat('wallpaper')}
-                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'wallpaper'
-                  ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                  : 'text-neutral-600 hover:text-black'
-                  }`}
+                onClick={() => handleShiftDay(-1)}
+                className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all shrink-0"
+                title="Previous Day"
               >
-                <Smartphone className="w-4 h-4" />
-                <span>STORY POSTER</span>
+                <ChevronLeft className="w-3.5 h-3.5 stroke-[3]" />
+                <span className="hidden sm:inline">PREV</span>
               </button>
+
+              {/* Centered with Distinct Wide Gap */}
+              <div className="flex items-center justify-center gap-4 sm:gap-8 flex-1 px-2">
+                <input
+                  type="date"
+                  value={selectedDateStr}
+                  onChange={(e) => setSelectedDateStr(e.target.value)}
+                  className="bg-neutral-100 border-2 border-black rounded-xl px-2.5 py-1.5 font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer focus:outline-none"
+                />
+                <span className="px-3 py-1.5 rounded-xl bg-black text-[#FDC800] text-xs font-mono font-black shrink-0 shadow-[1.5px_1.5px_0px_#000000]">
+                  DAY {activeDayCount}
+                </span>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setFormat('social')}
-                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'social'
-                  ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                  : 'text-neutral-600 hover:text-black'
-                  }`}
+                onClick={() => handleShiftDay(1)}
+                className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all shrink-0"
+                title="Next Day"
               >
-                <Share2 className="w-4 h-4" />
-                <span>FEED CARD</span>
+                <span className="hidden sm:inline">NEXT</span>
+                <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
               </button>
             </div>
 
-            {/* 3 Themes (Short Concise Names to Prevent Truncation) */}
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-              {THEMES.map((t) => (
+            {/* Format Tabs & Distinct Themes */}
+            <div className="space-y-2">
+              {/* Format Selector with Concise Labels: Story Poster & Feed Card */}
+              <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
                 <button
-                  key={t.id}
                   type="button"
-                  onClick={() => setActiveTheme(t.id)}
-                  className={`py-2 px-1.5 sm:px-2 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${activeTheme === t.id
-                    ? 'bg-black text-white shadow-[2px_2px_0px_#000000] scale-[1.02]'
-                    : 'bg-white text-black hover:bg-neutral-100'
+                  onClick={() => setFormat('wallpaper')}
+                  className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'wallpaper'
+                    ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
+                    : 'text-neutral-600 hover:text-black'
                     }`}
                 >
-                  {t.name}
+                  <Smartphone className="w-4 h-4" />
+                  <span>STORY POSTER</span>
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setFormat('social')}
+                  className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'social'
+                    ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
+                    : 'text-neutral-600 hover:text-black'
+                    }`}
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>FEED CARD</span>
+                </button>
+              </div>
+
+              {/* 3 Themes (Short Concise Names to Prevent Truncation) */}
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                {THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setActiveTheme(t.id)}
+                    className={`py-2 px-1.5 sm:px-2 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${activeTheme === t.id
+                      ? 'bg-black text-white shadow-[2px_2px_0px_#000000] scale-[1.02]'
+                      : 'bg-white text-black hover:bg-neutral-100'
+                      }`}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Clean Mascot & Custom Sticker Bar */}
-          <div className="flex items-center justify-between bg-white border-2 border-black p-2.5 rounded-2xl shadow-[2px_2px_0px_#000000]">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm shrink-0">🎭</span>
-              <span className="text-xs font-mono font-bold text-black truncate">
-                {customMascotImg ? 'Custom Sticker Active ✅' : `Mood: ${rating}★ Auto-Linked`}
-              </span>
-            </div>
+            {/* Clean Mascot & Custom Sticker Bar */}
+            <div className="flex items-center justify-between bg-white border-2 border-black p-2.5 rounded-2xl shadow-[2px_2px_0px_#000000]">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm shrink-0">🎭</span>
+                <span className="text-xs font-mono font-bold text-black truncate">
+                  {customMascotImg ? 'Custom Sticker Active ✅' : `Mood: ${rating}★ Auto-Linked`}
+                </span>
+              </div>
 
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              className="hidden"
-              onChange={handleMascotUpload}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-2.5 py-1 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1 shrink-0 transition-all"
-              title="Upload any PNG transparent sticker"
-            >
-              <Upload className="w-3 h-3" />
-              <span>CUSTOM STICKER</span>
-            </button>
-          </div>
-
-          {/* Live Preview Container */}
-          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-2.5 max-h-[330px] overflow-hidden">
-            {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="Aesthetic Card Preview"
-                className={`rounded-xl border border-white/20 shadow-2xl object-contain ${format === 'wallpaper' ? 'max-h-[300px] aspect-[9/16]' : 'max-h-[300px] aspect-square'
-                  }`}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleMascotUpload}
               />
-            ) : (
-              <div className="text-white font-mono text-xs py-12">Rendering high-res poster artwork...</div>
-            )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-2.5 py-1 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1 shrink-0 transition-all"
+                title="Upload any PNG transparent sticker"
+              >
+                <Upload className="w-3 h-3" />
+                <span>CUSTOM STICKER</span>
+              </button>
+            </div>
+
+            {/* Live Preview Container */}
+            <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-2.5 max-h-[260px] overflow-hidden">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Aesthetic Card Preview"
+                  className={`rounded-xl border border-white/20 shadow-2xl object-contain ${format === 'wallpaper' ? 'max-h-[240px] aspect-[9/16]' : 'max-h-[240px] aspect-square'
+                    }`}
+                />
+              ) : (
+                <div className="text-white font-mono text-xs py-12">Rendering high-res poster artwork...</div>
+              )}
+            </div>
+
           </div>
 
-          {/* Action Footer */}
-          <div className="flex items-center gap-2.5 pt-0.5">
+          {/* Pinned Action Footer */}
+          <div className="flex items-center gap-2.5 pt-2 border-t border-black/10 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="py-3 px-4 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+              className="py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
             >
               CLOSE
             </button>
@@ -931,7 +936,7 @@ export default function AestheticCardExportModal({
               type="button"
               onClick={handleDownload}
               disabled={downloading || !previewUrl}
-              className="flex-1 py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[2.5px_2.5px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[2.5px_2.5px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Download className="w-4 h-4 stroke-[3]" />
               <span>{downloading ? 'GENERATING POSTER PNG...' : 'DOWNLOAD HIGH-RES POSTER'}</span>
