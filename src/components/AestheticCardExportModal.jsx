@@ -1,7 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ratingMeta } from '../services/api';
+
+// Direct ES6 Module Imports for 100% Guaranteed Asset Resolution in Vite & GitHub Pages
+import mascot1 from '../assets/mascots/mascot_1_rough.png';
+import mascot2 from '../assets/mascots/mascot_2_down.png';
+import mascot3 from '../assets/mascots/mascot_3_okay.png';
+import mascot4 from '../assets/mascots/mascot_4_good.png';
+import mascot5 from '../assets/mascots/mascot_5_peak.png';
 
 const THEMES = [
   { 
@@ -37,11 +44,11 @@ const THEMES = [
 ];
 
 const MASCOT_MAP = {
-  5: '/mascots/mascot_5_peak.png',
-  4: '/mascots/mascot_4_good.png',
-  3: '/mascots/mascot_3_okay.png',
-  2: '/mascots/mascot_2_down.png',
-  1: '/mascots/mascot_1_rough.png'
+  5: mascot5,
+  4: mascot4,
+  3: mascot3,
+  2: mascot2,
+  1: mascot1
 };
 
 const MOOD_PUNCHLINES = {
@@ -65,7 +72,6 @@ export default function AestheticCardExportModal({
   const [format, setFormat] = useState('wallpaper'); // 'wallpaper' (9:16) | 'social' (1:1)
   const [activeTheme, setActiveTheme] = useState('streetwear');
   const [selectedDateStr, setSelectedDateStr] = useState(dateStr || new Date().toISOString().slice(0, 10));
-  const [creatorName, setCreatorName] = useState(displayName || 'Daily Operator');
   const [customMascotImg, setCustomMascotImg] = useState(null);
   const [loadedMascotImg, setLoadedMascotImg] = useState(null);
   const [downloading, setDownloading] = useState(false);
@@ -73,15 +79,12 @@ export default function AestheticCardExportModal({
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Sync selected date & author name when modal opens
+  // Sync selected date when modal opens with a specific date
   useEffect(() => {
     if (dateStr) {
       setSelectedDateStr(dateStr);
     }
-    if (displayName) {
-      setCreatorName(displayName);
-    }
-  }, [dateStr, displayName, isOpen]);
+  }, [dateStr, isOpen]);
 
   // Derive active day entry and day index
   const activeEntry = entries[selectedDateStr] || (selectedDateStr === dateStr ? entry : null);
@@ -102,12 +105,7 @@ export default function AestheticCardExportModal({
     year: 'numeric'
   });
 
-  // Calculate robust relative mascot URL
-  const rawMascotPath = MASCOT_MAP[rating] || MASCOT_MAP[3];
-  const base = import.meta.env.BASE_URL || '/';
-  const cleanBase = base.endsWith('/') ? base : `${base}/`;
-  const relMascot = rawMascotPath.replace(/^\//, '');
-  const mascotUrl = `${cleanBase}${relMascot}`;
+  const mascotUrl = MASCOT_MAP[rating] || MASCOT_MAP[3];
 
   // Preload mascot sticker into state so Canvas NEVER paints an empty/unloaded image!
   useEffect(() => {
@@ -265,7 +263,7 @@ export default function AestheticCardExportModal({
     };
     const currentMood = moodMeta[rating] || moodMeta[3];
     const punchline = MOOD_PUNCHLINES[rating] || MOOD_PUNCHLINES[3];
-    const authorWatermark = (creatorName && creatorName.trim()) ? creatorName.trim().toUpperCase() : 'DAILY OPERATOR';
+    const authorWatermark = (displayName && displayName.trim()) ? displayName.trim().toUpperCase() : 'DAILY OPERATOR';
 
     // =========================================================================
     // 📱 FORMAT A: 9:16 PHONE WALLPAPER (1080 x 1920)
@@ -704,7 +702,7 @@ export default function AestheticCardExportModal({
     setPreviewUrl(canvas.toDataURL('image/png'));
     canvasRef.current = canvas;
 
-  }, [isOpen, format, activeTheme, loadedMascotImg, selectedDateStr, creatorName, activeEntry, activeDayCount, rating, verdict, rawNotes, hasNotes, meta, formattedDate]);
+  }, [isOpen, format, activeTheme, loadedMascotImg, selectedDateStr, displayName, activeEntry, activeDayCount, rating, verdict, rawNotes, hasNotes, meta, formattedDate]);
 
   if (!isOpen) return null;
 
@@ -733,24 +731,24 @@ export default function AestheticCardExportModal({
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, y: 20 }}
+          initial={{ scale: 0.92, y: 20 }}
           animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.9, y: 20 }}
-          className="w-full max-w-xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-3"
+          exit={{ scale: 0.92, y: 20 }}
+          className="w-full max-w-lg bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-7 shadow-[8px_8px_0px_#000000] space-y-4"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-black/10 pb-2.5">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
+          {/* Spacious Header */}
+          <div className="flex items-center justify-between border-b-2 border-black/10 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
                 <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
               </div>
               <div>
-                <h3 className="font-display font-black text-base sm:text-xl uppercase leading-none">
+                <h3 className="font-display font-black text-lg sm:text-xl uppercase leading-none">
                   Aesthetic Wallpaper Studio
                 </h3>
-                <span className="text-[11px] sm:text-xs font-mono text-neutral-600">
-                  Streetwear poster & social media card generator
+                <span className="text-xs font-mono text-neutral-600">
+                  Streetwear poster & social card generator
                 </span>
               </div>
             </div>
@@ -764,27 +762,27 @@ export default function AestheticCardExportModal({
             </button>
           </div>
 
-          {/* 📅 Date Navigator (Switch to Any Day!) */}
-          <div className="flex items-center justify-between bg-white border-2 border-black p-1.5 sm:p-2 rounded-2xl shadow-[2px_2px_0px_#000000]">
+          {/* 📅 Date Navigator (Spacious & Clean) */}
+          <div className="flex items-center justify-between bg-white border-2 border-black p-2 rounded-2xl shadow-[2px_2px_0px_#000000]">
             <button
               type="button"
               onClick={() => handleShiftDay(-1)}
-              className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all"
+              className="px-3 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1.5 transition-all"
               title="Previous Day"
             >
               <ChevronLeft className="w-4 h-4 stroke-[3]" />
               <span className="hidden sm:inline">PREV</span>
             </button>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-black hidden sm:inline" />
               <input
                 type="date"
                 value={selectedDateStr}
                 onChange={(e) => setSelectedDateStr(e.target.value)}
-                className="bg-neutral-100 border-2 border-black rounded-xl px-2 py-1 font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer focus:outline-none"
+                className="bg-neutral-100 border-2 border-black rounded-xl px-2.5 py-1.5 font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer focus:outline-none"
               />
-              <span className="px-2 py-1 rounded-lg bg-black text-[#FDC800] text-xs font-mono font-black">
+              <span className="px-2.5 py-1.5 rounded-lg bg-black text-[#FDC800] text-xs font-mono font-black">
                 DAY {activeDayCount}
               </span>
             </div>
@@ -792,7 +790,7 @@ export default function AestheticCardExportModal({
             <button
               type="button"
               onClick={() => handleShiftDay(1)}
-              className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all"
+              className="px-3 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1.5 transition-all"
               title="Next Day"
             >
               <span className="hidden sm:inline">NEXT</span>
@@ -801,13 +799,13 @@ export default function AestheticCardExportModal({
           </div>
 
           {/* Format Tabs & Distinct Themes */}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {/* Format Selector */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
+            <div className="grid grid-cols-2 gap-2.5 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
               <button
                 type="button"
                 onClick={() => setFormat('wallpaper')}
-                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                className={`py-2.5 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer transition-all ${
                   format === 'wallpaper'
                     ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
                     : 'text-neutral-600 hover:text-black'
@@ -819,7 +817,7 @@ export default function AestheticCardExportModal({
               <button
                 type="button"
                 onClick={() => setFormat('social')}
-                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                className={`py-2.5 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer transition-all ${
                   format === 'social'
                     ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
                     : 'text-neutral-600 hover:text-black'
@@ -831,13 +829,13 @@ export default function AestheticCardExportModal({
             </div>
 
             {/* 3 Radically Distinct Aesthetic Themes */}
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {THEMES.map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTheme(t.id)}
-                  className={`py-2 px-1.5 sm:px-2 rounded-xl border-2 border-black font-mono text-[10px] sm:text-[11px] font-black truncate cursor-pointer transition-all ${
+                  className={`py-2.5 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black truncate cursor-pointer transition-all ${
                     activeTheme === t.id
                       ? 'bg-black text-white shadow-[2.5px_2.5px_0px_#000000] scale-[1.02]'
                       : 'bg-white text-black hover:bg-neutral-100'
@@ -849,54 +847,43 @@ export default function AestheticCardExportModal({
             </div>
           </div>
 
-          {/* User Name & Mascot Info / Custom Swap */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {/* Custom Name / Author Watermark */}
-            <div className="flex items-center gap-1.5 bg-neutral-100 border-2 border-black px-2.5 py-1.5 rounded-2xl">
-              <User className="w-4 h-4 text-neutral-600 shrink-0" />
-              <div className="min-w-0 flex-1 flex items-center gap-1">
-                <span className="text-[10px] font-mono font-bold text-neutral-500 shrink-0">BY:</span>
-                <input
-                  type="text"
-                  value={creatorName}
-                  onChange={(e) => setCreatorName(e.target.value)}
-                  placeholder="Your Name / Moniker"
-                  className="w-full bg-white border border-black/30 rounded-lg px-2 py-0.5 font-mono text-xs font-black text-black focus:outline-none focus:border-black"
-                />
+          {/* Clean Mascot & Sticker Bar */}
+          <div className="flex items-center justify-between bg-white border-2 border-black p-3 rounded-2xl shadow-[2px_2px_0px_#000000]">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base shrink-0">🎭</span>
+              <div className="min-w-0">
+                <span className="text-xs font-mono font-bold text-black block truncate">
+                  {customMascotImg ? 'Custom Sticker Active ✅' : `Mood: ${rating}★ Auto-Linked`}
+                </span>
               </div>
             </div>
 
-            {/* Mascot Info */}
-            <div className="flex items-center justify-between bg-neutral-100 border-2 border-black px-2.5 py-1.5 rounded-2xl">
-              <span className="text-[11px] font-mono font-bold text-neutral-800 truncate">
-                {customMascotImg ? 'Custom Sticker Active ✅' : `Mood: ${rating}★ Auto-Linked`}
-              </span>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                className="hidden"
-                onChange={handleMascotUpload}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="px-2 py-0.5 bg-white hover:bg-neutral-200 border border-black rounded-lg font-mono text-[10px] font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 shrink-0 ml-1"
-              >
-                <Upload className="w-3 h-3" />
-                <span>UPLOAD</span>
-              </button>
-            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={handleMascotUpload}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 shrink-0 transition-all"
+              title="Upload any PNG transparent sticker"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>CUSTOM STICKER</span>
+            </button>
           </div>
 
           {/* Live Preview Container */}
-          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-3 max-h-[340px] overflow-hidden">
+          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-3 max-h-[350px] overflow-hidden">
             {previewUrl ? (
               <img
                 src={previewUrl}
                 alt="Aesthetic Card Preview"
                 className={`rounded-xl border border-white/20 shadow-2xl object-contain ${
-                  format === 'wallpaper' ? 'max-h-[310px] aspect-[9/16]' : 'max-h-[310px] aspect-square'
+                  format === 'wallpaper' ? 'max-h-[320px] aspect-[9/16]' : 'max-h-[320px] aspect-square'
                 }`}
               />
             ) : (
@@ -904,12 +891,12 @@ export default function AestheticCardExportModal({
             )}
           </div>
 
-          {/* Action Footer (With Dedicated Mobile Close Button) */}
-          <div className="flex items-center gap-2.5 pt-1">
+          {/* Action Footer */}
+          <div className="flex items-center gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="py-3.5 px-4 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+              className="py-3.5 px-5 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
             >
               CLOSE
             </button>

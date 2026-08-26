@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2 } from 'lucide-react';
+import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings } from 'lucide-react';
 import { exportDatabaseBackup } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
 import MagneticButton from './MagneticButton';
@@ -12,7 +12,7 @@ export default function Header({
   isCalendarOpen,
   onOpenMonthlyReport,
   onOpenWallpaper,
-  onOpenTelemetry,
+  onOpenSettings,
   onSyncRefresh
 }) {
   const [user, setUser] = useState(null);
@@ -196,6 +196,17 @@ export default function Header({
           <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
           <span className="hidden sm:inline">BACKUP</span>
         </button>
+
+        {/* App Settings Button */}
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            title="App Settings & Notifications"
+            className="p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
+          >
+            <Settings className="w-4 h-4 text-black" />
+          </button>
+        )}
       </div>
 
     </header>

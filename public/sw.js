@@ -1,12 +1,18 @@
 // Daily Verdict Service Worker for PWA Offline & Notifications
-const CACHE_NAME = 'daily-verdict-v1';
+const CACHE_NAME = 'daily-verdict-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {

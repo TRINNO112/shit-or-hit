@@ -11,6 +11,8 @@ import ReminderBanner from './components/ReminderBanner';
 import AestheticCardExportModal from './components/AestheticCardExportModal';
 import ForensicStatsModal from './components/ForensicStatsModal';
 import PWAInstallBanner from './components/PWAInstallBanner';
+import SettingsModal from './components/SettingsModal';
+import NotificationOptInModal from './components/NotificationOptInModal';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName } from './services/firebase';
@@ -33,6 +35,7 @@ export default function App() {
   const [isMonthlyReportOpen, setIsMonthlyReportOpen] = useState(false);
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
@@ -58,63 +61,73 @@ export default function App() {
   const loadData = useCallback(async () => {
     try {
       const db = await fetchDatabase();
-      setStartDate(db.startDate || todayStr);
-      setEntries(db.entries || {});
+      if (db.startDate) setStartDate(db.startDate);
+      if (db.entries) setEntries(db.entries);
     } catch (err) {
-      console.error('Failed to load database:', err);
+      console.error('Failed to load database in App:', err);
     }
-  }, [todayStr]);
+  }, []);
 
   useEffect(() => {
     loadData();
+    const handleFocus = () => loadData();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [loadData]);
 
-  const startObj = new Date(`${startDate}T00:00:00`);
-  const todayObj = new Date(`${todayStr}T00:00:00`);
-  const diffDays = Math.max(0, Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24)));
-  const dayCount = diffDays + 1;
-
-  const userDisplayName = currentUser
-    ? getUserDisplayName(currentUser.email, currentUser.displayName)
-    : 'Daily Operator';
-
   const handleSaveEntry = async (entryData) => {
-    const saved = await saveEntry(entryData);
-    setEntries(prev => ({
-      ...prev,
-      [entryData.date]: saved
-    }));
-    return saved;
+    const updatedEntries = await saveEntry(entryData);
+    setEntries(updatedEntries);
   };
 
   const handleOpenMonthlyReport = (target) => {
     if (target) {
       setReportTargetMonth(target);
+    } else {
+      setReportTargetMonth({
+        year: new Date().getFullYear(),
+        month: new Date().getMonth() + 1
+      });
     }
     setIsMonthlyReportOpen(true);
   };
 
-  const handleOpenWallpaper = (entry, dateStr) => {
+  const handleOpenWallpaper = (entry = null, date = null) => {
     setWallpaperTarget({
-      entry: entry || entries[dateStr || todayStr] || null,
-      dateStr: dateStr || todayStr
+      entry: entry || entries[date || todayStr] || null,
+      dateStr: date || todayStr
     });
     setIsWallpaperModalOpen(true);
   };
 
+  const startObj = new Date(`${startDate}T00:00:00`);
+  const todayObj = new Date(`${todayStr}T00:00:00`);
+  const dayCount = Math.max(1, Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24)) + 1);
+  const userDisplayName = currentUser ? getUserDisplayName(currentUser.email, currentUser.displayName) : 'Daily Operator';
+
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-black font-sans selection:bg-[#FDC800] selection:text-black">
       
-      {/* 📲 PWA 1-Tap Home Screen Install Banner */}
+      {/* 📲 PWA 1-Tap Native Install Prompt Banner */}
       <PWAInstallBanner />
 
-      {/* ⏰ 9:00 PM Smart Evening Reminder Banner */}
+      {/* 🔔 1st Time Notification Opt-in Prompt Modal */}
+      <NotificationOptInModal />
+
+      {/* ⏰ Evening Streak Reminder Banner */}
       <ReminderBanner
-        todayEntry={entries[todayStr]}
-        onQuickRate={(rating) => handleSaveEntry({ date: todayStr, rating, notes: entries[todayStr]?.notes || '' })}
+        todayEntry={entries[todayStr] || null}
+        onQuickRate={(val) => {
+          handleSaveEntry({
+            date: todayStr,
+            rating: val,
+            verdict: 'Logged',
+            notes: ''
+          });
+        }}
+        onOpenDiary={() => {}}
       />
 
-      {/* Responsive View Switcher */}
       {isMobile ? (
         <MobileAppView
           startDate={startDate}
@@ -126,6 +139,7 @@ export default function App() {
           onEditDay={(dayInfo) => setEditingDay(dayInfo)}
           onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
           onOpenTelemetry={() => setIsTelemetryOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
         />
       ) : (
         <div className="flex flex-col min-h-screen">
@@ -139,7 +153,7 @@ export default function App() {
                 isCalendarOpen={isCalendarOpen}
                 onOpenMonthlyReport={() => handleOpenMonthlyReport()}
                 onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
-                onOpenTelemetry={() => setIsTelemetryOpen(true)}
+                onOpenSettings={() => setIsSettingsOpen(true)}
                 onSyncRefresh={loadData}
               />
             </div>
@@ -233,6 +247,13 @@ export default function App() {
         entries={entries}
         startDate={startDate}
         todayStr={todayStr}
+      />
+
+      {/* ⚙️ App Settings & Notification Hub Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        user={currentUser}
       />
 
     </div>

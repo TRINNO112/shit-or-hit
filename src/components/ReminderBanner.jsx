@@ -77,18 +77,6 @@ export default function ReminderBanner({ todayEntry, onQuickRate, onOpenDiary })
               );
             })}
 
-            {/* Notification Permission Bell Toggle */}
-            {!notificationsAllowed && (
-              <button
-                type="button"
-                onClick={handleEnableAlerts}
-                className="px-2 py-1 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black font-mono text-[10px] font-bold text-black shadow-[1px_1px_0px_#000000] cursor-pointer whitespace-nowrap ml-1"
-                title="Enable 9 PM lockscreen notifications"
-              >
-                🔔 Alert Me at 9 PM
-              </button>
-            )}
-
             {/* Dismiss Button */}
             <button
               type="button"

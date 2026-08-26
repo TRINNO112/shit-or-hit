@@ -31,7 +31,8 @@ import {
   X,
   RotateCcw,
   Undo2,
-  Redo2
+  Redo2,
+  Settings
 } from 'lucide-react';
 import { ratingMeta, exportDatabaseBackup, fetchMonthlyReport, getSavedMonthlyReport, enhanceReflectionWithAI } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
@@ -56,7 +57,8 @@ export default function MobileAppView({
   onOpenMonthlyReport,
   onEditDay,
   onOpenWallpaper,
-  onOpenTelemetry
+  onOpenTelemetry,
+  onOpenSettings
 }) {
   const [activeTab, setActiveTab] = useState('log'); // 'log' | 'history' | 'dossier' | 'stats'
   const [historySubView, setHistorySubView] = useState('calendar'); // 'calendar' | 'timeline'
@@ -399,6 +401,20 @@ export default function MobileAppView({
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
           </button>
+
+          {/* Settings Button */}
+          {onOpenSettings && (
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                onOpenSettings();
+              }}
+              className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+              title="App Settings & Reminders"
+            >
+              <Settings className="w-4 h-4 text-black" />
+            </button>
+          )}
         </div>
       </header>
 
