@@ -40,7 +40,7 @@ const MASCOT_MAP = {
   5: '/mascots/mascot_5_peak.png',
   4: '/mascots/mascot_4_good.png',
   3: '/mascots/mascot_3_okay.png',
-  2: '/mascots/mascot_1_rough.png',
+  2: '/mascots/mascot_2_down.png',
   1: '/mascots/mascot_1_rough.png'
 };
 
@@ -160,12 +160,12 @@ export default function AestheticCardExportModal({
 
       // Radial Spotlight Glow
       const glow = ctx.createRadialGradient(
-        format === 'wallpaper' ? width / 2 : 750,
-        format === 'wallpaper' ? 760 : 540,
+        format === 'wallpaper' ? width / 2 : 780,
+        format === 'wallpaper' ? 760 : 490,
         60,
-        format === 'wallpaper' ? width / 2 : 750,
-        format === 'wallpaper' ? 760 : 540,
-        format === 'wallpaper' ? 520 : 420
+        format === 'wallpaper' ? width / 2 : 780,
+        format === 'wallpaper' ? 760 : 490,
+        format === 'wallpaper' ? 520 : 460
       );
       glow.addColorStop(0, 'rgba(0, 229, 153, 0.32)');
       glow.addColorStop(0.7, 'rgba(0, 216, 246, 0.08)');
@@ -198,12 +198,12 @@ export default function AestheticCardExportModal({
 
       // Sunset Crimson Radial Glow
       const glow = ctx.createRadialGradient(
-        format === 'wallpaper' ? width / 2 : 750,
-        format === 'wallpaper' ? 760 : 540,
+        format === 'wallpaper' ? width / 2 : 780,
+        format === 'wallpaper' ? 760 : 490,
         60,
-        format === 'wallpaper' ? width / 2 : 750,
-        format === 'wallpaper' ? 760 : 540,
-        format === 'wallpaper' ? 540 : 420
+        format === 'wallpaper' ? width / 2 : 780,
+        format === 'wallpaper' ? 760 : 490,
+        format === 'wallpaper' ? 540 : 460
       );
       glow.addColorStop(0, 'rgba(255, 77, 109, 0.38)');
       glow.addColorStop(0.6, 'rgba(255, 158, 0, 0.14)');
@@ -216,7 +216,7 @@ export default function AestheticCardExportModal({
       5: { tag: 'PEAK VELOCITY • UNSTOPPABLE', persona: 'GOD MODE DEMON', color: '#FDC800' },
       4: { tag: 'LOCKED IN • MOMENTUM FLOW', persona: 'FOCUS WARRIOR', color: '#00E599' },
       3: { tag: 'SOLID BASELINE • HELD THE LINE', persona: 'STOIC SUSTAINER', color: '#CBD5E1' },
-      2: { tag: 'LOW BATTERY • HEAVY DRAG', persona: 'RECOVERY AGENT', color: '#FF8A00' },
+      2: { tag: 'LOW BATTERY • 23% CHARGE', persona: 'RECOVERY AGENT', color: '#FF8A00' },
       1: { tag: 'TRENCH SURVIVOR • 3:45 AM GOBLIN', persona: 'DOPAMINE GOBLIN', color: '#FF4D4D' }
     };
     const currentMood = moodMeta[rating] || moodMeta[3];
@@ -234,29 +234,29 @@ export default function AestheticCardExportModal({
 
         // Top Status Badge & Tape
         ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.fillRect(60, topY, 260, 42);
+        ctx.fillRect(60, topY, 260, 44);
         ctx.fillStyle = isDark ? '#000000' : '#FDC800';
-        ctx.font = '900 18px monospace';
-        ctx.fillText('⚡ DAILY VERDICT OS', 76, topY + 27);
+        ctx.font = '900 18px "JetBrains Mono", monospace';
+        ctx.fillText('⚡ DAILY VERDICT OS', 76, topY + 28);
 
         // Date Display
         ctx.fillStyle = isDark ? '#A0AEC0' : '#111111';
-        ctx.font = '800 24px monospace';
-        ctx.fillText(formattedDate.toUpperCase(), 340, topY + 28);
+        ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(formattedDate.toUpperCase(), 340, topY + 30);
 
         // Day Streak Pill on Top Right
         ctx.fillStyle = isDark ? theme.accent : '#00E599';
-        ctx.fillRect(width - 270, topY - 10, 210, 60);
+        ctx.fillRect(width - 280, topY - 10, 220, 64);
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 4;
-        ctx.strokeRect(width - 270, topY - 10, 210, 60);
+        ctx.strokeRect(width - 280, topY - 10, 220, 64);
         ctx.fillStyle = '#000000';
-        ctx.font = '900 28px monospace';
-        ctx.fillText(`DAY ${activeDayCount}`, width - 245, topY + 31);
+        ctx.font = '900 32px "Outfit", sans-serif';
+        ctx.fillText(`DAY ${activeDayCount}`, width - 250, topY + 33);
 
         // Giant Background Day Typographic Watermark
         ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)';
-        ctx.font = '900 320px sans-serif';
+        ctx.font = '900 320px "Outfit", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`0${activeDayCount}`.slice(-2), width / 2, 500);
         ctx.textAlign = 'left';
@@ -264,19 +264,19 @@ export default function AestheticCardExportModal({
         // Rating Stars Banner
         const heroY = 230;
         ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '900 46px sans-serif';
+        ctx.font = '900 48px sans-serif';
         const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
         ctx.fillText(stars, 60, heroY);
 
-        // Massive Stylized Verdict Title
+        // Massive Stylized Verdict Title with Heavy Impact
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 96px sans-serif';
-        ctx.fillText(verdict.toUpperCase(), 60, heroY + 95);
+        ctx.font = '900 108px "Outfit", sans-serif';
+        ctx.fillText(verdict.toUpperCase(), 60, heroY + 105);
 
         // Score & Archetype Pill
         ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '800 24px monospace';
-        ctx.fillText(`QUALITY: ${rating}.0/5.0  •  ${currentMood.tag}`, 60, heroY + 140);
+        ctx.font = '800 24px "JetBrains Mono", monospace';
+        ctx.fillText(`SCORE: ${rating}.0 / 5.0  •  ${currentMood.tag}`, 60, heroY + 155);
 
         // Center Hero Mascot (600px, Perfectly Centered)
         const mascotSize = 600;
@@ -292,7 +292,7 @@ export default function AestheticCardExportModal({
         } catch (err) {}
         ctx.restore();
 
-        // 3 Streetwear Metric Pills (Fills the Canvas Artistically!)
+        // 3 Streetwear Metric Pills
         const statsY = 1060;
         const pillWidth = (width - 160) / 3;
 
@@ -313,11 +313,11 @@ export default function AestheticCardExportModal({
           ctx.strokeRect(px, statsY, pillWidth, 76);
 
           ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
-          ctx.font = '800 16px monospace';
+          ctx.font = '800 16px "JetBrains Mono", monospace';
           ctx.fillText(p.label, px + 16, statsY + 28);
 
           ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-          ctx.font = '900 20px monospace';
+          ctx.font = '900 20px "Outfit", sans-serif';
           ctx.fillText(p.val, px + 16, statsY + 56);
         });
 
@@ -342,7 +342,7 @@ export default function AestheticCardExportModal({
         ctx.lineWidth = 3;
         ctx.strokeRect(90, quoteY + 26, 300, 42);
         ctx.fillStyle = '#000000';
-        ctx.font = '900 18px monospace';
+        ctx.font = '900 18px "JetBrains Mono", monospace';
         ctx.fillText('📖 RAW DIARY REFLECTION', 106, quoteY + 53);
 
         // Big Aesthetic Quotation Mark
@@ -350,9 +350,9 @@ export default function AestheticCardExportModal({
         ctx.font = '900 140px Georgia, serif';
         ctx.fillText('“', 90, quoteY + 160);
 
-        // Monospace Notes Wrap
+        // Notes Wrap
         ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
-        ctx.font = '600 30px monospace';
+        ctx.font = '600 30px "Plus Jakarta Sans", monospace';
         const maxTextWidth = quoteWidth - 80;
         const words = notes.split(' ');
         let line = '';
@@ -379,10 +379,10 @@ export default function AestheticCardExportModal({
         }
         ctx.fillText(line, 95, textY);
 
-        // Mini 7-Day Performance Sparkline / Dot Matrix Equalizer
+        // Mini 7-Day Performance Equalizer
         const eqY = quoteY + quoteHeight - 65;
         ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
-        ctx.font = '800 14px monospace';
+        ctx.font = '800 14px "JetBrains Mono", monospace';
         ctx.fillText('MOMENTUM MATRIX:', 95, eqY + 16);
 
         for (let i = 0; i < 7; i++) {
@@ -407,66 +407,66 @@ export default function AestheticCardExportModal({
         }
 
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 24px monospace';
+        ctx.font = '900 24px "Outfit", sans-serif';
         ctx.fillText(`LOGGED BY ${displayName.toUpperCase()}`, 60, footerY - 15);
 
         ctx.fillStyle = isDark ? '#94A3B8' : '#666666';
-        ctx.font = '700 18px monospace';
+        ctx.font = '700 18px "JetBrains Mono", monospace';
         ctx.fillText('VERDICT OS • UNFILTERED ACCOUNTABILITY ENGINE', 60, footerY + 15);
       } 
       
       // =========================================================================
-      // 📸 FORMAT B: 1:1 SOCIAL CARD (1080 x 1080) — SPLIT-COLUMN (ZERO COLLISIONS!)
+      // 📸 FORMAT B: 1:1 SOCIAL CARD (1080 x 1080) — PERFECT LEVEL HARMONY
       // =========================================================================
       else {
         const topY = 70;
 
         // Top Status Header
         ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.fillRect(50, topY, 220, 38);
+        ctx.fillRect(50, topY, 230, 40);
         ctx.fillStyle = isDark ? '#000000' : '#FDC800';
-        ctx.font = '900 16px monospace';
-        ctx.fillText('⚡ DAILY VERDICT', 62, topY + 25);
+        ctx.font = '900 17px "JetBrains Mono", monospace';
+        ctx.fillText('⚡ DAILY VERDICT', 64, topY + 26);
 
         // Date Display
         ctx.fillStyle = isDark ? '#A0AEC0' : '#111111';
-        ctx.font = '800 20px monospace';
-        ctx.fillText(formattedDate.toUpperCase(), 290, topY + 25);
+        ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(formattedDate.toUpperCase(), 300, topY + 27);
 
-        // Left Column (Width 520px): Typography, Rating, Stats & Reflection
+        // Left Column: Typography, Rating, Stats & Reflection (Left: 50px, Width: 480px)
         const leftX = 50;
-        const leftY = 160;
+        const leftY = 150;
 
-        // Day Streak Badge
+        // Day Streak Badge (Bigger, Bolder!)
         ctx.fillStyle = isDark ? theme.accent : '#00E599';
-        ctx.fillRect(leftX, leftY, 160, 48);
+        ctx.fillRect(leftX, leftY, 180, 52);
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(leftX, leftY, 160, 48);
+        ctx.lineWidth = 3.5;
+        ctx.strokeRect(leftX, leftY, 180, 52);
         ctx.fillStyle = '#000000';
-        ctx.font = '900 26px monospace';
-        ctx.fillText(`DAY ${activeDayCount}`, leftX + 22, leftY + 34);
+        ctx.font = '900 30px "Outfit", sans-serif';
+        ctx.fillText(`DAY ${activeDayCount}`, leftX + 26, leftY + 37);
 
         // Stars
         ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '900 36px sans-serif';
+        ctx.font = '900 40px sans-serif';
         const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-        ctx.fillText(stars, leftX + 180, leftY + 36);
+        ctx.fillText(stars, leftX + 205, leftY + 38);
 
         // Huge Verdict Title
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 84px sans-serif';
-        ctx.fillText(verdict.toUpperCase(), leftX, leftY + 125);
+        ctx.font = '900 92px "Outfit", sans-serif';
+        ctx.fillText(verdict.toUpperCase(), leftX, leftY + 135);
 
         // Subtitle
         ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '800 20px monospace';
-        ctx.fillText(`SCORE: ${rating}.0/5.0  •  ${currentMood.persona}`, leftX, leftY + 165);
+        ctx.font = '800 22px "JetBrains Mono", monospace';
+        ctx.fillText(`SCORE: ${rating}.0/5.0  •  ${currentMood.persona}`, leftX, leftY + 180);
 
-        // Compact Reflection Box in Left Column
-        const boxY = leftY + 200;
-        const boxWidth = 480;
-        const boxHeight = 440;
+        // Reflection Box in Left Column (Height: 460px, bottom aligns at y=850)
+        const boxY = leftY + 215;
+        const boxWidth = 470;
+        const boxHeight = 485;
 
         ctx.fillStyle = isDark ? 'rgba(0,0,0,0.5)' : '#000000';
         ctx.fillRect(leftX + 6, boxY + 6, boxWidth, boxHeight);
@@ -479,22 +479,22 @@ export default function AestheticCardExportModal({
 
         // Tape Badge
         ctx.fillStyle = isDark ? theme.accent : '#FDC800';
-        ctx.fillRect(leftX + 20, boxY + 20, 240, 36);
+        ctx.fillRect(leftX + 20, boxY + 20, 250, 38);
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2.5;
-        ctx.strokeRect(leftX + 20, boxY + 20, 240, 36);
+        ctx.strokeRect(leftX + 20, boxY + 20, 250, 38);
         ctx.fillStyle = '#000000';
-        ctx.font = '900 15px monospace';
-        ctx.fillText('📖 RAW REFLECTION', leftX + 32, boxY + 44);
+        ctx.font = '900 16px "JetBrains Mono", monospace';
+        ctx.fillText('📖 RAW REFLECTION', leftX + 32, boxY + 45);
 
         // Wrapped Notes
         ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
-        ctx.font = '600 24px monospace';
-        const maxTextWidth = boxWidth - 40;
+        ctx.font = '600 25px "Plus Jakarta Sans", monospace';
+        const maxTextWidth = boxWidth - 45;
         const words = notes.split(' ');
         let line = '';
-        let textY = boxY + 95;
-        const lineHeight = 38;
+        let textY = boxY + 105;
+        const lineHeight = 40;
         const maxLines = 7;
         let linesCount = 0;
 
@@ -502,7 +502,7 @@ export default function AestheticCardExportModal({
           const testLine = line + words[n] + ' ';
           const metrics = ctx.measureText(testLine);
           if (metrics.width > maxTextWidth && n > 0) {
-            ctx.fillText(line, leftX + 20, textY);
+            ctx.fillText(line, leftX + 22, textY);
             line = words[n] + ' ';
             textY += lineHeight;
             linesCount++;
@@ -514,12 +514,12 @@ export default function AestheticCardExportModal({
             line = testLine;
           }
         }
-        ctx.fillText(line, leftX + 20, textY);
+        ctx.fillText(line, leftX + 22, textY);
 
         // Mini Matrix Equalizer in Left Box
-        const eqY = boxY + boxHeight - 50;
+        const eqY = boxY + boxHeight - 55;
         for (let i = 0; i < 7; i++) {
-          const dotX = leftX + 20 + i * 36;
+          const dotX = leftX + 22 + i * 36;
           const isFilled = i <= (rating + 1);
           ctx.fillStyle = isFilled ? (isDark ? theme.accent : '#000000') : (isDark ? '#2A3447' : '#E2E8F0');
           ctx.fillRect(dotX, eqY, 24, 18);
@@ -528,10 +528,10 @@ export default function AestheticCardExportModal({
           ctx.strokeRect(dotX, eqY, 24, 18);
         }
 
-        // Right Column (Width 500px): Giant, Unobstructed Hero Mascot Art!
-        const mascotSize = 510;
-        const mascotX = 540;
-        const mascotY = 160;
+        // Right Column: Mascot Aligned Harmoniously with Left Box Level (y: 200 to 850)
+        const mascotSize = 560;
+        const mascotX = 510;
+        const mascotY = 220; // Vertically level with the reflection box!
 
         ctx.save();
         ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
@@ -554,7 +554,7 @@ export default function AestheticCardExportModal({
         }
 
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 22px monospace';
+        ctx.font = '900 24px "Outfit", sans-serif';
         ctx.fillText(`LOGGED BY ${displayName.toUpperCase()} • DAILY VERDICT`, 50, footerY - 5);
       }
 
