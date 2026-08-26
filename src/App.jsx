@@ -111,23 +111,6 @@ export default function App() {
       {/* 📲 PWA 1-Tap Native Install Prompt Banner */}
       <PWAInstallBanner />
 
-      {/* 🔔 1st Time Notification Opt-in Prompt Modal */}
-      <NotificationOptInModal />
-
-      {/* ⏰ Evening Streak Reminder Banner */}
-      <ReminderBanner
-        todayEntry={entries[todayStr] || null}
-        onQuickRate={(val) => {
-          handleSaveEntry({
-            date: todayStr,
-            rating: val,
-            verdict: 'Logged',
-            notes: ''
-          });
-        }}
-        onOpenDiary={() => {}}
-      />
-
       {isMobile ? (
         <MobileAppView
           startDate={startDate}
