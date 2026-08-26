@@ -51,6 +51,22 @@ const MASCOT_MAP = {
   1: mascot1
 };
 
+// Global Preloaded Image Cache to Guarantee Instant Canvas Rendering
+const PRELOADED_MASCOTS = {};
+if (typeof window !== 'undefined') {
+  [
+    [1, mascot1],
+    [2, mascot2],
+    [3, mascot3],
+    [4, mascot4],
+    [5, mascot5]
+  ].forEach(([star, src]) => {
+    const img = new Image();
+    img.src = src;
+    PRELOADED_MASCOTS[star] = img;
+  });
+}
+
 const MOOD_PUNCHLINES = {
   5: 'ABSOLUTE PEAK. UNSTOPPABLE MOMENTUM & VELOCITY.',
   4: 'LOCKED IN & FOCUSED. DEEP FLOW EXECUTED.',
@@ -69,7 +85,7 @@ export default function AestheticCardExportModal({
   startDate = '2026-08-01',
   displayName = 'Daily Operator'
 }) {
-  const [format, setFormat] = useState('wallpaper'); // 'wallpaper' (9:16) | 'social' (1:1)
+  const [format, setFormat] = useState('wallpaper'); // 'wallpaper' (Story Poster) | 'social' (Feed Card)
   const [activeTheme, setActiveTheme] = useState('streetwear');
   const [selectedDateStr, setSelectedDateStr] = useState(dateStr || new Date().toISOString().slice(0, 10));
   const [customMascotImg, setCustomMascotImg] = useState(null);
@@ -107,28 +123,39 @@ export default function AestheticCardExportModal({
 
   const mascotUrl = MASCOT_MAP[rating] || MASCOT_MAP[3];
 
-  // Preload mascot sticker into state so Canvas NEVER paints an empty/unloaded image
+  // Foolproof Mascot Preload Engine with Synchronous Complete Check
   useEffect(() => {
     if (customMascotImg) {
       setLoadedMascotImg(customMascotImg);
       return;
     }
+
+    const preloaded = PRELOADED_MASCOTS[rating] || PRELOADED_MASCOTS[3];
+    if (preloaded && preloaded.complete && preloaded.naturalWidth > 0) {
+      setLoadedMascotImg(preloaded);
+      return;
+    }
+
     let active = true;
     const img = new Image();
-    img.onload = () => {
-      if (active) {
-        setLoadedMascotImg(img);
-      }
+    const handleReady = () => {
+      if (active) setLoadedMascotImg(img);
     };
+
+    img.onload = handleReady;
     img.onerror = (e) => {
       console.error('Failed to load mascot sticker:', mascotUrl, e);
     };
     img.src = mascotUrl;
 
+    if (img.complete && img.naturalWidth > 0) {
+      handleReady();
+    }
+
     return () => {
       active = false;
     };
-  }, [mascotUrl, customMascotImg]);
+  }, [rating, mascotUrl, customMascotImg]);
 
   const handleShiftDay = (delta) => {
     const cur = new Date(`${selectedDateStr}T00:00:00`);
@@ -265,8 +292,11 @@ export default function AestheticCardExportModal({
     const punchline = MOOD_PUNCHLINES[rating] || MOOD_PUNCHLINES[3];
     const authorWatermark = (displayName && displayName.trim()) ? displayName.trim().toUpperCase() : 'DAILY OPERATOR';
 
+    // Guaranteed Image Target (Loaded State or Preloaded Cache)
+    const targetMascot = loadedMascotImg || PRELOADED_MASCOTS[rating] || PRELOADED_MASCOTS[3];
+
     // =========================================================================
-    // 📱 FORMAT A: 9:16 PHONE WALLPAPER (1080 x 1920)
+    // 📱 FORMAT A: 9:16 STORY POSTER (1080 x 1920)
     // =========================================================================
     if (format === 'wallpaper') {
       const topY = 90;
@@ -319,20 +349,20 @@ export default function AestheticCardExportModal({
 
       // -----------------------------------------------------------------------
       // CASE 1: USER HAS NO DIARY NOTES -> MEGA MASCOT SPOTLIGHT POSTER
-      // (Moved down ~15px to 475px as requested)
+      // (Lowered to 475px as requested)
       // -----------------------------------------------------------------------
       if (!hasNotes) {
         const megaSize = 780;
         const megaX = (width - megaSize) / 2;
-        const megaY = 475; // Lowered 15px
+        const megaY = 475;
 
-        if (loadedMascotImg) {
+        if (targetMascot) {
           ctx.save();
           ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.3)';
           ctx.shadowBlur = isDark ? 55 : 30;
           ctx.shadowOffsetY = 15;
           try {
-            ctx.drawImage(loadedMascotImg, megaX, megaY, megaSize, megaSize);
+            ctx.drawImage(targetMascot, megaX, megaY, megaSize, megaSize);
           } catch (err) {}
           ctx.restore();
         }
@@ -398,20 +428,20 @@ export default function AestheticCardExportModal({
       
       // -----------------------------------------------------------------------
       // CASE 2: USER HAS WRITTEN DIARY REFLECTION
-      // (Moved down ~15px to 425px as requested)
+      // (Lowered to 425px as requested)
       // -----------------------------------------------------------------------
       else {
         const mascotSize = 560;
         const mascotX = (width - mascotSize) / 2;
-        const mascotY = 425; // Lowered 15px
+        const mascotY = 425;
 
-        if (loadedMascotImg) {
+        if (targetMascot) {
           ctx.save();
           ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
           ctx.shadowBlur = isDark ? 45 : 25;
           ctx.shadowOffsetY = 12;
           try {
-            ctx.drawImage(loadedMascotImg, mascotX, mascotY, mascotSize, mascotSize);
+            ctx.drawImage(targetMascot, mascotX, mascotY, mascotSize, mascotSize);
           } catch (err) {}
           ctx.restore();
         }
@@ -525,7 +555,7 @@ export default function AestheticCardExportModal({
     } 
     
     // =========================================================================
-    // 📸 FORMAT B: 1:1 SOCIAL CARD (1080 x 1080)
+    // 📸 FORMAT B: 1:1 FEED CARD (1080 x 1080)
     // =========================================================================
     else {
       const topY = 70;
@@ -672,15 +702,15 @@ export default function AestheticCardExportModal({
       // Right Column: Mascot Aligned Harmoniously with Left Box Level (Lowered to y: 236 as requested)
       const mascotSize = 560;
       const mascotX = 510;
-      const mascotY = 236; // Lowered ~16px
+      const mascotY = 236;
 
-      if (loadedMascotImg) {
+      if (targetMascot) {
         ctx.save();
         ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
         ctx.shadowBlur = isDark ? 40 : 20;
         ctx.shadowOffsetY = 10;
         try {
-          ctx.drawImage(loadedMascotImg, mascotX, mascotY, mascotSize, mascotSize);
+          ctx.drawImage(targetMascot, mascotX, mascotY, mascotSize, mascotSize);
         } catch (err) {}
         ctx.restore();
       }
@@ -801,7 +831,7 @@ export default function AestheticCardExportModal({
 
           {/* Format Tabs & Distinct Themes */}
           <div className="space-y-2">
-            {/* Format Selector with Concise Labels */}
+            {/* Format Selector with Concise Labels: Story Poster & Feed Card */}
             <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
               <button
                 type="button"
@@ -813,7 +843,7 @@ export default function AestheticCardExportModal({
                 }`}
               >
                 <Smartphone className="w-4 h-4" />
-                <span>📱 9:16 STORY</span>
+                <span>STORY POSTER</span>
               </button>
               <button
                 type="button"
@@ -825,7 +855,7 @@ export default function AestheticCardExportModal({
                 }`}
               >
                 <Share2 className="w-4 h-4" />
-                <span>📸 1:1 POST</span>
+                <span>FEED CARD</span>
               </button>
             </div>
 
