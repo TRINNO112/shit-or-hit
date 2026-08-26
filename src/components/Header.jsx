@@ -12,6 +12,7 @@ export default function Header({
   isCalendarOpen,
   onOpenMonthlyReport,
   onOpenWallpaper,
+  onOpenTelemetry,
   onSyncRefresh
 }) {
   const [user, setUser] = useState(null);
