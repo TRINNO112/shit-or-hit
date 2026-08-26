@@ -60,7 +60,12 @@ export default function App() {
     try {
       const db = await fetchDatabase();
       if (db.startDate) setStartDate(db.startDate);
-      if (db.entries) setEntries(db.entries);
+      if (db.entries) {
+        setEntries(prev => ({
+          ...db.entries,
+          ...(prev || {}) // Preserve latest in-memory edits
+        }));
+      }
     } catch (err) {
       console.error('Failed to load database in App:', err);
     }
@@ -68,14 +73,41 @@ export default function App() {
 
   useEffect(() => {
     loadData();
-    const handleFocus = () => loadData();
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
   }, [loadData]);
 
   const handleSaveEntry = async (entryData) => {
-    const updatedEntries = await saveEntry(entryData);
-    setEntries(updatedEntries);
+    const formatted = {
+      ...entryData,
+      rating: Number(entryData.rating),
+      verdict: entryData.verdict || ratingMeta[entryData.rating]?.title || 'Verdict',
+      updatedAt: new Date().toISOString()
+    };
+
+    // 1. Immediate optimistic UI update (zero lag, works 100% offline)
+    setEntries(prev => {
+      const next = {
+        ...(prev || {}),
+        [formatted.date]: {
+          ...(prev?.[formatted.date] || {}),
+          ...formatted
+        }
+      };
+      try {
+        const cached = JSON.parse(localStorage.getItem('goodness_db') || '{}');
+        localStorage.setItem('goodness_db', JSON.stringify({
+          ...cached,
+          entries: next
+        }));
+      } catch (e) {}
+      return next;
+    });
+
+    // 2. Safe background network sync
+    try {
+      await saveEntry(formatted);
+    } catch (err) {
+      console.warn('Network sync pending, saved to local cache:', err);
+    }
   };
 
   const handleOpenMonthlyReport = (target) => {

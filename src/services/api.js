@@ -109,32 +109,48 @@ export async function fetchDatabase() {
 }
 
 export async function saveEntry(entryData) {
+  const formatted = {
+    ...entryData,
+    rating: Number(entryData.rating),
+    verdict: entryData.verdict || ratingMeta[entryData.rating]?.title || 'Verdict',
+    updatedAt: new Date().toISOString()
+  };
+
+  // 1. Always update local storage database immediately
+  try {
+    const dbStr = localStorage.getItem('goodness_db');
+    let db = dbStr ? JSON.parse(dbStr) : { startDate: new Date().toISOString().slice(0, 10), entries: {} };
+    if (!db.entries) db.entries = {};
+    db.entries[formatted.date] = formatted;
+    localStorage.setItem('goodness_db', JSON.stringify(db));
+  } catch (e) {}
+
+  // 2. Cloud save with 4s timeout protection against slow connections
   const currentUser = getCurrentUser();
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
-      await saveCloudEntry(currentUser.uid, entryData);
+      const cloudPromise = saveCloudEntry(currentUser.uid, formatted);
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Cloud save timeout')), 4000));
+      await Promise.race([cloudPromise, timeoutPromise]);
     } catch (err) {
-      console.warn('Firestore cloud save error:', err);
+      console.warn('Firestore cloud save background note:', err.message);
     }
   }
 
+  // 3. Local server save if available
   try {
     const res = await fetch(`${API_BASE}/entries`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(entryData)
+      body: JSON.stringify(formatted)
     });
-    if (!res.ok) throw new Error('Failed to save entry');
-    const json = await res.json();
-    return json.entry;
-  } catch (err) {
-    return {
-      ...entryData,
-      rating: Number(entryData.rating),
-      verdict: ratingMeta[entryData.rating]?.title || 'Custom',
-      updatedAt: new Date().toISOString()
-    };
-  }
+    if (res.ok) {
+      const json = await res.json();
+      return json.entry || formatted;
+    }
+  } catch (err) {}
+
+  return formatted;
 }
 
 export async function enhanceReflectionWithAI(notes, rating, date) {
