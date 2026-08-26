@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap } from 'lucide-react';
+import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload } from 'lucide-react';
 import { ratingMeta } from '../services/api';
+
+const THEMES = [
+  { id: 'neobrutal', name: '⚡ Neo-Brutalist Gold', bg: '#FFFDF5', primary: '#FDC800', text: '#000000', border: '#000000' },
+  { id: 'cyberdark', name: '🖤 Cyber Stealth Dark', bg: '#090B0E', primary: '#00E599', text: '#FFFFFF', border: '#00E599' },
+  { id: 'swissmono', name: '📰 Swiss Minimalist', bg: '#F4F4F0', primary: '#111111', text: '#111111', border: '#111111' }
+];
 
 export default function AestheticCardExportModal({
   isOpen,
@@ -12,9 +18,12 @@ export default function AestheticCardExportModal({
   displayName = 'Trinno Asphalt'
 }) {
   const [format, setFormat] = useState('wallpaper'); // 'wallpaper' (9:16) | 'social' (1:1)
+  const [activeTheme, setActiveTheme] = useState('neobrutal');
+  const [customMascotImg, setCustomMascotImg] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const rating = entry?.rating || 3;
   const verdict = entry?.verdict || ratingMeta[rating]?.title || 'Verdict';
@@ -29,10 +38,26 @@ export default function AestheticCardExportModal({
     year: 'numeric'
   });
 
-  // Render canvas preview
+  const handleMascotUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          setCustomMascotImg(img);
+        };
+        img.src = event.target?.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Master Canvas Renderer
   useEffect(() => {
     if (!isOpen) return;
 
+    const theme = THEMES.find(t => t.id === activeTheme) || THEMES[0];
     const canvas = document.createElement('canvas');
     const width = 1080;
     const height = format === 'wallpaper' ? 1920 : 1080;
@@ -40,14 +65,17 @@ export default function AestheticCardExportModal({
     canvas.height = height;
     const ctx = canvas.getContext('2d');
 
-    // 1. Background Fill & Texture
-    ctx.fillStyle = '#FFFDF5';
+    const isDark = activeTheme === 'cyberdark';
+    const isSwiss = activeTheme === 'swissmono';
+
+    // 1. Background Fill
+    ctx.fillStyle = theme.bg;
     ctx.fillRect(0, 0, width, height);
 
-    // 2. High-Contrast Neo-Brutalist Grid Lines
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
-    ctx.lineWidth = 2.5;
-    const gridSize = 72;
+    // 2. Aesthetic Grid Pattern
+    ctx.strokeStyle = isDark ? 'rgba(0, 229, 153, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+    ctx.lineWidth = 2;
+    const gridSize = 64;
     for (let x = 0; x < width; x += gridSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -61,137 +89,186 @@ export default function AestheticCardExportModal({
       ctx.stroke();
     }
 
-    // 3. Thick Outer Double Border
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 18;
+    // 3. Technical Crosshairs & Corner Registration Marks
+    const crossColor = isDark ? '#00E599' : '#000000';
+    ctx.fillStyle = crossColor;
+    ctx.font = '700 20px monospace';
+    ctx.fillText('+ + +', 70, 70);
+    ctx.fillText('+ + +', width - 140, 70);
+    ctx.fillText('+ + +', 70, height - 60);
+    ctx.fillText('+ + +', width - 140, height - 60);
+
+    // 4. Double Outer Border
+    ctx.strokeStyle = isDark ? '#00E599' : '#000000';
+    ctx.lineWidth = isDark ? 8 : 16;
     ctx.strokeRect(36, 36, width - 72, height - 72);
-    ctx.lineWidth = 4;
-    ctx.strokeRect(54, 54, width - 108, height - 108);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(52, 52, width - 104, height - 104);
 
-    // 4. Header Section
-    const headerY = format === 'wallpaper' ? 110 : 85;
+    // 5. Header Bar
+    const headerY = format === 'wallpaper' ? 100 : 80;
     
-    // Top Ribbon / Sticker
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(80, headerY, 260, 44);
-    ctx.fillStyle = '#FDC800';
-    ctx.font = '900 20px monospace';
-    ctx.fillText('⚡ DAILY ACCOUNTABILITY', 95, headerY + 28);
+    // Top Archival Tape
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.fillRect(76, headerY, 280, 42);
+    ctx.fillStyle = isDark ? '#000000' : '#FDC800';
+    ctx.font = '900 18px monospace';
+    ctx.fillText('⚡ DAILY ACCOUNTABILITY', 92, headerY + 27);
 
-    // App Branding Block
-    const brandY = headerY + 65;
-    ctx.fillStyle = '#FDC800';
-    ctx.fillRect(80, brandY, 96, 96);
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(80, brandY, 96, 96);
-    
+    // App Branding Box
+    const brandY = headerY + 58;
+    ctx.fillStyle = isDark ? '#141A23' : '#FDC800';
+    ctx.fillRect(76, brandY, 90, 90);
+    ctx.strokeStyle = isDark ? '#00E599' : '#000000';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(76, brandY, 90, 90);
+
     // Lightning Icon
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.font = '900 50px sans-serif';
+    ctx.fillText('⚡', 95, brandY + 65);
+
+    // App Title
+    ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+    ctx.font = '900 48px sans-serif';
+    ctx.fillText('DAILY VERDICT', 184, brandY + 46);
+
+    ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
+    ctx.font = '800 22px monospace';
+    ctx.fillText(formattedDate.toUpperCase(), 184, brandY + 80);
+
+    // Day Streak Pill
+    ctx.fillStyle = isDark ? '#00E599' : '#00E599';
+    ctx.fillRect(width - 310, brandY, 230, 90);
+    ctx.strokeStyle = isDark ? '#000000' : '#000000';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(width - 310, brandY, 230, 90);
     ctx.fillStyle = '#000000';
-    ctx.font = '900 56px sans-serif';
-    ctx.fillText('⚡', 100, brandY + 70);
+    ctx.font = '900 36px monospace';
+    ctx.fillText(`DAY ${dayCount}`, width - 275, brandY + 58);
 
-    // Title
-    ctx.fillStyle = '#000000';
-    ctx.font = '900 52px sans-serif';
-    ctx.fillText('DAILY VERDICT', 196, brandY + 50);
-
-    ctx.fillStyle = '#555555';
-    ctx.font = '800 24px monospace';
-    ctx.fillText(formattedDate.toUpperCase(), 196, brandY + 86);
-
-    // Day Streak Banner
-    ctx.fillStyle = '#00E599';
-    ctx.fillRect(width - 320, brandY, 240, 96);
-    ctx.strokeRect(width - 320, brandY, 240, 96);
-    ctx.fillStyle = '#000000';
-    ctx.font = '900 38px monospace';
-    ctx.fillText(`DAY ${dayCount}`, width - 290, brandY + 60);
-
-    // Mood Character / Badge Metadata Map
+    // 6. Mood Metadata Map
     const moodMeta = {
-      5: { emoji: '👑', tag: 'GOD MODE • UNSTOPPABLE', persona: '(⌐■_■) PEAK FLOW', color: '#FDC800' },
-      4: { emoji: '🔥', tag: 'LOCKED IN • MOMENTUM', persona: '(•̀ᴗ•́)و FOCUS CHAD', color: '#00E599' },
-      3: { emoji: '⚡', tag: 'SOLID BASELINE • HELD LINE', persona: '(•_•) STOIC SUSTAINER', color: '#CBD5E1' },
-      2: { emoji: '🌧️', tag: 'LOW BATTERY • DRAGGING', persona: '(T_T) SLOW PROGRESS', color: '#FF8A00' },
-      1: { emoji: '👺', tag: '3:45 AM DOPAMINE GOBLIN', persona: '(X_X) TRENCH SURVIVOR', color: '#FF4D4D' }
+      5: { emoji: '👑', tag: 'GOD MODE • UNSTOPPABLE', persona: 'PEAK VELOCITY', color: '#FDC800' },
+      4: { emoji: '🔥', tag: 'LOCKED IN • MOMENTUM', persona: 'FOCUS CHAD', color: '#00E599' },
+      3: { emoji: '⚡', tag: 'SOLID BASELINE • HELD LINE', persona: 'STOIC SUSTAINER', color: '#CBD5E1' },
+      2: { emoji: '🌧️', tag: 'LOW BATTERY • DRAGGING', persona: 'SLOW PROGRESS', color: '#FF8A00' },
+      1: { emoji: '👺', tag: '3:45 AM DOPAMINE GOBLIN', persona: 'TRENCH SURVIVOR', color: '#FF4D4D' }
     };
     const currentMood = moodMeta[rating] || moodMeta[3];
 
-    // 5. Massive Center Score Card with Drop Shadow
-    const cardY = format === 'wallpaper' ? 330 : 270;
-    const cardWidth = width - 160;
-    const cardHeight = format === 'wallpaper' ? 440 : 330;
+    // 7. Center Verdict Score Card
+    const cardY = format === 'wallpaper' ? 310 : 250;
+    const cardWidth = width - 152;
+    const cardHeight = format === 'wallpaper' ? 460 : 330;
 
     // Drop Shadow
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(88, cardY + 12, cardWidth, cardHeight);
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.fillRect(84, cardY + 12, cardWidth, cardHeight);
 
-    // Main Card
-    ctx.fillStyle = meta.bg;
-    ctx.fillRect(80, cardY, cardWidth, cardHeight);
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 8;
-    ctx.strokeRect(80, cardY, cardWidth, cardHeight);
+    // Card Surface
+    ctx.fillStyle = isDark ? '#12161E' : isSwiss ? '#FFFFFF' : meta.bg;
+    ctx.fillRect(76, cardY, cardWidth, cardHeight);
+    ctx.strokeStyle = isDark ? '#00E599' : '#000000';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(76, cardY, cardWidth, cardHeight);
 
-    // Mood Pill Badge
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(115, cardY + 36, 380, 48);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 22px monospace';
-    ctx.fillText(`${currentMood.emoji} ${currentMood.tag}`, 135, cardY + 68);
+    // Mood Tag Badge
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.fillRect(110, cardY + 32, 400, 46);
+    ctx.fillStyle = isDark ? '#000000' : '#FFFFFF';
+    ctx.font = '900 20px monospace';
+    ctx.fillText(`${currentMood.emoji} ${currentMood.tag}`, 126, cardY + 62);
 
-    // Stars Rating
-    ctx.fillStyle = '#000000';
-    ctx.font = '900 48px sans-serif';
+    // Stars
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.font = '900 46px sans-serif';
     const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-    ctx.fillText(stars, 115, cardY + 140);
+    ctx.fillText(stars, 110, cardY + 135);
 
     // Huge Verdict Title
-    ctx.font = '900 84px sans-serif';
-    ctx.fillText(verdict.toUpperCase(), 115, cardY + 240);
+    ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+    ctx.font = '900 86px sans-serif';
+    ctx.fillText(verdict.toUpperCase(), 110, cardY + 235);
 
-    // Score Details & Persona
-    ctx.fillStyle = '#000000';
-    ctx.font = '800 30px monospace';
-    ctx.fillText(`QUALITY SCORE: ${rating}.0 / 5.0`, 115, cardY + 310);
+    // Quality Score Metric
+    ctx.font = '800 28px monospace';
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.fillText(`QUALITY SCORE: ${rating}.0 / 5.0`, 110, cardY + 300);
 
-    ctx.font = '700 24px monospace';
-    ctx.fillStyle = '#222222';
-    ctx.fillText(`ARCHETYPE: ${currentMood.persona}`, 115, cardY + 360);
+    // Archetype Label
+    ctx.font = '700 22px monospace';
+    ctx.fillStyle = isDark ? '#8E9BAE' : '#333333';
+    ctx.fillText(`ARCHETYPE: [ ${currentMood.persona} ]`, 110, cardY + 348);
 
-    // 6. Reflection Quote / Raw Diary Section
-    const quoteY = format === 'wallpaper' ? 820 : 640;
-    const quoteHeight = format === 'wallpaper' ? 820 : 310;
+    // Progress / Quality Level Gauge Bar
+    const gaugeY = cardY + 380;
+    ctx.fillStyle = isDark ? '#202836' : 'rgba(0,0,0,0.15)';
+    ctx.fillRect(110, gaugeY, cardWidth - 68, 22);
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.fillRect(110, gaugeY, (cardWidth - 68) * (rating / 5), 22);
+    ctx.strokeStyle = isDark ? '#00E599' : '#000000';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(110, gaugeY, cardWidth - 68, 22);
+
+    // Draw Custom Mascot / Character Illustration
+    if (customMascotImg) {
+      const mascotSize = format === 'wallpaper' ? 240 : 180;
+      const mascotX = width - mascotSize - 110;
+      const mascotY = cardY + (format === 'wallpaper' ? 90 : 60);
+      ctx.drawImage(customMascotImg, mascotX, mascotY, mascotSize, mascotSize);
+    } else {
+      // Dynamic Vector Badge Mascot Graphic
+      const mascotX = width - 240;
+      const mascotY = cardY + 90;
+      
+      // Vector Mascot Badge Box
+      ctx.fillStyle = isDark ? '#1C2330' : '#FFFFFF';
+      ctx.fillRect(mascotX, mascotY, 150, 150);
+      ctx.strokeStyle = isDark ? '#00E599' : '#000000';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(mascotX, mascotY, 150, 150);
+
+      ctx.fillStyle = isDark ? '#00E599' : '#000000';
+      ctx.font = '900 70px sans-serif';
+      const vectorIcon = rating >= 4 ? '⚡' : rating === 3 ? '☕' : '👺';
+      ctx.fillText(vectorIcon, mascotX + 35, mascotY + 105);
+    }
+
+    // 8. Raw Diary Reflection Section
+    const quoteY = format === 'wallpaper' ? 820 : 620;
+    const quoteHeight = format === 'wallpaper' ? 820 : 330;
 
     // Drop Shadow
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(88, quoteY + 12, cardWidth, quoteHeight);
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
+    ctx.fillRect(84, quoteY + 12, cardWidth, quoteHeight);
 
     // Quote Box Fill
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(80, quoteY, cardWidth, quoteHeight);
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 8;
-    ctx.strokeRect(80, quoteY, cardWidth, quoteHeight);
+    ctx.fillStyle = isDark ? '#12161E' : '#FFFFFF';
+    ctx.fillRect(76, quoteY, cardWidth, quoteHeight);
+    ctx.strokeStyle = isDark ? '#00E599' : '#000000';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(76, quoteY, cardWidth, quoteHeight);
 
-    // Quote Section Header Tape
-    ctx.fillStyle = '#FDC800';
-    ctx.fillRect(115, quoteY + 36, 320, 48);
-    ctx.strokeRect(115, quoteY + 36, 320, 48);
+    // Tape Header
+    ctx.fillStyle = isDark ? '#00E599' : '#FDC800';
+    ctx.fillRect(110, quoteY + 32, 330, 46);
+    ctx.strokeStyle = isDark ? '#000000' : '#000000';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(110, quoteY + 32, 330, 46);
     ctx.fillStyle = '#000000';
-    ctx.font = '900 22px monospace';
-    ctx.fillText('📖 RAW DIARY REFLECTION', 135, quoteY + 68);
+    ctx.font = '900 20px monospace';
+    ctx.fillText('📖 RAW DIARY REFLECTION', 126, quoteY + 62);
 
-    // Notes Multiline Wrap
-    ctx.fillStyle = '#000000';
+    // Monospace Wrapped Notes
+    ctx.fillStyle = isDark ? '#E2E8F0' : '#111111';
     ctx.font = format === 'wallpaper' ? '600 32px monospace' : '600 26px monospace';
     
     const maxTextWidth = cardWidth - 80;
     const words = notes.split(' ');
     let line = '';
     let textY = quoteY + 140;
-    const lineHeight = format === 'wallpaper' ? 52 : 40;
+    const lineHeight = format === 'wallpaper' ? 52 : 42;
     const maxLines = format === 'wallpaper' ? 12 : 4;
     let linesCount = 0;
 
@@ -199,7 +276,7 @@ export default function AestheticCardExportModal({
       const testLine = line + words[n] + ' ';
       const metrics = ctx.measureText(testLine);
       if (metrics.width > maxTextWidth && n > 0) {
-        ctx.fillText(line, 120, textY);
+        ctx.fillText(line, 115, textY);
         line = words[n] + ' ';
         textY += lineHeight;
         linesCount++;
@@ -211,13 +288,13 @@ export default function AestheticCardExportModal({
         line = testLine;
       }
     }
-    ctx.fillText(line, 120, textY);
+    ctx.fillText(line, 115, textY);
 
-    // 7. Footer: Barcode, Identity & Watermark
-    const footerY = format === 'wallpaper' ? 1730 : 980;
+    // 9. Technical Footer & Barcode
+    const footerY = format === 'wallpaper' ? 1730 : 990;
 
-    // Simulated Neo-Brutalist Barcode
-    ctx.fillStyle = '#000000';
+    // Simulated Barcode
+    ctx.fillStyle = isDark ? '#00E599' : '#000000';
     const barcodeX = width - 260;
     const barcodeWidths = [4, 8, 2, 6, 12, 4, 8, 2, 10, 4, 6, 8, 4, 12, 6, 4];
     let curX = barcodeX;
@@ -226,17 +303,17 @@ export default function AestheticCardExportModal({
       curX += barcodeWidths[b] + 4;
     }
 
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
     ctx.font = '900 24px monospace';
-    ctx.fillText(`LOGGED BY ${displayName.toUpperCase()}`, 80, footerY - 15);
+    ctx.fillText(`LOGGED BY ${displayName.toUpperCase()}`, 76, footerY - 15);
 
-    ctx.fillStyle = '#666666';
+    ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
     ctx.font = '700 18px monospace';
-    ctx.fillText('VERDICT OS • UNFILTERED ACCOUNTABILITY ENGINE', 80, footerY + 15);
+    ctx.fillText('VERDICT OS • UNFILTERED ACCOUNTABILITY ENGINE', 76, footerY + 15);
 
     setPreviewUrl(canvas.toDataURL('image/png'));
     canvasRef.current = canvas;
-  }, [isOpen, format, entry, dateStr, dayCount, displayName, rating, verdict, notes, meta, formattedDate]);
+  }, [isOpen, format, activeTheme, customMascotImg, entry, dateStr, dayCount, displayName, rating, verdict, notes, meta, formattedDate]);
 
   if (!isOpen) return null;
 
@@ -245,7 +322,7 @@ export default function AestheticCardExportModal({
     setDownloading(true);
     try {
       const link = document.createElement('a');
-      link.download = `daily_verdict_${format}_${dateStr || 'card'}.png`;
+      link.download = `daily_verdict_${activeTheme}_${format}_${dateStr || 'card'}.png`;
       link.href = canvasRef.current.toDataURL('image/png');
       link.click();
     } catch (err) {
@@ -279,10 +356,10 @@ export default function AestheticCardExportModal({
               </div>
               <div>
                 <h3 className="font-display font-black text-lg sm:text-xl uppercase leading-none">
-                  Aesthetic Card Export
+                  Aesthetic Wallpaper Studio
                 </h3>
                 <span className="text-xs font-mono text-neutral-600">
-                  Export high-res wallpaper or social media card
+                  Export museum-grade phone wallpaper or social card
                 </span>
               </div>
             </div>
@@ -295,42 +372,88 @@ export default function AestheticCardExportModal({
             </button>
           </div>
 
-          {/* Format Selector Tabs */}
-          <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
+          {/* Format Tabs & Theme Selector */}
+          <div className="space-y-2">
+            {/* Format Selector */}
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
+              <button
+                type="button"
+                onClick={() => setFormat('wallpaper')}
+                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  format === 'wallpaper'
+                    ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
+                    : 'text-neutral-600 hover:text-black'
+                }`}
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>9:16 Wallpaper</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormat('social')}
+                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  format === 'social'
+                    ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
+                    : 'text-neutral-600 hover:text-black'
+                }`}
+              >
+                <Share2 className="w-4 h-4" />
+                <span>1:1 Social Card</span>
+              </button>
+            </div>
+
+            {/* Aesthetic Theme Selector Buttons */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {THEMES.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTheme(t.id)}
+                  className={`py-1.5 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black truncate cursor-pointer transition-all ${
+                    activeTheme === t.id
+                      ? 'bg-black text-white shadow-[2px_2px_0px_#000000]'
+                      : 'bg-white text-black hover:bg-neutral-100'
+                  }`}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Mascot Upload Button */}
+          <div className="flex items-center justify-between bg-neutral-100 border-2 border-black p-2.5 rounded-2xl">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-black" />
+              <span className="text-xs font-mono font-bold text-neutral-800">
+                {customMascotImg ? 'Custom Mascot Active ✅' : 'Custom Sticker / Mascot:'}
+              </span>
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={handleMascotUpload}
+            />
             <button
               type="button"
-              onClick={() => setFormat('wallpaper')}
-              className={`py-2.5 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                format === 'wallpaper'
-                  ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                  : 'text-neutral-600 hover:text-black'
-              }`}
+              onClick={() => fileInputRef.current?.click()}
+              className="px-2.5 py-1 bg-white hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1"
             >
-              <Smartphone className="w-4 h-4" />
-              <span>9:16 Wallpaper (1080x1920)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormat('social')}
-              className={`py-2.5 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                format === 'social'
-                  ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                  : 'text-neutral-600 hover:text-black'
-              }`}
-            >
-              <Share2 className="w-4 h-4" />
-              <span>1:1 Social Card (1080x1080)</span>
+              <Upload className="w-3.5 h-3.5" />
+              <span>{customMascotImg ? 'CHANGE MASCOT' : 'UPLOAD STICKER'}</span>
             </button>
           </div>
 
           {/* Preview Container */}
-          <div className="w-full flex items-center justify-center bg-neutral-900 rounded-2xl border-2 border-black p-3 max-h-[360px] overflow-hidden">
+          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-3 max-h-[350px] overflow-hidden">
             {previewUrl ? (
               <img
                 src={previewUrl}
                 alt="Aesthetic Card Preview"
                 className={`rounded-xl border border-white/20 shadow-2xl object-contain ${
-                  format === 'wallpaper' ? 'max-h-[330px] aspect-[9/16]' : 'max-h-[330px] aspect-square'
+                  format === 'wallpaper' ? 'max-h-[320px] aspect-[9/16]' : 'max-h-[320px] aspect-square'
                 }`}
               />
             ) : (
@@ -339,7 +462,7 @@ export default function AestheticCardExportModal({
           </div>
 
           {/* Action Footer */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-1">
             <button
               type="button"
               onClick={handleDownload}
@@ -347,7 +470,7 @@ export default function AestheticCardExportModal({
               className="flex-1 py-3.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-sm uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4 stroke-[3]" />
-              <span>{downloading ? 'GENERATING PNG...' : 'DOWNLOAD HIGH-RES PNG'}</span>
+              <span>{downloading ? 'GENERATING MASTER PNG...' : 'DOWNLOAD HIGH-RES PNG'}</span>
             </button>
           </div>
         </motion.div>
