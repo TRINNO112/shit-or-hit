@@ -44,11 +44,17 @@ const moodSvgPaths = {
 export default function TodayHero({ 
   todayStr, 
   currentEntry, 
+  todayEntry,
   onSaveToday, 
-  dayCount 
+  onSave,
+  dayCount,
+  onOpenWallpaper 
 }) {
-  const [showNote, setShowNote] = useState(Boolean(currentEntry?.notes));
-  const [noteText, setNoteText] = useState(currentEntry?.notes || '');
+  const activeEntry = currentEntry || todayEntry || null;
+  const saveHandler = onSaveToday || onSave || (() => Promise.resolve());
+
+  const [showNote, setShowNote] = useState(Boolean(activeEntry?.notes));
+  const [noteText, setNoteText] = useState(activeEntry?.notes || '');
   const [syncedBadge, setSyncedBadge] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [sadSettle, setSadSettle] = useState(false);
@@ -58,18 +64,18 @@ export default function TodayHero({
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [originalDraft, setOriginalDraft] = useState('');
 
-  // Sync state whenever currentEntry changes
+  // Sync state whenever activeEntry changes
   useEffect(() => {
-    if (currentEntry?.notes !== undefined) {
-      setNoteText(currentEntry.notes);
-      setOriginalDraft(currentEntry.notes);
-      setHistoryStack([currentEntry.notes]);
+    if (activeEntry?.notes !== undefined) {
+      setNoteText(activeEntry.notes);
+      setOriginalDraft(activeEntry.notes);
+      setHistoryStack([activeEntry.notes]);
       setHistoryIdx(0);
-      if (currentEntry.notes) setShowNote(true);
+      if (activeEntry.notes) setShowNote(true);
     }
-  }, [currentEntry]);
+  }, [activeEntry]);
 
-  const selectedRating = currentEntry?.rating || null;
+  const selectedRating = activeEntry?.rating || null;
   const activeRatingForVisual = selectedRating || 3;
 
   const now = new Date();
@@ -78,7 +84,7 @@ export default function TodayHero({
 
   const handleRate = async (val, e) => {
     if (val <= 2) {
-      // Gentle melancholy sigh settle (subtle & respectful, zero seismic waves)
+      // Gentle melancholy sigh settle
       setSadSettle(true);
       setTimeout(() => setSadSettle(false), 800);
     } else if (val === 5) {
@@ -98,23 +104,27 @@ export default function TodayHero({
     }
 
     setSyncedBadge(true);
-    await onSaveToday({
-      date: todayStr,
-      rating: val,
-      verdict: ratingMeta[val]?.title || 'Verdict',
-      notes: noteText
-    });
+    if (saveHandler) {
+      await saveHandler({
+        date: todayStr,
+        rating: val,
+        verdict: ratingMeta[val]?.title || 'Verdict',
+        notes: noteText
+      });
+    }
     setTimeout(() => setSyncedBadge(false), 2500);
   };
 
   const handleSaveNote = async () => {
     const ratingToUse = selectedRating || 3;
-    await onSaveToday({
-      date: todayStr,
-      rating: ratingToUse,
-      verdict: ratingMeta[ratingToUse]?.title || 'Verdict',
-      notes: noteText
-    });
+    if (saveHandler) {
+      await saveHandler({
+        date: todayStr,
+        rating: ratingToUse,
+        verdict: ratingMeta[ratingToUse]?.title || 'Verdict',
+        notes: noteText
+      });
+    }
     setSyncedBadge(true);
     setTimeout(() => setSyncedBadge(false), 2500);
   };

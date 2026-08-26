@@ -145,6 +145,8 @@ export default function App() {
               todayStr={todayStr}
               dayCount={dayCount}
               todayEntry={entries[todayStr] || null}
+              currentEntry={entries[todayStr] || null}
+              onSaveToday={handleSaveEntry}
               onSave={handleSaveEntry}
               onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
             />
