@@ -28,7 +28,7 @@ export default function RadialClockPicker({
   const hoursList = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
   const minutesList = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
-  // Calculate clock hand angle
+  // Calculate clock hand angle in degrees from 12 o'clock
   const currentAngle = activeMode === 'hours'
     ? ((timeState.hour % 12) / 12) * 360
     : ((timeState.minute % 60) / 60) * 360;
@@ -133,34 +133,43 @@ export default function RadialClockPicker({
             </div>
           </div>
 
-          {/* ⏰ Radial Dial Clock Face */}
-          <div className="relative w-52 h-52 mx-auto rounded-full bg-white border-3 border-black shadow-[3px_3px_0px_#000000] flex items-center justify-center">
+          {/* ⏰ Radial Dial Clock Face (220px Diameter, Exact 80px Radius) */}
+          <div className="relative w-56 h-56 mx-auto rounded-full bg-white border-3 border-black shadow-[3px_3px_0px_#000000] flex items-center justify-center overflow-visible">
             
-            {/* Center Pivot Pin */}
-            <div className="w-3.5 h-3.5 rounded-full bg-black z-20" />
-
-            {/* Rotating Clock Hand */}
+            {/* Rotating Clock Hand with Center-Pivot & Pointer Bulb */}
             <div
-              className="absolute w-1 bg-black z-10 origin-bottom rounded-full transition-transform duration-200"
+              className="absolute pointer-events-none transition-transform duration-200 z-10"
               style={{
-                height: '75px',
-                bottom: '50%',
-                transform: `rotate(${currentAngle}deg)`
+                left: '50%',
+                top: '50%',
+                width: '2px',
+                height: '80px',
+                transformOrigin: '50% 100%',
+                transform: `translate(-50%, -100%) rotate(${currentAngle}deg)`
               }}
             >
-              {/* Hand Head Pointer Bulb */}
-              <div className="absolute -top-3 -left-3 w-7 h-7 rounded-full bg-[#00E599] border-2 border-black shadow-[1px_1px_0px_#000000] flex items-center justify-center">
+              {/* Hand Line */}
+              <div className="w-full h-full bg-black" />
+
+              {/* Hand Tip Glowing Pointer Bulb (Centered dead on radius) */}
+              <div 
+                className="absolute w-8 h-8 rounded-full bg-[#00E599] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] flex items-center justify-center -top-4 -left-[15px]"
+              >
                 <div className="w-2 h-2 rounded-full bg-black" />
               </div>
             </div>
 
-            {/* Circular Number Markers */}
+            {/* Center Pin */}
+            <div className="absolute w-3.5 h-3.5 rounded-full bg-black z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+
+            {/* Circular Number Markers (Precise Geometry) */}
             {(activeMode === 'hours' ? hoursList : minutesList).map((val, idx) => {
+              // 12 o'clock is index 0 -> angle -90deg
               const angleDeg = (idx * 30) - 90;
               const angleRad = (angleDeg * Math.PI) / 180;
-              const radius = 78; // px from center
-              const x = radius * Math.cos(angleRad);
-              const y = radius * Math.sin(angleRad);
+              const radius = 80;
+              const x = Math.round(radius * Math.cos(angleRad));
+              const y = Math.round(radius * Math.sin(angleRad));
 
               const isSelected = activeMode === 'hours'
                 ? timeState.hour === val
@@ -173,19 +182,20 @@ export default function RadialClockPicker({
                   onClick={() => {
                     if (activeMode === 'hours') {
                       setTimeState(prev => ({ ...prev, hour: val }));
-                      // Switch to minutes after choosing hour
                       setActiveMode('minutes');
                     } else {
                       setTimeState(prev => ({ ...prev, minute: val }));
                     }
                   }}
                   style={{
-                    transform: `translate(${x}px, ${y}px)`
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
                   }}
-                  className={`absolute w-7 h-7 rounded-full flex items-center justify-center font-mono text-xs font-black cursor-pointer transition-all z-20 ${
+                  className={`absolute w-8 h-8 rounded-full flex items-center justify-center font-mono text-xs font-black cursor-pointer transition-all z-20 ${
                     isSelected
-                      ? 'bg-[#00E599] text-black font-black scale-110'
-                      : 'text-neutral-800 hover:bg-neutral-100'
+                      ? 'text-black font-black scale-110'
+                      : 'text-neutral-800 hover:bg-neutral-100/80'
                   }`}
                 >
                   {val === 0 ? '00' : val}
