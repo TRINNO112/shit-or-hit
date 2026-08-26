@@ -59,22 +59,36 @@ import {
 } from './firebase';
 
 export async function fetchDatabase() {
-  // 1. First fetch local data from server API or localStorage
+  // 1. First fetch local data from server API (if local dev) or localStorage
   let localData = { startDate: new Date().toISOString().slice(0, 10), entries: {} };
-  try {
-    const res = await fetch(`${API_BASE}/entries`);
-    if (res.ok) {
-      const json = await res.json();
-      localData = {
-        startDate: json.startDate || new Date().toISOString().slice(0, 10),
-        entries: json.data || {}
-      };
+  const isStaticHost = typeof window !== 'undefined' && (
+    window.location.hostname.includes('github.io') ||
+    window.location.protocol === 'file:'
+  );
+
+  if (!isStaticHost) {
+    try {
+      const res = await fetch(`${API_BASE}/entries`);
+      if (res.ok) {
+        const json = await res.json();
+        localData = {
+          startDate: json.startDate || new Date().toISOString().slice(0, 10),
+          entries: json.data || {}
+        };
+      }
+    } catch (e) {
+      // Local server not running
     }
-  } catch (e) {
-    const cached = localStorage.getItem('goodness_db');
-    if (cached) {
-      try { localData = JSON.parse(cached); } catch (err) {}
-    }
+  }
+
+  const cached = localStorage.getItem('goodness_db');
+  if (cached) {
+    try { 
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.entries && Object.keys(parsed.entries).length > 0) {
+        localData = parsed;
+      }
+    } catch (err) {}
   }
 
   // 2. If user is logged in with whitelisted Firebase account, sync with Firestore

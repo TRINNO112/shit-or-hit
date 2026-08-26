@@ -21,7 +21,10 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration skipped:', err));
+          const swPath = new URL('sw.js', window.location.href).pathname;
+          navigator.serviceWorker.register(swPath).catch(() => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration skipped:', err));
+          });
         });
       }
     </script>

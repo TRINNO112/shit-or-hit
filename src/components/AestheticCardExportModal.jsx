@@ -937,11 +937,11 @@ export default function AestheticCardExportModal({
           </div>
 
           {/* Pinned Action Footer */}
-          <div className="flex items-center gap-3 pt-3 border-t-2 border-black/10 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 pt-2.5 sm:pt-3 border-t-2 border-black/10 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="py-3 px-5 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+              className="py-2.5 sm:py-3 px-3.5 sm:px-5 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
             >
               CLOSE
             </button>
@@ -950,10 +950,17 @@ export default function AestheticCardExportModal({
               type="button"
               onClick={handleDownload}
               disabled={downloading || !previewUrl}
-              className="flex-1 py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 min-w-0"
             >
-              <Download className="w-4 h-4 stroke-[3]" />
-              <span>{downloading ? 'GENERATING POSTER PNG...' : 'DOWNLOAD HIGH-RES POSTER'}</span>
+              <Download className="w-4 h-4 stroke-[3] shrink-0" />
+              <span className="truncate">
+                {downloading ? 'GENERATING POSTER...' : (
+                  <>
+                    <span className="hidden sm:inline">DOWNLOAD HIGH-RES POSTER</span>
+                    <span className="sm:hidden">DOWNLOAD POSTER</span>
+                  </>
+                )}
+              </span>
             </button>
           </div>
         </motion.div>
