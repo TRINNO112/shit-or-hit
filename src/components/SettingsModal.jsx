@@ -263,7 +263,7 @@ export default function SettingsModal({
                       Cloud Sync
                     </h4>
                     <p className="text-[11px] font-mono text-neutral-600">
-                      {user ? `Connected as ${user.email?.split('@')[0]}` : 'Offline Local Storage'}
+                      {user ? `Connected as ${user.displayName || 'Trinno'}` : 'Offline Local Storage'}
                     </p>
                   </div>
                 </div>

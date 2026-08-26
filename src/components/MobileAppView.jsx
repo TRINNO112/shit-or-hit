@@ -1356,10 +1356,10 @@ export default function MobileAppView({
                 </div>
                 <div>
                   <h4 className="font-display font-black text-sm leading-none">
-                    {user.displayName || 'Google Account'}
+                    {user.displayName || 'Trinno'}
                   </h4>
                   <span className="text-[10px] font-mono text-neutral-500 block mt-0.5">
-                    {user.email}
+                    {user.displayName === 'Trinno' ? 'trinno@cloud.sync' : user.email}
                   </span>
                 </div>
               </div>

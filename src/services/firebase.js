@@ -37,12 +37,28 @@ export function isEmailWhitelisted(email) {
 export function getUserDisplayName(email, fallbackName = null) {
   const customAlias = getCustomDisplayName();
   if (customAlias) return customAlias;
-  if (fallbackName && fallbackName.trim()) return fallbackName.trim();
+
+  // Localhost calibration or primary developer email
+  const isLocalHost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.port === '5173'
+  );
+
+  const emailLower = (email || '').toLowerCase();
+  if (emailLower.includes('pathak.amitkumar') || emailLower.includes('trinno') || isLocalHost) {
+    return 'Trinno';
+  }
+
+  if (fallbackName && fallbackName.trim() && !fallbackName.toLowerCase().includes('pathak')) {
+    return fallbackName.trim();
+  }
+
   if (email) {
     const username = email.split('@')[0];
     return username.charAt(0).toUpperCase() + username.slice(1);
   }
-  return 'Daily Operator';
+  return 'Trinno';
 }
 
 let authInstance = null;

@@ -87,7 +87,7 @@ export default function Header({
             Daily Verdict
           </h1>
           <span className="text-[11px] sm:text-xs font-mono font-bold text-neutral-600 block mt-1">
-            {isWhitelisted ? `☁️ Cloud Sync Active (${user.displayName || user.email.split('@')[0]})` : 'Day 1 starts today • Local Database Active'}
+            {isWhitelisted ? `☁️ Cloud Sync Active (${user.displayName || 'Trinno'})` : 'Day 1 starts today • Local Database Active'}
           </span>
         </div>
       </div>
@@ -109,17 +109,19 @@ export default function Header({
               className={`px-3 py-2 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
                 isWhitelisted ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-700'
               }`}
-              title={isWhitelisted ? `Cloud Synced to ${user.email}` : `Guest mode (${user.email})`}
+              title={isWhitelisted ? `Cloud Synced (${user.displayName || 'Trinno'})` : `Local mode`}
             >
               <Cloud className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="truncate max-w-[120px]">{user.displayName ? user.displayName.split(' ')[0] : 'Account'}</span>
+              <span className="truncate max-w-[120px]">{user.displayName || 'Trinno'}</span>
             </button>
 
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-60 bg-white border-2 border-black rounded-xl p-3 shadow-[4px_4px_0px_#000000] z-50 space-y-2 text-left">
                 <div className="text-[11px] font-mono font-bold text-black border-b border-black/10 pb-2">
-                  <div className="font-black truncate">{user.displayName || 'Signed In User'}</div>
-                  <div className="text-neutral-500 text-[10px] truncate">{user.email}</div>
+                  <div className="font-black truncate">{user.displayName || 'Trinno'}</div>
+                  <div className="text-neutral-500 text-[10px] truncate">
+                    {user.displayName === 'Trinno' ? 'trinno@cloud.sync' : user.email}
+                  </div>
                   <div className="mt-1">
                     {isWhitelisted ? (
                       <span className="px-1.5 py-0.5 rounded bg-[#00E599] text-black text-[9px] font-black uppercase inline-flex items-center gap-1">
