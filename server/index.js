@@ -174,8 +174,8 @@ CRITICAL INSTRUCTIONS:
 Return ONLY the complete, uncompressed polished diary entry text.`;
 
   try {
-    // Call Gemini API with user-preferred model (gemini-3.5-flash-lite / gemini-2.5-flash / gemini-1.5-flash)
-    const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+    // Call Gemini API with user-preferred model (strictly gemini-3.5-flash-lite)
+    const primaryModel = 'gemini-3.5-flash-lite';
     let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${primaryModel}:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -192,28 +192,12 @@ Return ONLY the complete, uncompressed polished diary entry text.`;
       })
     });
 
-    if (!response.ok) {
-      console.warn(`Primary model ${primaryModel} response not ok, trying gemini-2.5-flash fallback...`);
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-        })
-      });
-    }
-
-    if (!response.ok) {
-      console.warn(`Fallback to gemini-1.5-flash...`);
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-        })
-      });
+    if (response.ok) {
+      const data = await response.json();
+      const enhancedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (enhancedText && enhancedText.trim()) {
+        return res.json({ success: true, enhancedText: enhancedText.trim() });
+      }
     }
 
     if (!response.ok) {
@@ -516,7 +500,7 @@ Return ONLY a valid JSON object matching this exact schema:
 }`;
 
     try {
-      const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+      const primaryModel = 'gemini-3.5-flash-lite';
       let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${primaryModel}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -525,17 +509,6 @@ Return ONLY a valid JSON object matching this exact schema:
           generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
         })
       });
-
-      if (!response.ok) {
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
-          })
-        });
-      }
 
       if (response.ok) {
         const data = await response.json();

@@ -67,7 +67,7 @@ node bin/verdict.js 5 "Clutched the 78% Accounts unit test! Dad was proud."
 
 - **Frontend**: React 18, Vite, Tailwind CSS, Framer Motion (Spring Physics), Canvas Confetti, Lucide Icons.
 - **Backend**: Node.js, Express, Native Fetch, Watch Mode (`node --watch`).
-- **AI Engine**: Google Gemini API (`gemini-3.5-flash-lite`, `gemini-2.5-flash`, `gemini-1.5-flash` fallbacks).
+- **AI Engine**: Google Gemini API (`gemini-3.5-flash-lite`).
 - **Storage**: Local JSON Flat-File Engine (`data/entries.json`, `data/reports.json`).
 
 ---
