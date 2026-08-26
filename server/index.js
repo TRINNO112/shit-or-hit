@@ -147,7 +147,7 @@ app.post('/api/entries', (req, res) => {
 
 // AI Enhancement Endpoint for Daily Reflection
 app.post('/api/ai/enhance', async (req, res) => {
-  const { notes, rating, date } = req.body;
+  const { notes, rating, date, preferredLanguage = 'auto' } = req.body;
 
   if (!notes || notes.trim() === '') {
     return res.status(400).json({ success: false, error: 'Notes text is required for AI enhancement' });
@@ -156,6 +156,15 @@ app.post('/api/ai/enhance', async (req, res) => {
   const apiKey = GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ success: false, error: 'AI API key not configured' });
+  }
+
+  let languageRule = '';
+  if (preferredLanguage === 'english') {
+    languageRule = 'STRICT LANGUAGE MANDATE: The user has chosen ENGLISH. Write 100% in polished, natural English. Do NOT include any Hindi, Hinglish, or foreign words.';
+  } else if (preferredLanguage === 'hinglish') {
+    languageRule = 'STRICT LANGUAGE MANDATE: The user has chosen HINGLISH. Write in natural, expressive 1st-person Hinglish (Hindi in Roman script).';
+  } else {
+    languageRule = 'LANGUAGE MIRRORING MANDATE: Strictly mirror the exact language and blend of the user input. If the user wrote in standard English, you MUST output 100% pure English with ZERO Hindi/Hinglish words. If the user wrote in Hinglish, output in Hinglish. NEVER translate English notes into Hinglish.';
   }
 
   const prompt = `You are a personal diary ghostwriter.
@@ -168,11 +177,11 @@ CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
 - PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
-- MULTILINGUAL & HINGLISH MIRRORING: Detect the exact language or blend used by the user (English, Hindi, Hinglish / Romanized Hindi, etc.). You MUST write the polished diary in the EXACT SAME LANGUAGE and linguistic blend. If written in Hinglish (e.g. "aaj pura din waste ho gaya reels scroll karke"), polish it in natural, authentic, expressive 1st-person Hinglish without converting it into boring English.
+- ${languageRule}
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic, passionate voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
 
-Return ONLY the complete, uncompressed polished diary entry text.`;
+Return ONLY the complete, uncompressed polished diary entry text without quotes or preamble.`;
 
   try {
     // Call Gemini API with user-preferred model (strictly gemini-3.5-flash-lite with 3.1 fallback)

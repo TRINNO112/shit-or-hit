@@ -156,12 +156,14 @@ export async function saveEntry(entryData) {
 export async function enhanceReflectionWithAI(notes, rating, date) {
   if (!notes || notes.trim() === '') return notes;
 
+  const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+
   // 1. Try local dev backend if running
   try {
     const res = await fetch(`${API_BASE}/ai/enhance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes, rating, date })
+      body: JSON.stringify({ notes, rating, date, preferredLanguage })
     });
     if (res.ok) {
       const data = await res.json();
@@ -184,6 +186,15 @@ export async function enhanceReflectionWithAI(notes, rating, date) {
     }
 
     if (apiKey) {
+      let languageRule = '';
+      if (preferredLanguage === 'english') {
+        languageRule = 'STRICT LANGUAGE MANDATE: The user has chosen ENGLISH. Write 100% in polished, natural English. Do NOT include any Hindi, Hinglish, or foreign words.';
+      } else if (preferredLanguage === 'hinglish') {
+        languageRule = 'STRICT LANGUAGE MANDATE: The user has chosen HINGLISH. Write in natural, expressive 1st-person Hinglish (Hindi in Roman script).';
+      } else {
+        languageRule = 'LANGUAGE MIRRORING MANDATE: Strictly mirror the exact language and blend of the user input. If the user wrote in standard English, you MUST output 100% pure English with ZERO Hindi/Hinglish words. If the user wrote in Hinglish, output in Hinglish. NEVER translate English notes into Hinglish.';
+      }
+
       const prompt = `You are a personal diary ghostwriter.
 The user wrote their raw diary notes about their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
 
@@ -194,11 +205,11 @@ CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
 - PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
-- MULTILINGUAL & HINGLISH MIRRORING: Detect the exact language or blend used by the user (English, Hindi, Hinglish / Romanized Hindi, etc.). You MUST write the polished diary in the EXACT SAME LANGUAGE and linguistic blend. If written in Hinglish (e.g. "aaj pura din waste ho gaya reels scroll karke"), polish it in natural, authentic, expressive 1st-person Hinglish without converting it into boring English.
+- ${languageRule}
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
 
-Return ONLY the complete polished diary entry text.`;
+Return ONLY the complete polished diary entry text without quotes or preamble.`;
 
       let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
         method: 'POST',

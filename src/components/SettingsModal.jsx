@@ -32,15 +32,22 @@ export default function SettingsModal({
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('21:00');
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
+  const [aiLanguage, setAiLanguage] = useState('auto');
   const [notificationMsg, setNotificationMsg] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setNotificationsOn(isNotificationEnabled());
       setReminderTimeVal(getReminderTime());
+      setAiLanguage(localStorage.getItem('daily_verdict_ai_language') || 'auto');
       setNotificationMsg('');
     }
   }, [isOpen]);
+
+  const handleAiLanguageChange = (lang) => {
+    setAiLanguage(lang);
+    localStorage.setItem('daily_verdict_ai_language', lang);
+  };
 
   if (!isOpen) return null;
 
@@ -206,7 +213,46 @@ export default function SettingsModal({
                 )}
               </div>
 
-              {/* 2. Cloud Sync Profile */}
+              {/* 2. AI Ghostwriter Preferred Language */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-purple-600 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-black text-sm uppercase">
+                      AI Diary Ghostwriter Language
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600">
+                      Prevent accidental language translation
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5 pt-1">
+                  {[
+                    { id: 'auto', label: '⚡ Auto-Match', desc: 'Mirror Input' },
+                    { id: 'english', label: '🇬🇧 English', desc: 'Strict English' },
+                    { id: 'hinglish', label: '🇮🇳 Hinglish', desc: 'Hindi+English' }
+                  ].map((lang) => (
+                    <button
+                      key={lang.id}
+                      type="button"
+                      onClick={() => handleAiLanguageChange(lang.id)}
+                      className={`py-2 px-1 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${
+                        aiLanguage === lang.id
+                          ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
+                          : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
+                      }`}
+                    >
+                      <span className="block">{lang.label}</span>
+                      <span className="block text-[9px] font-normal text-neutral-600">{lang.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Cloud Sync Profile */}
               <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
@@ -228,7 +274,7 @@ export default function SettingsModal({
                 </span>
               </div>
 
-              {/* 3. PWA Status */}
+              {/* 4. PWA Status */}
               <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
