@@ -152,8 +152,8 @@ export default function RadialClockPicker({
     const inner = pointOnCircle(116, deg);
     const outer = pointOnCircle(124, deg);
     const label = pointOnCircle(139, deg);
-    const labelText = activeUnit === 'hour' 
-      ? String(i === 0 ? 12 : i) 
+    const labelText = activeUnit === 'hour'
+      ? String(i === 0 ? 12 : i)
       : pad(i * 5 === 60 ? 0 : i * 5);
     return { deg, inner, outer, label, labelText, i };
   });
@@ -212,16 +212,15 @@ export default function RadialClockPicker({
 
           {/* Digital Time Readout + Unit Switcher */}
           <div className="bg-white border-2 border-black p-2 rounded-2xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-1.5">
-            
+
             {/* Hours Box */}
             <button
               type="button"
               onClick={() => setActiveUnit('hour')}
-              className={`flex-1 py-1 rounded-xl font-display font-black text-xl transition-all cursor-pointer ${
-                activeUnit === 'hour'
-                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000] scale-[1.02]'
-                  : 'bg-neutral-100 text-neutral-600 hover:text-black border border-black/10'
-              }`}
+              className={`flex-1 py-1 rounded-xl font-display font-black text-xl transition-all cursor-pointer ${activeUnit === 'hour'
+                ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000] scale-[1.02]'
+                : 'bg-neutral-100 text-neutral-600 hover:text-black border border-black/10'
+                }`}
             >
               {pad(hour)}
             </button>
@@ -242,11 +241,10 @@ export default function RadialClockPicker({
               <button
                 type="button"
                 onClick={() => setActiveUnit('minute')}
-                className={`flex-1 py-1 rounded-xl font-display font-black text-xl transition-all cursor-pointer ${
-                  activeUnit === 'minute'
-                    ? 'bg-[#00E599] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000] scale-[1.02]'
-                    : 'bg-neutral-100 text-neutral-600 hover:text-black border border-black/10'
-                }`}
+                className={`flex-1 py-1 rounded-xl font-display font-black text-xl transition-all cursor-pointer ${activeUnit === 'minute'
+                  ? 'bg-[#00E599] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000] scale-[1.02]'
+                  : 'bg-neutral-100 text-neutral-600 hover:text-black border border-black/10'
+                  }`}
               >
                 {pad(minute)}
               </button>
@@ -266,22 +264,20 @@ export default function RadialClockPicker({
               <button
                 type="button"
                 onClick={() => setIsPM(false)}
-                className={`px-2 py-0.5 rounded-lg font-mono text-[11px] font-black cursor-pointer transition-all border ${
-                  !isPM
-                    ? 'bg-black text-[#FDC800] border-black shadow-[1px_1px_0px_#000000]'
-                    : 'bg-neutral-100 text-neutral-500 border-black/20 hover:bg-neutral-200'
-                }`}
+                className={`px-2 py-0.5 rounded-lg font-mono text-[11px] font-black cursor-pointer transition-all border ${!isPM
+                  ? 'bg-black text-[#FDC800] border-black shadow-[1px_1px_0px_#000000]'
+                  : 'bg-neutral-100 text-neutral-500 border-black/20 hover:bg-neutral-200'
+                  }`}
               >
                 AM
               </button>
               <button
                 type="button"
                 onClick={() => setIsPM(true)}
-                className={`px-2 py-0.5 rounded-lg font-mono text-[11px] font-black cursor-pointer transition-all border ${
-                  isPM
-                    ? 'bg-black text-[#FDC800] border-black shadow-[1px_1px_0px_#000000]'
-                    : 'bg-neutral-100 text-neutral-500 border-black/20 hover:bg-neutral-200'
-                }`}
+                className={`px-2 py-0.5 rounded-lg font-mono text-[11px] font-black cursor-pointer transition-all border ${isPM
+                  ? 'bg-black text-[#FDC800] border-black shadow-[1px_1px_0px_#000000]'
+                  : 'bg-neutral-100 text-neutral-500 border-black/20 hover:bg-neutral-200'
+                  }`}
               >
                 PM
               </button>
@@ -419,11 +415,10 @@ export default function RadialClockPicker({
                   setMinute(item.m);
                   setIsPM(item.pm);
                 }}
-                className={`py-1 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${
-                  hour === item.h && minute === item.m && isPM === item.pm
-                    ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1px_1px_0px_#000000]'
-                    : 'bg-white hover:bg-neutral-100 text-neutral-700'
-                }`}
+                className={`py-1 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${hour === item.h && minute === item.m && isPM === item.pm
+                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1px_1px_0px_#000000]'
+                  : 'bg-white hover:bg-neutral-100 text-neutral-700'
+                  }`}
               >
                 {item.label}
               </button>
