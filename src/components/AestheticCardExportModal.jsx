@@ -67,6 +67,7 @@ export default function AestheticCardExportModal({
   const [selectedDateStr, setSelectedDateStr] = useState(dateStr || new Date().toISOString().slice(0, 10));
   const [creatorName, setCreatorName] = useState(displayName || 'Daily Operator');
   const [customMascotImg, setCustomMascotImg] = useState(null);
+  const [loadedMascotImg, setLoadedMascotImg] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const canvasRef = useRef(null);
@@ -101,6 +102,36 @@ export default function AestheticCardExportModal({
     year: 'numeric'
   });
 
+  // Calculate robust relative mascot URL
+  const rawMascotPath = MASCOT_MAP[rating] || MASCOT_MAP[3];
+  const base = import.meta.env.BASE_URL || '/';
+  const cleanBase = base.endsWith('/') ? base : `${base}/`;
+  const relMascot = rawMascotPath.replace(/^\//, '');
+  const mascotUrl = `${cleanBase}${relMascot}`;
+
+  // Preload mascot sticker into state so Canvas NEVER paints an empty/unloaded image!
+  useEffect(() => {
+    if (customMascotImg) {
+      setLoadedMascotImg(customMascotImg);
+      return;
+    }
+    let active = true;
+    const img = new Image();
+    img.onload = () => {
+      if (active) {
+        setLoadedMascotImg(img);
+      }
+    };
+    img.onerror = (e) => {
+      console.error('Failed to load mascot sticker:', mascotUrl, e);
+    };
+    img.src = mascotUrl;
+
+    return () => {
+      active = false;
+    };
+  }, [mascotUrl, customMascotImg]);
+
   const handleShiftDay = (delta) => {
     const cur = new Date(`${selectedDateStr}T00:00:00`);
     cur.setDate(cur.getDate() + delta);
@@ -125,7 +156,7 @@ export default function AestheticCardExportModal({
     }
   };
 
-  // Master Canvas Drawing Engine (Mega Mascot Mode + Dynamic Creator Watermark)
+  // Master Canvas Drawing Engine
   useEffect(() => {
     if (!isOpen) return;
 
@@ -234,459 +265,446 @@ export default function AestheticCardExportModal({
     };
     const currentMood = moodMeta[rating] || moodMeta[3];
     const punchline = MOOD_PUNCHLINES[rating] || MOOD_PUNCHLINES[3];
+    const authorWatermark = (creatorName && creatorName.trim()) ? creatorName.trim().toUpperCase() : 'DAILY OPERATOR';
 
-    // Robust relative path resolution for mascots across all hosting environments
-    const base = import.meta.env.BASE_URL || '/';
-    const cleanBase = base.endsWith('/') ? base : `${base}/`;
-    const relMascot = (MASCOT_MAP[rating] || MASCOT_MAP[3]).replace(/^\//, '');
-    const mascotPath = `${cleanBase}${relMascot}`;
+    // =========================================================================
+    // 📱 FORMAT A: 9:16 PHONE WALLPAPER (1080 x 1920)
+    // =========================================================================
+    if (format === 'wallpaper') {
+      const topY = 90;
 
-    const mascotImg = customMascotImg || new Image();
+      // Top Status Badge & Tape
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      ctx.fillRect(60, topY, 260, 44);
+      ctx.fillStyle = isDark ? '#000000' : '#FDC800';
+      ctx.font = '900 18px "JetBrains Mono", monospace';
+      ctx.fillText('⚡ DAILY VERDICT OS', 76, topY + 28);
 
-    const drawCompleteCanvas = () => {
+      // Date Display
+      ctx.fillStyle = isDark ? '#A0AEC0' : '#111111';
+      ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText(formattedDate.toUpperCase(), 340, topY + 30);
 
-      // =========================================================================
-      // 📱 FORMAT A: 9:16 PHONE WALLPAPER (1080 x 1920)
-      // =========================================================================
-      if (format === 'wallpaper') {
-        const topY = 90;
+      // Day Streak Pill on Top Right
+      ctx.fillStyle = isDark ? theme.accent : '#00E599';
+      ctx.fillRect(width - 280, topY - 10, 220, 64);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(width - 280, topY - 10, 220, 64);
+      ctx.fillStyle = '#000000';
+      ctx.font = '900 32px "Outfit", sans-serif';
+      ctx.fillText(`DAY ${activeDayCount}`, width - 250, topY + 33);
 
-        // Top Status Badge & Tape
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.fillRect(60, topY, 260, 44);
-        ctx.fillStyle = isDark ? '#000000' : '#FDC800';
-        ctx.font = '900 18px "JetBrains Mono", monospace';
-        ctx.fillText('⚡ DAILY VERDICT OS', 76, topY + 28);
+      // Giant Background Day Typographic Watermark
+      ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)';
+      ctx.font = '900 320px "Outfit", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`0${activeDayCount}`.slice(-2), width / 2, 500);
+      ctx.textAlign = 'left';
 
-        // Date Display
-        ctx.fillStyle = isDark ? '#A0AEC0' : '#111111';
-        ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
-        ctx.fillText(formattedDate.toUpperCase(), 340, topY + 30);
+      // Rating Stars Banner
+      const heroY = 230;
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      ctx.font = '900 48px sans-serif';
+      const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+      ctx.fillText(stars, 60, heroY);
 
-        // Day Streak Pill on Top Right
-        ctx.fillStyle = isDark ? theme.accent : '#00E599';
-        ctx.fillRect(width - 280, topY - 10, 220, 64);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(width - 280, topY - 10, 220, 64);
-        ctx.fillStyle = '#000000';
-        ctx.font = '900 32px "Outfit", sans-serif';
-        ctx.fillText(`DAY ${activeDayCount}`, width - 250, topY + 33);
+      // Massive Stylized Verdict Title
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+      ctx.font = '900 108px "Outfit", sans-serif';
+      ctx.fillText(verdict.toUpperCase(), 60, heroY + 105);
 
-        // Giant Background Day Typographic Watermark
-        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)';
-        ctx.font = '900 320px "Outfit", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`0${activeDayCount}`.slice(-2), width / 2, 500);
-        ctx.textAlign = 'left';
+      // Score & Archetype Pill
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      ctx.font = '800 24px "JetBrains Mono", monospace';
+      ctx.fillText(`SCORE: ${rating}.0 / 5.0  •  ${currentMood.tag}`, 60, heroY + 155);
 
-        // Rating Stars Banner
-        const heroY = 230;
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '900 48px sans-serif';
-        const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-        ctx.fillText(stars, 60, heroY);
+      // -----------------------------------------------------------------------
+      // CASE 1: USER HAS NO DIARY NOTES -> MEGA MASCOT SPOTLIGHT POSTER
+      // -----------------------------------------------------------------------
+      if (!hasNotes) {
+        const megaSize = 780;
+        const megaX = (width - megaSize) / 2;
+        const megaY = 460;
 
-        // Massive Stylized Verdict Title
-        ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 108px "Outfit", sans-serif';
-        ctx.fillText(verdict.toUpperCase(), 60, heroY + 105);
-
-        // Score & Archetype Pill
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '800 24px "JetBrains Mono", monospace';
-        ctx.fillText(`SCORE: ${rating}.0 / 5.0  •  ${currentMood.tag}`, 60, heroY + 155);
-
-        // -----------------------------------------------------------------------
-        // CASE 1: USER HAS NO DIARY NOTES -> MEGA MASCOT SPOTLIGHT POSTER
-        // -----------------------------------------------------------------------
-        if (!hasNotes) {
-          const megaSize = 780;
-          const megaX = (width - megaSize) / 2;
-          const megaY = 460;
-
+        if (loadedMascotImg) {
           ctx.save();
           ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.3)';
           ctx.shadowBlur = isDark ? 55 : 30;
           ctx.shadowOffsetY = 15;
           try {
-            ctx.drawImage(mascotImg, megaX, megaY, megaSize, megaSize);
+            ctx.drawImage(loadedMascotImg, megaX, megaY, megaSize, megaSize);
           } catch (err) {}
           ctx.restore();
+        }
 
-          // Punchline Banner (Aggressive & Punchy)
-          const punchY = 1320;
-          const punchWidth = width - 120;
-          const punchHeight = 160;
+        // Punchline Banner (Aggressive & Punchy)
+        const punchY = 1320;
+        const punchWidth = width - 120;
+        const punchHeight = 160;
 
-          ctx.fillStyle = isDark ? 'rgba(0,0,0,0.6)' : '#000000';
-          ctx.fillRect(68, punchY + 10, punchWidth, punchHeight);
+        ctx.fillStyle = isDark ? 'rgba(0,0,0,0.6)' : '#000000';
+        ctx.fillRect(68, punchY + 10, punchWidth, punchHeight);
 
-          ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
-          ctx.fillRect(60, punchY, punchWidth, punchHeight);
-          ctx.strokeStyle = isDark ? theme.accent : '#000000';
-          ctx.lineWidth = isDark ? 4 : 5;
-          ctx.strokeRect(60, punchY, punchWidth, punchHeight);
+        ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
+        ctx.fillRect(60, punchY, punchWidth, punchHeight);
+        ctx.strokeStyle = isDark ? theme.accent : '#000000';
+        ctx.lineWidth = isDark ? 4 : 5;
+        ctx.strokeRect(60, punchY, punchWidth, punchHeight);
 
-          // Punchline Tape Header
-          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
-          ctx.fillRect(90, punchY + 22, 280, 40);
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(90, punchY + 22, 280, 40);
+        // Punchline Tape Header
+        ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+        ctx.fillRect(90, punchY + 22, 280, 40);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(90, punchY + 22, 280, 40);
+        ctx.fillStyle = '#000000';
+        ctx.font = '900 17px "JetBrains Mono", monospace';
+        ctx.fillText('⚡ DAILY DIRECTIVE', 106, punchY + 48);
+
+        // High-Energy Punchline Text
+        ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+        ctx.font = '900 32px "Outfit", sans-serif';
+        ctx.fillText(punchline, 95, punchY + 115);
+
+        // 3 Metric Pills below Punchline
+        const statsY = 1520;
+        const pillWidth = (width - 160) / 3;
+
+        const statPills = [
+          { label: 'STREAK', val: `${activeDayCount} DAYS`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+          { label: 'SCORE', val: `${rating}.0 / 5.0`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+          { label: 'ARCHETYPE', val: currentMood.persona, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' }
+        ];
+
+        statPills.forEach((p, idx) => {
+          const px = 60 + idx * (pillWidth + 20);
           ctx.fillStyle = '#000000';
-          ctx.font = '900 17px "JetBrains Mono", monospace';
-          ctx.fillText('⚡ DAILY DIRECTIVE', 106, punchY + 48);
+          ctx.fillRect(px + 4, statsY + 4, pillWidth, 76);
+          ctx.fillStyle = p.bg;
+          ctx.fillRect(px, statsY, pillWidth, 76);
+          ctx.strokeStyle = p.border;
+          ctx.lineWidth = 3.5;
+          ctx.strokeRect(px, statsY, pillWidth, 76);
 
-          // High-Energy Punchline Text
+          ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
+          ctx.font = '800 16px "JetBrains Mono", monospace';
+          ctx.fillText(p.label, px + 16, statsY + 28);
+
           ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-          ctx.font = '900 32px "Outfit", sans-serif';
-          ctx.fillText(punchline, 95, punchY + 115);
+          ctx.font = '900 20px "Outfit", sans-serif';
+          ctx.fillText(p.val, px + 16, statsY + 56);
+        });
+      } 
+      
+      // -----------------------------------------------------------------------
+      // CASE 2: USER HAS WRITTEN DIARY REFLECTION -> RENDER NOTE WITH PUNCHLINE
+      // -----------------------------------------------------------------------
+      else {
+        const mascotSize = 560;
+        const mascotX = (width - mascotSize) / 2;
+        const mascotY = 410;
 
-          // 3 Metric Pills below Punchline
-          const statsY = 1520;
-          const pillWidth = (width - 160) / 3;
-
-          const statPills = [
-            { label: 'STREAK', val: `${activeDayCount} DAYS`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
-            { label: 'SCORE', val: `${rating}.0 / 5.0`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
-            { label: 'ARCHETYPE', val: currentMood.persona, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' }
-          ];
-
-          statPills.forEach((p, idx) => {
-            const px = 60 + idx * (pillWidth + 20);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(px + 4, statsY + 4, pillWidth, 76);
-            ctx.fillStyle = p.bg;
-            ctx.fillRect(px, statsY, pillWidth, 76);
-            ctx.strokeStyle = p.border;
-            ctx.lineWidth = 3.5;
-            ctx.strokeRect(px, statsY, pillWidth, 76);
-
-            ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
-            ctx.font = '800 16px "JetBrains Mono", monospace';
-            ctx.fillText(p.label, px + 16, statsY + 28);
-
-            ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-            ctx.font = '900 20px "Outfit", sans-serif';
-            ctx.fillText(p.val, px + 16, statsY + 56);
-          });
-        } 
-        
-        // -----------------------------------------------------------------------
-        // CASE 2: USER HAS WRITTEN DIARY REFLECTION -> RENDER NOTE WITH PUNCHLINE
-        // -----------------------------------------------------------------------
-        else {
-          const mascotSize = 560;
-          const mascotX = (width - mascotSize) / 2;
-          const mascotY = 410;
-
+        if (loadedMascotImg) {
           ctx.save();
           ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
           ctx.shadowBlur = isDark ? 45 : 25;
           ctx.shadowOffsetY = 12;
           try {
-            ctx.drawImage(mascotImg, mascotX, mascotY, mascotSize, mascotSize);
+            ctx.drawImage(loadedMascotImg, mascotX, mascotY, mascotSize, mascotSize);
           } catch (err) {}
           ctx.restore();
-
-          // 3 Metric Pills
-          const statsY = 1010;
-          const pillWidth = (width - 160) / 3;
-
-          const statPills = [
-            { label: 'STREAK', val: `${activeDayCount} DAYS`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
-            { label: 'SCORE', val: `${rating}.0 / 5.0`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
-            { label: 'TIER', val: currentMood.persona, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' }
-          ];
-
-          statPills.forEach((p, idx) => {
-            const px = 60 + idx * (pillWidth + 20);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(px + 4, statsY + 4, pillWidth, 72);
-            ctx.fillStyle = p.bg;
-            ctx.fillRect(px, statsY, pillWidth, 72);
-            ctx.strokeStyle = p.border;
-            ctx.lineWidth = 3.5;
-            ctx.strokeRect(px, statsY, pillWidth, 72);
-
-            ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
-            ctx.font = '800 15px "JetBrains Mono", monospace';
-            ctx.fillText(p.label, px + 16, statsY + 26);
-
-            ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-            ctx.font = '900 19px "Outfit", sans-serif';
-            ctx.fillText(p.val, px + 16, statsY + 52);
-          });
-
-          // Reflection Box
-          const quoteY = 1110;
-          const quoteWidth = width - 120;
-          const quoteHeight = 580;
-
-          ctx.fillStyle = isDark ? 'rgba(0,0,0,0.6)' : '#000000';
-          ctx.fillRect(68, quoteY + 10, quoteWidth, quoteHeight);
-
-          ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
-          ctx.fillRect(60, quoteY, quoteWidth, quoteHeight);
-          ctx.strokeStyle = isDark ? theme.accent : '#000000';
-          ctx.lineWidth = isDark ? 4 : 5;
-          ctx.strokeRect(60, quoteY, quoteWidth, quoteHeight);
-
-          // Header Tape
-          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
-          ctx.fillRect(90, quoteY + 26, 300, 42);
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 3;
-          ctx.strokeRect(90, quoteY + 26, 300, 42);
-          ctx.fillStyle = '#000000';
-          ctx.font = '900 18px "JetBrains Mono", monospace';
-          ctx.fillText('📖 RAW DIARY REFLECTION', 106, quoteY + 53);
-
-          // Big Quotation Mark
-          ctx.fillStyle = isDark ? 'rgba(0, 229, 153, 0.15)' : 'rgba(0, 0, 0, 0.08)';
-          ctx.font = '900 140px Georgia, serif';
-          ctx.fillText('“', 90, quoteY + 160);
-
-          // Notes Wrap
-          ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
-          ctx.font = '600 30px "Plus Jakarta Sans", monospace';
-          const maxTextWidth = quoteWidth - 80;
-          const words = rawNotes.split(' ');
-          let line = '';
-          let textY = quoteY + 130;
-          const lineHeight = 48;
-          const maxLines = 8;
-          let linesCount = 0;
-
-          for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > maxTextWidth && n > 0) {
-              ctx.fillText(line, 95, textY);
-              line = words[n] + ' ';
-              textY += lineHeight;
-              linesCount++;
-              if (linesCount >= maxLines) {
-                line += '...';
-                break;
-              }
-            } else {
-              line = testLine;
-            }
-          }
-          ctx.fillText(line, 95, textY);
         }
 
-        // Footer Barcode & Dynamic Creator Identity
-        const footerY = 1830;
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        const barcodeX = width - 260;
-        const barcodeWidths = [4, 8, 2, 6, 12, 4, 8, 2, 10, 4, 6, 8, 4, 12, 6, 4];
-        let curX = barcodeX;
-        for (let b = 0; b < barcodeWidths.length; b++) {
-          ctx.fillRect(curX, footerY - 40, barcodeWidths[b], 40);
-          curX += barcodeWidths[b] + 4;
-        }
+        // 3 Metric Pills
+        const statsY = 1010;
+        const pillWidth = (width - 160) / 3;
 
-        ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 24px "Outfit", sans-serif';
-        ctx.fillText(`LOGGED BY ${(creatorName || 'DAILY OPERATOR').toUpperCase()}`, 60, footerY - 15);
+        const statPills = [
+          { label: 'STREAK', val: `${activeDayCount} DAYS`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+          { label: 'SCORE', val: `${rating}.0 / 5.0`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+          { label: 'TIER', val: currentMood.persona, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' }
+        ];
 
-        ctx.fillStyle = isDark ? '#94A3B8' : '#666666';
-        ctx.font = '700 18px "JetBrains Mono", monospace';
-        ctx.fillText('VERDICT OS • UNFILTERED ACCOUNTABILITY ENGINE', 60, footerY + 15);
-      } 
-      
-      // =========================================================================
-      // 📸 FORMAT B: 1:1 SOCIAL CARD (1080 x 1080)
-      // =========================================================================
-      else {
-        const topY = 70;
-
-        // Top Status Header
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.fillRect(50, topY, 230, 40);
-        ctx.fillStyle = isDark ? '#000000' : '#FDC800';
-        ctx.font = '900 17px "JetBrains Mono", monospace';
-        ctx.fillText('⚡ DAILY VERDICT', 64, topY + 26);
-
-        // Date Display
-        ctx.fillStyle = isDark ? '#A0AEC0' : '#111111';
-        ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
-        ctx.fillText(formattedDate.toUpperCase(), 300, topY + 27);
-
-        // Left Column (50px to 530px)
-        const leftX = 50;
-        const leftY = 150;
-
-        // Day Streak Badge
-        ctx.fillStyle = isDark ? theme.accent : '#00E599';
-        ctx.fillRect(leftX, leftY, 180, 52);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3.5;
-        ctx.strokeRect(leftX, leftY, 180, 52);
-        ctx.fillStyle = '#000000';
-        ctx.font = '900 30px "Outfit", sans-serif';
-        ctx.fillText(`DAY ${activeDayCount}`, leftX + 26, leftY + 37);
-
-        // Stars
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '900 40px sans-serif';
-        const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-        ctx.fillText(stars, leftX + 205, leftY + 38);
-
-        // Huge Verdict Title
-        ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 92px "Outfit", sans-serif';
-        ctx.fillText(verdict.toUpperCase(), leftX, leftY + 135);
-
-        // Subtitle
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        ctx.font = '800 22px "JetBrains Mono", monospace';
-        ctx.fillText(`SCORE: ${rating}.0/5.0  •  ${currentMood.persona}`, leftX, leftY + 180);
-
-        // Left Box Content (Either Notes or Punchline Directive!)
-        const boxY = leftY + 215;
-        const boxWidth = 470;
-        const boxHeight = 485;
-
-        ctx.fillStyle = isDark ? 'rgba(0,0,0,0.5)' : '#000000';
-        ctx.fillRect(leftX + 6, boxY + 6, boxWidth, boxHeight);
-
-        ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
-        ctx.fillRect(leftX, boxY, boxWidth, boxHeight);
-        ctx.strokeStyle = isDark ? theme.accent : '#000000';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(leftX, boxY, boxWidth, boxHeight);
-
-        if (hasNotes) {
-          // Tape Badge
-          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
-          ctx.fillRect(leftX + 20, boxY + 20, 250, 38);
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(leftX + 20, boxY + 20, 250, 38);
+        statPills.forEach((p, idx) => {
+          const px = 60 + idx * (pillWidth + 20);
           ctx.fillStyle = '#000000';
-          ctx.font = '900 16px "JetBrains Mono", monospace';
-          ctx.fillText('📖 RAW REFLECTION', leftX + 32, boxY + 45);
+          ctx.fillRect(px + 4, statsY + 4, pillWidth, 72);
+          ctx.fillStyle = p.bg;
+          ctx.fillRect(px, statsY, pillWidth, 72);
+          ctx.strokeStyle = p.border;
+          ctx.lineWidth = 3.5;
+          ctx.strokeRect(px, statsY, pillWidth, 72);
 
-          // Notes
-          ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
-          ctx.font = '600 25px "Plus Jakarta Sans", monospace';
-          const maxTextWidth = boxWidth - 45;
-          const words = rawNotes.split(' ');
-          let line = '';
-          let textY = boxY + 105;
-          const lineHeight = 40;
-          const maxLines = 7;
-          let linesCount = 0;
-
-          for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > maxTextWidth && n > 0) {
-              ctx.fillText(line, leftX + 22, textY);
-              line = words[n] + ' ';
-              textY += lineHeight;
-              linesCount++;
-              if (linesCount >= maxLines) {
-                line += '...';
-                break;
-              }
-            } else {
-              line = testLine;
-            }
-          }
-          ctx.fillText(line, leftX + 22, textY);
-        } else {
-          // No Notes -> Render Directive Punchline in Left Card
-          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
-          ctx.fillRect(leftX + 20, boxY + 24, 250, 38);
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(leftX + 20, boxY + 24, 250, 38);
-          ctx.fillStyle = '#000000';
-          ctx.font = '900 16px "JetBrains Mono", monospace';
-          ctx.fillText('⚡ DAILY DIRECTIVE', leftX + 32, boxY + 49);
+          ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
+          ctx.font = '800 15px "JetBrains Mono", monospace';
+          ctx.fillText(p.label, px + 16, statsY + 26);
 
           ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-          ctx.font = '900 32px "Outfit", sans-serif';
-          
-          const words = punchline.split(' ');
-          let line = '';
-          let textY = boxY + 130;
-          const lineHeight = 46;
-          for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > (boxWidth - 45) && n > 0) {
-              ctx.fillText(line, leftX + 22, textY);
-              line = words[n] + ' ';
-              textY += lineHeight;
-            } else {
-              line = testLine;
+          ctx.font = '900 19px "Outfit", sans-serif';
+          ctx.fillText(p.val, px + 16, statsY + 52);
+        });
+
+        // Reflection Box
+        const quoteY = 1110;
+        const quoteWidth = width - 120;
+        const quoteHeight = 580;
+
+        ctx.fillStyle = isDark ? 'rgba(0,0,0,0.6)' : '#000000';
+        ctx.fillRect(68, quoteY + 10, quoteWidth, quoteHeight);
+
+        ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
+        ctx.fillRect(60, quoteY, quoteWidth, quoteHeight);
+        ctx.strokeStyle = isDark ? theme.accent : '#000000';
+        ctx.lineWidth = isDark ? 4 : 5;
+        ctx.strokeRect(60, quoteY, quoteWidth, quoteHeight);
+
+        // Header Tape
+        ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+        ctx.fillRect(90, quoteY + 26, 300, 42);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(90, quoteY + 26, 300, 42);
+        ctx.fillStyle = '#000000';
+        ctx.font = '900 18px "JetBrains Mono", monospace';
+        ctx.fillText('📖 RAW DIARY REFLECTION', 106, quoteY + 53);
+
+        // Big Quotation Mark
+        ctx.fillStyle = isDark ? 'rgba(0, 229, 153, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+        ctx.font = '900 140px Georgia, serif';
+        ctx.fillText('“', 90, quoteY + 160);
+
+        // Notes Wrap
+        ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
+        ctx.font = '600 30px "Plus Jakarta Sans", monospace';
+        const maxTextWidth = quoteWidth - 80;
+        const words = rawNotes.split(' ');
+        let line = '';
+        let textY = quoteY + 130;
+        const lineHeight = 48;
+        const maxLines = 8;
+        let linesCount = 0;
+
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxTextWidth && n > 0) {
+            ctx.fillText(line, 95, textY);
+            line = words[n] + ' ';
+            textY += lineHeight;
+            linesCount++;
+            if (linesCount >= maxLines) {
+              line += '...';
+              break;
             }
+          } else {
+            line = testLine;
           }
-          ctx.fillText(line, leftX + 22, textY);
         }
+        ctx.fillText(line, 95, textY);
+      }
 
-        // Mini Matrix Equalizer in Left Box
-        const eqY = boxY + boxHeight - 55;
-        for (let i = 0; i < 7; i++) {
-          const dotX = leftX + 22 + i * 36;
-          const isFilled = i <= (rating + 1);
-          ctx.fillStyle = isFilled ? (isDark ? theme.accent : '#000000') : (isDark ? '#2A3447' : '#E2E8F0');
-          ctx.fillRect(dotX, eqY, 24, 18);
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(dotX, eqY, 24, 18);
+      // Footer Barcode & Dynamic Creator Identity
+      const footerY = 1830;
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      const barcodeX = width - 260;
+      const barcodeWidths = [4, 8, 2, 6, 12, 4, 8, 2, 10, 4, 6, 8, 4, 12, 6, 4];
+      let curX = barcodeX;
+      for (let b = 0; b < barcodeWidths.length; b++) {
+        ctx.fillRect(curX, footerY - 40, barcodeWidths[b], 40);
+        curX += barcodeWidths[b] + 4;
+      }
+
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+      ctx.font = '900 24px "Outfit", sans-serif';
+      ctx.fillText(`LOGGED BY ${authorWatermark}`, 60, footerY - 15);
+
+      ctx.fillStyle = isDark ? '#94A3B8' : '#666666';
+      ctx.font = '700 18px "JetBrains Mono", monospace';
+      ctx.fillText('VERDICT OS • UNFILTERED ACCOUNTABILITY ENGINE', 60, footerY + 15);
+    } 
+    
+    // =========================================================================
+    // 📸 FORMAT B: 1:1 SOCIAL CARD (1080 x 1080)
+    // =========================================================================
+    else {
+      const topY = 70;
+
+      // Top Status Header
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      ctx.fillRect(50, topY, 230, 40);
+      ctx.fillStyle = isDark ? '#000000' : '#FDC800';
+      ctx.font = '900 17px "JetBrains Mono", monospace';
+      ctx.fillText('⚡ DAILY VERDICT', 64, topY + 26);
+
+      // Date Display
+      ctx.fillStyle = isDark ? '#A0AEC0' : '#111111';
+      ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
+      ctx.fillText(formattedDate.toUpperCase(), 300, topY + 27);
+
+      // Left Column (50px to 530px)
+      const leftX = 50;
+      const leftY = 150;
+
+      // Day Streak Badge
+      ctx.fillStyle = isDark ? theme.accent : '#00E599';
+      ctx.fillRect(leftX, leftY, 180, 52);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3.5;
+      ctx.strokeRect(leftX, leftY, 180, 52);
+      ctx.fillStyle = '#000000';
+      ctx.font = '900 30px "Outfit", sans-serif';
+      ctx.fillText(`DAY ${activeDayCount}`, leftX + 26, leftY + 37);
+
+      // Stars
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      ctx.font = '900 40px sans-serif';
+      const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+      ctx.fillText(stars, leftX + 205, leftY + 38);
+
+      // Huge Verdict Title
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+      ctx.font = '900 92px "Outfit", sans-serif';
+      ctx.fillText(verdict.toUpperCase(), leftX, leftY + 135);
+
+      // Subtitle
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      ctx.font = '800 22px "JetBrains Mono", monospace';
+      ctx.fillText(`SCORE: ${rating}.0/5.0  •  ${currentMood.persona}`, leftX, leftY + 180);
+
+      // Left Box Content (Either Notes or Punchline Directive!)
+      const boxY = leftY + 215;
+      const boxWidth = 470;
+      const boxHeight = 485;
+
+      ctx.fillStyle = isDark ? 'rgba(0,0,0,0.5)' : '#000000';
+      ctx.fillRect(leftX + 6, boxY + 6, boxWidth, boxHeight);
+
+      ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
+      ctx.fillRect(leftX, boxY, boxWidth, boxHeight);
+      ctx.strokeStyle = isDark ? theme.accent : '#000000';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(leftX, boxY, boxWidth, boxHeight);
+
+      if (hasNotes) {
+        // Tape Badge
+        ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+        ctx.fillRect(leftX + 20, boxY + 20, 250, 38);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(leftX + 20, boxY + 20, 250, 38);
+        ctx.fillStyle = '#000000';
+        ctx.font = '900 16px "JetBrains Mono", monospace';
+        ctx.fillText('📖 RAW REFLECTION', leftX + 32, boxY + 45);
+
+        // Notes
+        ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
+        ctx.font = '600 25px "Plus Jakarta Sans", monospace';
+        const maxTextWidth = boxWidth - 45;
+        const words = rawNotes.split(' ');
+        let line = '';
+        let textY = boxY + 105;
+        const lineHeight = 40;
+        const maxLines = 7;
+        let linesCount = 0;
+
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxTextWidth && n > 0) {
+            ctx.fillText(line, leftX + 22, textY);
+            line = words[n] + ' ';
+            textY += lineHeight;
+            linesCount++;
+            if (linesCount >= maxLines) {
+              line += '...';
+              break;
+            }
+          } else {
+            line = testLine;
+          }
         }
+        ctx.fillText(line, leftX + 22, textY);
+      } else {
+        // No Notes -> Render Directive Punchline in Left Card
+        ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+        ctx.fillRect(leftX + 20, boxY + 24, 250, 38);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(leftX + 20, boxY + 24, 250, 38);
+        ctx.fillStyle = '#000000';
+        ctx.font = '900 16px "JetBrains Mono", monospace';
+        ctx.fillText('⚡ DAILY DIRECTIVE', leftX + 32, boxY + 49);
 
-        // Right Column: Mascot Aligned Harmoniously with Left Box Level (y: 220 to 850)
-        const mascotSize = 560;
-        const mascotX = 510;
-        const mascotY = 220;
+        ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+        ctx.font = '900 32px "Outfit", sans-serif';
+        
+        const words = punchline.split(' ');
+        let line = '';
+        let textY = boxY + 130;
+        const lineHeight = 46;
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > (boxWidth - 45) && n > 0) {
+            ctx.fillText(line, leftX + 22, textY);
+            line = words[n] + ' ';
+            textY += lineHeight;
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, leftX + 22, textY);
+      }
 
+      // Mini Matrix Equalizer in Left Box
+      const eqY = boxY + boxHeight - 55;
+      for (let i = 0; i < 7; i++) {
+        const dotX = leftX + 22 + i * 36;
+        const isFilled = i <= (rating + 1);
+        ctx.fillStyle = isFilled ? (isDark ? theme.accent : '#000000') : (isDark ? '#2A3447' : '#E2E8F0');
+        ctx.fillRect(dotX, eqY, 24, 18);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(dotX, eqY, 24, 18);
+      }
+
+      // Right Column: Mascot Aligned Harmoniously with Left Box Level (y: 220 to 850)
+      const mascotSize = 560;
+      const mascotX = 510;
+      const mascotY = 220;
+
+      if (loadedMascotImg) {
         ctx.save();
         ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
         ctx.shadowBlur = isDark ? 40 : 20;
         ctx.shadowOffsetY = 10;
         try {
-          ctx.drawImage(mascotImg, mascotX, mascotY, mascotSize, mascotSize);
+          ctx.drawImage(loadedMascotImg, mascotX, mascotY, mascotSize, mascotSize);
         } catch (err) {}
         ctx.restore();
-
-        // Footer Barcode & Identity
-        const footerY = 1010;
-        ctx.fillStyle = isDark ? theme.accent : '#000000';
-        const barcodeX = width - 240;
-        const barcodeWidths = [4, 8, 2, 6, 12, 4, 8, 2, 10, 4, 6, 8, 4, 12, 6, 4];
-        let curX = barcodeX;
-        for (let b = 0; b < barcodeWidths.length; b++) {
-          ctx.fillRect(curX, footerY - 35, barcodeWidths[b], 35);
-          curX += barcodeWidths[b] + 3.5;
-        }
-
-        ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-        ctx.font = '900 24px "Outfit", sans-serif';
-        ctx.fillText(`LOGGED BY ${(creatorName || 'DAILY OPERATOR').toUpperCase()} • DAILY VERDICT`, 50, footerY - 5);
       }
 
-      setPreviewUrl(canvas.toDataURL('image/png'));
-      canvasRef.current = canvas;
-    };
+      // Footer Barcode & Identity
+      const footerY = 1010;
+      ctx.fillStyle = isDark ? theme.accent : '#000000';
+      const barcodeX = width - 240;
+      const barcodeWidths = [4, 8, 2, 6, 12, 4, 8, 2, 10, 4, 6, 8, 4, 12, 6, 4];
+      let curX = barcodeX;
+      for (let b = 0; b < barcodeWidths.length; b++) {
+        ctx.fillRect(curX, footerY - 35, barcodeWidths[b], 35);
+        curX += barcodeWidths[b] + 3.5;
+      }
 
-    if (!customMascotImg) {
-      mascotImg.crossOrigin = 'anonymous';
-      mascotImg.onload = drawCompleteCanvas;
-      mascotImg.onerror = drawCompleteCanvas;
-      mascotImg.src = mascotPath;
-    } else {
-      drawCompleteCanvas();
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+      ctx.font = '900 24px "Outfit", sans-serif';
+      ctx.fillText(`LOGGED BY ${authorWatermark} • DAILY VERDICT`, 50, footerY - 5);
     }
 
-  }, [isOpen, format, activeTheme, customMascotImg, selectedDateStr, creatorName, activeEntry, activeDayCount, rating, verdict, rawNotes, hasNotes, meta, formattedDate]);
+    setPreviewUrl(canvas.toDataURL('image/png'));
+    canvasRef.current = canvas;
+
+  }, [isOpen, format, activeTheme, loadedMascotImg, selectedDateStr, creatorName, activeEntry, activeDayCount, rating, verdict, rawNotes, hasNotes, meta, formattedDate]);
 
   if (!isOpen) return null;
 
@@ -842,7 +860,7 @@ export default function AestheticCardExportModal({
                   type="text"
                   value={creatorName}
                   onChange={(e) => setCreatorName(e.target.value)}
-                  placeholder="Your Name"
+                  placeholder="Your Name / Moniker"
                   className="w-full bg-white border border-black/30 rounded-lg px-2 py-0.5 font-mono text-xs font-black text-black focus:outline-none focus:border-black"
                 />
               </div>

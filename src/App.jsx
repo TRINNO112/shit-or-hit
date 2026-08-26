@@ -169,6 +169,7 @@ export default function App() {
                 <StatsWidget
                   entries={entries}
                   dayCount={dayCount}
+                  onOpenTelemetry={() => setIsTelemetryOpen(true)}
                 />
               </div>
             </div>

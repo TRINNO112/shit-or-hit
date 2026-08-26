@@ -19,7 +19,7 @@ const IconMap = {
   Sparkles
 };
 
-export default function StatsWidget({ entries, dayCount }) {
+export default function StatsWidget({ entries, dayCount, onOpenTelemetry }) {
   const entryList = Object.values(entries);
   const total = entryList.length;
 
@@ -112,9 +112,19 @@ export default function StatsWidget({ entries, dayCount }) {
         </div>
       </div>
 
-      <div className="mt-8 pt-4 border-t-2 border-black/10 text-center">
-        <p className="text-xs font-mono text-neutral-600 font-bold">
-          Database automatically updates into <code className="text-black bg-yellow-200 px-1 rounded border border-black">data/entries.json</code>
+      <div className="mt-6 pt-4 border-t-2 border-black/10 space-y-3">
+        {onOpenTelemetry && (
+          <button
+            type="button"
+            onClick={onOpenTelemetry}
+            className="w-full py-2.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-display font-black text-xs text-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all hover:translate-x-[-1px] hover:translate-y-[-1px]"
+          >
+            <Zap className="w-3.5 h-3.5 stroke-[3]" />
+            <span>FORENSIC TELEMETRY HUB</span>
+          </button>
+        )}
+        <p className="text-xs font-mono text-neutral-600 font-bold text-center">
+          Database updates into <code className="text-black bg-yellow-200 px-1 rounded border border-black font-black">data/entries.json</code>
         </p>
       </div>
 
