@@ -9,8 +9,11 @@ import MonthlyReportModal from './components/MonthlyReportModal';
 import MobileAppView from './components/MobileAppView';
 import ReminderBanner from './components/ReminderBanner';
 import AestheticCardExportModal from './components/AestheticCardExportModal';
+import ForensicStatsModal from './components/ForensicStatsModal';
+import PWAInstallBanner from './components/PWAInstallBanner';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
+import { subscribeAuthState, getUserDisplayName } from './services/firebase';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
@@ -29,7 +32,9 @@ export default function App() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isMonthlyReportOpen, setIsMonthlyReportOpen] = useState(false);
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
+  const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1
@@ -44,6 +49,10 @@ export default function App() {
 
   useEffect(() => {
     scheduleLocalEveningReminder();
+    const unsubscribe = subscribeAuthState((u) => {
+      setCurrentUser(u);
+    });
+    return () => unsubscribe();
   }, []);
 
   const loadData = useCallback(async () => {
@@ -65,53 +74,47 @@ export default function App() {
   const diffDays = Math.max(0, Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24)));
   const dayCount = diffDays + 1;
 
+  const userDisplayName = currentUser
+    ? getUserDisplayName(currentUser.email, currentUser.displayName)
+    : 'Daily Operator';
+
   const handleSaveEntry = async (entryData) => {
     const saved = await saveEntry(entryData);
     setEntries(prev => ({
       ...prev,
-      [saved.date]: saved
+      [entryData.date]: saved
     }));
+    return saved;
   };
 
-  const handleOpenMonthlyReport = (customTarget) => {
-    if (customTarget?.year && customTarget?.month) {
-      setReportTargetMonth(customTarget);
-    } else {
-      setReportTargetMonth({
-        year: now.getFullYear(),
-        month: now.getMonth() + 1
-      });
+  const handleOpenMonthlyReport = (target) => {
+    if (target) {
+      setReportTargetMonth(target);
     }
     setIsMonthlyReportOpen(true);
   };
 
-  const handleQuickRateFromBanner = async (val) => {
-    await handleSaveEntry({
-      date: todayStr,
-      rating: val,
-      notes: entries[todayStr]?.notes || ''
-    });
-  };
-
-  const handleOpenWallpaper = (customEntry = null, customDate = null) => {
+  const handleOpenWallpaper = (entry, dateStr) => {
     setWallpaperTarget({
-      entry: customEntry || entries[todayStr] || null,
-      dateStr: customDate || todayStr
+      entry: entry || entries[dateStr || todayStr] || null,
+      dateStr: dateStr || todayStr
     });
     setIsWallpaperModalOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF5] text-black">
+    <div className="min-h-screen bg-[#FFFDF5] text-black font-sans selection:bg-[#FDC800] selection:text-black">
       
-      {/* ⏰ SMART 9 PM BROTHERLY HINGLISH REMINDER BANNER */}
+      {/* 📲 PWA 1-Tap Home Screen Install Banner */}
+      <PWAInstallBanner />
+
+      {/* ⏰ 9:00 PM Smart Evening Reminder Banner */}
       <ReminderBanner
         todayEntry={entries[todayStr]}
-        onQuickRate={handleQuickRateFromBanner}
-        onOpenDiary={() => {}}
+        onQuickRate={(rating) => handleSaveEntry({ date: todayStr, rating, notes: entries[todayStr]?.notes || '' })}
       />
 
-      {/* 📱 DEDICATED NATIVE MOBILE APP INTERFACE (Screens < 768px) */}
+      {/* Responsive View Switcher */}
       {isMobile ? (
         <MobileAppView
           startDate={startDate}
@@ -119,44 +122,50 @@ export default function App() {
           dayCount={dayCount}
           todayStr={todayStr}
           onSaveToday={handleSaveEntry}
-          onOpenMonthlyReport={() => handleOpenMonthlyReport()}
+          onOpenMonthlyReport={handleOpenMonthlyReport}
           onEditDay={(dayInfo) => setEditingDay(dayInfo)}
           onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+          onOpenTelemetry={() => setIsTelemetryOpen(true)}
         />
       ) : (
-        /* 💻 FULL PANORAMIC DESKTOP EXPERIENCE (Screens >= 768px) */
-        <div className="min-h-screen flex flex-col justify-between">
-          <Header
-            startDate={startDate}
-            entries={entries}
-            dayCount={dayCount}
-            isCalendarOpen={isCalendarOpen}
-            onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
-            onOpenMonthlyReport={() => handleOpenMonthlyReport()}
-            onOpenWallpaper={() => handleOpenWallpaper()}
-            onSyncRefresh={loadData}
-          />
+        <div className="flex flex-col min-h-screen">
+          <div className="border-b-3 border-black bg-white">
+            <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6">
+              <Header
+                startDate={startDate}
+                entries={entries}
+                dayCount={dayCount}
+                onToggleCalendar={() => setIsCalendarOpen(prev => !prev)}
+                isCalendarOpen={isCalendarOpen}
+                onOpenMonthlyReport={() => handleOpenMonthlyReport()}
+                onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
+                onOpenTelemetry={() => setIsTelemetryOpen(true)}
+                onSyncRefresh={loadData}
+              />
+            </div>
+          </div>
 
-          <main className="flex-1 w-full max-w-[1380px] mx-auto px-6 sm:px-10 py-6">
+          <main className="flex-1 w-full max-w-[1380px] mx-auto p-4 sm:p-6 space-y-6">
             <TodayHero
               todayStr={todayStr}
-              currentEntry={entries[todayStr] || null}
-              onSaveToday={handleSaveEntry}
               dayCount={dayCount}
-              onOpenWallpaper={() => handleOpenWallpaper()}
+              todayEntry={entries[todayStr] || null}
+              onSave={handleSaveEntry}
+              onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-4">
-              <div className="lg:col-span-7">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
                 <JourneyTimeline
                   startDate={startDate}
-                  todayStr={todayStr}
                   entries={entries}
+                  todayStr={todayStr}
                   onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                  onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
                 />
               </div>
 
-              <div className="lg:col-span-5">
+              <div className="lg:col-span-1">
                 <StatsWidget
                   entries={entries}
                   dayCount={dayCount}
@@ -213,6 +222,16 @@ export default function App() {
         dayCount={dayCount}
         entries={entries}
         startDate={startDate}
+        displayName={userDisplayName}
+      />
+
+      {/* ⚡ Forensic Telemetry & Analytics Modal */}
+      <ForensicStatsModal
+        isOpen={isTelemetryOpen}
+        onClose={() => setIsTelemetryOpen(false)}
+        entries={entries}
+        startDate={startDate}
+        todayStr={todayStr}
       />
 
     </div>

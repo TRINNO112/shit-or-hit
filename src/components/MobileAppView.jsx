@@ -55,7 +55,8 @@ export default function MobileAppView({
   onSaveToday,
   onOpenMonthlyReport,
   onEditDay,
-  onOpenWallpaper
+  onOpenWallpaper,
+  onOpenTelemetry
 }) {
   const [activeTab, setActiveTab] = useState('log'); // 'log' | 'history' | 'dossier' | 'stats'
   const [historySubView, setHistorySubView] = useState('calendar'); // 'calendar' | 'timeline'
@@ -1140,13 +1141,24 @@ export default function MobileAppView({
       {/* ========================================================= */}
       {activeTab === 'stats' && (
         <main className="flex-1 px-4 py-3.5 max-w-lg mx-auto w-full space-y-3.5">
-          <div className="mb-2">
-            <h2 className="font-display font-black text-xl uppercase tracking-tight text-black">
-              Performance Metrics
-            </h2>
-            <p className="text-xs font-mono font-bold text-neutral-600">
-              Real-time score distribution and momentum analytics.
-            </p>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div>
+              <h2 className="font-display font-black text-xl uppercase tracking-tight text-black">
+                Performance Metrics
+              </h2>
+              <p className="text-xs font-mono font-bold text-neutral-600">
+                Real-time score distribution and momentum analytics.
+              </p>
+            </div>
+            {onOpenTelemetry && (
+              <button
+                onClick={onOpenTelemetry}
+                className="px-3 py-2 bg-[#00E599] text-black border-2 border-black rounded-xl font-display font-black text-xs uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center gap-1.5 shrink-0"
+              >
+                <Zap className="w-3.5 h-3.5 stroke-[3]" />
+                <span>TELEMETRY</span>
+              </button>
+            )}
           </div>
           <StatsWidget entries={entries} dayCount={dayCount} />
         </main>

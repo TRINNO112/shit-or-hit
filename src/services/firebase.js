@@ -37,15 +37,12 @@ export function isEmailWhitelisted(email) {
 export function getUserDisplayName(email, fallbackName = null) {
   const customAlias = getCustomDisplayName();
   if (customAlias) return customAlias;
-  if (email) {
-    const lower = email.toLowerCase().trim();
-    if (lower === 'pathak.amitkumar@hrjohnsonindia.com' || lower === 'kaushtubh457@gmail.com') {
-      return 'Trinno Asphalt';
-    }
-  }
   if (fallbackName && fallbackName.trim()) return fallbackName.trim();
-  if (email) return email.split('@')[0];
-  return 'User';
+  if (email) {
+    const username = email.split('@')[0];
+    return username.charAt(0).toUpperCase() + username.slice(1);
+  }
+  return 'Daily Operator';
 }
 
 let authInstance = null;

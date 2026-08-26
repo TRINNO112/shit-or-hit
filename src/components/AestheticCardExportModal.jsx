@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { ratingMeta } from '../services/api';
 
 const THEMES = [
@@ -44,6 +44,14 @@ const MASCOT_MAP = {
   1: '/mascots/mascot_1_rough.png'
 };
 
+const MOOD_PUNCHLINES = {
+  5: 'ABSOLUTE PEAK. UNSTOPPABLE MOMENTUM & VELOCITY.',
+  4: 'LOCKED IN & FOCUSED. DEEP FLOW EXECUTED.',
+  3: 'BASELINE HELD. DISCIPLINE OVER MOTIVATION.',
+  2: 'LOW BATTERY DAY. CHARGE UP & RELOAD FOR TOMORROW.',
+  1: 'SURVIVED THE TRENCHES. DUST OFF, WE GO AGAIN.'
+};
+
 export default function AestheticCardExportModal({
   isOpen,
   onClose,
@@ -52,29 +60,34 @@ export default function AestheticCardExportModal({
   dayCount,
   entries = {},
   startDate = '2026-08-01',
-  displayName = 'Trinno Asphalt'
+  displayName = 'Daily Operator'
 }) {
   const [format, setFormat] = useState('wallpaper'); // 'wallpaper' (9:16) | 'social' (1:1)
   const [activeTheme, setActiveTheme] = useState('streetwear');
   const [selectedDateStr, setSelectedDateStr] = useState(dateStr || new Date().toISOString().slice(0, 10));
+  const [creatorName, setCreatorName] = useState(displayName || 'Daily Operator');
   const [customMascotImg, setCustomMascotImg] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Sync selected date when modal opens with a specific date
+  // Sync selected date & author name when modal opens
   useEffect(() => {
     if (dateStr) {
       setSelectedDateStr(dateStr);
     }
-  }, [dateStr, isOpen]);
+    if (displayName) {
+      setCreatorName(displayName);
+    }
+  }, [dateStr, displayName, isOpen]);
 
   // Derive active day entry and day index
   const activeEntry = entries[selectedDateStr] || (selectedDateStr === dateStr ? entry : null);
   const rating = activeEntry?.rating || 3;
   const verdict = activeEntry?.verdict || ratingMeta[rating]?.title || 'Verdict';
-  const notes = activeEntry?.notes || (activeEntry?.rating ? 'Solid day logged on the board.' : 'No diary reflection recorded for this day yet.');
+  const rawNotes = activeEntry?.notes ? activeEntry.notes.trim() : '';
+  const hasNotes = Boolean(rawNotes.length > 0);
   const meta = ratingMeta[rating] || ratingMeta[3];
 
   const startObj = new Date(`${startDate || '2026-08-01'}T00:00:00`);
@@ -112,7 +125,7 @@ export default function AestheticCardExportModal({
     }
   };
 
-  // Master Canvas Drawing Engine (Collision-Free & High-Density Poster Art)
+  // Master Canvas Drawing Engine (Mega Mascot Mode + Dynamic Creator Watermark)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -126,7 +139,7 @@ export default function AestheticCardExportModal({
 
     const isDark = activeTheme === 'cyberpunk' || activeTheme === 'sunset';
 
-    // 1. Background Fill & Textured Aesthetics
+    // 1. Background Fill & Textures
     if (activeTheme === 'streetwear') {
       ctx.fillStyle = '#FFFDF0';
       ctx.fillRect(0, 0, width, height);
@@ -161,13 +174,13 @@ export default function AestheticCardExportModal({
       // Radial Spotlight Glow
       const glow = ctx.createRadialGradient(
         format === 'wallpaper' ? width / 2 : 780,
-        format === 'wallpaper' ? 760 : 490,
+        format === 'wallpaper' ? 820 : 520,
         60,
         format === 'wallpaper' ? width / 2 : 780,
-        format === 'wallpaper' ? 760 : 490,
-        format === 'wallpaper' ? 520 : 460
+        format === 'wallpaper' ? 820 : 520,
+        format === 'wallpaper' ? 580 : 460
       );
-      glow.addColorStop(0, 'rgba(0, 229, 153, 0.32)');
+      glow.addColorStop(0, 'rgba(0, 229, 153, 0.35)');
       glow.addColorStop(0.7, 'rgba(0, 216, 246, 0.08)');
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
@@ -199,14 +212,14 @@ export default function AestheticCardExportModal({
       // Sunset Crimson Radial Glow
       const glow = ctx.createRadialGradient(
         format === 'wallpaper' ? width / 2 : 780,
-        format === 'wallpaper' ? 760 : 490,
+        format === 'wallpaper' ? 820 : 520,
         60,
         format === 'wallpaper' ? width / 2 : 780,
-        format === 'wallpaper' ? 760 : 490,
-        format === 'wallpaper' ? 540 : 460
+        format === 'wallpaper' ? 820 : 520,
+        format === 'wallpaper' ? 600 : 460
       );
-      glow.addColorStop(0, 'rgba(255, 77, 109, 0.38)');
-      glow.addColorStop(0.6, 'rgba(255, 158, 0, 0.14)');
+      glow.addColorStop(0, 'rgba(255, 77, 109, 0.42)');
+      glow.addColorStop(0.6, 'rgba(255, 158, 0, 0.16)');
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, width, height);
@@ -220,8 +233,14 @@ export default function AestheticCardExportModal({
       1: { tag: 'TRENCH SURVIVOR • 3:45 AM GOBLIN', persona: 'DOPAMINE GOBLIN', color: '#FF4D4D' }
     };
     const currentMood = moodMeta[rating] || moodMeta[3];
+    const punchline = MOOD_PUNCHLINES[rating] || MOOD_PUNCHLINES[3];
 
-    const mascotPath = MASCOT_MAP[rating] || MASCOT_MAP[3];
+    // Robust relative path resolution for mascots across all hosting environments
+    const base = import.meta.env.BASE_URL || '/';
+    const cleanBase = base.endsWith('/') ? base : `${base}/`;
+    const relMascot = (MASCOT_MAP[rating] || MASCOT_MAP[3]).replace(/^\//, '');
+    const mascotPath = `${cleanBase}${relMascot}`;
+
     const mascotImg = customMascotImg || new Image();
 
     const drawCompleteCanvas = () => {
@@ -268,7 +287,7 @@ export default function AestheticCardExportModal({
         const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
         ctx.fillText(stars, 60, heroY);
 
-        // Massive Stylized Verdict Title with Heavy Impact
+        // Massive Stylized Verdict Title
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
         ctx.font = '900 108px "Outfit", sans-serif';
         ctx.fillText(verdict.toUpperCase(), 60, heroY + 105);
@@ -278,124 +297,188 @@ export default function AestheticCardExportModal({
         ctx.font = '800 24px "JetBrains Mono", monospace';
         ctx.fillText(`SCORE: ${rating}.0 / 5.0  •  ${currentMood.tag}`, 60, heroY + 155);
 
-        // Center Hero Mascot (600px, Perfectly Centered)
-        const mascotSize = 600;
-        const mascotX = (width - mascotSize) / 2;
-        const mascotY = 420;
+        // -----------------------------------------------------------------------
+        // CASE 1: USER HAS NO DIARY NOTES -> MEGA MASCOT SPOTLIGHT POSTER
+        // -----------------------------------------------------------------------
+        if (!hasNotes) {
+          const megaSize = 780;
+          const megaX = (width - megaSize) / 2;
+          const megaY = 460;
 
-        ctx.save();
-        ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
-        ctx.shadowBlur = isDark ? 45 : 25;
-        ctx.shadowOffsetY = 12;
-        try {
-          ctx.drawImage(mascotImg, mascotX, mascotY, mascotSize, mascotSize);
-        } catch (err) {}
-        ctx.restore();
+          ctx.save();
+          ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.3)';
+          ctx.shadowBlur = isDark ? 55 : 30;
+          ctx.shadowOffsetY = 15;
+          try {
+            ctx.drawImage(mascotImg, megaX, megaY, megaSize, megaSize);
+          } catch (err) {}
+          ctx.restore();
 
-        // 3 Streetwear Metric Pills
-        const statsY = 1060;
-        const pillWidth = (width - 160) / 3;
+          // Punchline Banner (Aggressive & Punchy)
+          const punchY = 1320;
+          const punchWidth = width - 120;
+          const punchHeight = 160;
 
-        const statPills = [
-          { label: 'STREAK', val: `${activeDayCount} DAYS`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
-          { label: 'SCORE', val: `${rating}.0 / 5.0`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
-          { label: 'TIER', val: currentMood.persona, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' }
-        ];
+          ctx.fillStyle = isDark ? 'rgba(0,0,0,0.6)' : '#000000';
+          ctx.fillRect(68, punchY + 10, punchWidth, punchHeight);
 
-        statPills.forEach((p, idx) => {
-          const px = 60 + idx * (pillWidth + 20);
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(px + 4, statsY + 4, pillWidth, 76);
-          ctx.fillStyle = p.bg;
-          ctx.fillRect(px, statsY, pillWidth, 76);
-          ctx.strokeStyle = p.border;
-          ctx.lineWidth = 3.5;
-          ctx.strokeRect(px, statsY, pillWidth, 76);
+          ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
+          ctx.fillRect(60, punchY, punchWidth, punchHeight);
+          ctx.strokeStyle = isDark ? theme.accent : '#000000';
+          ctx.lineWidth = isDark ? 4 : 5;
+          ctx.strokeRect(60, punchY, punchWidth, punchHeight);
 
-          ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
-          ctx.font = '800 16px "JetBrains Mono", monospace';
-          ctx.fillText(p.label, px + 16, statsY + 28);
-
-          ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
-          ctx.font = '900 20px "Outfit", sans-serif';
-          ctx.fillText(p.val, px + 16, statsY + 56);
-        });
-
-        // Reflection Card (Adaptive Height with Quotation Aesthetics)
-        const quoteY = 1170;
-        const quoteWidth = width - 120;
-        const quoteHeight = 520;
-
-        ctx.fillStyle = isDark ? 'rgba(0,0,0,0.6)' : '#000000';
-        ctx.fillRect(68, quoteY + 10, quoteWidth, quoteHeight);
-
-        ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
-        ctx.fillRect(60, quoteY, quoteWidth, quoteHeight);
-        ctx.strokeStyle = isDark ? theme.accent : '#000000';
-        ctx.lineWidth = isDark ? 4 : 5;
-        ctx.strokeRect(60, quoteY, quoteWidth, quoteHeight);
-
-        // Header Tag
-        ctx.fillStyle = isDark ? theme.accent : '#FDC800';
-        ctx.fillRect(90, quoteY + 26, 300, 42);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(90, quoteY + 26, 300, 42);
-        ctx.fillStyle = '#000000';
-        ctx.font = '900 18px "JetBrains Mono", monospace';
-        ctx.fillText('📖 RAW DIARY REFLECTION', 106, quoteY + 53);
-
-        // Big Aesthetic Quotation Mark
-        ctx.fillStyle = isDark ? 'rgba(0, 229, 153, 0.15)' : 'rgba(0, 0, 0, 0.08)';
-        ctx.font = '900 140px Georgia, serif';
-        ctx.fillText('“', 90, quoteY + 160);
-
-        // Notes Wrap
-        ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
-        ctx.font = '600 30px "Plus Jakarta Sans", monospace';
-        const maxTextWidth = quoteWidth - 80;
-        const words = notes.split(' ');
-        let line = '';
-        let textY = quoteY + 130;
-        const lineHeight = 48;
-        const maxLines = 7;
-        let linesCount = 0;
-
-        for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
-          const metrics = ctx.measureText(testLine);
-          if (metrics.width > maxTextWidth && n > 0) {
-            ctx.fillText(line, 95, textY);
-            line = words[n] + ' ';
-            textY += lineHeight;
-            linesCount++;
-            if (linesCount >= maxLines) {
-              line += '...';
-              break;
-            }
-          } else {
-            line = testLine;
-          }
-        }
-        ctx.fillText(line, 95, textY);
-
-        // Mini 7-Day Performance Equalizer
-        const eqY = quoteY + quoteHeight - 65;
-        ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
-        ctx.font = '800 14px "JetBrains Mono", monospace';
-        ctx.fillText('MOMENTUM MATRIX:', 95, eqY + 16);
-
-        for (let i = 0; i < 7; i++) {
-          const dotX = 270 + i * 40;
-          const isFilled = i <= (rating + 1);
-          ctx.fillStyle = isFilled ? (isDark ? theme.accent : '#000000') : (isDark ? '#2A3447' : '#E2E8F0');
-          ctx.fillRect(dotX, eqY, 26, 22);
+          // Punchline Tape Header
+          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+          ctx.fillRect(90, punchY + 22, 280, 40);
           ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(dotX, eqY, 26, 22);
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(90, punchY + 22, 280, 40);
+          ctx.fillStyle = '#000000';
+          ctx.font = '900 17px "JetBrains Mono", monospace';
+          ctx.fillText('⚡ DAILY DIRECTIVE', 106, punchY + 48);
+
+          // High-Energy Punchline Text
+          ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+          ctx.font = '900 32px "Outfit", sans-serif';
+          ctx.fillText(punchline, 95, punchY + 115);
+
+          // 3 Metric Pills below Punchline
+          const statsY = 1520;
+          const pillWidth = (width - 160) / 3;
+
+          const statPills = [
+            { label: 'STREAK', val: `${activeDayCount} DAYS`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+            { label: 'SCORE', val: `${rating}.0 / 5.0`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+            { label: 'ARCHETYPE', val: currentMood.persona, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' }
+          ];
+
+          statPills.forEach((p, idx) => {
+            const px = 60 + idx * (pillWidth + 20);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(px + 4, statsY + 4, pillWidth, 76);
+            ctx.fillStyle = p.bg;
+            ctx.fillRect(px, statsY, pillWidth, 76);
+            ctx.strokeStyle = p.border;
+            ctx.lineWidth = 3.5;
+            ctx.strokeRect(px, statsY, pillWidth, 76);
+
+            ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
+            ctx.font = '800 16px "JetBrains Mono", monospace';
+            ctx.fillText(p.label, px + 16, statsY + 28);
+
+            ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+            ctx.font = '900 20px "Outfit", sans-serif';
+            ctx.fillText(p.val, px + 16, statsY + 56);
+          });
+        } 
+        
+        // -----------------------------------------------------------------------
+        // CASE 2: USER HAS WRITTEN DIARY REFLECTION -> RENDER NOTE WITH PUNCHLINE
+        // -----------------------------------------------------------------------
+        else {
+          const mascotSize = 560;
+          const mascotX = (width - mascotSize) / 2;
+          const mascotY = 410;
+
+          ctx.save();
+          ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
+          ctx.shadowBlur = isDark ? 45 : 25;
+          ctx.shadowOffsetY = 12;
+          try {
+            ctx.drawImage(mascotImg, mascotX, mascotY, mascotSize, mascotSize);
+          } catch (err) {}
+          ctx.restore();
+
+          // 3 Metric Pills
+          const statsY = 1010;
+          const pillWidth = (width - 160) / 3;
+
+          const statPills = [
+            { label: 'STREAK', val: `${activeDayCount} DAYS`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+            { label: 'SCORE', val: `${rating}.0 / 5.0`, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' },
+            { label: 'TIER', val: currentMood.persona, bg: isDark ? '#161F2E' : '#FFFFFF', border: isDark ? theme.accent : '#000000' }
+          ];
+
+          statPills.forEach((p, idx) => {
+            const px = 60 + idx * (pillWidth + 20);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(px + 4, statsY + 4, pillWidth, 72);
+            ctx.fillStyle = p.bg;
+            ctx.fillRect(px, statsY, pillWidth, 72);
+            ctx.strokeStyle = p.border;
+            ctx.lineWidth = 3.5;
+            ctx.strokeRect(px, statsY, pillWidth, 72);
+
+            ctx.fillStyle = isDark ? '#8E9BAE' : '#666666';
+            ctx.font = '800 15px "JetBrains Mono", monospace';
+            ctx.fillText(p.label, px + 16, statsY + 26);
+
+            ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+            ctx.font = '900 19px "Outfit", sans-serif';
+            ctx.fillText(p.val, px + 16, statsY + 52);
+          });
+
+          // Reflection Box
+          const quoteY = 1110;
+          const quoteWidth = width - 120;
+          const quoteHeight = 580;
+
+          ctx.fillStyle = isDark ? 'rgba(0,0,0,0.6)' : '#000000';
+          ctx.fillRect(68, quoteY + 10, quoteWidth, quoteHeight);
+
+          ctx.fillStyle = isDark ? theme.cardBg : '#FFFFFF';
+          ctx.fillRect(60, quoteY, quoteWidth, quoteHeight);
+          ctx.strokeStyle = isDark ? theme.accent : '#000000';
+          ctx.lineWidth = isDark ? 4 : 5;
+          ctx.strokeRect(60, quoteY, quoteWidth, quoteHeight);
+
+          // Header Tape
+          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+          ctx.fillRect(90, quoteY + 26, 300, 42);
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(90, quoteY + 26, 300, 42);
+          ctx.fillStyle = '#000000';
+          ctx.font = '900 18px "JetBrains Mono", monospace';
+          ctx.fillText('📖 RAW DIARY REFLECTION', 106, quoteY + 53);
+
+          // Big Quotation Mark
+          ctx.fillStyle = isDark ? 'rgba(0, 229, 153, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+          ctx.font = '900 140px Georgia, serif';
+          ctx.fillText('“', 90, quoteY + 160);
+
+          // Notes Wrap
+          ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
+          ctx.font = '600 30px "Plus Jakarta Sans", monospace';
+          const maxTextWidth = quoteWidth - 80;
+          const words = rawNotes.split(' ');
+          let line = '';
+          let textY = quoteY + 130;
+          const lineHeight = 48;
+          const maxLines = 8;
+          let linesCount = 0;
+
+          for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxTextWidth && n > 0) {
+              ctx.fillText(line, 95, textY);
+              line = words[n] + ' ';
+              textY += lineHeight;
+              linesCount++;
+              if (linesCount >= maxLines) {
+                line += '...';
+                break;
+              }
+            } else {
+              line = testLine;
+            }
+          }
+          ctx.fillText(line, 95, textY);
         }
 
-        // Footer Barcode & Identity
+        // Footer Barcode & Dynamic Creator Identity
         const footerY = 1830;
         ctx.fillStyle = isDark ? theme.accent : '#000000';
         const barcodeX = width - 260;
@@ -408,7 +491,7 @@ export default function AestheticCardExportModal({
 
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
         ctx.font = '900 24px "Outfit", sans-serif';
-        ctx.fillText(`LOGGED BY ${displayName.toUpperCase()}`, 60, footerY - 15);
+        ctx.fillText(`LOGGED BY ${(creatorName || 'DAILY OPERATOR').toUpperCase()}`, 60, footerY - 15);
 
         ctx.fillStyle = isDark ? '#94A3B8' : '#666666';
         ctx.font = '700 18px "JetBrains Mono", monospace';
@@ -416,7 +499,7 @@ export default function AestheticCardExportModal({
       } 
       
       // =========================================================================
-      // 📸 FORMAT B: 1:1 SOCIAL CARD (1080 x 1080) — PERFECT LEVEL HARMONY
+      // 📸 FORMAT B: 1:1 SOCIAL CARD (1080 x 1080)
       // =========================================================================
       else {
         const topY = 70;
@@ -433,11 +516,11 @@ export default function AestheticCardExportModal({
         ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
         ctx.fillText(formattedDate.toUpperCase(), 300, topY + 27);
 
-        // Left Column: Typography, Rating, Stats & Reflection (Left: 50px, Width: 480px)
+        // Left Column (50px to 530px)
         const leftX = 50;
         const leftY = 150;
 
-        // Day Streak Badge (Bigger, Bolder!)
+        // Day Streak Badge
         ctx.fillStyle = isDark ? theme.accent : '#00E599';
         ctx.fillRect(leftX, leftY, 180, 52);
         ctx.strokeStyle = '#000000';
@@ -463,7 +546,7 @@ export default function AestheticCardExportModal({
         ctx.font = '800 22px "JetBrains Mono", monospace';
         ctx.fillText(`SCORE: ${rating}.0/5.0  •  ${currentMood.persona}`, leftX, leftY + 180);
 
-        // Reflection Box in Left Column (Height: 460px, bottom aligns at y=850)
+        // Left Box Content (Either Notes or Punchline Directive!)
         const boxY = leftY + 215;
         const boxWidth = 470;
         const boxHeight = 485;
@@ -477,44 +560,76 @@ export default function AestheticCardExportModal({
         ctx.lineWidth = 4;
         ctx.strokeRect(leftX, boxY, boxWidth, boxHeight);
 
-        // Tape Badge
-        ctx.fillStyle = isDark ? theme.accent : '#FDC800';
-        ctx.fillRect(leftX + 20, boxY + 20, 250, 38);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2.5;
-        ctx.strokeRect(leftX + 20, boxY + 20, 250, 38);
-        ctx.fillStyle = '#000000';
-        ctx.font = '900 16px "JetBrains Mono", monospace';
-        ctx.fillText('📖 RAW REFLECTION', leftX + 32, boxY + 45);
+        if (hasNotes) {
+          // Tape Badge
+          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+          ctx.fillRect(leftX + 20, boxY + 20, 250, 38);
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(leftX + 20, boxY + 20, 250, 38);
+          ctx.fillStyle = '#000000';
+          ctx.font = '900 16px "JetBrains Mono", monospace';
+          ctx.fillText('📖 RAW REFLECTION', leftX + 32, boxY + 45);
 
-        // Wrapped Notes
-        ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
-        ctx.font = '600 25px "Plus Jakarta Sans", monospace';
-        const maxTextWidth = boxWidth - 45;
-        const words = notes.split(' ');
-        let line = '';
-        let textY = boxY + 105;
-        const lineHeight = 40;
-        const maxLines = 7;
-        let linesCount = 0;
+          // Notes
+          ctx.fillStyle = isDark ? '#F1F5F9' : '#111111';
+          ctx.font = '600 25px "Plus Jakarta Sans", monospace';
+          const maxTextWidth = boxWidth - 45;
+          const words = rawNotes.split(' ');
+          let line = '';
+          let textY = boxY + 105;
+          const lineHeight = 40;
+          const maxLines = 7;
+          let linesCount = 0;
 
-        for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
-          const metrics = ctx.measureText(testLine);
-          if (metrics.width > maxTextWidth && n > 0) {
-            ctx.fillText(line, leftX + 22, textY);
-            line = words[n] + ' ';
-            textY += lineHeight;
-            linesCount++;
-            if (linesCount >= maxLines) {
-              line += '...';
-              break;
+          for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxTextWidth && n > 0) {
+              ctx.fillText(line, leftX + 22, textY);
+              line = words[n] + ' ';
+              textY += lineHeight;
+              linesCount++;
+              if (linesCount >= maxLines) {
+                line += '...';
+                break;
+              }
+            } else {
+              line = testLine;
             }
-          } else {
-            line = testLine;
           }
+          ctx.fillText(line, leftX + 22, textY);
+        } else {
+          // No Notes -> Render Directive Punchline in Left Card
+          ctx.fillStyle = isDark ? theme.accent : '#FDC800';
+          ctx.fillRect(leftX + 20, boxY + 24, 250, 38);
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(leftX + 20, boxY + 24, 250, 38);
+          ctx.fillStyle = '#000000';
+          ctx.font = '900 16px "JetBrains Mono", monospace';
+          ctx.fillText('⚡ DAILY DIRECTIVE', leftX + 32, boxY + 49);
+
+          ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
+          ctx.font = '900 32px "Outfit", sans-serif';
+          
+          const words = punchline.split(' ');
+          let line = '';
+          let textY = boxY + 130;
+          const lineHeight = 46;
+          for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > (boxWidth - 45) && n > 0) {
+              ctx.fillText(line, leftX + 22, textY);
+              line = words[n] + ' ';
+              textY += lineHeight;
+            } else {
+              line = testLine;
+            }
+          }
+          ctx.fillText(line, leftX + 22, textY);
         }
-        ctx.fillText(line, leftX + 22, textY);
 
         // Mini Matrix Equalizer in Left Box
         const eqY = boxY + boxHeight - 55;
@@ -528,10 +643,10 @@ export default function AestheticCardExportModal({
           ctx.strokeRect(dotX, eqY, 24, 18);
         }
 
-        // Right Column: Mascot Aligned Harmoniously with Left Box Level (y: 200 to 850)
+        // Right Column: Mascot Aligned Harmoniously with Left Box Level (y: 220 to 850)
         const mascotSize = 560;
         const mascotX = 510;
-        const mascotY = 220; // Vertically level with the reflection box!
+        const mascotY = 220;
 
         ctx.save();
         ctx.shadowColor = isDark ? theme.accent : 'rgba(0, 0, 0, 0.25)';
@@ -542,7 +657,7 @@ export default function AestheticCardExportModal({
         } catch (err) {}
         ctx.restore();
 
-        // Footer Barcode & Identity (Bottom Full-Width)
+        // Footer Barcode & Identity
         const footerY = 1010;
         ctx.fillStyle = isDark ? theme.accent : '#000000';
         const barcodeX = width - 240;
@@ -555,7 +670,7 @@ export default function AestheticCardExportModal({
 
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
         ctx.font = '900 24px "Outfit", sans-serif';
-        ctx.fillText(`LOGGED BY ${displayName.toUpperCase()} • DAILY VERDICT`, 50, footerY - 5);
+        ctx.fillText(`LOGGED BY ${(creatorName || 'DAILY OPERATOR').toUpperCase()} • DAILY VERDICT`, 50, footerY - 5);
       }
 
       setPreviewUrl(canvas.toDataURL('image/png'));
@@ -571,7 +686,7 @@ export default function AestheticCardExportModal({
       drawCompleteCanvas();
     }
 
-  }, [isOpen, format, activeTheme, customMascotImg, selectedDateStr, activeEntry, activeDayCount, displayName, rating, verdict, notes, meta, formattedDate]);
+  }, [isOpen, format, activeTheme, customMascotImg, selectedDateStr, creatorName, activeEntry, activeDayCount, rating, verdict, rawNotes, hasNotes, meta, formattedDate]);
 
   if (!isOpen) return null;
 
@@ -716,39 +831,54 @@ export default function AestheticCardExportModal({
             </div>
           </div>
 
-          {/* Mascot Info / Custom Swap */}
-          <div className="flex items-center justify-between bg-neutral-100 border-2 border-black p-2 rounded-2xl">
-            <div className="flex items-center gap-2">
-              <span className="text-sm sm:text-base">🎭</span>
-              <span className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 truncate">
-                {customMascotImg ? 'Custom Mascot Active ✅' : `Mood Mascot: ${rating}★ Auto-Linked`}
-              </span>
+          {/* User Name & Mascot Info / Custom Swap */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* Custom Name / Author Watermark */}
+            <div className="flex items-center gap-1.5 bg-neutral-100 border-2 border-black px-2.5 py-1.5 rounded-2xl">
+              <User className="w-4 h-4 text-neutral-600 shrink-0" />
+              <div className="min-w-0 flex-1 flex items-center gap-1">
+                <span className="text-[10px] font-mono font-bold text-neutral-500 shrink-0">BY:</span>
+                <input
+                  type="text"
+                  value={creatorName}
+                  onChange={(e) => setCreatorName(e.target.value)}
+                  placeholder="Your Name"
+                  className="w-full bg-white border border-black/30 rounded-lg px-2 py-0.5 font-mono text-xs font-black text-black focus:outline-none focus:border-black"
+                />
+              </div>
             </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              className="hidden"
-              onChange={handleMascotUpload}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-2.5 py-1 bg-white hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-[11px] sm:text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1 shrink-0"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>CUSTOM STICKER</span>
-            </button>
+
+            {/* Mascot Info */}
+            <div className="flex items-center justify-between bg-neutral-100 border-2 border-black px-2.5 py-1.5 rounded-2xl">
+              <span className="text-[11px] font-mono font-bold text-neutral-800 truncate">
+                {customMascotImg ? 'Custom Sticker Active ✅' : `Mood: ${rating}★ Auto-Linked`}
+              </span>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleMascotUpload}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-2 py-0.5 bg-white hover:bg-neutral-200 border border-black rounded-lg font-mono text-[10px] font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 shrink-0 ml-1"
+              >
+                <Upload className="w-3 h-3" />
+                <span>UPLOAD</span>
+              </button>
+            </div>
           </div>
 
           {/* Live Preview Container */}
-          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-3 max-h-[350px] overflow-hidden">
+          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-3 max-h-[340px] overflow-hidden">
             {previewUrl ? (
               <img
                 src={previewUrl}
                 alt="Aesthetic Card Preview"
                 className={`rounded-xl border border-white/20 shadow-2xl object-contain ${
-                  format === 'wallpaper' ? 'max-h-[320px] aspect-[9/16]' : 'max-h-[320px] aspect-square'
+                  format === 'wallpaper' ? 'max-h-[310px] aspect-[9/16]' : 'max-h-[310px] aspect-square'
                 }`}
               />
             ) : (

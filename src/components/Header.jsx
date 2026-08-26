@@ -154,6 +154,17 @@ export default function Header({
           </button>
         )}
 
+        {/* Telemetry Button */}
+        {onOpenTelemetry && (
+          <button
+            onClick={onOpenTelemetry}
+            className="px-3 py-2 rounded-xl bg-white hover:bg-[#00E599] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
+          >
+            <Zap className="w-3.5 h-3.5 text-black" />
+            <span className="hidden sm:inline">ANALYTICS</span>
+          </button>
+        )}
+
         {/* Monthly Performance Intelligence Dossier Button */}
         <MagneticButton
           onClick={onOpenMonthlyReport}
