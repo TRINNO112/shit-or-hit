@@ -184,7 +184,7 @@ export default function RadialClockPicker({
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.94, y: 12 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[340px] bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-4.5 shadow-[6px_6px_0px_#000000] space-y-3 text-center select-none my-auto"
+          className="w-full max-w-[340px] bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-3.5 shadow-[6px_6px_0px_#000000] space-y-3 text-center select-none my-auto"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-black/10 pb-2.5">
