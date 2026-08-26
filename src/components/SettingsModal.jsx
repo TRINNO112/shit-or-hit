@@ -11,13 +11,16 @@ import {
   Sparkles, 
   ShieldCheck,
   Moon,
-  Info
+  Info,
+  Clock
 } from 'lucide-react';
 import { 
   isNotificationSupported, 
   isNotificationEnabled, 
   requestNotificationPermission, 
-  disableNotifications 
+  disableNotifications,
+  getReminderTime,
+  setReminderTime
 } from '../services/notifications';
 
 export default function SettingsModal({
@@ -26,11 +29,13 @@ export default function SettingsModal({
   user
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
+  const [reminderTimeVal, setReminderTimeVal] = useState('21:00');
   const [notificationMsg, setNotificationMsg] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setNotificationsOn(isNotificationEnabled());
+      setReminderTimeVal(getReminderTime());
       setNotificationMsg('');
     }
   }, [isOpen]);
@@ -41,17 +46,32 @@ export default function SettingsModal({
     if (notificationsOn) {
       disableNotifications();
       setNotificationsOn(false);
-      setNotificationMsg('9:00 PM reminders disabled.');
+      setNotificationMsg('Daily reminders disabled.');
     } else {
       const granted = await requestNotificationPermission();
       if (granted) {
         setNotificationsOn(true);
-        setNotificationMsg('✅ 9:00 PM brotherly reminders activated!');
+        setNotificationMsg(`✅ Daily reminders active for ${reminderTimeVal}!`);
       } else {
         setNotificationMsg('⚠️ Permission denied. Please enable notifications in your browser settings.');
       }
     }
   };
+
+  const handleTimeChange = (newTime) => {
+    setReminderTimeVal(newTime);
+    setReminderTime(newTime);
+    if (notificationsOn) {
+      setNotificationMsg(`⏰ Reminder time updated to ${newTime}`);
+    }
+  };
+
+  const timePresets = [
+    { label: '8:00 PM', value: '20:00' },
+    { label: '9:00 PM', value: '21:00' },
+    { label: '10:00 PM', value: '22:00' },
+    { label: '11:00 PM', value: '23:00' }
+  ];
 
   return (
     <AnimatePresence>
@@ -66,10 +86,10 @@ export default function SettingsModal({
           initial={{ scale: 0.94, y: 15 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.94, y: 15 }}
-          className="w-full max-w-md bg-[#FFFDF5] rounded-3xl border-3 border-black p-6 shadow-[6px_6px_0px_#000000] space-y-5"
+          className="w-full max-w-md bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-4 max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
+          {/* Header with High-Contrast Desktop & Mobile Close ✕ Button */}
           <div className="flex items-center justify-between border-b-2 border-black/10 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
@@ -80,24 +100,25 @@ export default function SettingsModal({
                   App Settings
                 </h3>
                 <span className="text-xs font-mono text-neutral-600">
-                  Preferences & Notification Hub
+                  Preferences & Clock Reminders
                 </span>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-xl hover:bg-neutral-200 border-2 border-transparent hover:border-black cursor-pointer transition-all"
+              className="p-2 rounded-xl bg-white hover:bg-neutral-200 border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all"
+              title="Close Settings"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-black stroke-[2.5]" />
             </button>
           </div>
 
           {/* Settings List */}
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             
-            {/* 1. Daily 9:00 PM Reminder Toggle */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+            {/* 1. Daily Reminder & Clock Setting */}
+            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
@@ -109,10 +130,10 @@ export default function SettingsModal({
                   </div>
                   <div>
                     <h4 className="font-display font-black text-sm uppercase">
-                      9:00 PM Daily Reminder
+                      Daily Streak Reminder
                     </h4>
                     <p className="text-[11px] font-mono text-neutral-600">
-                      Brotherly prompt if today's log is empty
+                      Evening alert if today's log is empty
                     </p>
                   </div>
                 </div>
@@ -130,6 +151,40 @@ export default function SettingsModal({
                 </button>
               </div>
 
+              {/* ⏰ Interactive Clock Time Selector */}
+              <div className="pt-2 border-t border-black/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-neutral-700 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                    <span>REMINDER TIME</span>
+                  </span>
+                  <input
+                    type="time"
+                    value={reminderTimeVal}
+                    onChange={(e) => handleTimeChange(e.target.value)}
+                    className="bg-neutral-100 border-2 border-black rounded-xl px-2.5 py-1 font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer focus:outline-none"
+                  />
+                </div>
+
+                {/* Quick-Pick Time Chips */}
+                <div className="grid grid-cols-4 gap-1.5 pt-1">
+                  {timePresets.map((preset) => (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => handleTimeChange(preset.value)}
+                      className={`py-1 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${
+                        reminderTimeVal === preset.value
+                          ? 'bg-[#FDC800] text-black shadow-[1.5px_1.5px_0px_#000000] border-2 border-black'
+                          : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {notificationMsg && (
                 <div className="p-2 bg-neutral-100 border border-black/20 rounded-xl text-[11px] font-mono font-bold text-neutral-800">
                   {notificationMsg}
@@ -138,7 +193,7 @@ export default function SettingsModal({
             </div>
 
             {/* 2. Cloud Sync Profile */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
+            <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
                   <Cloud className="w-4 h-4 text-blue-600 stroke-[2.5]" />
@@ -160,7 +215,7 @@ export default function SettingsModal({
             </div>
 
             {/* 3. PWA Status */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
+            <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
                   <Smartphone className="w-4 h-4 text-purple-600 stroke-[2.5]" />

@@ -72,16 +72,33 @@ export function showInstantReminderNotification(customBody = null) {
   }
 }
 
+export function getReminderTime() {
+  if (typeof window === 'undefined') return '21:00';
+  return localStorage.getItem('daily_verdict_reminder_time') || '21:00';
+}
+
+export function setReminderTime(timeStr) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('daily_verdict_reminder_time', timeStr || '21:00');
+    scheduleLocalEveningReminder();
+  }
+}
+
 export function scheduleLocalEveningReminder() {
   if (!isNotificationEnabled()) return;
 
+  const timeStr = getReminderTime();
+  const [hStr, mStr] = timeStr.split(':');
+  const targetHour = parseInt(hStr, 10) || 21;
+  const targetMinute = parseInt(mStr, 10) || 0;
+
   const now = new Date();
   const target = new Date();
-  target.setHours(21, 0, 0, 0); // 9:00:00 PM
+  target.setHours(targetHour, targetMinute, 0, 0);
 
   let delay = target.getTime() - now.getTime();
   if (delay < 0) {
-    // Already past 9 PM today, schedule for 9 PM tomorrow
+    // Already past the scheduled time today, schedule for tomorrow
     delay += 24 * 60 * 60 * 1000;
   }
 

@@ -11,31 +11,31 @@ import mascot4 from '../assets/mascots/mascot_4_good.png';
 import mascot5 from '../assets/mascots/mascot_5_peak.png';
 
 const THEMES = [
-  { 
-    id: 'streetwear', 
-    name: '⚡ Gold', 
-    bg: '#FFFDF0', 
-    accent: '#FDC800', 
+  {
+    id: 'streetwear',
+    name: '⚡ Gold',
+    bg: '#FFFDF0',
+    accent: '#FDC800',
     subAccent: '#00E599',
     text: '#000000',
     cardBg: '#FFFFFF',
     glow: 'rgba(253, 200, 0, 0.4)'
   },
-  { 
-    id: 'cyberpunk', 
-    name: '🖤 Obsidian', 
-    bg: '#080A0F', 
-    accent: '#00E599', 
+  {
+    id: 'cyberpunk',
+    name: '🖤 Obsidian',
+    bg: '#080A0F',
+    accent: '#00E599',
     subAccent: '#00D8F6',
     text: '#FFFFFF',
     cardBg: 'rgba(18, 24, 38, 0.95)',
     glow: 'rgba(0, 229, 153, 0.4)'
   },
-  { 
-    id: 'sunset', 
-    name: '🔥 Crimson', 
-    bg: '#140C1D', 
-    accent: '#FF4D6D', 
+  {
+    id: 'sunset',
+    name: '🔥 Crimson',
+    bg: '#140C1D',
+    accent: '#FF4D6D',
     subAccent: '#FF9E00',
     text: '#FFFFFF',
     cardBg: 'rgba(34, 18, 48, 0.95)',
@@ -363,7 +363,7 @@ export default function AestheticCardExportModal({
           ctx.shadowOffsetY = 15;
           try {
             ctx.drawImage(targetMascot, megaX, megaY, megaSize, megaSize);
-          } catch (err) {}
+          } catch (err) { }
           ctx.restore();
         }
 
@@ -424,8 +424,8 @@ export default function AestheticCardExportModal({
           ctx.font = '900 20px "Outfit", sans-serif';
           ctx.fillText(p.val, px + 16, statsY + 56);
         });
-      } 
-      
+      }
+
       // -----------------------------------------------------------------------
       // CASE 2: USER HAS WRITTEN DIARY REFLECTION
       // (Lowered to 425px as requested)
@@ -442,7 +442,7 @@ export default function AestheticCardExportModal({
           ctx.shadowOffsetY = 12;
           try {
             ctx.drawImage(targetMascot, mascotX, mascotY, mascotSize, mascotSize);
-          } catch (err) {}
+          } catch (err) { }
           ctx.restore();
         }
 
@@ -552,8 +552,8 @@ export default function AestheticCardExportModal({
       ctx.fillStyle = isDark ? '#94A3B8' : '#666666';
       ctx.font = '700 18px "JetBrains Mono", monospace';
       ctx.fillText('VERDICT OS • UNFILTERED ACCOUNTABILITY ENGINE', 60, footerY + 15);
-    } 
-    
+    }
+
     // =========================================================================
     // 📸 FORMAT B: 1:1 FEED CARD (1080 x 1080)
     // =========================================================================
@@ -668,7 +668,7 @@ export default function AestheticCardExportModal({
 
         ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
         ctx.font = '900 32px "Outfit", sans-serif';
-        
+
         const words = punchline.split(' ');
         let line = '';
         let textY = boxY + 130;
@@ -702,7 +702,7 @@ export default function AestheticCardExportModal({
       // Right Column: Mascot Aligned Harmoniously with Left Box Level (Lowered to y: 236 as requested)
       const mascotSize = 560;
       const mascotX = 510;
-      const mascotY = 236;
+      const mascotY = 300;
 
       if (targetMascot) {
         ctx.save();
@@ -711,7 +711,7 @@ export default function AestheticCardExportModal({
         ctx.shadowOffsetY = 10;
         try {
           ctx.drawImage(targetMascot, mascotX, mascotY, mascotSize, mascotSize);
-        } catch (err) {}
+        } catch (err) { }
         ctx.restore();
       }
 
@@ -787,14 +787,15 @@ export default function AestheticCardExportModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-xl hover:bg-neutral-200 border-2 border-transparent hover:border-black cursor-pointer transition-all"
+              className="p-2 rounded-xl bg-white hover:bg-neutral-200 border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all"
+              title="Close Wallpaper Studio"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 text-black stroke-[2.5]" />
             </button>
           </div>
 
-          {/* 📅 Date Navigator (Sideways with Generous Breathing Space) */}
-          <div className="flex items-center justify-between bg-white border-2 border-black p-1.5 sm:p-2 rounded-2xl shadow-[2px_2px_0px_#000000]">
+          {/* 📅 Date Navigator (Spacious with Wide Gap between Date and Day) */}
+          <div className="flex items-center justify-between bg-white border-2 border-black p-2 rounded-2xl shadow-[2px_2px_0px_#000000]">
             <button
               type="button"
               onClick={() => handleShiftDay(-1)}
@@ -805,15 +806,15 @@ export default function AestheticCardExportModal({
               <span className="hidden sm:inline">PREV</span>
             </button>
 
-            {/* Centered with Generous Gap */}
-            <div className="flex items-center justify-center gap-3 sm:gap-4 flex-1 px-2">
+            {/* Centered with Distinct Wide Gap */}
+            <div className="flex items-center justify-center gap-4 sm:gap-8 flex-1 px-2">
               <input
                 type="date"
                 value={selectedDateStr}
                 onChange={(e) => setSelectedDateStr(e.target.value)}
-                className="bg-neutral-100 border-2 border-black rounded-xl px-2 py-1 font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer focus:outline-none"
+                className="bg-neutral-100 border-2 border-black rounded-xl px-2.5 py-1.5 font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer focus:outline-none"
               />
-              <span className="px-2.5 py-1 rounded-xl bg-black text-[#FDC800] text-xs font-mono font-black shrink-0">
+              <span className="px-3 py-1.5 rounded-xl bg-black text-[#FDC800] text-xs font-mono font-black shrink-0 shadow-[1.5px_1.5px_0px_#000000]">
                 DAY {activeDayCount}
               </span>
             </div>
@@ -836,11 +837,10 @@ export default function AestheticCardExportModal({
               <button
                 type="button"
                 onClick={() => setFormat('wallpaper')}
-                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                  format === 'wallpaper'
-                    ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                    : 'text-neutral-600 hover:text-black'
-                }`}
+                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'wallpaper'
+                  ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
+                  : 'text-neutral-600 hover:text-black'
+                  }`}
               >
                 <Smartphone className="w-4 h-4" />
                 <span>STORY POSTER</span>
@@ -848,11 +848,10 @@ export default function AestheticCardExportModal({
               <button
                 type="button"
                 onClick={() => setFormat('social')}
-                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                  format === 'social'
-                    ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                    : 'text-neutral-600 hover:text-black'
-                }`}
+                className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'social'
+                  ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
+                  : 'text-neutral-600 hover:text-black'
+                  }`}
               >
                 <Share2 className="w-4 h-4" />
                 <span>FEED CARD</span>
@@ -866,11 +865,10 @@ export default function AestheticCardExportModal({
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTheme(t.id)}
-                  className={`py-2 px-1.5 sm:px-2 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${
-                    activeTheme === t.id
-                      ? 'bg-black text-white shadow-[2px_2px_0px_#000000] scale-[1.02]'
-                      : 'bg-white text-black hover:bg-neutral-100'
-                  }`}
+                  className={`py-2 px-1.5 sm:px-2 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${activeTheme === t.id
+                    ? 'bg-black text-white shadow-[2px_2px_0px_#000000] scale-[1.02]'
+                    : 'bg-white text-black hover:bg-neutral-100'
+                    }`}
                 >
                   {t.name}
                 </button>
@@ -911,9 +909,8 @@ export default function AestheticCardExportModal({
               <img
                 src={previewUrl}
                 alt="Aesthetic Card Preview"
-                className={`rounded-xl border border-white/20 shadow-2xl object-contain ${
-                  format === 'wallpaper' ? 'max-h-[300px] aspect-[9/16]' : 'max-h-[300px] aspect-square'
-                }`}
+                className={`rounded-xl border border-white/20 shadow-2xl object-contain ${format === 'wallpaper' ? 'max-h-[300px] aspect-[9/16]' : 'max-h-[300px] aspect-square'
+                  }`}
               />
             ) : (
               <div className="text-white font-mono text-xs py-12">Rendering high-res poster artwork...</div>
