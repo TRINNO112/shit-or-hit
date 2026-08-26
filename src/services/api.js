@@ -237,6 +237,15 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
   const targetDataset = archetypeId || 'real';
   const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
 
+  // Check cached report if not forcing reevaluation
+  if (!forceReevaluate) {
+    try {
+      const cached = localStorage.getItem(reportKey);
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+  }
+
+  // 1. Try local dev backend if running
   try {
     const res = await fetch(`${API_BASE}/monthly-report`, {
       method: 'POST',
@@ -251,18 +260,18 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
       }
     }
   } catch (err) {
-    console.warn('Backend /api/monthly-report unavailable, synthesizing client-side analytics fallback:', err);
+    // Backend offline (e.g. static site or mobile device)
   }
 
-  // Self-healing client-side computation fallback
-  const fallback = generateClientMonthlyReport(year, month, customEntries);
+  // 2. Direct client-side forensic synthesis with live Gemini AI fallback
+  const fallback = await generateClientMonthlyReport(year, month, customEntries);
   try {
     localStorage.setItem(reportKey, JSON.stringify(fallback));
   } catch (e) {}
   return fallback;
 }
 
-function generateClientMonthlyReport(year, month, customEntries = null) {
+async function generateClientMonthlyReport(year, month, customEntries = null) {
   let allEntries = {};
   if (customEntries) {
     if (Array.isArray(customEntries)) {
@@ -300,6 +309,9 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
       weekdayAverages: { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 },
       personaTitle: 'The New Explorer',
       executiveSummary: `No entries have been logged yet for ${monthName}. Start logging daily verdicts or select a test archetype to unlock deep intelligence.`,
+      homieLetter: [
+        `Welcome to your monthly dossier. Start logging daily verdicts to unlock personalized AI evaluations and deep behavioral forensics.`
+      ],
       hiddenFacts: ['Log at least 3 days to reveal hidden behavioral patterns.'],
       frictionAnalysis: 'No friction points recorded.',
       goldenHabits: 'Consistent daily logging will reveal your peak momentum triggers.',
@@ -341,14 +353,21 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
 
   let personaTitle = 'The Disciplined Sustainer';
   let executiveSummary = '';
+  let homieLetter = [];
   let hiddenFacts = [];
   let frictionAnalysis = '';
   let goldenHabits = '';
   let nextMonthDirectives = [];
 
   if (hitRate >= 80) {
-    personaTitle = 'The Relentless Velocity Builder';
+    personaTitle = 'The Relentless Velocity Builder ⚡';
     executiveSummary = `Dominated ${monthName} with an exceptional ${hitRate}% Hit Rate across ${loggedCount} days. Maintained relentless forward momentum and deep flow-state consistency.`;
+    homieLetter = [
+      `Bro... look at this board. You absolutely ran the table this month with a ${hitRate}% Hit Rate. That is elite execution.`,
+      `You protected your flow blocks, stayed consistent even on off-days, and didn't let minor distractions derail your weekly trajectory.`,
+      `Keep this exact momentum heading into next month—raise your targets and expand on this foundation.`,
+      `Stay humble, maintain your recovery, and keep dominating.`
+    ];
     hiddenFacts = [
       `Peak Power Velocity: ${bestWeekday}s were your highest-output days with an average score of ${weekdayAverages[bestWeekday] || 4.8}/5.0.`,
       `Flow-State Mastery: Logged ${ratingCounts[5]} Peak (5/5) and ${ratingCounts[4]} Good (4/5) days with zero compounding slumps.`,
@@ -362,8 +381,14 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
       `Maintain clean nutrition and recovery to sustain high velocity.`
     ];
   } else if (hitRate >= 50) {
-    personaTitle = 'The Resilient Equilibrium Builder';
+    personaTitle = 'The Resilient Equilibrium Builder 🛡️';
     executiveSummary = `Maintained steady discipline in ${monthName} with a ${hitRate}% Hit Rate. Balanced standard routines while holding the baseline through fluctuating demands.`;
+    homieLetter = [
+      `Solid month of holding the line, bro. You finished with a ${hitRate}% Hit Rate across ${loggedCount} logged days.`,
+      `You avoided severe tailspins by defending your baseline on ${bestWeekday}s. The next step is turning your 3/5 baseline days into 4/5 breakout days.`,
+      `Keep your morning momentum clean and limit late-evening context switching.`,
+      `You have the discipline—now let's push for an 80%+ Hit Rate next month.`
+    ];
     hiddenFacts = [
       `Mid-Week Momentum: ${bestWeekday} delivered your strongest performance (${weekdayAverages[bestWeekday] || 3.8}/5.0).`,
       `Baseline Defense: Logged ${ratingCounts[3]} Okay (3/5) days, ensuring consistent output without severe crashes.`,
@@ -465,6 +490,75 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
     householdSocialPct: Math.round((householdSocialMentions / totalFrictionSignals) * 100)
   };
 
+  // Attempt direct Google Gemini AI synthesis if API Key is available
+  try {
+    let apiKey = null;
+    try {
+      const { fetchCloudGeminiApiKey } = await import('./firebase');
+      apiKey = await fetchCloudGeminiApiKey();
+    } catch (e) {}
+
+    if (!apiKey && typeof import.meta !== 'undefined' && import.meta.env) {
+      apiKey = import.meta.env.VITE_GEMINI_API_KEY || null;
+    }
+
+    if (apiKey) {
+      const prompt = `You are the user's brutally honest, hilarious, deeply caring bro/best-friend and forensic habit analyst evaluating their daily life log for ${monthName}.
+
+DATA SUMMARY:
+- Total Logged Days: ${loggedCount} / ${totalDaysInMonth}
+- Hit Rate: ${hitRate}% (Days with rating >= 3)
+- Average Quality Score: ${avgScore} / 5.0
+- Longest Slump: ${longestSlump} consecutive rough/down days
+- Weekday Averages: ${JSON.stringify(weekdayAverages)}
+- Friction Breakdown: Screen=${frictionBreakdown.screenDoomscrollPct}%, Academic=${frictionBreakdown.academicStressPct}%, Family/Social=${frictionBreakdown.householdSocialPct}%
+- Detailed Log Entries with Notes:
+${JSON.stringify(dayMatrix.slice(0, 31), null, 2)}
+
+CORE INSTRUCTIONS:
+1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE based on specific diary events.
+2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly with real validation, playful roasting, resilience celebration, and a brotherly game plan.
+3. PROVIDE 5 TO 6 SHARP HIDDEN FACTS referencing exact diary events.
+
+Return ONLY a valid JSON object matching:
+{
+  "personaTitle": "...",
+  "executiveSummary": "...",
+  "homieLetter": ["p1", "p2", "p3", "p4"],
+  "hiddenFacts": ["fact1", "fact2", "fact3", "fact4", "fact5", "fact6"],
+  "frictionAnalysis": "...",
+  "goldenHabits": "...",
+  "nextMonthDirectives": ["dir1", "dir2", "dir3"]
+}`;
+
+      const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
+        })
+      });
+
+      if (aiRes.ok) {
+        const aiData = await aiRes.json();
+        const jsonText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (jsonText) {
+          const parsed = JSON.parse(jsonText);
+          if (parsed.personaTitle) personaTitle = parsed.personaTitle;
+          if (parsed.executiveSummary) executiveSummary = parsed.executiveSummary;
+          if (parsed.homieLetter && Array.isArray(parsed.homieLetter)) homieLetter = parsed.homieLetter;
+          if (parsed.hiddenFacts && Array.isArray(parsed.hiddenFacts)) hiddenFacts = parsed.hiddenFacts;
+          if (parsed.frictionAnalysis) frictionAnalysis = parsed.frictionAnalysis;
+          if (parsed.goldenHabits) goldenHabits = parsed.goldenHabits;
+          if (parsed.nextMonthDirectives && Array.isArray(parsed.nextMonthDirectives)) nextMonthDirectives = parsed.nextMonthDirectives;
+        }
+      }
+    }
+  } catch (aiErr) {
+    console.warn('Direct client Gemini report error, fallback activated:', aiErr);
+  }
+
   return {
     monthName,
     year,
@@ -481,6 +575,7 @@ function generateClientMonthlyReport(year, month, customEntries = null) {
     dayMatrix,
     personaTitle,
     executiveSummary,
+    homieLetter,
     hiddenFacts,
     frictionAnalysis,
     goldenHabits,
