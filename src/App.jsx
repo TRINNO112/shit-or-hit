@@ -7,7 +7,10 @@ import CalendarModal from './components/CalendarModal';
 import EditDayModal from './components/EditDayModal';
 import MonthlyReportModal from './components/MonthlyReportModal';
 import MobileAppView from './components/MobileAppView';
+import ReminderBanner from './components/ReminderBanner';
+import AestheticCardExportModal from './components/AestheticCardExportModal';
 import { fetchDatabase, saveEntry } from './services/api';
+import { scheduleLocalEveningReminder } from './services/notifications';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
@@ -25,6 +28,8 @@ export default function App() {
   const [entries, setEntries] = useState({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isMonthlyReportOpen, setIsMonthlyReportOpen] = useState(false);
+  const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
+  const [wallpaperTarget, setWallpaperTarget] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1
@@ -36,6 +41,10 @@ export default function App() {
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   const todayStr = `${y}-${m}-${d}`;
+
+  useEffect(() => {
+    scheduleLocalEveningReminder();
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -76,9 +85,32 @@ export default function App() {
     setIsMonthlyReportOpen(true);
   };
 
+  const handleQuickRateFromBanner = async (val) => {
+    await handleSaveEntry({
+      date: todayStr,
+      rating: val,
+      notes: entries[todayStr]?.notes || ''
+    });
+  };
+
+  const handleOpenWallpaper = (customEntry = null, customDate = null) => {
+    setWallpaperTarget({
+      entry: customEntry || entries[todayStr] || null,
+      dateStr: customDate || todayStr
+    });
+    setIsWallpaperModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-black">
       
+      {/* ⏰ SMART 9 PM BROTHERLY HINGLISH REMINDER BANNER */}
+      <ReminderBanner
+        todayEntry={entries[todayStr]}
+        onQuickRate={handleQuickRateFromBanner}
+        onOpenDiary={() => {}}
+      />
+
       {/* 📱 DEDICATED NATIVE MOBILE APP INTERFACE (Screens < 768px) */}
       {isMobile ? (
         <MobileAppView
@@ -89,6 +121,7 @@ export default function App() {
           onSaveToday={handleSaveEntry}
           onOpenMonthlyReport={() => handleOpenMonthlyReport()}
           onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+          onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
         />
       ) : (
         /* 💻 FULL PANORAMIC DESKTOP EXPERIENCE (Screens >= 768px) */
@@ -100,6 +133,7 @@ export default function App() {
             isCalendarOpen={isCalendarOpen}
             onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
             onOpenMonthlyReport={() => handleOpenMonthlyReport()}
+            onOpenWallpaper={() => handleOpenWallpaper()}
             onSyncRefresh={loadData}
           />
 
@@ -109,6 +143,7 @@ export default function App() {
               currentEntry={entries[todayStr] || null}
               onSaveToday={handleSaveEntry}
               dayCount={dayCount}
+              onOpenWallpaper={() => handleOpenWallpaper()}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-4">
@@ -166,6 +201,15 @@ export default function App() {
         onClose={() => setIsMonthlyReportOpen(false)}
         initialYear={reportTargetMonth.year}
         initialMonth={reportTargetMonth.month}
+      />
+
+      {/* 🖼️ Aesthetic Wallpaper & Social Card Export Modal */}
+      <AestheticCardExportModal
+        isOpen={isWallpaperModalOpen}
+        onClose={() => setIsWallpaperModalOpen(false)}
+        entry={wallpaperTarget?.entry || entries[todayStr] || null}
+        dateStr={wallpaperTarget?.dateStr || todayStr}
+        dayCount={dayCount}
       />
 
     </div>

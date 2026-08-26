@@ -178,12 +178,13 @@ CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
 - PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
+- MULTILINGUAL & HINGLISH MIRRORING: Detect the exact language or blend used by the user (English, Hindi, Hinglish / Romanized Hindi, etc.). You MUST write the polished diary in the EXACT SAME LANGUAGE and linguistic blend. If written in Hinglish (e.g. "aaj pura din waste ho gaya reels scroll karke"), polish it in natural, authentic, expressive 1st-person Hinglish without converting it into boring English.
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
 
 Return ONLY the complete polished diary entry text.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
+      let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -191,6 +192,18 @@ Return ONLY the complete polished diary entry text.`;
           generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
         })
       });
+
+      // Fallback to gemini-3.1-flash-lite if 3.5 is busy
+      if (!response.ok) {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+          })
+        });
+      }
 
       if (response.ok) {
         const result = await response.json();
@@ -519,6 +532,7 @@ CORE INSTRUCTIONS:
 1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE based on specific diary events.
 2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly with real validation, playful roasting, resilience celebration, and a brotherly game plan.
 3. PROVIDE 5 TO 6 SHARP HIDDEN FACTS referencing exact diary events.
+4. MULTILINGUAL & HINGLISH MIRRORING: Detect the dominant language/dialect used in the diary entries (e.g. English, Hinglish / Romanized Hindi, Hindi). You MUST write the personaTitle, executiveSummary, homieLetter, and hiddenFacts in the EXACT SAME LANGUAGE and linguistic blend. If the user wrote entries in Hinglish (e.g. "aaj accounts test kharab gaya", "phone scroll karte karte 3 baje"), write the homie letter and observations in authentic, natural, witty bro Hinglish (e.g. "Sun mere bhai, is mahine tune sach me bohot jhela hai...").
 
 Return ONLY a valid JSON object matching:
 {
@@ -531,7 +545,7 @@ Return ONLY a valid JSON object matching:
   "nextMonthDirectives": ["dir1", "dir2", "dir3"]
 }`;
 
-      const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
+      let aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -539,6 +553,18 @@ Return ONLY a valid JSON object matching:
           generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
         })
       });
+
+      // Fallback to gemini-3.1-flash-lite if 3.5 is busy
+      if (!aiRes.ok) {
+        aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
+          })
+        });
+      }
 
       if (aiRes.ok) {
         const aiData = await aiRes.json();

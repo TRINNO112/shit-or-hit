@@ -175,6 +175,16 @@ export default function Header({
           <span className="sm:hidden">GRID</span>
         </MagneticButton>
 
+        {/* Wallpaper & Social Export Button */}
+        <button
+          onClick={onOpenWallpaper}
+          title="Export Aesthetic Phone Wallpaper or Social Card"
+          className="px-3 py-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-black" />
+          <span className="hidden sm:inline">WALLPAPER</span>
+        </button>
+
         {/* Backup Button */}
         <button
           onClick={handleExport}

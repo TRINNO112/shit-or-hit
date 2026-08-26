@@ -54,7 +54,8 @@ export default function MobileAppView({
   todayStr,
   onSaveToday,
   onOpenMonthlyReport,
-  onEditDay
+  onEditDay,
+  onOpenWallpaper
 }) {
   const [activeTab, setActiveTab] = useState('log'); // 'log' | 'history' | 'dossier' | 'stats'
   const [historySubView, setHistorySubView] = useState('calendar'); // 'calendar' | 'timeline'
@@ -512,14 +513,32 @@ export default function MobileAppView({
               </div>
             )}
 
-            {/* Reflection Drawer Trigger */}
-            <button
-              onClick={() => setShowNoteDrawer(true)}
-              className="w-full py-3 px-4 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
-            >
-              <PenLine className="w-4 h-4" />
-              <span>{entries[todayStr]?.notes ? '✏️ EDIT DIARY NOTE' : '+ ADD OPTIONAL NOTE'}</span>
-            </button>
+            {/* Action Row: Reflection Drawer Trigger & Wallpaper Export */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setShowNoteDrawer(true);
+                }}
+                className="py-3 px-2 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
+              >
+                <PenLine className="w-4 h-4" />
+                <span className="truncate">{entries[todayStr]?.notes ? '✏️ EDIT DIARY' : '+ ADD NOTE'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('medium');
+                  if (onOpenWallpaper) onOpenWallpaper(entries[todayStr], todayStr);
+                }}
+                className="py-3 px-2 rounded-xl border-2 border-black bg-[#FDC800] hover:bg-amber-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-black" />
+                <span>WALLPAPER</span>
+              </button>
+            </div>
           </div>
 
         </main>

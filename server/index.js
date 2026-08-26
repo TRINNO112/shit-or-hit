@@ -168,13 +168,14 @@ CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
 - PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
+- MULTILINGUAL & HINGLISH MIRRORING: Detect the exact language or blend used by the user (English, Hindi, Hinglish / Romanized Hindi, etc.). You MUST write the polished diary in the EXACT SAME LANGUAGE and linguistic blend. If written in Hinglish (e.g. "aaj pura din waste ho gaya reels scroll karke"), polish it in natural, authentic, expressive 1st-person Hinglish without converting it into boring English.
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic, passionate voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
 
 Return ONLY the complete, uncompressed polished diary entry text.`;
 
   try {
-    // Call Gemini API with user-preferred model (strictly gemini-3.5-flash-lite)
+    // Call Gemini API with user-preferred model (strictly gemini-3.5-flash-lite with 3.1 fallback)
     const primaryModel = 'gemini-3.5-flash-lite';
     let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${primaryModel}:generateContent?key=${apiKey}`, {
       method: 'POST',
@@ -191,6 +192,17 @@ Return ONLY the complete, uncompressed polished diary entry text.`;
         }
       })
     });
+
+    if (!response.ok) {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+        })
+      });
+    }
 
     if (response.ok) {
       const data = await response.json();
@@ -472,6 +484,8 @@ CORE HOMIE INSTRUCTIONS:
    - Paragraph 4 (Brotherly Game Plan): Give heartfelt, practical brotherly advice for next month.
 3. PROVIDE 5 TO 6 HILARIOUS & SHARP HIDDEN FACTS referencing exact diary events (e.g. Thursday curses, chai spills, crush water cooler moments, 3 AM phone loops).
 
+4. MULTILINGUAL & HINGLISH MIRRORING: Detect the dominant language/dialect used in the diary entries (e.g. English, Hinglish / Romanized Hindi, Hindi). You MUST write the personaTitle, executiveSummary, homieLetter, and hiddenFacts in the EXACT SAME LANGUAGE and linguistic blend. If the user wrote entries in Hinglish (e.g. "aaj accounts test kharab gaya", "phone scroll karte karte 3 baje"), write the homie letter and observations in authentic, natural, witty bro Hinglish (e.g. "Sun mere bhai, is mahine tune sach me bohot jhela hai...").
+
 Return ONLY a valid JSON object matching this exact schema:
 {
   "personaTitle": "A unique, creative, hilarious bro title matching their specific diary moments",
@@ -509,6 +523,17 @@ Return ONLY a valid JSON object matching this exact schema:
           generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
         })
       });
+
+      if (!response.ok) {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
+          })
+        });
+      }
 
       if (response.ok) {
         const data = await response.json();
