@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload } from 'lucide-react';
+import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ratingMeta } from '../services/api';
 
 const THEMES = [
@@ -50,28 +50,52 @@ export default function AestheticCardExportModal({
   entry,
   dateStr,
   dayCount,
+  entries = {},
+  startDate = '2026-08-01',
   displayName = 'Trinno Asphalt'
 }) {
   const [format, setFormat] = useState('wallpaper'); // 'wallpaper' (9:16) | 'social' (1:1)
   const [activeTheme, setActiveTheme] = useState('streetwear');
+  const [selectedDateStr, setSelectedDateStr] = useState(dateStr || new Date().toISOString().slice(0, 10));
   const [customMascotImg, setCustomMascotImg] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const rating = entry?.rating || 3;
-  const verdict = entry?.verdict || ratingMeta[rating]?.title || 'Verdict';
-  const notes = entry?.notes || 'Solid day holding the baseline. Another day logged on the board.';
+  // Sync selected date when modal opens with a specific date
+  useEffect(() => {
+    if (dateStr) {
+      setSelectedDateStr(dateStr);
+    }
+  }, [dateStr, isOpen]);
+
+  // Derive active day entry and day index
+  const activeEntry = entries[selectedDateStr] || (selectedDateStr === dateStr ? entry : null);
+  const rating = activeEntry?.rating || 3;
+  const verdict = activeEntry?.verdict || ratingMeta[rating]?.title || 'Verdict';
+  const notes = activeEntry?.notes || (activeEntry?.rating ? 'Solid day logged on the board.' : 'No diary reflection recorded for this day yet.');
   const meta = ratingMeta[rating] || ratingMeta[3];
 
-  const dateObj = new Date(dateStr ? `${dateStr}T00:00:00` : new Date());
-  const formattedDate = dateObj.toLocaleDateString('en-US', {
+  const startObj = new Date(`${startDate || '2026-08-01'}T00:00:00`);
+  const currentObj = new Date(`${selectedDateStr}T00:00:00`);
+  const activeDayCount = Math.max(1, Math.floor((currentObj - startObj) / (1000 * 60 * 60 * 24)) + 1);
+
+  const formattedDate = currentObj.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
     year: 'numeric'
   });
+
+  const handleShiftDay = (delta) => {
+    const cur = new Date(`${selectedDateStr}T00:00:00`);
+    cur.setDate(cur.getDate() + delta);
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    setSelectedDateStr(`${y}-${m}-${d}`);
+  };
 
   const handleMascotUpload = (e) => {
     const file = e.target.files?.[0];
@@ -197,13 +221,13 @@ export default function AestheticCardExportModal({
     ctx.strokeRect(width - 270, topY - 10, 210, 60);
     ctx.fillStyle = '#000000';
     ctx.font = '900 28px monospace';
-    ctx.fillText(`DAY ${dayCount}`, width - 245, topY + 31);
+    ctx.fillText(`DAY ${activeDayCount}`, width - 245, topY + 31);
 
     // Giant Background Typographic Number (Poster Art)
     ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)';
     ctx.font = '900 320px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`0${dayCount}`.slice(-2), width / 2, format === 'wallpaper' ? 520 : 420);
+    ctx.fillText(`0${activeDayCount}`.slice(-2), width / 2, format === 'wallpaper' ? 520 : 420);
     ctx.textAlign = 'left';
 
     // 3. Huge Hero Verdict Title & Rating Stars
@@ -348,7 +372,7 @@ export default function AestheticCardExportModal({
       drawMascotAndContent();
     }
 
-  }, [isOpen, format, activeTheme, customMascotImg, entry, dateStr, dayCount, displayName, rating, verdict, notes, meta, formattedDate]);
+  }, [isOpen, format, activeTheme, customMascotImg, selectedDateStr, activeEntry, activeDayCount, displayName, rating, verdict, notes, meta, formattedDate]);
 
   if (!isOpen) return null;
 
@@ -357,7 +381,7 @@ export default function AestheticCardExportModal({
     setDownloading(true);
     try {
       const link = document.createElement('a');
-      link.download = `daily_verdict_${activeTheme}_${format}_${dateStr || 'card'}.png`;
+      link.download = `daily_verdict_${activeTheme}_${format}_${selectedDateStr || 'card'}.png`;
       link.href = canvasRef.current.toDataURL('image/png');
       link.click();
     } catch (err) {
@@ -380,7 +404,7 @@ export default function AestheticCardExportModal({
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
-          className="w-full max-w-xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-4"
+          className="w-full max-w-xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-3.5"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -394,7 +418,7 @@ export default function AestheticCardExportModal({
                   Aesthetic Wallpaper Studio
                 </h3>
                 <span className="text-xs font-mono text-neutral-600">
-                  Featuring your custom mood mascot & streetwear artwork
+                  Generate wallpaper for any day in your journey
                 </span>
               </div>
             </div>
@@ -407,8 +431,44 @@ export default function AestheticCardExportModal({
             </button>
           </div>
 
+          {/* 📅 Date Navigator (Switch to Any Day!) */}
+          <div className="flex items-center justify-between bg-white border-2 border-black p-2 rounded-2xl shadow-[2px_2px_0px_#000000]">
+            <button
+              type="button"
+              onClick={() => handleShiftDay(-1)}
+              className="p-2 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all"
+              title="Previous Day"
+            >
+              <ChevronLeft className="w-4 h-4 stroke-[3]" />
+              <span className="hidden sm:inline">PREV</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-black" />
+              <input
+                type="date"
+                value={selectedDateStr}
+                onChange={(e) => setSelectedDateStr(e.target.value)}
+                className="bg-neutral-100 border-2 border-black rounded-xl px-2.5 py-1 font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer focus:outline-none"
+              />
+              <span className="px-2 py-1 rounded-lg bg-black text-[#FDC800] text-xs font-mono font-black">
+                DAY {activeDayCount}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleShiftDay(1)}
+              className="p-2 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all"
+              title="Next Day"
+            >
+              <span className="hidden sm:inline">NEXT</span>
+              <ChevronRight className="w-4 h-4 stroke-[3]" />
+            </button>
+          </div>
+
           {/* Format Tabs & Distinct Themes */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {/* Format Selector */}
             <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
               <button
@@ -444,7 +504,7 @@ export default function AestheticCardExportModal({
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTheme(t.id)}
-                  className={`py-2.5 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black truncate cursor-pointer transition-all ${
+                  className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black truncate cursor-pointer transition-all ${
                     activeTheme === t.id
                       ? 'bg-black text-white shadow-[2.5px_2.5px_0px_#000000] scale-[1.02]'
                       : 'bg-white text-black hover:bg-neutral-100'
@@ -457,11 +517,11 @@ export default function AestheticCardExportModal({
           </div>
 
           {/* Mascot Info / Custom Swap */}
-          <div className="flex items-center justify-between bg-neutral-100 border-2 border-black p-2.5 rounded-2xl">
+          <div className="flex items-center justify-between bg-neutral-100 border-2 border-black p-2 rounded-2xl">
             <div className="flex items-center gap-2">
               <span className="text-base">🎭</span>
               <span className="text-xs font-mono font-bold text-neutral-800">
-                {customMascotImg ? 'Custom Mascot Active ✅' : `Mood Mascot: ${rating}★ Auto-Linked`}
+                {customMascotImg ? 'Custom Mascot Active ✅' : `Mood Mascot: ${rating}★ Linked`}
               </span>
             </div>
             <input
@@ -482,17 +542,17 @@ export default function AestheticCardExportModal({
           </div>
 
           {/* Live Preview Container */}
-          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-3 max-h-[380px] overflow-hidden">
+          <div className="w-full flex items-center justify-center bg-neutral-950 rounded-2xl border-2 border-black p-3 max-h-[360px] overflow-hidden">
             {previewUrl ? (
               <img
                 src={previewUrl}
                 alt="Aesthetic Card Preview"
                 className={`rounded-xl border border-white/20 shadow-2xl object-contain ${
-                  format === 'wallpaper' ? 'max-h-[350px] aspect-[9/16]' : 'max-h-[350px] aspect-square'
+                  format === 'wallpaper' ? 'max-h-[330px] aspect-[9/16]' : 'max-h-[330px] aspect-square'
                 }`}
               />
             ) : (
-              <div className="text-white font-mono text-xs py-14">Rendering high-res mascot artwork...</div>
+              <div className="text-white font-mono text-xs py-14">Rendering high-res poster artwork...</div>
             )}
           </div>
 
@@ -505,7 +565,7 @@ export default function AestheticCardExportModal({
               className="flex-1 py-3.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-sm uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4 stroke-[3]" />
-              <span>{downloading ? 'GENERATING POSTER PNG...' : 'DOWNLOAD HIGH-RES WALLPAPER'}</span>
+              <span>{downloading ? 'GENERATING POSTER PNG...' : 'DOWNLOAD HIGH-RES POSTER'}</span>
             </button>
           </div>
         </motion.div>

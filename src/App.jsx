@@ -194,6 +194,7 @@ export default function App() {
         dateStr={editingDay?.dateStr}
         dayIndex={editingDay?.dayIndex || 1}
         onSave={handleSaveEntry}
+        onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
       />
 
       <MonthlyReportModal
@@ -210,6 +211,8 @@ export default function App() {
         entry={wallpaperTarget?.entry || entries[todayStr] || null}
         dateStr={wallpaperTarget?.dateStr || todayStr}
         dayCount={dayCount}
+        entries={entries}
+        startDate={startDate}
       />
 
     </div>

@@ -31,7 +31,8 @@ export default function EditDayModal({
   entryData,
   dateStr,
   dayIndex,
-  onSave
+  onSave,
+  onOpenWallpaper
 }) {
   const [rating, setRating] = useState(entryData?.rating || 3);
   const [notes, setNotes] = useState(entryData?.notes || '');
@@ -276,24 +277,40 @@ export default function EditDayModal({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-black/10">
+            <div className="flex items-center justify-between gap-2 pt-4 border-t-2 border-black/10">
               <button
                 type="button"
-                onClick={onClose}
-                className="neo-btn px-4 py-2 bg-neutral-100 text-black text-xs font-mono font-bold cursor-pointer"
+                onClick={() => {
+                  if (onOpenWallpaper) {
+                    onOpenWallpaper({ rating, notes, date: dateStr }, dateStr);
+                  }
+                }}
+                className="neo-btn px-3 py-2 bg-[#FDC800] hover:bg-amber-400 text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                title="Generate Aesthetic Wallpaper for this day"
               >
-                CANCEL
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>WALLPAPER</span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSaving}
-                className="neo-btn px-6 py-2 bg-[#00E599] text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[3px_3px_0px_#000000]"
-              >
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>{isSaving ? 'SAVING...' : 'SAVE CHANGES'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="neo-btn px-3.5 py-2 bg-neutral-100 text-black text-xs font-mono font-bold cursor-pointer"
+                >
+                  CANCEL
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="neo-btn px-5 py-2 bg-[#00E599] text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[3px_3px_0px_#000000]"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>{isSaving ? 'SAVING...' : 'SAVE CHANGES'}</span>
+                </button>
+              </div>
             </div>
 
           </motion.div>
