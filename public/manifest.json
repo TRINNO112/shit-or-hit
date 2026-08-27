@@ -1,29 +1,29 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "Daily Verdict • Raw Daily Accountability",
   "short_name": "Verdict",
   "description": "Unfiltered daily verdict rating, forensic life forensics, and private bro AI diary.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#FFFDF5",
   "theme_color": "#FDC800",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
