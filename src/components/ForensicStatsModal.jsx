@@ -122,10 +122,10 @@ export default function ForensicStatsModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-white hover:bg-neutral-200 border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all"
-              title="Close Telemetry"
+              className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0"
+              title="Close Telemetry Hub"
             >
-              <X className="w-5 h-5 text-black stroke-[2.5]" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
             </button>
           </div>
 

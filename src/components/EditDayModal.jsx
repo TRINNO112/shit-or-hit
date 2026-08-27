@@ -235,10 +235,10 @@ export default function EditDayModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-2.5 rounded-xl bg-red-100 hover:bg-red-200 border-2 border-black text-black cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all"
+                  className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all"
                   title="Close modal"
                 >
-                  <X className="w-4 h-4 stroke-[3]" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
                 </button>
               </div>
             </div>
