@@ -837,42 +837,44 @@ export default function AestheticCardExportModal({
                   </button>
                 </div>
 
-                {/* Format Tabs */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-white rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000]">
+                {/* Format Tabs - Seamless Segmented Control */}
+                <div className="grid grid-cols-2 bg-neutral-100 rounded-2xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000]">
                   <button
                     type="button"
                     onClick={() => setFormat('wallpaper')}
-                    className={`py-2 px-3 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer border-2 transition-all ${format === 'wallpaper'
-                      ? 'bg-[#FDC800] border-black text-black shadow-[1.5px_1.5px_0px_#000000]'
-                      : 'border-transparent text-neutral-600 hover:text-black hover:bg-neutral-100'
+                    className={`py-2.5 px-3 font-display font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer transition-all ${format === 'wallpaper'
+                      ? 'bg-[#FDC800] text-black shadow-inner'
+                      : 'bg-transparent text-neutral-600 hover:text-black hover:bg-neutral-200'
                       }`}
                   >
-                    <Smartphone className="w-4 h-4" />
+                    <Smartphone className="w-4 h-4 stroke-[2.5]" />
                     <span>STORY POSTER</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormat('social')}
-                    className={`py-2 px-3 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer border-2 transition-all ${format === 'social'
-                      ? 'bg-[#FDC800] border-black text-black shadow-[1.5px_1.5px_0px_#000000]'
-                      : 'border-transparent text-neutral-600 hover:text-black hover:bg-neutral-100'
+                    className={`py-2.5 px-3 font-display font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer transition-all border-l-2 border-black ${format === 'social'
+                      ? 'bg-[#FDC800] text-black shadow-inner'
+                      : 'bg-transparent text-neutral-600 hover:text-black hover:bg-neutral-200'
                       }`}
                   >
-                    <Share2 className="w-4 h-4" />
+                    <Share2 className="w-4 h-4 stroke-[2.5]" />
                     <span>FEED CARD</span>
                   </button>
                 </div>
 
-                {/* 3 Themes */}
-                <div className="grid grid-cols-3 gap-2">
-                  {THEMES.map((t) => (
+                {/* 3 Themes - Seamless Segmented Control */}
+                <div className="grid grid-cols-3 bg-neutral-100 rounded-2xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000]">
+                  {THEMES.map((t, idx) => (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => setActiveTheme(t.id)}
-                      className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${activeTheme === t.id
-                        ? 'bg-black text-white shadow-[2px_2px_0px_#000000]'
-                        : 'bg-white text-black hover:bg-neutral-100'
+                      className={`py-2 px-2 font-mono text-xs font-black text-center cursor-pointer transition-all ${
+                        idx > 0 ? 'border-l-2 border-black' : ''
+                      } ${activeTheme === t.id
+                        ? 'bg-black text-[#FDC800]'
+                        : 'bg-white text-neutral-700 hover:bg-neutral-100'
                         }`}
                     >
                       {t.name}
