@@ -838,13 +838,13 @@ export default function AestheticCardExportModal({
                 </div>
 
                 {/* Format Tabs */}
-                <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 rounded-2xl border-2 border-black">
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-white rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000]">
                   <button
                     type="button"
                     onClick={() => setFormat('wallpaper')}
-                    className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'wallpaper'
-                      ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                      : 'text-neutral-600 hover:text-black'
+                    className={`py-2 px-3 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer border-2 transition-all ${format === 'wallpaper'
+                      ? 'bg-[#FDC800] border-black text-black shadow-[1.5px_1.5px_0px_#000000]'
+                      : 'border-transparent text-neutral-600 hover:text-black hover:bg-neutral-100'
                       }`}
                   >
                     <Smartphone className="w-4 h-4" />
@@ -853,9 +853,9 @@ export default function AestheticCardExportModal({
                   <button
                     type="button"
                     onClick={() => setFormat('social')}
-                    className={`py-2 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-all ${format === 'social'
-                      ? 'bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000]'
-                      : 'text-neutral-600 hover:text-black'
+                    className={`py-2 px-3 rounded-xl font-display font-black text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer border-2 transition-all ${format === 'social'
+                      ? 'bg-[#FDC800] border-black text-black shadow-[1.5px_1.5px_0px_#000000]'
+                      : 'border-transparent text-neutral-600 hover:text-black hover:bg-neutral-100'
                       }`}
                   >
                     <Share2 className="w-4 h-4" />
@@ -871,7 +871,7 @@ export default function AestheticCardExportModal({
                       type="button"
                       onClick={() => setActiveTheme(t.id)}
                       className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${activeTheme === t.id
-                        ? 'bg-black text-white shadow-[2px_2px_0px_#000000] scale-[1.02]'
+                        ? 'bg-black text-white shadow-[2px_2px_0px_#000000]'
                         : 'bg-white text-black hover:bg-neutral-100'
                         }`}
                     >
