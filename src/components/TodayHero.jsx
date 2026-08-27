@@ -25,6 +25,7 @@ import {
 import MagneticButton from './MagneticButton';
 import confetti from 'canvas-confetti';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
+import SphereIcon from './SphereIcon';
 
 const IconMap = {
   AlertCircle,
@@ -458,8 +459,13 @@ export default function TodayHero({
                 >
                   {/* Sphere Card Header */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{sphere.icon}</span>
+                    <div className="flex items-center gap-2.5">
+                      <div 
+                        className="w-8 h-8 rounded-xl border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] shrink-0"
+                        style={{ backgroundColor: sphere.color || '#FDC800' }}
+                      >
+                        <SphereIcon icon={sphere.icon} className="w-4 h-4 text-black stroke-[2.5]" />
+                      </div>
                       <div>
                         <h4 className="font-display font-black text-sm uppercase leading-tight">
                           {sphere.name}

@@ -15,6 +15,7 @@ import {
   BatteryCharging
 } from 'lucide-react';
 import { ratingMeta, isSphereModeEnabled } from '../services/api';
+import SphereIcon from './SphereIcon';
 
 import mascot1 from '../assets/mascots/mascot_1_rough.png';
 import mascot2 from '../assets/mascots/mascot_2_down.png';
@@ -311,7 +312,9 @@ export default function ForensicStatsModal({
                       return (
                         <div key={s.id} className="bg-neutral-50 border border-black/20 rounded-xl p-2.5 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="text-xl shrink-0">{s.icon}</span>
+                            <div className="w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center bg-white shrink-0 shadow-[1px_1px_0px_#000000]">
+                              <SphereIcon icon={s.icon} className="w-4 h-4 text-black stroke-[2.5]" />
+                            </div>
                             <div className="min-w-0">
                               <span className="font-display font-black text-xs uppercase truncate text-black block">
                                 {s.name}

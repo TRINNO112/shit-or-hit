@@ -23,6 +23,7 @@ import {
 } from '../services/api';
 import confetti from 'canvas-confetti';
 import { Layers } from 'lucide-react';
+import SphereIcon from './SphereIcon';
 
 const IconMap = {
   AlertCircle,
@@ -295,8 +296,13 @@ export default function EditDayModal({
 
                       return (
                         <div key={sphere.id} className="p-2 bg-white rounded-xl border border-black/40 flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="text-base">{sphere.icon}</span>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div 
+                              className="w-6 h-6 rounded-md border border-black flex items-center justify-center shrink-0 shadow-[0.5px_0.5px_0px_#000000]"
+                              style={{ backgroundColor: sphere.color || '#FDC800' }}
+                            >
+                              <SphereIcon icon={sphere.icon} className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                            </div>
                             <span className="font-display font-bold text-xs uppercase truncate">{sphere.name}</span>
                           </div>
 

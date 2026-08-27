@@ -49,6 +49,7 @@ import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } f
 import confetti from 'canvas-confetti';
 import JourneyTimeline from './JourneyTimeline';
 import StatsWidget from './StatsWidget';
+import SphereIcon from './SphereIcon';
 
 const IconMap = {
   AlertCircle,
@@ -609,7 +610,7 @@ export default function MobileAppView({
                           : 'bg-white text-neutral-700 hover:bg-neutral-100'
                       }`}
                     >
-                      <span className="text-sm">{sphere.icon}</span>
+                      <SphereIcon icon={sphere.icon} className="w-3.5 h-3.5 text-black stroke-[2.5]" />
                       <span>{sphere.name}</span>
                       {sRating ? (
                         <span 
@@ -636,10 +637,15 @@ export default function MobileAppView({
                 return (
                   <div className="bg-[#FFFDF8] rounded-2xl border-2 border-black p-3.5 shadow-[3px_3px_0px_#000000] space-y-3">
                     <div className="flex items-center justify-between border-b border-black/10 pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{currentSphere.icon}</span>
+                      <div className="flex items-center gap-2.5">
+                        <div 
+                          className="w-8 h-8 rounded-xl border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] shrink-0"
+                          style={{ backgroundColor: currentSphere.color || '#FDC800' }}
+                        >
+                          <SphereIcon icon={currentSphere.icon} className="w-4 h-4 text-black stroke-[2.5]" />
+                        </div>
                         <div>
-                          <h3 className="font-display font-black text-sm uppercase text-black">
+                          <h3 className="font-display font-black text-sm uppercase text-black leading-tight">
                             {currentSphere.name}
                           </h3>
                           <p className="text-[10px] font-mono text-neutral-600">

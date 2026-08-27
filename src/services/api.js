@@ -63,7 +63,7 @@ export const DEFAULT_SPHERES = [
   {
     id: 'work_school',
     name: 'Work & School',
-    icon: '🎓',
+    icon: 'GraduationCap',
     color: '#FDC800',
     desc: 'Office, classes, exams & academic focus',
     enabled: true
@@ -71,7 +71,7 @@ export const DEFAULT_SPHERES = [
   {
     id: 'home_personal',
     name: 'Home & Sanctuary',
-    icon: '🏠',
+    icon: 'Home',
     color: '#00E599',
     desc: 'Household, family, rest & evening space',
     enabled: true
@@ -79,7 +79,7 @@ export const DEFAULT_SPHERES = [
   {
     id: 'social_event',
     name: 'Social & Events',
-    icon: '🎉',
+    icon: 'PartyPopper',
     color: '#FF8A00',
     desc: 'Hangouts, outings, gatherings & parties',
     enabled: true

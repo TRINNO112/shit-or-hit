@@ -35,11 +35,13 @@ import {
   DEFAULT_SPHERES
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
+import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
 
 export default function SettingsModal({
   isOpen,
   onClose,
   user,
+  onOpenIconLab,
   onSettingsChanged
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
@@ -54,15 +56,15 @@ export default function SettingsModal({
   const [spheresList, setSpheresList] = useState([]);
   const [isAddingSphere, setIsAddingSphere] = useState(false);
   const [newSphereName, setNewSphereName] = useState('');
-  const [newSphereIcon, setNewSphereIcon] = useState('⚡');
+  const [newSphereIcon, setNewSphereIcon] = useState('Briefcase');
   const [newSphereColor, setNewSphereColor] = useState('#FDC800');
   const [newSphereDesc, setNewSphereDesc] = useState('');
 
   // Editing existing sphere
   const [editingSphereId, setEditingSphereId] = useState(null);
   const [editSphereName, setEditSphereName] = useState('');
-  const [editSphereIcon, setEditSphereIcon] = useState('');
-  const [editSphereColor, setEditSphereColor] = useState('');
+  const [editSphereIcon, setEditSphereIcon] = useState('Briefcase');
+  const [editSphereColor, setEditSphereColor] = useState('#FDC800');
   const [editSphereDesc, setEditSphereDesc] = useState('');
 
   useEffect(() => {
@@ -425,10 +427,11 @@ export default function SettingsModal({
 
                         if (isEditingThis) {
                           return (
-                            <form key={sphere.id} onSubmit={handleSaveEditSphere} className="p-3 bg-amber-50 border-2 border-black rounded-xl space-y-2">
+                            <form key={sphere.id} onSubmit={handleSaveEditSphere} className="p-3.5 bg-amber-50 border-2 border-black rounded-xl space-y-2.5">
                               <div className="flex items-center justify-between">
-                                <span className="text-xs font-mono font-black uppercase text-neutral-800">
-                                  Edit Sphere: {sphere.name}
+                                <span className="text-xs font-mono font-black uppercase text-neutral-800 flex items-center gap-1.5">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  <span>Edit Sphere: {sphere.name}</span>
                                 </span>
                                 <button
                                   type="button"
@@ -439,24 +442,39 @@ export default function SettingsModal({
                                 </button>
                               </div>
 
-                              <div className="flex gap-1.5">
-                                <input
-                                  type="text"
-                                  placeholder="Emoji"
-                                  value={editSphereIcon}
-                                  onChange={(e) => setEditSphereIcon(e.target.value)}
-                                  maxLength={3}
-                                  className="w-14 px-2 py-1.5 border-2 border-black rounded-lg text-center text-sm bg-white font-mono"
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="Sphere Name"
-                                  value={editSphereName}
-                                  onChange={(e) => setEditSphereName(e.target.value)}
-                                  className="flex-1 px-2.5 py-1.5 border-2 border-black rounded-lg text-xs font-bold bg-white font-display uppercase"
-                                  autoFocus
-                                />
+                              <div>
+                                <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase mb-1">
+                                  Select Infographic Icon:
+                                </label>
+                                <div className="grid grid-cols-6 gap-1 p-1.5 bg-white border-2 border-black rounded-lg max-h-28 overflow-y-auto">
+                                  {SPHERE_INFOGRAPHIC_ICONS.map(item => {
+                                    const Svg = item.icon;
+                                    const isSel = editSphereIcon === item.id;
+                                    return (
+                                      <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => setEditSphereIcon(item.id)}
+                                        className={`p-1.5 rounded flex flex-col items-center justify-center border cursor-pointer transition-all ${
+                                          isSel ? 'bg-[#FDC800] border-black shadow-[1px_1px_0px_#000000]' : 'border-transparent hover:bg-neutral-100'
+                                        }`}
+                                        title={item.label}
+                                      >
+                                        <Svg className="w-4 h-4 text-black stroke-[2.5]" />
+                                      </button>
+                                    );
+                                  })}
+                                </div>
                               </div>
+
+                              <input
+                                type="text"
+                                placeholder="Sphere Name (e.g. Academics / College)"
+                                value={editSphereName}
+                                onChange={(e) => setEditSphereName(e.target.value)}
+                                className="w-full px-2.5 py-1.5 border-2 border-black rounded-lg text-xs font-bold bg-white font-display uppercase"
+                                autoFocus
+                              />
 
                               <input
                                 type="text"
@@ -467,7 +485,7 @@ export default function SettingsModal({
                               />
 
                               {/* Color Selector */}
-                              <div className="flex items-center gap-2 pt-1">
+                              <div className="flex items-center gap-2 pt-0.5">
                                 <span className="text-[10px] font-mono text-neutral-600">Accent:</span>
                                 <div className="flex gap-1.5">
                                   {['#FDC800', '#00E599', '#FF8A00', '#FF4D4D', '#A855F7', '#38BDF8'].map(c => (
@@ -506,12 +524,17 @@ export default function SettingsModal({
                         return (
                           <div
                             key={sphere.id}
-                            className={`flex items-center justify-between p-2 rounded-xl border-2 border-black transition-all ${
+                            className={`flex items-center justify-between p-2.5 rounded-xl border-2 border-black transition-all ${
                               sphere.enabled ? 'bg-[#FFFDF0]' : 'bg-neutral-100 opacity-60'
                             }`}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-base shrink-0">{sphere.icon}</span>
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div 
+                                className="w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]"
+                                style={{ backgroundColor: sphere.color || '#FDC800' }}
+                              >
+                                <SphereIcon icon={sphere.icon} className="w-4 h-4 text-black stroke-[2.5]" />
+                              </div>
                               <div className="min-w-0">
                                 <div className="font-display font-black text-xs uppercase leading-tight truncate">
                                   {sphere.name}
@@ -522,13 +545,13 @@ export default function SettingsModal({
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1 shrink-0 ml-2">
+                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
                               {/* Edit Button */}
                               <button
                                 type="button"
                                 onClick={() => handleStartEditSphere(sphere)}
-                                className="p-1 text-neutral-700 hover:text-black hover:bg-black/5 rounded-lg cursor-pointer"
-                                title="Edit sphere name, emoji & color"
+                                className="p-1.5 text-neutral-700 hover:text-black hover:bg-black/5 rounded-lg border border-black/20 cursor-pointer"
+                                title="Edit sphere name, icon & color"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
@@ -537,7 +560,7 @@ export default function SettingsModal({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteSphere(sphere.id)}
-                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg cursor-pointer"
+                                className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 cursor-pointer"
                                 title="Delete this sphere"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -547,8 +570,8 @@ export default function SettingsModal({
                               <button
                                 type="button"
                                 onClick={() => handleToggleSphereItem(sphere.id)}
-                                className={`w-6 h-6 rounded-lg border-2 border-black flex items-center justify-center font-mono text-[10px] font-black cursor-pointer transition-all ${
-                                  sphere.enabled ? 'bg-[#00E599] text-black' : 'bg-white text-transparent'
+                                className={`w-7 h-7 rounded-lg border-2 border-black flex items-center justify-center font-mono text-xs font-black cursor-pointer transition-all ${
+                                  sphere.enabled ? 'bg-[#00E599] text-black shadow-[1px_1px_0px_#000000]' : 'bg-white text-transparent'
                                 }`}
                                 title={sphere.enabled ? 'Enabled' : 'Disabled'}
                               >
@@ -562,29 +585,45 @@ export default function SettingsModal({
 
                     {/* Add Custom Sphere Section */}
                     {isAddingSphere ? (
-                      <form onSubmit={handleAddCustomSphere} className="p-3 bg-neutral-50 border-2 border-dashed border-black rounded-xl space-y-2">
-                        <div className="text-xs font-mono font-black uppercase text-neutral-800">
-                          Add New Life Sphere
+                      <form onSubmit={handleAddCustomSphere} className="p-3.5 bg-neutral-50 border-2 border-dashed border-black rounded-xl space-y-2.5">
+                        <div className="text-xs font-mono font-black uppercase text-neutral-800 flex items-center gap-1.5">
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add New Life Sphere</span>
                         </div>
                         
-                        <div className="flex gap-1.5">
-                          <input
-                            type="text"
-                            placeholder="Emoji (e.g. 🏋️)"
-                            value={newSphereIcon}
-                            onChange={(e) => setNewSphereIcon(e.target.value)}
-                            maxLength={3}
-                            className="w-14 px-2 py-1.5 border-2 border-black rounded-lg text-center text-sm bg-white font-mono"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Sphere Name (e.g. Fitness & Gym)"
-                            value={newSphereName}
-                            onChange={(e) => setNewSphereName(e.target.value)}
-                            className="flex-1 px-2.5 py-1.5 border-2 border-black rounded-lg text-xs font-bold bg-white font-display uppercase"
-                            autoFocus
-                          />
+                        <div>
+                          <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase mb-1">
+                            Choose Infographic Icon:
+                          </label>
+                          <div className="grid grid-cols-6 gap-1 p-1.5 bg-white border-2 border-black rounded-lg max-h-28 overflow-y-auto">
+                            {SPHERE_INFOGRAPHIC_ICONS.map(item => {
+                              const Svg = item.icon;
+                              const isSel = newSphereIcon === item.id;
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={() => setNewSphereIcon(item.id)}
+                                  className={`p-1.5 rounded flex flex-col items-center justify-center border cursor-pointer transition-all ${
+                                    isSel ? 'bg-[#FDC800] border-black shadow-[1px_1px_0px_#000000]' : 'border-transparent hover:bg-neutral-100'
+                                  }`}
+                                  title={item.label}
+                                >
+                                  <Svg className="w-4 h-4 text-black stroke-[2.5]" />
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
+
+                        <input
+                          type="text"
+                          placeholder="Sphere Name (e.g. Fitness & Gym)"
+                          value={newSphereName}
+                          onChange={(e) => setNewSphereName(e.target.value)}
+                          className="w-full px-2.5 py-1.5 border-2 border-black rounded-lg text-xs font-bold bg-white font-display uppercase"
+                          autoFocus
+                        />
 
                         <input
                           type="text"
@@ -595,7 +634,7 @@ export default function SettingsModal({
                         />
 
                         {/* Color Selector */}
-                        <div className="flex items-center gap-2 pt-1">
+                        <div className="flex items-center gap-2 pt-0.5">
                           <span className="text-[10px] font-mono text-neutral-600">Accent:</span>
                           <div className="flex gap-1.5">
                             {['#FDC800', '#00E599', '#FF8A00', '#FF4D4D', '#A855F7', '#38BDF8'].map(c => (
