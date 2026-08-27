@@ -1,5 +1,5 @@
 // Daily Verdict Service Worker for PWA Offline & Notifications
-const CACHE_NAME = 'daily-verdict-v4';
+const CACHE_NAME = 'daily-verdict-v5';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -27,8 +27,8 @@ self.addEventListener('push', (event) => {
   let payload = {
     title: 'Daily Verdict',
     body: 'Bhai karle aaj register! Din kaisa tha?',
-    icon: '/vite.svg',
-    badge: '/vite.svg'
+    icon: '/icon.svg',
+    badge: '/icon.svg'
   };
 
   if (event.data) {
@@ -41,8 +41,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: payload.body,
-    icon: payload.icon || '/vite.svg',
-    badge: payload.badge || '/vite.svg',
+    icon: payload.icon || '/icon.svg',
+    badge: payload.badge || '/icon.svg',
     vibrate: [100, 50, 100],
     data: {
       url: '/'
