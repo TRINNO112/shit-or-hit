@@ -263,7 +263,7 @@ export default function EditDayModal({
                   </div>
 
                   {/* Wide Grid of Life Spheres */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                     {spheresConfig.map((sphere) => {
                       const sData = spheresData[sphere.id] || {};
                       const sRating = sData.rating;
@@ -271,13 +271,13 @@ export default function EditDayModal({
                       return (
                         <div 
                           key={sphere.id} 
-                          className="p-3.5 bg-[#FFFDF8] rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] flex flex-col justify-between space-y-3"
+                          className="p-4 bg-[#FFFDF8] rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] flex flex-col justify-between space-y-3 h-full"
                         >
                           {/* Sphere Header */}
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div 
-                                className="w-9 h-9 rounded-xl border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]"
+                                className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]"
                                 style={{ backgroundColor: sphere.color || '#FDC800' }}
                               >
                                 <SphereIcon icon={sphere.icon} className="w-5 h-5 text-black stroke-[2.5]" />
@@ -313,7 +313,7 @@ export default function EditDayModal({
                                   key={sVal}
                                   type="button"
                                   onClick={() => handleRateSphere(sphere.id, sVal)}
-                                  className={`py-1 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer transition-all active:scale-95 ${
+                                  className={`py-1.5 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer transition-all active:scale-95 ${
                                     isSel ? 'bg-[#FDC800] shadow-[1px_1px_0px_#000000] font-black' : 'bg-white hover:bg-neutral-100'
                                   }`}
                                 >
@@ -323,14 +323,17 @@ export default function EditDayModal({
                             })}
                           </div>
 
-                          {/* Sphere-Specific Reflection Note */}
-                          <div className="pt-1 border-t border-black/10">
-                            <input
-                              type="text"
-                              placeholder={`Notes for ${sphere.name}...`}
+                          {/* Multi-Line Sphere-Specific Reflection Note */}
+                          <div className="pt-2 border-t border-black/10 flex-1 flex flex-col justify-end">
+                            <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase mb-1">
+                              Sphere Reflection:
+                            </label>
+                            <textarea
+                              rows={3}
+                              placeholder={`What happened at ${sphere.name}?`}
                               value={sData.notes || ''}
                               onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-black/40 rounded-xl placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
+                              className="w-full p-2 text-xs font-mono bg-white border border-black/40 rounded-xl placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black resize-none leading-relaxed"
                             />
                           </div>
                         </div>
