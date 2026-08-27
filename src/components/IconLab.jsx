@@ -22,7 +22,113 @@ export function MedalRibbonIcon({ className = "w-14 h-14", color = "#FDC800" }) 
   );
 }
 
+export function MechaVoltIcon({ className = "w-14 h-14", color = "#FDC800" }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M58 8L24 54H46L36 94L82 44H56L72 8H58Z"
+        fill="#000000"
+        transform="translate(4, 4)"
+      />
+      <path
+        d="M56 6L22 52H44L34 92L80 42H54L70 6H56Z"
+        fill={color}
+        stroke="#000000"
+        strokeWidth="4"
+        strokeLinejoin="bevel"
+      />
+      <path
+        d="M56 6L38 48H52L34 92L52 52H38L56 6Z"
+        fill="rgba(255, 255, 255, 0.45)"
+      />
+      <path
+        d="M48 24L58 24M42 36L52 36"
+        stroke="#000000"
+        strokeWidth="3"
+        strokeLinecap="square"
+      />
+    </svg>
+  );
+}
+
+export function GlitchVoltIcon({ className = "w-14 h-14", color = "#00E599" }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M55 4L22 46H42L32 88L76 40H52L66 4H55Z"
+        fill="#FF4D4D"
+        opacity="0.75"
+        transform="translate(-3, 2)"
+      />
+      <path
+        d="M55 4L22 46H42L32 88L76 40H52L66 4H55Z"
+        fill={color}
+        stroke="#000000"
+        strokeWidth="3.5"
+        strokeLinejoin="miter"
+      />
+      <rect x="15" y="32" width="70" height="4" fill="#000000" />
+      <rect x="25" y="60" width="55" height="3" fill="#000000" />
+      <circle cx="70" cy="22" r="3" fill="#FFFFFF" stroke="#000000" strokeWidth="1.5" />
+      <circle cx="28" cy="72" r="2.5" fill="#FFFFFF" stroke="#000000" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+export function ShieldVoltIcon({ className = "w-14 h-14", color = "#FDC800" }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon
+        points="50,4 92,24 92,72 50,96 8,72 8,24"
+        fill="#000000"
+        stroke="#000000"
+        strokeWidth="4"
+      />
+      <polygon
+        points="50,10 86,28 86,68 50,90 14,68 14,28"
+        fill="#FFFDF5"
+        stroke="#000000"
+        strokeWidth="2.5"
+      />
+      <path
+        d="M54 14L28 50H46L38 82L72 44H52L64 14H54Z"
+        fill={color}
+        stroke="#000000"
+        strokeWidth="3"
+        strokeLinejoin="bevel"
+      />
+    </svg>
+  );
+}
+
+export function SerratedStreetBoltIcon({ className = "w-14 h-14", color = "#FDC800" }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M62 4L42 28H56L34 54H48L20 96L46 64H32L54 38H40L68 4H62Z"
+        fill="#000000"
+        transform="translate(4, 4)"
+      />
+      <path
+        d="M60 2L40 26H54L32 52H46L18 94L44 62H30L52 36H38L66 2H60Z"
+        fill={color}
+        stroke="#000000"
+        strokeWidth="3.5"
+        strokeLinejoin="bevel"
+      />
+      <path
+        d="M52 10L38 28H48L32 52L26 80L38 62H28L44 38H34L56 10H52Z"
+        fill="rgba(255, 255, 255, 0.4)"
+      />
+    </svg>
+  );
+}
+
 const ICON_PRESETS = [
+  { id: 'mecha_volt', name: 'Mecha Cyber Bolt ⚡', icon: MechaVoltIcon, category: 'Streetwear Volt', vibe: 'Chamfered 3D bevels, mechanical notches & street shadow' },
+  { id: 'serrated_bolt', name: 'Serrated Overdrive Bolt', icon: SerratedStreetBoltIcon, category: 'Streetwear Volt', vibe: 'Triple-tier aggressive lightning with inner core' },
+  { id: 'glitch_volt', name: 'Cyber Glitch Bolt', icon: GlitchVoltIcon, category: 'Cyberpunk', vibe: 'Matrix split data lines & chromatic aberration shift' },
+  { id: 'shield_volt', name: 'Aegis Lightning Shield', icon: ShieldVoltIcon, category: 'Dominance', vibe: 'Hexagonal defense shield sliced by thunderbolt' },
   { id: 'medal', name: 'Honor Medal Ribbon', icon: MedalRibbonIcon, category: 'Military & Glory', vibe: 'Daily Verdict discipline badge & victory star' },
   { id: 'flame', name: 'Inferno Flame', icon: Flame, category: 'Energy & Heat', vibe: 'Raw streak momentum & intensity' },
   { id: 'crown', name: 'Godmode Crown', icon: Crown, category: 'Dominance', vibe: 'Peak 5-star daily mastery' },
