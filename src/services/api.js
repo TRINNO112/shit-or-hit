@@ -48,6 +48,77 @@ export const ratingMeta = {
   }
 };
 
+export const DEFAULT_SPHERES = [
+  {
+    id: 'work_school',
+    name: 'Work & School',
+    icon: '🎓',
+    color: '#FDC800',
+    desc: 'Office, classes, exams & academic focus',
+    enabled: true
+  },
+  {
+    id: 'home_personal',
+    name: 'Home & Sanctuary',
+    icon: '🏠',
+    color: '#00E599',
+    desc: 'Household, family, rest & evening space',
+    enabled: true
+  },
+  {
+    id: 'social_event',
+    name: 'Social & Events',
+    icon: '🎉',
+    color: '#FF8A00',
+    desc: 'Hangouts, outings, gatherings & parties',
+    enabled: true
+  }
+];
+
+export function isSphereModeEnabled() {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('daily_verdict_sphere_mode_enabled') === 'true';
+}
+
+export function setSphereModeEnabled(enabled) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('daily_verdict_sphere_mode_enabled', enabled ? 'true' : 'false');
+}
+
+export function getSphereConfig() {
+  if (typeof window === 'undefined') return DEFAULT_SPHERES;
+  try {
+    const saved = localStorage.getItem('daily_verdict_spheres_config');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return DEFAULT_SPHERES;
+}
+
+export function saveSphereConfig(config) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(config));
+}
+
+export function calculateCompositeScore(spheres) {
+  if (!spheres || typeof spheres !== 'object') return null;
+  const entries = Object.values(spheres).filter(s => s && s.rating && Number(s.rating) > 0);
+  if (entries.length === 0) return null;
+  const sum = entries.reduce((acc, curr) => acc + Number(curr.rating), 0);
+  const avg = sum / entries.length;
+  const rounded = Math.round(avg * 10) / 10;
+  const tier = Math.min(5, Math.max(1, Math.round(avg)));
+  return {
+    score: rounded,
+    rating: tier,
+    verdict: ratingMeta[tier]?.title || 'Verdict',
+    ratedCount: entries.length,
+    totalSpheres: Object.keys(spheres).length
+  };
+}
+
 import { 
   getCurrentUser, 
   saveCloudEntry, 
@@ -167,8 +238,8 @@ export async function saveEntry(entryData) {
   return formatted;
 }
 
-export async function enhanceReflectionWithAI(notes, rating, date) {
-  if (!notes || notes.trim() === '') return notes;
+export async function enhanceReflectionWithAI(notes, rating, date, spheres = null) {
+  if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) return notes;
 
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
 
@@ -177,7 +248,7 @@ export async function enhanceReflectionWithAI(notes, rating, date) {
     const res = await fetch(`${API_BASE}/ai/enhance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes, rating, date, preferredLanguage })
+      body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres })
     });
     if (res.ok) {
       const data = await res.json();
@@ -209,16 +280,29 @@ export async function enhanceReflectionWithAI(notes, rating, date) {
         languageRule = 'LANGUAGE MIRRORING MANDATE: Strictly mirror the exact language and blend of the user input. If the user wrote in standard English, you MUST output 100% pure English with ZERO Hindi/Hinglish words. If the user wrote in Hinglish, output in Hinglish. NEVER translate English notes into Hinglish.';
       }
 
-      const prompt = `You are a personal diary ghostwriter.
-The user wrote their raw diary notes about their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
+      let journalInput = notes || '';
+      if (spheres && Object.keys(spheres).length > 0) {
+        const sphereDetails = Object.entries(spheres)
+          .filter(([_, s]) => s && (s.rating || (s.notes && s.notes.trim())))
+          .map(([id, s]) => `[${s.icon || '⚡'} ${s.name || id} — Rated ${s.rating || 'N/A'}/5]: ${s.notes || '(No specific notes, just score logged)'}`)
+          .join('\n\n');
+        
+        if (sphereDetails) {
+          journalInput = `${journalInput ? journalInput + '\n\n' : ''}--- Segmented Life Domain Breakdown ---\n${sphereDetails}`;
+        }
+      }
 
-User's raw journal notes:
-"${notes}"
+      const prompt = `You are a personal diary ghostwriter.
+The user logged their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
+${spheres ? 'The user logged segmented life domains (e.g. Work/School, Home, Social).' : ''}
+
+User's raw journal inputs and domain ratings:
+"${journalInput}"
 
 CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
-- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
+- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Synthesize the domain events into a unified, chronological, vivid personal diary reflection (from morning through night).
 - ${languageRule}
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.

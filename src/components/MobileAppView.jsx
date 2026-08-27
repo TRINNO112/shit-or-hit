@@ -35,7 +35,16 @@ import {
   Redo2,
   Settings
 } from 'lucide-react';
-import { ratingMeta, exportDatabaseBackup, fetchMonthlyReport, getSavedMonthlyReport, enhanceReflectionWithAI } from '../services/api';
+import { 
+  ratingMeta, 
+  exportDatabaseBackup, 
+  fetchMonthlyReport, 
+  getSavedMonthlyReport, 
+  enhanceReflectionWithAI,
+  isSphereModeEnabled,
+  getSphereConfig,
+  calculateCompositeScore
+} from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
 import confetti from 'canvas-confetti';
 import JourneyTimeline from './JourneyTimeline';
@@ -59,11 +68,18 @@ export default function MobileAppView({
   onEditDay,
   onOpenWallpaper,
   onOpenTelemetry,
-  onOpenSettings
+  onOpenSettings,
+  sphereSettingsVer = 0
 }) {
   const [activeTab, setActiveTab] = useState('log'); // 'log' | 'history' | 'dossier' | 'stats'
   const [historySubView, setHistorySubView] = useState('calendar'); // 'calendar' | 'timeline'
   
+  // Multi-Sphere State for Mobile
+  const [sphereModeActive, setSphereModeActive] = useState(false);
+  const [spheresConfig, setSpheresConfig] = useState([]);
+  const [activeSphereId, setActiveSphereId] = useState('');
+  const [spheresData, setSpheresData] = useState({});
+
   const [user, setUser] = useState(null);
   const [showNoteDrawer, setShowNoteDrawer] = useState(false);
   const [noteText, setNoteText] = useState(entries[todayStr]?.notes || '');
@@ -88,6 +104,30 @@ export default function MobileAppView({
   const [dossierLoading, setDossierLoading] = useState(false);
   const [dossierError, setDossierError] = useState(null);
   const [activeDayNote, setActiveDayNote] = useState(null);
+
+  useEffect(() => {
+    const isEnabled = isSphereModeEnabled();
+    setSphereModeActive(isEnabled);
+    const cfg = getSphereConfig().filter(s => s.enabled);
+    setSpheresConfig(cfg);
+    if (cfg.length > 0 && !activeSphereId) {
+      setActiveSphereId(cfg[0].id);
+    }
+
+    const currentEntry = entries[todayStr] || {};
+    const initialSpheres = {};
+    cfg.forEach(s => {
+      initialSpheres[s.id] = {
+        id: s.id,
+        name: s.name,
+        icon: s.icon,
+        color: s.color,
+        rating: currentEntry?.spheres?.[s.id]?.rating || null,
+        notes: currentEntry?.spheres?.[s.id]?.notes || ''
+      };
+    });
+    setSpheresData(initialSpheres);
+  }, [entries, todayStr, sphereSettingsVer]);
 
   useEffect(() => {
     const unsub = subscribeAuthState((currentUser) => {
@@ -206,13 +246,20 @@ export default function MobileAppView({
   };
 
   const handleAIEnhance = async () => {
-    if (!noteText || noteText.trim() === '') return;
+    const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
+    if ((!noteText || noteText.trim() === '') && !hasSphereNotes) return;
     triggerHaptic('medium');
     playSound('click');
     const currentVal = noteText;
     setIsEnhancing(true);
     try {
-      const enhanced = await enhanceReflectionWithAI(currentVal, selectedRating || 3, todayStr);
+      const comp = calculateCompositeScore(spheresData);
+      const enhanced = await enhanceReflectionWithAI(
+        currentVal, 
+        comp?.rating || selectedRating || 3, 
+        todayStr,
+        sphereModeActive ? spheresData : null
+      );
       if (enhanced && enhanced !== currentVal) {
         triggerHaptic('success');
         playSound('chime');
@@ -276,20 +323,80 @@ export default function MobileAppView({
       date: todayStr,
       rating: val,
       verdict: ratingMeta[val]?.title || 'Verdict',
-      notes: noteText
+      notes: noteText,
+      spheres: spheresData
     });
+    setTimeout(() => setSavedFlash(false), 2000);
+  };
+
+  const handleRateSphereMobile = async (sphereId, val) => {
+    triggerHaptic(val >= 4 ? 'success' : 'medium');
+    playSound(val === 5 ? 'chime' : 'click');
+
+    if (val === 5) {
+      confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 }, colors: ['#FDC800', '#000000'] });
+    }
+
+    const updated = {
+      ...spheresData,
+      [sphereId]: {
+        ...(spheresData[sphereId] || {}),
+        id: sphereId,
+        rating: val
+      }
+    };
+    setSpheresData(updated);
+
+    const comp = calculateCompositeScore(updated);
+    const finalRating = comp ? comp.rating : (selectedRating || val);
+    const finalVerdict = comp ? comp.verdict : (ratingMeta[val]?.title || 'Verdict');
+
+    setSavedFlash(true);
+    await onSaveToday({
+      date: todayStr,
+      rating: finalRating,
+      verdict: finalVerdict,
+      notes: noteText,
+      spheres: updated,
+      calculatedScore: comp?.score
+    });
+    setTimeout(() => setSavedFlash(false), 2000);
+  };
+
+  const handleSaveSphereNoteMobile = async (sphereId, note) => {
+    const updated = {
+      ...spheresData,
+      [sphereId]: {
+        ...(spheresData[sphereId] || {}),
+        notes: note
+      }
+    };
+    setSpheresData(updated);
+    const comp = calculateCompositeScore(updated);
+    await onSaveToday({
+      date: todayStr,
+      rating: comp?.rating || selectedRating || 3,
+      verdict: comp?.verdict || ratingMeta[selectedRating || 3]?.title || 'Verdict',
+      notes: noteText,
+      spheres: updated,
+      calculatedScore: comp?.score
+    });
+    setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 2000);
   };
 
   const handleSaveNote = async () => {
     triggerHaptic('success');
     playSound('click');
-    const ratingToUse = selectedRating || 3;
+    const comp = calculateCompositeScore(spheresData);
+    const ratingToUse = comp ? comp.rating : (selectedRating || 3);
     await onSaveToday({
       date: todayStr,
       rating: ratingToUse,
-      verdict: ratingMeta[ratingToUse]?.title || 'Verdict',
-      notes: noteText
+      verdict: comp ? comp.verdict : (ratingMeta[ratingToUse]?.title || 'Verdict'),
+      notes: noteText,
+      spheres: spheresData,
+      calculatedScore: comp?.score
     });
     setShowNoteDrawer(false);
     setSavedFlash(true);
@@ -420,7 +527,7 @@ export default function MobileAppView({
       </header>
 
       {/* ========================================================= */}
-      {/* ⚡ TAB 1: RAPID 1-TAP MOOD LOGGER */}
+      {/* ⚡ TAB 1: RAPID 1-TAP MOOD LOGGER / MULTI-SPHERE MATRIX */}
       {/* ========================================================= */}
       {activeTab === 'log' && (
         <main className="flex-1 px-4 py-3.5 space-y-3.5 max-w-lg mx-auto w-full">
@@ -432,6 +539,7 @@ export default function MobileAppView({
                 <span>TODAY</span>
                 <span>•</span>
                 <span>DAY {dayCount}</span>
+                {sphereModeActive && <span>• MATRIX</span>}
               </div>
               <h2 className="font-display font-black text-2xl uppercase tracking-tight leading-none text-black">
                 {dayName}
@@ -453,83 +561,237 @@ export default function MobileAppView({
             )}
           </div>
 
-          {/* 5 Prominent 1-Tap Tactile Cards (Clear Bold Typography) */}
-          <div className="space-y-2.5">
-            {[5, 4, 3, 2, 1].map((val) => {
-              const m = ratingMeta[val];
-              const SvgIcon = IconMap[m.icon];
-              const isSelected = selectedRating === val;
+          {/* If Multi-Sphere Mode is Active: Segmented Tab Bar + Active Sphere Rating Cards */}
+          {sphereModeActive ? (
+            <div className="space-y-3">
+              
+              {/* Horizontal Scrollable Segmented Sphere Switcher */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {spheresConfig.map((sphere) => {
+                  const sRating = spheresData[sphere.id]?.rating;
+                  const isCurrent = (activeSphereId || spheresConfig[0]?.id) === sphere.id;
 
-              return (
-                <motion.button
-                  key={val}
-                  type="button"
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handleRate(val)}
-                  className={`w-full p-3.5 rounded-2xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] cursor-pointer transition-all ${
-                    isSelected ? 'ring-3 ring-black scale-[1.01]' : 'hover:bg-neutral-50'
-                  }`}
-                  style={{ 
-                    backgroundColor: isSelected ? m.bg : '#FFFFFF'
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0"
-                      style={{ backgroundColor: m.bg }}
+                  return (
+                    <button
+                      key={sphere.id}
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic('light');
+                        setActiveSphereId(sphere.id);
+                      }}
+                      className={`px-3 py-2 rounded-xl border-2 border-black font-display font-black text-xs uppercase flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all ${
+                        isCurrent
+                          ? 'bg-[#FDC800] text-black shadow-[2.5px_2.5px_0px_#000000] scale-[1.02]'
+                          : 'bg-white text-neutral-700 hover:bg-neutral-100'
+                      }`}
                     >
-                      <SvgIcon className="w-5 h-5 text-black stroke-[2.5]" />
+                      <span className="text-sm">{sphere.icon}</span>
+                      <span>{sphere.name}</span>
+                      {sRating ? (
+                        <span 
+                          className="px-1.5 py-0.2 rounded text-[10px] font-mono border border-black"
+                          style={{ backgroundColor: ratingMeta[sRating]?.bg }}
+                        >
+                          {sRating}★
+                        </span>
+                      ) : (
+                        <span className="w-2 h-2 rounded-full bg-neutral-300" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Sphere View Card */}
+              {(() => {
+                const currentSphere = spheresConfig.find(s => s.id === (activeSphereId || spheresConfig[0]?.id)) || spheresConfig[0];
+                if (!currentSphere) return null;
+                const currentSphereData = spheresData[currentSphere.id] || {};
+                const sphereRating = currentSphereData.rating;
+
+                return (
+                  <div className="bg-[#FFFDF8] rounded-2xl border-2 border-black p-3.5 shadow-[3px_3px_0px_#000000] space-y-3">
+                    <div className="flex items-center justify-between border-b border-black/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{currentSphere.icon}</span>
+                        <div>
+                          <h3 className="font-display font-black text-sm uppercase text-black">
+                            {currentSphere.name}
+                          </h3>
+                          <p className="text-[10px] font-mono text-neutral-600">
+                            {currentSphere.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      {sphereRating ? (
+                        <span 
+                          className="px-2 py-1 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1px_1px_0px_#000000]"
+                          style={{ backgroundColor: ratingMeta[sphereRating]?.bg }}
+                        >
+                          {sphereRating}★ {ratingMeta[sphereRating]?.title}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono text-neutral-500 font-bold">UNRATED</span>
+                      )}
                     </div>
 
-                    <div className="text-left">
-                      <div className="flex items-center gap-2">
-                        <span className="font-display font-black text-base uppercase text-black leading-tight">
-                          {m.title}
-                        </span>
-                        <span className="text-xs font-mono font-black text-neutral-900">
-                          ({val}/5★)
-                        </span>
+                    {/* 5 Rating Buttons for this Sphere */}
+                    <div className="space-y-1.5">
+                      {[5, 4, 3, 2, 1].map((val) => {
+                        const m = ratingMeta[val];
+                        const SvgIcon = IconMap[m.icon];
+                        const isSelected = sphereRating === val;
+
+                        return (
+                          <motion.button
+                            key={val}
+                            type="button"
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => handleRateSphereMobile(currentSphere.id, val)}
+                            className={`w-full p-2.5 rounded-xl border-2 border-black flex items-center justify-between shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
+                              isSelected ? 'ring-2 ring-black scale-[1.01]' : 'hover:bg-neutral-50'
+                            }`}
+                            style={{ 
+                              backgroundColor: isSelected ? m.bg : '#FFFFFF'
+                            }}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div 
+                                className="w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] shrink-0"
+                                style={{ backgroundColor: m.bg }}
+                              >
+                                <SvgIcon className="w-4 h-4 text-black stroke-[2.5]" />
+                              </div>
+
+                              <div className="text-left">
+                                <span className="font-display font-black text-xs uppercase text-black leading-none">
+                                  {m.title} ({val}/5★)
+                                </span>
+                                <span className="text-[10px] font-mono text-neutral-600 block leading-tight">
+                                  {m.desc}
+                                </span>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <div className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                                <Check className="w-3 h-3 stroke-[3]" />
+                              </div>
+                            )}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Sphere Note Micro-Field */}
+                    <div className="pt-2 border-t border-black/10 space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px] font-mono font-bold text-neutral-700">
+                        <span>SPHERE REFLECTION NOTES</span>
+                        {currentSphereData.notes && <span className="text-emerald-700">✓ Saved</span>}
                       </div>
-                      <span className="text-xs font-mono font-bold text-neutral-700 block mt-0.5">
-                        {m.desc}
-                      </span>
+                      <input
+                        type="text"
+                        placeholder={`Quick notes for ${currentSphere.name}...`}
+                        value={currentSphereData.notes || ''}
+                        onChange={(e) => handleSaveSphereNoteMobile(currentSphere.id, e.target.value)}
+                        className="w-full px-3 py-2 text-xs font-mono bg-white border-2 border-black rounded-xl placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-black"
+                      />
                     </div>
                   </div>
+                );
+              })()}
 
-                  {isSelected && (
-                    <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#000000]">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+            </div>
+          ) : (
+            /* Single-Verdict Standard 5 Tactile Cards */
+            <div className="space-y-2.5">
+              {[5, 4, 3, 2, 1].map((val) => {
+                const m = ratingMeta[val];
+                const SvgIcon = IconMap[m.icon];
+                const isSelected = selectedRating === val;
+
+                return (
+                  <motion.button
+                    key={val}
+                    type="button"
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => handleRate(val)}
+                    className={`w-full p-3.5 rounded-2xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] cursor-pointer transition-all ${
+                      isSelected ? 'ring-3 ring-black scale-[1.01]' : 'hover:bg-neutral-50'
+                    }`}
+                    style={{ 
+                      backgroundColor: isSelected ? m.bg : '#FFFFFF'
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+                        style={{ backgroundColor: m.bg }}
+                      >
+                        <SvgIcon className="w-5 h-5 text-black stroke-[2.5]" />
+                      </div>
+
+                      <div className="text-left">
+                        <div className="flex items-center gap-2">
+                          <span className="font-display font-black text-base uppercase text-black leading-tight">
+                            {m.title}
+                          </span>
+                          <span className="text-xs font-mono font-black text-neutral-900">
+                            ({val}/5★)
+                          </span>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-neutral-700 block mt-0.5">
+                          {m.desc}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
+
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#000000]">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Active Verdict Status & Reflection Button */}
           <div className="pt-1.5 space-y-2.5">
-            {selectedRating ? (
-              <div 
-                className="p-3 rounded-xl border-2 border-black text-xs font-mono font-bold text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
-                style={{ backgroundColor: ratingMeta[selectedRating]?.bg }}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
-                  <span className="truncate">
-                    <strong>{ratingMeta[selectedRating]?.title.toUpperCase()}</strong>: {ratingMeta[selectedRating]?.desc}
-                  </span>
+            {(() => {
+              const comp = calculateCompositeScore(spheresData);
+              const activeR = comp ? comp.rating : selectedRating;
+              const activeScore = comp ? comp.score : null;
+
+              if (activeR) {
+                return (
+                  <div 
+                    className="p-3 rounded-xl border-2 border-black text-xs font-mono font-bold text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
+                    style={{ backgroundColor: ratingMeta[activeR]?.bg }}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
+                      <span className="truncate">
+                        <strong>{ratingMeta[activeR]?.title.toUpperCase()}</strong>
+                        {activeScore && ` (${activeScore}/5.0)`}: {ratingMeta[activeR]?.desc}
+                      </span>
+                    </div>
+                    {savedFlash && (
+                      <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shrink-0">
+                        SAVED ⚡
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <div className="p-3 rounded-xl border-2 border-black bg-neutral-100 text-neutral-700 text-xs font-mono font-bold text-center">
+                  Tap any card above to record today.
                 </div>
-                {savedFlash && (
-                  <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shrink-0">
-                    SAVED ⚡
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div className="p-3 rounded-xl border-2 border-black bg-neutral-100 text-neutral-700 text-xs font-mono font-bold text-center">
-                Tap any card above to record today.
-              </div>
-            )}
+              );
+            })()}
 
             {/* Action Row: Reflection Drawer Trigger & Wallpaper Export */}
             <div className="grid grid-cols-2 gap-2">
@@ -542,7 +804,7 @@ export default function MobileAppView({
                 className="py-3 px-2 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
               >
                 <PenLine className="w-4 h-4" />
-                <span className="truncate">{entries[todayStr]?.notes ? '✏️ EDIT DIARY' : '+ ADD NOTE'}</span>
+                <span className="truncate">{entries[todayStr]?.notes ? '✏️ MASTER DIARY' : '+ MASTER DIARY'}</span>
               </button>
 
               <button

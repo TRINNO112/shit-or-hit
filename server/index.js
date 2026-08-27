@@ -115,7 +115,7 @@ app.get('/api/entries', (req, res) => {
 
 // Save or edit entry for any date
 app.post('/api/entries', (req, res) => {
-  const { date, rating, verdict, notes } = req.body;
+  const { date, rating, verdict, notes, spheres, calculatedScore } = req.body;
 
   if (!date || rating === undefined) {
     return res.status(400).json({ success: false, error: 'Date and rating are required' });
@@ -133,6 +133,8 @@ app.post('/api/entries', (req, res) => {
     rating: Number(rating),
     verdict: verdict || getVerdictFromRating(rating),
     notes: notes !== undefined ? notes : (existing.notes || ''),
+    spheres: spheres !== undefined ? spheres : existing.spheres,
+    calculatedScore: calculatedScore !== undefined ? calculatedScore : existing.calculatedScore,
     updatedAt: new Date().toISOString(),
     createdAt: existing.createdAt || new Date().toISOString()
   };
@@ -147,10 +149,10 @@ app.post('/api/entries', (req, res) => {
 
 // AI Enhancement Endpoint for Daily Reflection
 app.post('/api/ai/enhance', async (req, res) => {
-  const { notes, rating, date, preferredLanguage = 'auto' } = req.body;
+  const { notes, rating, date, preferredLanguage = 'auto', spheres } = req.body;
 
-  if (!notes || notes.trim() === '') {
-    return res.status(400).json({ success: false, error: 'Notes text is required for AI enhancement' });
+  if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) {
+    return res.status(400).json({ success: false, error: 'Notes text or sphere entries are required for AI enhancement' });
   }
 
   const apiKey = GEMINI_API_KEY;
@@ -167,16 +169,29 @@ app.post('/api/ai/enhance', async (req, res) => {
     languageRule = 'LANGUAGE MIRRORING MANDATE: Strictly mirror the exact language and blend of the user input. If the user wrote in standard English, you MUST output 100% pure English with ZERO Hindi/Hinglish words. If the user wrote in Hinglish, output in Hinglish. NEVER translate English notes into Hinglish.';
   }
 
-  const prompt = `You are a personal diary ghostwriter.
-The user wrote their raw, detailed diary notes about their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
+  let journalInput = notes || '';
+  if (spheres && Object.keys(spheres).length > 0) {
+    const sphereDetails = Object.entries(spheres)
+      .filter(([_, s]) => s && (s.rating || (s.notes && s.notes.trim())))
+      .map(([id, s]) => `[${s.icon || '⚡'} ${s.name || id} — Rated ${s.rating || 'N/A'}/5]: ${s.notes || '(No specific notes, just score logged)'}`)
+      .join('\n\n');
+    
+    if (sphereDetails) {
+      journalInput = `${journalInput ? journalInput + '\n\n' : ''}--- Segmented Life Domain Breakdown ---\n${sphereDetails}`;
+    }
+  }
 
-User's raw journal notes:
-"${notes}"
+  const prompt = `You are a personal diary ghostwriter.
+The user logged their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
+${spheres ? 'The user logged segmented life domains (e.g. Work/School, Home, Social).' : ''}
+
+User's raw journal inputs and domain ratings:
+"${journalInput}"
 
 CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
-- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Keep every single event, every conversation, every feeling, and all context intact in full narrative depth.
+- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Synthesize the domain events into a unified, chronological, vivid personal diary reflection (from morning through night).
 - ${languageRule}
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic, passionate voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.

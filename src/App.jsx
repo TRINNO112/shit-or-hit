@@ -46,6 +46,7 @@ export default function App() {
     month: new Date().getMonth() + 1
   });
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
+  const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
 
   useEffect(() => {
     const checkHash = () => {
@@ -181,6 +182,7 @@ export default function App() {
           onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
           onOpenTelemetry={() => setIsTelemetryOpen(true)}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          sphereSettingsVer={sphereSettingsVer}
         />
       ) : (
         <div className="flex flex-col min-h-screen">
@@ -209,6 +211,7 @@ export default function App() {
               onSaveToday={handleSaveEntry}
               onSave={handleSaveEntry}
               onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
+              sphereSettingsVer={sphereSettingsVer}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -262,6 +265,7 @@ export default function App() {
         dayIndex={editingDay?.dayIndex || 1}
         onSave={handleSaveEntry}
         onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+        sphereSettingsVer={sphereSettingsVer}
       />
 
       <MonthlyReportModal
@@ -301,6 +305,7 @@ export default function App() {
           setIsSettingsOpen(false);
           setShowIconLab(true);
         }}
+        onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
       />
 
     </div>

@@ -260,6 +260,78 @@ export default function ForensicStatsModal({
               </div>
             </div>
 
+            {/* SECTION 4: LIFE SPHERES DOMAIN FORENSICS (if sphere data exists) */}
+            {(() => {
+              const sphereAggregates = {};
+              entryList.forEach(e => {
+                if (e.spheres && typeof e.spheres === 'object') {
+                  Object.values(e.spheres).forEach(s => {
+                    if (s && s.id && s.rating && Number(s.rating) > 0) {
+                      if (!sphereAggregates[s.id]) {
+                        sphereAggregates[s.id] = {
+                          id: s.id,
+                          name: s.name || s.id,
+                          icon: s.icon || '⚡',
+                          total: 0,
+                          count: 0
+                        };
+                      }
+                      sphereAggregates[s.id].total += Number(s.rating);
+                      sphereAggregates[s.id].count += 1;
+                    }
+                  });
+                }
+              });
+
+              const sphereList = Object.values(sphereAggregates);
+              if (sphereList.length === 0) return null;
+
+              return (
+                <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-black stroke-[2.5]" />
+                      <h4 className="font-display font-black text-xs uppercase text-black">
+                        Life Spheres Performance Matrix
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-mono bg-black text-[#FDC800] px-2 py-0.5 rounded font-black">
+                      MULTI-SPHERE
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {sphereList.map(s => {
+                      const avg = (s.total / s.count).toFixed(1);
+                      const avgNum = Number(avg);
+                      const percent = Math.min(100, Math.round((avgNum / 5) * 100));
+                      const tierColor = avgNum >= 4 ? '#00E599' : avgNum >= 3 ? '#FDC800' : avgNum >= 2 ? '#FF8A00' : '#FF4D4D';
+
+                      return (
+                        <div key={s.id} className="bg-neutral-50 border border-black/20 rounded-xl p-2.5 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="text-xl shrink-0">{s.icon}</span>
+                            <div className="min-w-0">
+                              <span className="font-display font-black text-xs uppercase truncate text-black block">
+                                {s.name}
+                              </span>
+                              <div className="w-24 sm:w-44 bg-neutral-200 h-1.5 rounded-full overflow-hidden mt-1 border border-black/10">
+                                <div className="h-full rounded-full transition-all" style={{ width: `${percent}%`, backgroundColor: tierColor }} />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="font-display font-black text-xs text-black">{avg}★ AVG</span>
+                            <div className="text-[9px] font-mono text-neutral-500 font-bold">{s.count} logs</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
 
           {/* Pinned Action Footer */}

@@ -14,8 +14,15 @@ import {
   Undo2,
   Redo2
 } from 'lucide-react';
-import { ratingMeta, enhanceReflectionWithAI } from '../services/api';
+import { 
+  ratingMeta, 
+  enhanceReflectionWithAI,
+  isSphereModeEnabled,
+  getSphereConfig,
+  calculateCompositeScore
+} from '../services/api';
 import confetti from 'canvas-confetti';
+import { Layers } from 'lucide-react';
 
 const IconMap = {
   AlertCircle,
@@ -32,12 +39,18 @@ export default function EditDayModal({
   dateStr,
   dayIndex,
   onSave,
-  onOpenWallpaper
+  onOpenWallpaper,
+  sphereSettingsVer = 0
 }) {
   const [rating, setRating] = useState(entryData?.rating || 3);
   const [notes, setNotes] = useState(entryData?.notes || '');
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sphere mode states
+  const [sphereModeActive, setSphereModeActive] = useState(false);
+  const [spheresConfig, setSpheresConfig] = useState([]);
+  const [spheresData, setSpheresData] = useState({});
   
   // History stack for Undo / Redo / Revert
   const [historyStack, setHistoryStack] = useState([entryData?.notes || '']);
@@ -45,13 +58,31 @@ export default function EditDayModal({
   const originalDraft = entryData?.notes || '';
 
   useEffect(() => {
+    const isEnabled = isSphereModeEnabled() || Boolean(entryData?.spheres && Object.keys(entryData.spheres).length > 0);
+    setSphereModeActive(isEnabled);
+    const cfg = getSphereConfig().filter(s => s.enabled);
+    setSpheresConfig(cfg);
+
     if (entryData) {
       setRating(entryData.rating || 3);
       setNotes(entryData.notes || '');
       setHistoryStack([entryData.notes || '']);
       setHistoryIdx(0);
+
+      const initialSpheres = {};
+      cfg.forEach(s => {
+        initialSpheres[s.id] = {
+          id: s.id,
+          name: s.name,
+          icon: s.icon,
+          color: s.color,
+          rating: entryData?.spheres?.[s.id]?.rating || null,
+          notes: entryData?.spheres?.[s.id]?.notes || ''
+        };
+      });
+      setSpheresData(initialSpheres);
     }
-  }, [entryData, dateStr]);
+  }, [entryData, dateStr, sphereSettingsVer]);
 
   const formattedDate = new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -72,12 +103,45 @@ export default function EditDayModal({
     }
   };
 
+  const handleRateSphere = (sphereId, val) => {
+    const updated = {
+      ...spheresData,
+      [sphereId]: {
+        ...(spheresData[sphereId] || {}),
+        id: sphereId,
+        rating: val
+      }
+    };
+    setSpheresData(updated);
+    const comp = calculateCompositeScore(updated);
+    if (comp) {
+      setRating(comp.rating);
+    }
+  };
+
+  const handleSphereNoteChange = (sphereId, text) => {
+    setSpheresData(prev => ({
+      ...prev,
+      [sphereId]: {
+        ...(prev[sphereId] || {}),
+        notes: text
+      }
+    }));
+  };
+
   const handleAIEnhance = async () => {
-    if (!notes || !notes.trim()) return;
+    const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
+    if ((!notes || !notes.trim()) && !hasSphereNotes) return;
     const currentVal = notes;
     setIsEnhancing(true);
     try {
-      const enhanced = await enhanceReflectionWithAI(currentVal, rating, dateStr);
+      const comp = calculateCompositeScore(spheresData);
+      const enhanced = await enhanceReflectionWithAI(
+        currentVal, 
+        comp?.rating || rating, 
+        dateStr,
+        sphereModeActive ? spheresData : null
+      );
       const newStack = historyStack.slice(0, historyIdx + 1);
       newStack.push(enhanced);
       setHistoryStack(newStack);
@@ -115,11 +179,14 @@ export default function EditDayModal({
 
   const handleSave = async () => {
     setIsSaving(true);
+    const comp = sphereModeActive ? calculateCompositeScore(spheresData) : null;
     await onSave({
       date: dateStr,
-      rating,
-      verdict: ratingMeta[rating]?.title || 'Verdict',
-      notes
+      rating: comp ? comp.rating : Number(rating),
+      verdict: comp ? comp.verdict : (ratingMeta[rating]?.title || 'Verdict'),
+      notes,
+      spheres: sphereModeActive ? spheresData : entryData?.spheres,
+      calculatedScore: comp ? comp.score : entryData?.calculatedScore
     });
     setIsSaving(false);
     onClose();
@@ -171,10 +238,19 @@ export default function EditDayModal({
             </div>
 
             {/* Rating Picker */}
-            <div className="mb-6">
-              <label className="block text-xs font-mono font-black text-neutral-700 uppercase mb-2.5">
-                1. CHANGE VERDICT RATING
-              </label>
+            <div className="mb-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-mono font-black text-neutral-700 uppercase">
+                  1. CHANGE VERDICT RATING
+                </label>
+                {sphereModeActive && (
+                  <span className="text-[10px] font-mono bg-black text-[#FDC800] px-2 py-0.5 rounded font-black">
+                    SEGMENTED MATRIX
+                  </span>
+                )}
+              </div>
+
+              {/* Master Rating Row */}
               <div className="grid grid-cols-5 gap-2.5">
                 {[1, 2, 3, 4, 5].map((val) => {
                   const m = ratingMeta[val];
@@ -203,6 +279,47 @@ export default function EditDayModal({
                   );
                 })}
               </div>
+
+              {/* Sphere-Specific Breakdown if Sphere Mode Active */}
+              {sphereModeActive && spheresConfig.length > 0 && (
+                <div className="mt-3 p-3 bg-neutral-50 rounded-2xl border-2 border-black space-y-2">
+                  <div className="text-[11px] font-mono font-black uppercase text-neutral-800 flex items-center justify-between">
+                    <span>Life Spheres Breakdown</span>
+                    <span className="text-[10px] text-neutral-500">Rate domain performance</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {spheresConfig.map((sphere) => {
+                      const sData = spheresData[sphere.id] || {};
+                      const sRating = sData.rating;
+
+                      return (
+                        <div key={sphere.id} className="p-2 bg-white rounded-xl border border-black/40 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-base">{sphere.icon}</span>
+                            <span className="font-display font-bold text-xs uppercase truncate">{sphere.name}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            {[1, 2, 3, 4, 5].map((sVal) => (
+                              <button
+                                key={sVal}
+                                type="button"
+                                onClick={() => handleRateSphere(sphere.id, sVal)}
+                                className={`w-6 h-6 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${
+                                  sRating === sVal ? 'bg-[#FDC800] shadow-[1px_1px_0px_#000000]' : 'bg-neutral-100 hover:bg-neutral-200'
+                                }`}
+                              >
+                                {sVal}★
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Reflection Note & AI Tool with Version History */}

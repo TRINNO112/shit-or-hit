@@ -22,13 +22,22 @@ import {
   getReminderTime,
   setReminderTime
 } from '../services/notifications';
+import {
+  isSphereModeEnabled,
+  setSphereModeEnabled,
+  getSphereConfig,
+  saveSphereConfig,
+  DEFAULT_SPHERES
+} from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
+import { Layers, Plus, Trash2 } from 'lucide-react';
 
 export default function SettingsModal({
   isOpen,
   onClose,
   user,
-  onOpenIconLab
+  onOpenIconLab,
+  onSettingsChanged
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('21:00');
@@ -36,14 +45,67 @@ export default function SettingsModal({
   const [aiLanguage, setAiLanguage] = useState('auto');
   const [notificationMsg, setNotificationMsg] = useState('');
 
+  // Multi-Sphere Settings State
+  const [sphereModeOn, setSphereModeOn] = useState(false);
+  const [spheresList, setSpheresList] = useState([]);
+  const [isAddingSphere, setIsAddingSphere] = useState(false);
+  const [newSphereName, setNewSphereName] = useState('');
+  const [newSphereIcon, setNewSphereIcon] = useState('⚡');
+  const [newSphereColor, setNewSphereColor] = useState('#FDC800');
+
   useEffect(() => {
     if (isOpen) {
       setNotificationsOn(isNotificationEnabled());
       setReminderTimeVal(getReminderTime());
       setAiLanguage(localStorage.getItem('daily_verdict_ai_language') || 'auto');
+      setSphereModeOn(isSphereModeEnabled());
+      setSpheresList(getSphereConfig());
       setNotificationMsg('');
+      setIsAddingSphere(false);
     }
   }, [isOpen]);
+
+  const handleToggleSphereMode = () => {
+    const next = !sphereModeOn;
+    setSphereModeOn(next);
+    setSphereModeEnabled(next);
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleToggleSphereItem = (id) => {
+    const updated = spheresList.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s);
+    setSpheresList(updated);
+    saveSphereConfig(updated);
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleDeleteCustomSphere = (id) => {
+    const updated = spheresList.filter(s => s.id !== id);
+    setSpheresList(updated);
+    saveSphereConfig(updated);
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleAddCustomSphere = (e) => {
+    e.preventDefault();
+    if (!newSphereName.trim()) return;
+    const newId = `sphere_${Date.now()}_${newSphereName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+    const newSphere = {
+      id: newId,
+      name: newSphereName.trim(),
+      icon: newSphereIcon.trim() || '⚡',
+      color: newSphereColor,
+      desc: 'Custom life classification sphere',
+      enabled: true,
+      isCustom: true
+    };
+    const updated = [...spheresList, newSphere];
+    setSpheresList(updated);
+    saveSphereConfig(updated);
+    setNewSphereName('');
+    setIsAddingSphere(false);
+    if (onSettingsChanged) onSettingsChanged();
+  };
 
   const handleAiLanguageChange = (lang) => {
     setAiLanguage(lang);
@@ -251,6 +313,165 @@ export default function SettingsModal({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* 3. Segmented Day Matrix (Multi-Sphere Classification Mode) */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <Layers className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h4 className="font-display font-black text-sm uppercase flex items-center gap-1.5">
+                        <span>Segmented Day Matrix</span>
+                        <span className="text-[9px] font-mono bg-black text-[#FDC800] px-1.5 py-0.5 rounded font-black">PRO</span>
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600">
+                        Classify Work, Home, Social & Custom spheres
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleSphereMode}
+                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 ${
+                      sphereModeOn 
+                        ? 'bg-[#00E599] text-black' 
+                        : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                    }`}
+                  >
+                    {sphereModeOn ? 'ACTIVE' : 'OFF'}
+                  </button>
+                </div>
+
+                {sphereModeOn && (
+                  <div className="pt-2 border-t border-black/10 space-y-2.5">
+                    <div className="text-[11px] font-mono font-bold text-neutral-700 uppercase flex items-center justify-between">
+                      <span>Active Life Spheres</span>
+                      <span className="text-[10px] text-neutral-500">{spheresList.filter(s => s.enabled).length} Enabled</span>
+                    </div>
+
+                    {/* Spheres List */}
+                    <div className="space-y-1.5">
+                      {spheresList.map((sphere) => (
+                        <div
+                          key={sphere.id}
+                          className={`flex items-center justify-between p-2 rounded-xl border-2 border-black transition-all ${
+                            sphere.enabled ? 'bg-[#FFFDF0]' : 'bg-neutral-100 opacity-60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">{sphere.icon}</span>
+                            <div>
+                              <div className="font-display font-black text-xs uppercase leading-tight">
+                                {sphere.name}
+                              </div>
+                              <div className="text-[9px] font-mono text-neutral-500 leading-tight">
+                                {sphere.desc}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            {sphere.isCustom && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCustomSphere(sphere.id)}
+                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg cursor-pointer"
+                                title="Delete custom sphere"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSphereItem(sphere.id)}
+                              className={`w-6 h-6 rounded-lg border-2 border-black flex items-center justify-center font-mono text-[10px] font-black cursor-pointer transition-all ${
+                                sphere.enabled ? 'bg-[#00E599] text-black' : 'bg-white text-transparent'
+                              }`}
+                            >
+                              ✓
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add Custom Sphere Section */}
+                    {isAddingSphere ? (
+                      <form onSubmit={handleAddCustomSphere} className="p-3 bg-neutral-50 border-2 border-dashed border-black rounded-xl space-y-2">
+                        <div className="text-xs font-mono font-black uppercase text-neutral-800">
+                          Add New Life Sphere
+                        </div>
+                        
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            placeholder="Emoji (e.g. 🏋️)"
+                            value={newSphereIcon}
+                            onChange={(e) => setNewSphereIcon(e.target.value)}
+                            maxLength={3}
+                            className="w-14 px-2 py-1.5 border-2 border-black rounded-lg text-center text-sm bg-white font-mono"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Sphere Name (e.g. Fitness & Gym)"
+                            value={newSphereName}
+                            onChange={(e) => setNewSphereName(e.target.value)}
+                            className="flex-1 px-2.5 py-1.5 border-2 border-black rounded-lg text-xs font-bold bg-white font-display uppercase"
+                            autoFocus
+                          />
+                        </div>
+
+                        {/* Color Selector */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <span className="text-[10px] font-mono text-neutral-600">Accent:</span>
+                          <div className="flex gap-1.5">
+                            {['#FDC800', '#00E599', '#FF8A00', '#FF4D4D', '#A855F7', '#38BDF8'].map(c => (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => setNewSphereColor(c)}
+                                className={`w-5 h-5 rounded-full border-2 border-black cursor-pointer ${
+                                  newSphereColor === c ? 'scale-125 ring-2 ring-black' : ''
+                                }`}
+                                style={{ backgroundColor: c }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-1.5 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setIsAddingSphere(false)}
+                            className="px-2.5 py-1 text-[11px] font-mono border border-black rounded-lg bg-white hover:bg-neutral-100 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-3 py-1 text-[11px] font-display font-black uppercase bg-[#00E599] border-2 border-black rounded-lg shadow-[1px_1px_0px_#000000] cursor-pointer active:scale-95"
+                          >
+                            + Save Sphere
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingSphere(true)}
+                        className="w-full py-2 border-2 border-dashed border-black/40 hover:border-black rounded-xl bg-neutral-50 hover:bg-neutral-100 font-mono text-xs font-black text-neutral-700 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>+ ADD CUSTOM CLASSIFICATION SPHERE</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* 3. Cloud Sync Profile */}

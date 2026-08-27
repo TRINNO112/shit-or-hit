@@ -10,13 +10,14 @@
 1. [⚡ Core Philosophy & Behavioral Science](#-core-philosophy--behavioral-science)
 2. [🎭 The 5 Verdict Tiers & Mascot Lore](#-the-5-verdict-tiers--mascot-lore)
 3. [🕒 The Interactive Radial Dial Clock (Master Guide)](#-the-interactive-radial-dial-clock-master-guide)
-4. [🖼️ Wallpaper Studio & Streetwear Poster Engine](#️-wallpaper-studio--streetwear-poster-engine)
-5. [🤖 AI Diary Ghostwriter & Language Isolation](#-ai-diary-ghostwriter--language-isolation)
-6. [📊 Monthly AI Performance Forensic Dossier](#-monthly-ai-performance-forensic-dossier)
-7. [🛡️ Offline-First Architecture & Cloud Sync](#️-offline-first-architecture--cloud-sync)
-8. [📱 Installing as a Native Mobile App (PWA)](#-installing-as-a-native-mobile-app-pwa)
-9. [⌨️ Developer CLI Tooling](#️-developer-cli-tooling)
-10. [🛠️ Tech Stack & Local Setup](#️-tech-stack--local-setup)
+4. [🌐 Segmented Day Matrix & Multi-Sphere Classification](#-segmented-day-matrix--multi-sphere-classification)
+5. [🖼️ Wallpaper Studio & Streetwear Poster Engine](#️-wallpaper-studio--streetwear-poster-engine)
+6. [🤖 AI Diary Ghostwriter & Language Isolation](#-ai-diary-ghostwriter--language-isolation)
+7. [📊 Monthly AI Performance Forensic Dossier](#-monthly-ai-performance-forensic-dossier)
+8. [🛡️ Offline-First Architecture & Cloud Sync](#️-offline-first-architecture--cloud-sync)
+9. [📱 Installing as a Native Mobile App (PWA)](#-installing-as-a-native-mobile-app-pwa)
+10. [⌨️ Developer CLI Tooling](#️-developer-cli-tooling)
+11. [🛠️ Tech Stack & Local Setup](#️-tech-stack--local-setup)
 
 ---
 
@@ -99,6 +100,29 @@ The **Radial Dial Clock** replaces clunky dropdowns and standard text inputs wit
 5. **Step 4 — AM / PM Selection & Activation**:
    - Tap the **AM** or **PM** chip.
    - Tap **`[ SET REMINDER TIME ]`**. The application registers a persistent local notification schedule that triggers every evening without draining background battery.
+
+---
+
+## 🌐 Segmented Day Matrix & Multi-Sphere Classification
+
+For deep behavioral tracking, users can enable **Segmented Day Matrix (Multi-Sphere Classification)** from **⚙️ App Settings**.
+
+### Why Multi-Sphere Logging?
+A single master rating can sometimes oversimplify contrasting days (e.g. having a 4★ / 5★ victory in classes/office followed by a 1★ chaotic evening at home). Segmented classification lets you isolate and evaluate each life domain:
+
+| Sphere ID | Life Domain | Default Emoji | Focus Scope |
+| :--- | :--- | :--- | :--- |
+| `work_school` | **Work & School** | 🎓 / 🏢 | Academics, office execution, exams & deep productivity |
+| `home_personal` | **Home & Sanctuary** | 🏠 / 🛋️ | Household peace, family dynamics, evening chores & rest |
+| `social_event` | **Social & Events** | 🎉 / 🎈 | Gatherings, parties, outings, and friend interactions |
+| *Custom* | **User-Defined Spheres** | 🏋️ / 🚀 / 💡 | Fitness, side hustles, coding sprints, creative arts, etc. |
+
+### Core Matrix Capabilities:
+- **🎛️ Settings Sphere Manager**: Toggle individual default spheres on/off and create unlimited custom spheres with custom emojis and accent colors.
+- **⚡ Real-Time Composite Velocity Score**: Blends active sphere scores mathematically (e.g. `2.7★ Okay`), updating the day's master verdict while preserving domain clarity.
+- **💻 Desktop PC Life Matrix Grid**: Interactive multi-card layout with instant mini rating rows, expandable micro-notepads per sphere, and unified AI ghostwriter synthesis.
+- **📱 Mobile Haptic Segmented Bar**: Smooth horizontal pill switcher with spring physics, native vibration feedback, and quick notes.
+- **📊 Forensic Analytics Matrix**: Automatic aggregate domain statistics in the Forensic Telemetry modal (`Avg Work/School vs Home vs Social`).
 
 ---
 
