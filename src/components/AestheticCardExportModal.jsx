@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ratingMeta } from '../services/api';
+import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight, Layers, RotateCcw } from 'lucide-react';
+import { ratingMeta, getStickerVault, getActiveStickerId } from '../services/api';
+import StickerVaultModal from './StickerVaultModal';
 
 // Direct ES6 Module Imports for 100% Guaranteed Asset Resolution
 import mascot1 from '../assets/mascots/mascot_1_rough.png';
@@ -92,15 +93,31 @@ export default function AestheticCardExportModal({
   const [loadedMascotImg, setLoadedMascotImg] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [showStickerVault, setShowStickerVault] = useState(false);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Sync selected date when modal opens with a specific date
+  // Sync selected date & active sticker from vault when modal opens
   useEffect(() => {
     if (dateStr) {
       setSelectedDateStr(dateStr);
     }
   }, [dateStr, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const activeId = getActiveStickerId();
+      if (activeId && activeId !== 'auto') {
+        const vault = getStickerVault();
+        const found = vault.find(s => s.id === activeId);
+        if (found && found.dataUrl) {
+          const img = new Image();
+          img.onload = () => setCustomMascotImg(img);
+          img.src = found.dataUrl;
+        }
+      }
+    }
+  }, [isOpen]);
 
   // Derive active day entry and day index
   const activeEntry = entries[selectedDateStr] || (selectedDateStr === dateStr ? entry : null);
@@ -882,31 +899,67 @@ export default function AestheticCardExportModal({
                   ))}
                 </div>
 
-                {/* Clean Mascot & Custom Sticker Bar */}
-                <div className="flex items-center justify-between bg-white border-2 border-black p-3 rounded-2xl shadow-[2px_2px_0px_#000000]">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm shrink-0">🎭</span>
-                    <span className="text-xs font-mono font-bold text-black truncate">
-                      {customMascotImg ? 'Custom Sticker Active ✅' : `Mood: ${rating}★ Auto-Linked`}
-                    </span>
+                {/* Sticker Module & Mascot Manager Bar */}
+                <div className="bg-white border-2 border-black p-3 rounded-2xl shadow-[2px_2px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-8 h-8 rounded-lg border border-black bg-[#FDC800] flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000] p-0.5 overflow-hidden">
+                        {loadedMascotImg ? (
+                          <img src={loadedMascotImg.src} alt="Active Sticker" className="w-full h-full object-contain" />
+                        ) : (
+                          <Sparkles className="w-4 h-4 text-black" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-display font-black text-xs uppercase text-black block truncate">
+                          {customMascotImg ? 'Custom Sticker Active' : `Mood: ${rating}★ Auto-Linked`}
+                        </span>
+                        <span className="text-[10px] font-mono text-neutral-500 block truncate">
+                          {customMascotImg ? 'Using custom sticker from vault' : 'Adapts automatically to mood rating'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {customMascotImg && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomMascotImg(null)}
+                        className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 border border-black rounded-lg text-[10px] font-mono font-bold text-neutral-700 cursor-pointer flex items-center gap-1 active:scale-95 transition-all"
+                        title="Reset to default mood mascot"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>RESET</span>
+                      </button>
+                    )}
                   </div>
 
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleMascotUpload}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1 shrink-0 transition-all"
-                    title="Upload any PNG transparent sticker"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>CUSTOM STICKER</span>
-                  </button>
+                  <div className="flex items-center gap-2 pt-1 border-t border-black/10">
+                    <button
+                      type="button"
+                      onClick={() => setShowStickerVault(true)}
+                      className="flex-1 py-1.5 px-2 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>STICKER VAULT</span>
+                    </button>
+
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/png,image/webp,image/svg+xml,image/jpeg"
+                      className="hidden"
+                      onChange={handleMascotUpload}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="py-1.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1 active:scale-95 transition-all shrink-0"
+                      title="Upload any PNG transparent sticker"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>UPLOAD</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Info Callout */}
@@ -967,6 +1020,24 @@ export default function AestheticCardExportModal({
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Embedded Sticker Vault Modal */}
+      {showStickerVault && (
+        <StickerVaultModal
+          isOpen={showStickerVault}
+          onClose={() => setShowStickerVault(false)}
+          onSelectSticker={(stickerObj) => {
+            if (!stickerObj) {
+              setCustomMascotImg(null);
+            } else if (stickerObj.dataUrl || stickerObj.src) {
+              const img = new Image();
+              img.onload = () => setCustomMascotImg(img);
+              img.src = stickerObj.dataUrl || stickerObj.src;
+            }
+            setShowStickerVault(false);
+          }}
+        />
+      )}
     </AnimatePresence>
   );
 }

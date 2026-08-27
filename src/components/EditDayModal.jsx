@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  Check, 
-  Wand2, 
-  Loader2, 
+import {
+  X,
+  Check,
+  Wand2,
+  Loader2,
   Calendar as CalIcon,
   AlertCircle,
   CloudRain,
@@ -14,8 +14,8 @@ import {
   Undo2,
   Redo2
 } from 'lucide-react';
-import { 
-  ratingMeta, 
+import {
+  ratingMeta,
   enhanceReflectionWithAI,
   isSphereModeEnabled,
   getSphereConfig,
@@ -53,7 +53,7 @@ export default function EditDayModal({
   const [sphereModeActive, setSphereModeActive] = useState(false);
   const [spheresConfig, setSpheresConfig] = useState([]);
   const [spheresData, setSpheresData] = useState({});
-  
+
   // History stack for Undo / Redo / Revert
   const [historyStack, setHistoryStack] = useState([entryData?.notes || '']);
   const [historyIdx, setHistoryIdx] = useState(0);
@@ -139,8 +139,8 @@ export default function EditDayModal({
     try {
       const comp = calculateCompositeScore(spheresData);
       const enhanced = await enhanceReflectionWithAI(
-        currentVal, 
-        comp?.rating || rating, 
+        currentVal,
+        comp?.rating || rating,
         dateStr,
         sphereModeActive ? spheresData : null
       );
@@ -197,7 +197,7 @@ export default function EditDayModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -205,15 +205,15 @@ export default function EditDayModal({
           className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs"
           onClick={onClose}
         >
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.94, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className="w-full max-w-6xl min-h-[580px] sm:min-h-[680px] max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-6 sm:p-8"
+            className="w-full max-w-6xl min-h-[580px] sm:min-h-[530px] max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-6 sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            
+
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-black/10 shrink-0">
               <div className="flex items-center gap-3.5">
@@ -249,7 +249,7 @@ export default function EditDayModal({
 
             {/* Scrollable Content Body */}
             <div className="flex-1 overflow-y-auto pr-1 space-y-4">
-              
+
               {/* If Multi-Sphere Mode Active: Landscape Spheres Matrix */}
               {sphereModeActive && spheresConfig.length > 0 ? (
                 <div className="space-y-3.5">
@@ -270,14 +270,14 @@ export default function EditDayModal({
                       const sRating = sData.rating;
 
                       return (
-                        <div 
-                          key={sphere.id} 
+                        <div
+                          key={sphere.id}
                           className="p-6 bg-[#FFFDF8] rounded-3xl border-3 border-black shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-4 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000000]"
                         >
                           {/* Sphere Header */}
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-3.5 min-w-0">
-                              <div 
+                              <div
                                 className="w-12 h-12 rounded-2xl border-2.5 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#000000] transition-transform hover:scale-105"
                                 style={{ backgroundColor: sphere.color || '#FDC800' }}
                               >
@@ -294,7 +294,7 @@ export default function EditDayModal({
                             </div>
 
                             {sRating ? (
-                              <span 
+                              <span
                                 className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
                                 style={{ backgroundColor: ratingMeta[sRating]?.bg }}
                               >
@@ -314,11 +314,10 @@ export default function EditDayModal({
                                   key={sVal}
                                   type="button"
                                   onClick={() => handleRateSphere(sphere.id, sVal)}
-                                  className={`py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all active:scale-90 hover:scale-105 ${
-                                    isSel 
-                                      ? 'bg-[#FDC800] shadow-[2px_2px_0px_#000000] font-black scale-[1.03]' 
-                                      : 'bg-white hover:bg-neutral-100 hover:shadow-[1.5px_1.5px_0px_#000000]'
-                                  }`}
+                                  className={`py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all active:scale-90 hover:scale-105 ${isSel
+                                    ? 'bg-[#FDC800] shadow-[2px_2px_0px_#000000] font-black scale-[1.03]'
+                                    : 'bg-white hover:bg-neutral-100 hover:shadow-[1.5px_1.5px_0px_#000000]'
+                                    }`}
                                 >
                                   {sVal}★
                                 </button>
@@ -348,7 +347,7 @@ export default function EditDayModal({
               ) : (
                 /* Single-Verdict Standard Rating & Single Diary Area */
                 <div className="space-y-4">
-                  
+
                   {/* Rating Selector */}
                   <div className="space-y-2">
                     <label className="block text-xs font-mono font-black text-neutral-700 uppercase">
@@ -367,12 +366,11 @@ export default function EditDayModal({
                             whileHover={{ scale: 1.04, y: -2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleRatingSelect(val)}
-                            className={`p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all ${
-                              isSelected ? 'shadow-[3px_3px_0px_#000000] font-black' : 'bg-neutral-50 hover:bg-white'
-                            }`}
+                            className={`p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all ${isSelected ? 'shadow-[3px_3px_0px_#000000] font-black' : 'bg-neutral-50 hover:bg-white'
+                              }`}
                             style={{ backgroundColor: isSelected ? m.bg : '#F9F9F9' }}
                           >
-                            <div 
+                            <div
                               className="w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center mb-1 shadow-[1px_1px_0px_#000000]"
                               style={{ backgroundColor: m.bg }}
                             >
@@ -389,7 +387,7 @@ export default function EditDayModal({
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
                       <span>2. EDIT DIARY REFLECTION NOTE</span>
-                      
+
                       <div className="flex items-center gap-2">
                         {/* Undo / Redo / Revert Buttons */}
                         <div className="flex items-center gap-1 bg-neutral-100 p-0.5 border-2 border-black rounded-lg shadow-[1px_1px_0px_#000000]">

@@ -774,3 +774,71 @@ export function exportDatabaseBackup(startDate, entries) {
   downloadAnchor.click();
   downloadAnchor.remove();
 }
+
+// ============================================================================
+// 🎭 STICKER VAULT & CUSTOM MASCOTS MANAGEMENT SYSTEM
+// ============================================================================
+
+const STICKER_VAULT_KEY = 'custom_stickers_vault_v1';
+const ACTIVE_STICKER_KEY = 'active_wallpaper_sticker_id';
+
+export function getStickerVault() {
+  try {
+    const raw = localStorage.getItem(STICKER_VAULT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error('Failed to parse sticker vault:', e);
+    return [];
+  }
+}
+
+export function saveCustomSticker({ name, dataUrl, tag = 'custom' }) {
+  try {
+    const current = getStickerVault();
+    const newSticker = {
+      id: 'sticker_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name: name || 'Custom Sticker',
+      dataUrl,
+      tag,
+      createdAt: new Date().toISOString()
+    };
+    const updated = [newSticker, ...current];
+    localStorage.setItem(STICKER_VAULT_KEY, JSON.stringify(updated));
+    return newSticker;
+  } catch (e) {
+    console.error('Failed to save custom sticker:', e);
+    throw e;
+  }
+}
+
+export function deleteCustomSticker(stickerId) {
+  try {
+    const current = getStickerVault();
+    const updated = current.filter(s => s.id !== stickerId);
+    localStorage.setItem(STICKER_VAULT_KEY, JSON.stringify(updated));
+    if (getActiveStickerId() === stickerId) {
+      setActiveStickerId('auto');
+    }
+    return updated;
+  } catch (e) {
+    console.error('Failed to delete custom sticker:', e);
+    return [];
+  }
+}
+
+export function getActiveStickerId() {
+  try {
+    return localStorage.getItem(ACTIVE_STICKER_KEY) || 'auto';
+  } catch (e) {
+    return 'auto';
+  }
+}
+
+export function setActiveStickerId(stickerId) {
+  try {
+    localStorage.setItem(ACTIVE_STICKER_KEY, stickerId || 'auto');
+  } catch (e) {}
+}
+

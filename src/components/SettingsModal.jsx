@@ -32,10 +32,13 @@ import {
   setSphereModeEnabled,
   getSphereConfig,
   saveSphereConfig,
-  DEFAULT_SPHERES
+  DEFAULT_SPHERES,
+  getStickerVault,
+  getActiveStickerId
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
+import StickerVaultModal from './StickerVaultModal';
 
 export default function SettingsModal({
   isOpen,
@@ -49,6 +52,7 @@ export default function SettingsModal({
   const [notificationMsg, setNotificationMsg] = useState('');
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'notifications' | 'about'
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
+  const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
   const [aiLanguage, setAiLanguage] = useState('auto');
   
   // Segmented Multi-Sphere Matrix Settings
@@ -752,6 +756,30 @@ export default function SettingsModal({
                 )}
               </div>
 
+              {/* 6. Custom Sticker Vault & Mascots */}
+              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-black text-sm uppercase">
+                      Sticker & Mascot Vault
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600">
+                      Upload custom PNG stickers for wallpapers & exports
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsStickerVaultOpen(true)}
+                  className="py-1.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0"
+                >
+                  MANAGE VAULT
+                </button>
+              </div>
+
             </div>
 
             {/* Pinned Footer */}
@@ -775,6 +803,14 @@ export default function SettingsModal({
         initialTime={reminderTimeVal}
         onSave={handleTimeChange}
       />
+
+      {/* Sticker Vault Modal */}
+      {isStickerVaultOpen && (
+        <StickerVaultModal
+          isOpen={isStickerVaultOpen}
+          onClose={() => setIsStickerVaultOpen(false)}
+        />
+      )}
     </>
   );
 }
