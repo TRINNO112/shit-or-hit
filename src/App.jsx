@@ -12,6 +12,7 @@ import ForensicStatsModal from './components/ForensicStatsModal';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import SettingsModal from './components/SettingsModal';
 import IconLab from './components/IconLab';
+import StickerVaultModal from './components/StickerVaultModal';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings } from './services/firebase';
@@ -39,6 +40,7 @@ export default function App() {
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
@@ -195,6 +197,7 @@ export default function App() {
           onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
           onOpenTelemetry={() => setIsTelemetryOpen(true)}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenStickerVault={() => setIsStickerVaultOpen(true)}
           sphereSettingsVer={sphereSettingsVer}
         />
       ) : (
@@ -210,6 +213,7 @@ export default function App() {
                 onOpenMonthlyReport={() => handleOpenMonthlyReport()}
                 onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
                 onOpenSettings={() => setIsSettingsOpen(true)}
+                onOpenStickerVault={() => setIsStickerVaultOpen(true)}
                 onSyncRefresh={loadData}
               />
             </div>
@@ -319,6 +323,12 @@ export default function App() {
           setShowIconLab(true);
         }}
         onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
+      />
+
+      {/* 🎭 Sticker & Mascot Vault Modal */}
+      <StickerVaultModal
+        isOpen={isStickerVaultOpen}
+        onClose={() => setIsStickerVaultOpen(false)}
       />
 
     </div>

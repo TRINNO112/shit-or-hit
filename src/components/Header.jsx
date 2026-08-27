@@ -7,14 +7,16 @@ import MagneticButton from './MagneticButton';
 import ShieldVoltIcon from './ShieldVoltIcon';
 
 export default function Header({ 
-  startDate, 
-  entries, 
-  dayCount,
+  startDate = '2026-08-01', 
+  entries = {}, 
+  dayCount = 1,
+  todayStr = '2026-08-01',
   onToggleCalendar,
   isCalendarOpen,
   onOpenMonthlyReport,
   onOpenWallpaper,
   onOpenSettings,
+  onOpenStickerVault,
   onSyncRefresh
 }) {
   const [user, setUser] = useState(null);
@@ -180,6 +182,18 @@ export default function Header({
           <span className="hidden sm:inline">{isCalendarOpen ? 'CLOSE CALENDAR' : 'CALENDAR'}</span>
           <span className="sm:hidden">GRID</span>
         </MagneticButton>
+
+        {/* Stickers & Mascots Vault Button */}
+        {onOpenStickerVault && (
+          <button
+            onClick={onOpenStickerVault}
+            title="Open Sticker & Mascot Vault"
+            className="px-3 py-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-black" />
+            <span className="hidden sm:inline">STICKERS</span>
+          </button>
+        )}
 
         {/* Wallpaper & Social Export Button */}
         <button

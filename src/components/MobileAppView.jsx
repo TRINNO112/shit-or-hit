@@ -71,6 +71,7 @@ export default function MobileAppView({
   onOpenWallpaper,
   onOpenTelemetry,
   onOpenSettings,
+  onOpenStickerVault,
   sphereSettingsVer = 0
 }) {
   const [activeTab, setActiveTabState] = useState(() => {
@@ -550,6 +551,20 @@ export default function MobileAppView({
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
           </button>
+
+          {/* Sticker Vault Button */}
+          {onOpenStickerVault && (
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                onOpenStickerVault();
+              }}
+              className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+              title="Sticker & Mascot Vault"
+            >
+              <Sparkles className="w-4 h-4 text-black" />
+            </button>
+          )}
 
           {/* Settings Button */}
           {onOpenSettings && (
