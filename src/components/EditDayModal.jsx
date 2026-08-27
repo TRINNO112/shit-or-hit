@@ -60,8 +60,9 @@ export default function EditDayModal({
   const originalDraft = entryData?.notes || '';
 
   useEffect(() => {
-    const isEnabled = isSphereModeEnabled() || Boolean(entryData?.spheres && Object.keys(entryData.spheres).length > 0);
-    setSphereModeActive(isEnabled);
+    // Strictly respect the user's active sphere mode setting
+    const isGlobalSphereEnabled = isSphereModeEnabled();
+    setSphereModeActive(isGlobalSphereEnabled);
     const cfg = getSphereConfig().filter(s => s.enabled);
     setSpheresConfig(cfg);
 
@@ -230,12 +231,33 @@ export default function EditDayModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
-                {sphereModeActive && (
-                  <span className="hidden sm:inline-flex text-xs font-mono bg-black text-[#FDC800] px-3 py-1.5 rounded-xl font-black border border-black shadow-[1.5px_1.5px_0px_#000000]">
-                    MULTI-SPHERE MATRIX
-                  </span>
-                )}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Interactive Mode Switcher */}
+                <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
+                  <button
+                    type="button"
+                    onClick={() => setSphereModeActive(false)}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg font-mono text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
+                      !sphereModeActive
+                        ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]'
+                        : 'text-neutral-600 hover:text-black'
+                    }`}
+                  >
+                    ⚡ UNIFIED
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSphereModeActive(true)}
+                    className={`px-2.5 sm:px-3 py-1 rounded-lg font-mono text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
+                      sphereModeActive
+                        ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]'
+                        : 'text-neutral-600 hover:text-black'
+                    }`}
+                  >
+                    🌐 SPHERES
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={onClose}
