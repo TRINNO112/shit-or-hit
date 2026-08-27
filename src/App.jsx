@@ -14,7 +14,7 @@ import SettingsModal from './components/SettingsModal';
 import IconLab from './components/IconLab';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
-import { subscribeAuthState, getUserDisplayName } from './services/firebase';
+import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings } from './services/firebase';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
@@ -70,6 +70,19 @@ export default function App() {
     scheduleLocalEveningReminder();
     const unsubscribe = subscribeAuthState((u) => {
       setCurrentUser(u);
+      if (u?.uid) {
+        fetchCloudUserSettings(u.uid).then(cloudSettings => {
+          if (cloudSettings) {
+            if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
+              localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
+            }
+            if (cloudSettings.sphereModeEnabled !== undefined) {
+              localStorage.setItem('daily_verdict_sphere_mode_enabled', cloudSettings.sphereModeEnabled ? 'true' : 'false');
+            }
+            setSphereSettingsVer(v => v + 1);
+          }
+        }).catch(() => {});
+      }
     });
     return () => unsubscribe();
   }, []);

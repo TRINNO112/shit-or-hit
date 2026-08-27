@@ -109,7 +109,7 @@ export default function TodayHero({
 
   const selectedRating = activeEntry?.rating || null;
   const activeRatingForVisual = selectedRating || 3;
-  const compositeStats = calculateCompositeScore(spheresData);
+  const compositeStats = sphereModeActive ? calculateCompositeScore(spheresData) : null;
 
   const now = new Date();
   const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
@@ -142,8 +142,8 @@ export default function TodayHero({
         rating: val,
         verdict: ratingMeta[val]?.title || 'Verdict',
         notes: noteText,
-        spheres: spheresData,
-        calculatedScore: activeEntry?.calculatedScore
+        spheres: sphereModeActive ? spheresData : undefined,
+        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : undefined
       });
     }
     setTimeout(() => setSyncedBadge(false), 2500);
@@ -561,22 +561,22 @@ export default function TodayHero({
       <div className="mt-8 pt-6 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
         {/* Active Verdict Pill with Crisp Icon */}
-        {(compositeStats || selectedRating) ? (
+        {(sphereModeActive ? (compositeStats || selectedRating) : selectedRating) ? (
           <motion.div 
             layout
             initial={{ opacity: 0, y: 8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 450, damping: 25 }}
             className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl border-2 border-black text-xs font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
-            style={{ backgroundColor: ratingMeta[compositeStats?.rating || selectedRating]?.bg }}
+            style={{ backgroundColor: ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.bg }}
           >
-            {React.createElement(IconMap[ratingMeta[compositeStats?.rating || selectedRating]?.icon] || Sparkles, {
+            {React.createElement(IconMap[ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.icon] || Sparkles, {
               className: "w-4 h-4 text-black stroke-[3] shrink-0"
             })}
 
             <span>
-              VERDICT: <strong className="uppercase">{ratingMeta[compositeStats?.rating || selectedRating]?.title}</strong>
-              {compositeStats?.score && ` (SCORE: ${compositeStats.score}/5.0)`} — {ratingMeta[compositeStats?.rating || selectedRating]?.desc}
+              VERDICT: <strong className="uppercase">{ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.title}</strong>
+              {sphereModeActive && compositeStats?.score ? ` (SCORE: ${compositeStats.score}/5.0)` : ''} — {ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.desc}
             </span>
 
             {syncedBadge && (

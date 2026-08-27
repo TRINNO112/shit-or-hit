@@ -14,7 +14,7 @@ import {
   Layers,
   BatteryCharging
 } from 'lucide-react';
-import { ratingMeta } from '../services/api';
+import { ratingMeta, isSphereModeEnabled } from '../services/api';
 
 import mascot1 from '../assets/mascots/mascot_1_rough.png';
 import mascot2 from '../assets/mascots/mascot_2_down.png';
@@ -260,8 +260,9 @@ export default function ForensicStatsModal({
               </div>
             </div>
 
-            {/* SECTION 4: LIFE SPHERES DOMAIN FORENSICS (if sphere data exists) */}
+            {/* SECTION 4: LIFE SPHERES DOMAIN FORENSICS (if sphere data exists and sphere mode is on) */}
             {(() => {
+              if (!isSphereModeEnabled()) return null;
               const sphereAggregates = {};
               entryList.forEach(e => {
                 if (e.spheres && typeof e.spheres === 'object') {

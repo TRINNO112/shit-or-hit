@@ -304,3 +304,36 @@ export async function fetchCloudGeminiApiKey() {
     return null;
   }
 }
+
+export async function saveCloudUserSettings(userId, settingsData) {
+  if (!userId || !settingsData) return;
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return;
+  try {
+    const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
+    await fb.firestoreMod.setDoc(settingsRef, {
+      ...settingsData,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    console.log(`✅ [Firestore] User preferences & sphere configs saved to cloud!`);
+  } catch (err) {
+    console.warn(`Firestore user settings save note:`, err.message);
+  }
+}
+
+export async function fetchCloudUserSettings(userId) {
+  if (!userId) return null;
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return null;
+  try {
+    const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
+    const snap = await fb.firestoreMod.getDoc(settingsRef);
+    if (snap.exists()) {
+      return snap.data();
+    }
+    return null;
+  } catch (err) {
+    console.warn(`Firestore user settings fetch note:`, err.message);
+    return null;
+  }
+}

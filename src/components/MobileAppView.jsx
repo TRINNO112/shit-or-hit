@@ -71,8 +71,32 @@ export default function MobileAppView({
   onOpenSettings,
   sphereSettingsVer = 0
 }) {
-  const [activeTab, setActiveTab] = useState('log'); // 'log' | 'history' | 'dossier' | 'stats'
-  const [historySubView, setHistorySubView] = useState('calendar'); // 'calendar' | 'timeline'
+  const [activeTab, setActiveTabState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('daily_verdict_mobile_active_tab') || 'log';
+    }
+    return 'log';
+  });
+  const [historySubView, setHistorySubViewState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('daily_verdict_mobile_history_subview') || 'calendar';
+    }
+    return 'calendar';
+  });
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('daily_verdict_mobile_active_tab', tab);
+    }
+  };
+
+  const setHistorySubView = (view) => {
+    setHistorySubViewState(view);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('daily_verdict_mobile_history_subview', view);
+    }
+  };
   
   // Multi-Sphere State for Mobile
   const [sphereModeActive, setSphereModeActive] = useState(false);

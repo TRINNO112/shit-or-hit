@@ -1,3 +1,14 @@
+import { 
+  getCurrentUser, 
+  saveCloudUserSettings,
+  saveCloudEntry, 
+  fetchCloudEntries, 
+  batchSaveCloudEntries,
+  saveCloudReport, 
+  fetchCloudReport, 
+  isEmailWhitelisted 
+} from './firebase';
+
 const API_BASE = '/api';
 
 export const ratingMeta = {
@@ -83,6 +94,12 @@ export function isSphereModeEnabled() {
 export function setSphereModeEnabled(enabled) {
   if (typeof window === 'undefined') return;
   localStorage.setItem('daily_verdict_sphere_mode_enabled', enabled ? 'true' : 'false');
+  try {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      saveCloudUserSettings(user.uid, { sphereModeEnabled: enabled });
+    }
+  } catch (e) {}
 }
 
 export function getSphereConfig() {
@@ -100,6 +117,12 @@ export function getSphereConfig() {
 export function saveSphereConfig(config) {
   if (typeof window === 'undefined') return;
   localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(config));
+  try {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      saveCloudUserSettings(user.uid, { spheresConfig: config });
+    }
+  } catch (e) {}
 }
 
 export function calculateCompositeScore(spheres) {
@@ -118,16 +141,6 @@ export function calculateCompositeScore(spheres) {
     totalSpheres: Object.keys(spheres).length
   };
 }
-
-import { 
-  getCurrentUser, 
-  saveCloudEntry, 
-  fetchCloudEntries, 
-  batchSaveCloudEntries,
-  saveCloudReport, 
-  fetchCloudReport, 
-  isEmailWhitelisted 
-} from './firebase';
 
 export async function fetchDatabase() {
   // 1. First fetch local data from server API (if local dev) or localStorage
