@@ -1,4 +1,4 @@
-# ⚡ DAILY VERDICT (SHIT OR HIT)
+# 💩 SHIT OR HIT — Daily Verdict & Behavioral Intelligence Engine
 
 > **The Neobrutalist Daily Life Logger, Habit Tracker & AI Performance Forensic Hub.**  
 > Built with 100% data sovereignty, offline-first PWA architecture, an interactive SVG radial dial clock, and high-resolution streetwear poster exports.
@@ -24,7 +24,7 @@
 
 Most productivity systems and habit apps fail because they demand unsustainable cognitive overhead: checking 30 checkboxes, grading complicated metrics, and treating your life like an enterprise spreadsheet.
 
-**Daily Verdict** is built on a single, uncompromising truth: **Brutal Daily Accountability in 1 Second.**
+**SHIT OR HIT** is built on a single, uncompromising truth: **Brutal Daily Accountability in 1 Second.**
 
 Every night before sleep, you deliver an honest verdict on your day: was it a **HIT** or was it **SHIT**? You rate your performance on a 5-tier scale, jot down unfiltered diary notes about what actually transpired, and let the system transform your raw days into:
 
@@ -49,22 +49,27 @@ Every rating tier is tied to a distinct streetwear mascot archetype, visual colo
 ### Archetype Breakdown
 
 #### 1★ Rough — The Cooked Goblin 👺
+
 - **When to Log**: You gave into doomscrolling, failed a critical exam, skipped workouts, or let the day slip into chaos.
 - **Psychological Function**: Validates the pain and eliminates guilt so you can clear the slate and execute the next morning.
 
 #### 2★ Down — Low-Battery Zombie 🧟
+
 - **When to Log**: You showed up, but felt exhausted, uninspired, or physically drained.
 - **Psychological Function**: Flags energy leaks, sleep deprivation, or impending burnout before it morphs into a multi-day slump.
 
 #### 3★ Okay — The Stoic Sustainer 🦥
+
 - **When to Log**: An unglamorous day of routine duty where you didn't conquer the world, but you didn't give up ground either.
 - **Psychological Function**: Celebrates the quiet consistency that builds compounding lifetime momentum.
 
 #### 4★ Good — The Flow Warrior Beast ⚡
+
 - **When to Log**: You crushed your tasks, stayed off distracting apps, and made meaningful progress toward your core goals.
 - **Psychological Function**: Reinforces positive friction-free workflows and locks in productive habits.
 
 #### 5★ Peak — The God Mode Demon 👑
+
 - **When to Log**: Everything clicked. You clutched a major milestone, worked with surgical precision, and delivered a massive win.
 - **Psychological Function**: Immortalizes your highest achievements and fuels your belief in what you are capable of.
 
@@ -73,16 +78,6 @@ Every rating tier is tied to a distinct streetwear mascot archetype, visual colo
 ## 🕒 The Interactive Radial Dial Clock (Master Guide)
 
 The **Radial Dial Clock** replaces clunky dropdowns and standard text inputs with an analog-inspired SVG circular drag dial engineered with subpixel trigonometry.
-
-```
-       [ 12 ]
-   [11]       [1]
- [10]     ●     [2]     ───○  (Interactive Drag Pointer)
- [9]   ───────  [3]     [ AM ] / [ PM ] Toggle
-  [8]         [4]
-    [7]     [5]         [ - ]  47 MIN  [ + ]  (Micro Steppers)
-        [ 6 ]
-```
 
 ### Step-by-Step Dial Workflow
 
@@ -111,23 +106,16 @@ The **Radial Dial Clock** replaces clunky dropdowns and standard text inputs wit
 
 The **Wallpaper Studio** enables you to turn any day's raw verdict and journal reflection into high-res (1080p) graphic streetwear artwork.
 
-```
-┌──────────────────────────────────────────────────────────┐
-│  ⚡ DAILY VERDICT OS    THURSDAY, AUG 27         DAY 8   │
-│  ★★★★★                                                  │
-│  OKAY                                                    │
-│  SCORE: 3.0 / 5.0  •  SOLID BASELINE  •  HELD THE LINE   │
-│                                                          │
-│                 [ 3D MASCOT / STICKER ]                  │
-│                                                          │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ ⚡ DAILY DIRECTIVE                                  │  │
-│  │ BASELINE HELD. DISCIPLINE OVER MOTIVATION.         │  │
-│  └────────────────────────────────────────────────────┘  │
-│  [ STREAK: 8 DAYS ]  [ SCORE: 3.0/5.0 ]  [ STOIC SUSTAINER ] │
-│  LOGGED BY TRINNO • DAILY VERDICT         |||||||||||||| │
-└──────────────────────────────────────────────────────────┘
-```
+### Poster Anatomy & Visual Elements
+
+| Component Section | Visual Display Content | Design Purpose |
+| :--- | :--- | :--- |
+| **Top Header Tape** | `⚡ SHIT OR HIT OS` • `THURSDAY, AUG 27` • `DAY 8` | High-contrast status banner & current streak day badge |
+| **Rating Hero** | `★★★★★` + `OKAY` + `SCORE: 3.0 / 5.0` | Large bold typography with color-coded rating stars |
+| **Central Spotlight** | 3D Streetwear Mascot or Custom Uploaded Sticker | Focal artwork with ambient drop shadow & glow |
+| **Directive Banner** | `⚡ DAILY DIRECTIVE: BASELINE HELD. DISCIPLINE OVER MOTIVATION.` | High-impact psychological takeaway for the day |
+| **Telemetry Pills** | `[ STREAK: 8 DAYS ]` `[ SCORE: 3.0/5.0 ]` `[ STOIC SUSTAINER ]` | Grid of 3 key quantitative momentum metrics |
+| **Security Footer** | `LOGGED BY TRINNO • SHIT OR HIT` + Vector Barcode | Authentic streetwear aesthetic & developer identity watermark |
 
 ### Core Features
 
@@ -181,7 +169,7 @@ At the end of every month, tap **📊 Monthly AI Dossier** to generate an exhaus
 
 ## 🛡️ Offline-First Architecture & Cloud Sync
 
-Your data belongs entirely to you. Daily Verdict combines instant local performance with cloud backup:
+Your data belongs entirely to you. SHIT OR HIT combines instant local performance with cloud backup:
 
 ```
 [ User Interaction ] ──▶ [ Sub-1ms Optimistic UI ] ──▶ [ LocalStorage & JSON Flat File ]
@@ -202,7 +190,7 @@ Your data belongs entirely to you. Daily Verdict combines instant local performa
 
 ## 📱 Installing as a Native Mobile App (PWA)
 
-Daily Verdict is a Progressive Web App (PWA) that installs as a native application on Android, iOS, and PC.
+SHIT OR HIT is a Progressive Web App (PWA) that installs as a native application on Android, iOS, and PC.
 
 ### On Android (Chrome / Samsung Internet)
 
@@ -220,7 +208,7 @@ Daily Verdict is a Progressive Web App (PWA) that installs as a native applicati
 
 ### On Desktop (Chrome / Edge / Brave)
 
-1. Click the **Install** icon in the address bar (or go to Menu ➔ Install Daily Verdict).
+1. Click the **Install** icon in the address bar (or go to Menu ➔ Install SHIT OR HIT).
 2. Launch the app as an independent desktop window.
 
 ---
