@@ -588,7 +588,7 @@ export default function MobileAppView({
 
           {/* If Multi-Sphere Mode is Active: Streamlined Stacked Life Spheres Matrix */}
           {sphereModeActive ? (
-            <div className="space-y-3.5">
+            <div className="space-y-4">
               {spheresConfig.map((sphere) => {
                 const sData = spheresData[sphere.id] || {};
                 const sRating = sData.rating;
@@ -596,13 +596,13 @@ export default function MobileAppView({
                 return (
                   <div
                     key={sphere.id}
-                    className="bg-[#FFFDF8] rounded-2xl border-2 border-black p-3.5 shadow-[3px_3px_0px_#000000] space-y-3"
+                    className="bg-[#FFFDF8] rounded-3xl border-3 border-black p-4 sm:p-5 shadow-[4px_4px_0px_#000000] space-y-3.5"
                   >
                     {/* Sphere Header */}
-                    <div className="flex items-center justify-between gap-2 border-b border-black/10 pb-2.5">
-                      <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center justify-between gap-2 border-b-2 border-black/10 pb-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div 
-                          className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+                          className="w-11 h-11 rounded-2xl border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0"
                           style={{ backgroundColor: sphere.color || '#FDC800' }}
                         >
                           <SphereIcon icon={sphere.icon} className="w-5 h-5 text-black stroke-[2.5]" />
@@ -611,7 +611,7 @@ export default function MobileAppView({
                           <h3 className="font-display font-black text-xs sm:text-sm uppercase text-black leading-tight truncate">
                             {sphere.name}
                           </h3>
-                          <p className="text-[10px] font-mono text-neutral-500 truncate">
+                          <p className="text-[10px] font-mono text-neutral-500 truncate mt-0.5">
                             {sphere.desc}
                           </p>
                         </div>
@@ -619,7 +619,7 @@ export default function MobileAppView({
 
                       {sRating ? (
                         <span 
-                          className="px-2 py-0.5 rounded-lg border-2 border-black font-mono text-[10px] font-black shadow-[1px_1px_0px_#000000] shrink-0"
+                          className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shadow-[1px_1px_0px_#000000] shrink-0"
                           style={{ backgroundColor: ratingMeta[sRating]?.bg }}
                         >
                           {sRating}★ {ratingMeta[sRating]?.title}
@@ -658,18 +658,18 @@ export default function MobileAppView({
                       })}
                     </div>
 
-                    {/* Sphere-Specific Reflection Note */}
-                    <div className="pt-2 border-t border-black/10 space-y-1">
-                      <div className="flex items-center justify-between text-[10px] font-mono font-bold text-neutral-600">
-                        <span className="uppercase">Reflection Note</span>
+                    {/* Sphere-Specific Multi-Line Reflection Note with Generous Height */}
+                    <div className="pt-2.5 border-t-2 border-black/10 space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px] font-mono font-bold text-neutral-700">
+                        <span className="uppercase">Reflection Note • {sphere.name}</span>
                         {sData.notes && <span className="text-emerald-700 font-black">✓ Saved</span>}
                       </div>
                       <textarea
-                        rows={2}
-                        placeholder={`What happened at ${sphere.name}?`}
+                        rows={4}
+                        placeholder={`What happened at ${sphere.name}? (Wins, struggles, events)`}
                         value={sData.notes || ''}
                         onChange={(e) => handleSaveSphereNoteMobile(sphere.id, e.target.value)}
-                        className="w-full p-2 text-xs font-mono bg-white border-2 border-black rounded-xl placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-black resize-none leading-relaxed"
+                        className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black min-h-[110px] leading-relaxed overflow-y-auto"
                       />
                     </div>
                   </div>

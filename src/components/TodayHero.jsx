@@ -484,7 +484,7 @@ export default function TodayHero({
               return (
                 <div
                   key={sphere.id}
-                  className="bg-[#FFFDF8] rounded-3xl border-3 border-black p-5 shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-4 transition-all hover:shadow-[6px_6px_0px_#000000]"
+                  className="bg-[#FFFDF8] rounded-3xl border-3 border-black py-6 px-5 sm:px-6 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-4 transition-all hover:shadow-[7px_7px_0px_#000000]"
                 >
                   {/* Sphere Card Header: Large Infographic Box & Bold Label */}
                   <div className="flex items-start justify-between gap-3">
@@ -544,7 +544,7 @@ export default function TodayHero({
                   </div>
 
                   {/* Sphere Reflection Notes: Direct Notepad with Auto-save on blur */}
-                  <div className="pt-2.5 border-t-2 border-black/10 space-y-2">
+                  <div className="pt-3 border-t-2 border-black/10 space-y-2">
                     <div className="flex items-center justify-between">
                       <button
                         type="button"
@@ -566,12 +566,12 @@ export default function TodayHero({
                     {isExpanded && (
                       <div className="space-y-2">
                         <textarea
-                          rows={2}
+                          rows={4}
                           placeholder={`What happened at ${sphere.name}? (Wins, struggles, events)`}
                           value={currentSphereData.notes || ''}
                           onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
                           onBlur={(e) => handleSphereNoteBlur(sphere.id, e.target.value)}
-                          className="w-full p-2.5 text-xs font-mono bg-white border-2 border-black rounded-xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black"
+                          className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black min-h-[110px] leading-relaxed overflow-y-auto"
                         />
                         <div className="flex justify-between items-center text-[10px] font-mono text-neutral-500">
                           <span>Auto-saves on typing</span>

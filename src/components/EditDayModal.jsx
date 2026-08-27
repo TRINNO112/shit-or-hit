@@ -324,16 +324,16 @@ export default function EditDayModal({
                           </div>
 
                           {/* Multi-Line Sphere-Specific Reflection Note */}
-                          <div className="pt-2 border-t border-black/10 flex-1 flex flex-col justify-end">
-                            <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase mb-1">
-                              Sphere Reflection:
+                          <div className="pt-2 border-t border-black/10 flex-1 flex flex-col justify-end space-y-1">
+                            <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase">
+                              Reflection Note:
                             </label>
                             <textarea
-                              rows={3}
+                              rows={4}
                               placeholder={`What happened at ${sphere.name}?`}
                               value={sData.notes || ''}
                               onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
-                              className="w-full p-2 text-xs font-mono bg-white border border-black/40 rounded-xl placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black resize-none leading-relaxed"
+                              className="w-full p-2.5 text-xs font-mono bg-white border border-black/40 rounded-xl placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black min-h-[95px] leading-relaxed overflow-y-auto"
                             />
                           </div>
                         </div>
