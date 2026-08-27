@@ -295,31 +295,41 @@ export default function EditDayModal({
                       const sRating = sData.rating;
 
                       return (
-                        <div key={sphere.id} className="p-2 bg-white rounded-xl border border-black/40 flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div 
-                              className="w-6 h-6 rounded-md border border-black flex items-center justify-center shrink-0 shadow-[0.5px_0.5px_0px_#000000]"
-                              style={{ backgroundColor: sphere.color || '#FDC800' }}
-                            >
-                              <SphereIcon icon={sphere.icon} className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                        <div key={sphere.id} className="p-2.5 bg-white rounded-xl border border-black/40 space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div 
+                                className="w-7 h-7 rounded-lg border border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]"
+                                style={{ backgroundColor: sphere.color || '#FDC800' }}
+                              >
+                                <SphereIcon icon={sphere.icon} className="w-4 h-4 text-black stroke-[2.5]" />
+                              </div>
+                              <span className="font-display font-black text-xs uppercase truncate">{sphere.name}</span>
                             </div>
-                            <span className="font-display font-bold text-xs uppercase truncate">{sphere.name}</span>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              {[1, 2, 3, 4, 5].map((sVal) => (
+                                <button
+                                  key={sVal}
+                                  type="button"
+                                  onClick={() => handleRateSphere(sphere.id, sVal)}
+                                  className={`w-6 h-6 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${
+                                    sRating === sVal ? 'bg-[#FDC800] shadow-[1px_1px_0px_#000000]' : 'bg-neutral-100 hover:bg-neutral-200'
+                                  }`}
+                                >
+                                  {sVal}★
+                                </button>
+                              ))}
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-1 shrink-0">
-                            {[1, 2, 3, 4, 5].map((sVal) => (
-                              <button
-                                key={sVal}
-                                type="button"
-                                onClick={() => handleRateSphere(sphere.id, sVal)}
-                                className={`w-6 h-6 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${
-                                  sRating === sVal ? 'bg-[#FDC800] shadow-[1px_1px_0px_#000000]' : 'bg-neutral-100 hover:bg-neutral-200'
-                                }`}
-                              >
-                                {sVal}★
-                              </button>
-                            ))}
-                          </div>
+                          <input
+                            type="text"
+                            placeholder={`Reflection note for ${sphere.name}...`}
+                            value={sData.notes || ''}
+                            onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
+                            className="w-full px-2 py-1 text-[11px] font-mono bg-neutral-50 border border-black/30 rounded-lg placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-black"
+                          />
                         </div>
                       );
                     })}
