@@ -813,9 +813,9 @@ export default function AestheticCardExportModal({
 
           {/* Scrollable Middle Container with Responsive 2-Column Grid on Desktop */}
           <div className="overflow-y-auto flex-1 pr-1">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
               
-              {/* LEFT COLUMN: Controls (6 cols on desktop) */}
+              {/* LEFT COLUMN: Controls (6 cols on desktop, aligned to top) */}
               <div className="md:col-span-6 space-y-3.5">
 
                 {/* 📅 Date Navigator (Spacious with Wide Gap between Date and Day) */}
