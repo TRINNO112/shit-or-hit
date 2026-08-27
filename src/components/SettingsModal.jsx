@@ -255,7 +255,7 @@ export default function SettingsModal({
             </div>
 
             {/* Scrollable Settings Body */}
-            <div className="space-y-3.5 overflow-y-auto flex-1 pr-1">
+            <div className="space-y-3.5 overflow-y-auto overflow-x-hidden flex-1 pr-1">
               
               {/* 1. Daily Reminder & Radial Clock Setting */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">

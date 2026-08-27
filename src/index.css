@@ -26,25 +26,36 @@
   box-sizing: border-box;
 }
 
-/* Custom Neobrutalist Scrollbar */
+/* Clean Minimal Scrollbar (No Ruling Lines, No Unwanted Horizontal Track) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 0px; /* Hide horizontal scrollbar track by default */
 }
 
 ::-webkit-scrollbar-track {
-  background: #FFFDF5;
-  border-left: 2px solid #000000;
+  background: transparent;
+  border: none;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FDC800;
-  border: 2px solid #000000;
-  border-radius: 6px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00E599;
+  background: #94A3B8;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  height: 0px;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 body {
@@ -54,6 +65,7 @@ body {
   min-height: 100vh;
   padding: 0;
   margin: 0;
+  overflow-x: hidden;
   background-image: radial-gradient(rgba(0, 0, 0, 0.22) 1.5px, transparent 1.5px);
   background-size: 24px 24px;
 }

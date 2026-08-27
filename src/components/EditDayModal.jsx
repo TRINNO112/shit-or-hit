@@ -248,7 +248,7 @@ export default function EditDayModal({
             </div>
 
             {/* Scrollable Content Body */}
-            <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-4">
 
               {/* If Multi-Sphere Mode Active: Landscape Spheres Matrix */}
               {sphereModeActive && spheresConfig.length > 0 ? (
