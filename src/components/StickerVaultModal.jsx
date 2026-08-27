@@ -27,8 +27,10 @@ import mascot2 from '../assets/mascots/mascot_2_down.png';
 import mascot3 from '../assets/mascots/mascot_3_okay.png';
 import mascot4 from '../assets/mascots/mascot_4_good.png';
 import mascot5 from '../assets/mascots/mascot_5_peak.png';
+import minecraftHeart from '../assets/stickers/minecraft_heart.png';
 
 const DEFAULT_MASCOTS = [
+  { id: 'sticker_mc_heart', name: 'Minecraft Hardcore Heart', src: minecraftHeart, tag: 'official', rating: 5, color: '#FF4D4D' },
   { id: 'mascot_5', name: '5★ God Mode / Peak Velocity', src: mascot5, tag: 'official', rating: 5, color: '#FDC800' },
   { id: 'mascot_4', name: '4★ Locked In / Focus Warrior', src: mascot4, tag: 'official', rating: 4, color: '#00E599' },
   { id: 'mascot_3', name: '3★ Solid Baseline / Stoic', src: mascot3, tag: 'official', rating: 3, color: '#CBD5E1' },
@@ -154,21 +156,21 @@ export default function StickerVaultModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.93, y: 20 }}
           transition={{ type: 'spring', stiffness: 360, damping: 26 }}
-          className="w-full max-w-3xl max-h-[90vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-5 sm:p-7"
+          className="w-full max-w-5xl min-h-[580px] sm:min-h-[660px] max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-6 sm:p-8"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
+          <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-black/10 shrink-0">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
                 <Sparkles className="w-6 h-6 text-black stroke-[2.5]" />
               </div>
               <div>
-                <h3 className="font-display font-black text-xl text-black uppercase leading-tight">
+                <h3 className="font-display font-black text-xl sm:text-2xl text-black uppercase leading-tight">
                   STICKER & MASCOT VAULT
                 </h3>
                 <p className="text-xs font-mono font-bold text-neutral-600 mt-0.5">
-                  Upload & customize stickers for your high-res wallpapers
+                  Official collection & custom PNG stickers for your high-res wallpapers
                 </p>
               </div>
             </div>
@@ -176,7 +178,7 @@ export default function StickerVaultModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-red-100 hover:bg-red-200 border-2 border-black text-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all"
+              className="p-2.5 rounded-xl bg-red-100 hover:bg-red-200 border-2 border-black text-black cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all"
               title="Close"
             >
               <X className="w-4 h-4 stroke-[3]" />
@@ -184,17 +186,17 @@ export default function StickerVaultModal({
           </div>
 
           {/* Active Mode Banner: Auto vs Fixed Custom Sticker */}
-          <div className="p-3.5 bg-[#FFFDF5] border-2 border-black rounded-2xl shadow-[2.5px_2.5px_0px_#000000] mb-4 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="p-4 bg-[#FFFDF5] border-2 border-black rounded-2xl shadow-[2.5px_2.5px_0px_#000000] mb-4 flex flex-wrap items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-2.5">
               <span className="text-xs font-mono font-black text-neutral-700 uppercase">
                 Active Wallpaper Sticker:
               </span>
               {activeId === 'auto' ? (
-                <span className="px-2.5 py-0.5 bg-[#00E599] border border-black rounded-lg font-mono text-xs font-black text-black">
+                <span className="px-3 py-1 bg-[#00E599] border border-black rounded-lg font-mono text-xs font-black text-black">
                   ⚡ Auto-Linked to Day Mood Rating
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 bg-[#FDC800] border border-black rounded-lg font-mono text-xs font-black text-black">
+                <span className="px-3 py-1 bg-[#FDC800] border border-black rounded-lg font-mono text-xs font-black text-black">
                   🎨 Fixed Custom Sticker Selected
                 </span>
               )}
@@ -204,7 +206,7 @@ export default function StickerVaultModal({
               <button
                 type="button"
                 onClick={() => handleSelectActive('auto')}
-                className="px-3 py-1 bg-white hover:bg-neutral-100 border border-black rounded-lg font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer active:scale-95 transition-all"
+                className="px-3.5 py-1.5 bg-white hover:bg-neutral-100 border border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:scale-95 transition-all"
               >
                 Reset to Auto Mood Mascots
               </button>
@@ -212,16 +214,16 @@ export default function StickerVaultModal({
           </div>
 
           {/* Category Filter Tabs */}
-          <div className="flex items-center gap-1.5 border-b-2 border-black/10 pb-3 mb-4 shrink-0">
+          <div className="flex items-center gap-2 border-b-2 border-black/10 pb-3 mb-4 shrink-0">
             {[
               { id: 'all', label: 'All Stickers' },
-              { id: 'custom', label: `My Uploads (${customStickers.length})` },
-              { id: 'official', label: 'Official Mood Mascots (5)' }
+              { id: 'official', label: `Official & Featured (${DEFAULT_MASCOTS.length})` },
+              { id: 'custom', label: `My Uploads (${customStickers.length})` }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setSelectedCategory(tab.id)}
-                className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all ${
                   selectedCategory === tab.id
                     ? 'bg-black text-[#FDC800] shadow-[2px_2px_0px_#000000]'
                     : 'bg-white text-neutral-700 hover:bg-neutral-100'
@@ -233,7 +235,7 @@ export default function StickerVaultModal({
           </div>
 
           {/* Scrollable Main Content Grid */}
-          <div className="flex-1 overflow-y-auto pr-1 space-y-5">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-5">
             
             {/* Upload Box */}
             <div className="p-4 border-2 border-dashed border-black/50 rounded-2xl bg-[#F8FAFC] flex flex-col sm:flex-row items-center justify-between gap-3">
