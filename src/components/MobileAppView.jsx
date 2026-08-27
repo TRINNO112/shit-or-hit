@@ -586,152 +586,95 @@ export default function MobileAppView({
             )}
           </div>
 
-          {/* If Multi-Sphere Mode is Active: Segmented Tab Bar + Active Sphere Rating Cards */}
+          {/* If Multi-Sphere Mode is Active: Streamlined Stacked Life Spheres Matrix */}
           {sphereModeActive ? (
-            <div className="space-y-3">
-              
-              {/* Horizontal Scrollable Segmented Sphere Switcher */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-                {spheresConfig.map((sphere) => {
-                  const sRating = spheresData[sphere.id]?.rating;
-                  const isCurrent = (activeSphereId || spheresConfig[0]?.id) === sphere.id;
-
-                  return (
-                    <button
-                      key={sphere.id}
-                      type="button"
-                      onClick={() => {
-                        triggerHaptic('light');
-                        setActiveSphereId(sphere.id);
-                      }}
-                      className={`px-3 py-2 rounded-xl border-2 border-black font-display font-black text-xs uppercase flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all ${
-                        isCurrent
-                          ? 'bg-[#FDC800] text-black shadow-[2.5px_2.5px_0px_#000000] scale-[1.02]'
-                          : 'bg-white text-neutral-700 hover:bg-neutral-100'
-                      }`}
-                    >
-                      <SphereIcon icon={sphere.icon} className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                      <span>{sphere.name}</span>
-                      {sRating ? (
-                        <span 
-                          className="px-1.5 py-0.2 rounded text-[10px] font-mono border border-black"
-                          style={{ backgroundColor: ratingMeta[sRating]?.bg }}
-                        >
-                          {sRating}★
-                        </span>
-                      ) : (
-                        <span className="w-2 h-2 rounded-full bg-neutral-300" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Active Sphere View Card */}
-              {(() => {
-                const currentSphere = spheresConfig.find(s => s.id === (activeSphereId || spheresConfig[0]?.id)) || spheresConfig[0];
-                if (!currentSphere) return null;
-                const currentSphereData = spheresData[currentSphere.id] || {};
-                const sphereRating = currentSphereData.rating;
+            <div className="space-y-3.5">
+              {spheresConfig.map((sphere) => {
+                const sData = spheresData[sphere.id] || {};
+                const sRating = sData.rating;
 
                 return (
-                  <div className="bg-[#FFFDF8] rounded-2xl border-2 border-black p-3.5 shadow-[3px_3px_0px_#000000] space-y-3">
-                    <div className="flex items-center justify-between border-b-2 border-black/10 pb-3">
-                      <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    key={sphere.id}
+                    className="bg-[#FFFDF8] rounded-2xl border-2 border-black p-3.5 shadow-[3px_3px_0px_#000000] space-y-3"
+                  >
+                    {/* Sphere Header */}
+                    <div className="flex items-center justify-between gap-2 border-b border-black/10 pb-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div 
-                          className="w-12 h-12 rounded-2xl border-2.5 border-black flex items-center justify-center shadow-[2.5px_2.5px_0px_#000000] shrink-0"
-                          style={{ backgroundColor: currentSphere.color || '#FDC800' }}
+                          className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+                          style={{ backgroundColor: sphere.color || '#FDC800' }}
                         >
-                          <SphereIcon icon={currentSphere.icon} className="w-6 h-6 text-black stroke-[2.5]" />
+                          <SphereIcon icon={sphere.icon} className="w-5 h-5 text-black stroke-[2.5]" />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="font-display font-black text-base uppercase text-black leading-tight truncate">
-                            {currentSphere.name}
+                          <h3 className="font-display font-black text-xs sm:text-sm uppercase text-black leading-tight truncate">
+                            {sphere.name}
                           </h3>
-                          <p className="text-xs font-mono text-neutral-600 truncate">
-                            {currentSphere.desc}
+                          <p className="text-[10px] font-mono text-neutral-500 truncate">
+                            {sphere.desc}
                           </p>
                         </div>
                       </div>
 
-                      {sphereRating ? (
+                      {sRating ? (
                         <span 
-                          className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
-                          style={{ backgroundColor: ratingMeta[sphereRating]?.bg }}
+                          className="px-2 py-0.5 rounded-lg border-2 border-black font-mono text-[10px] font-black shadow-[1px_1px_0px_#000000] shrink-0"
+                          style={{ backgroundColor: ratingMeta[sRating]?.bg }}
                         >
-                          {sphereRating}★ {ratingMeta[sphereRating]?.title}
+                          {sRating}★ {ratingMeta[sRating]?.title}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono text-neutral-400 font-black shrink-0">UNRATED</span>
+                        <span className="text-[9px] font-mono text-neutral-400 font-bold shrink-0">UNRATED</span>
                       )}
                     </div>
 
-                    {/* 5 Rating Buttons for this Sphere */}
-                    <div className="space-y-2">
-                      {[5, 4, 3, 2, 1].map((val) => {
+                    {/* 1★ to 5★ Tactile Horizontal Rating Bar */}
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {[1, 2, 3, 4, 5].map((val) => {
                         const m = ratingMeta[val];
                         const SvgIcon = IconMap[m.icon];
-                        const isSelected = sphereRating === val;
+                        const isSelected = sRating === val;
 
                         return (
                           <motion.button
                             key={val}
                             type="button"
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => handleRateSphereMobile(currentSphere.id, val)}
-                            className={`w-full p-3 rounded-2xl border-2 border-black flex items-center justify-between shadow-[2.5px_2.5px_0px_#000000] cursor-pointer transition-all ${
-                              isSelected ? 'ring-2 ring-black scale-[1.01]' : 'hover:bg-neutral-50'
+                            whileTap={{ scale: 0.92 }}
+                            onClick={() => handleRateSphereMobile(sphere.id, val)}
+                            className={`py-2 px-1 rounded-xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all ${
+                              isSelected 
+                                ? 'shadow-[2px_2px_0px_#000000] ring-2 ring-black font-black scale-[1.03]' 
+                                : 'bg-white hover:bg-neutral-50 text-neutral-700'
                             }`}
                             style={{ 
                               backgroundColor: isSelected ? m.bg : '#FFFFFF'
                             }}
                           >
-                            <div className="flex items-center gap-3">
-                              <div 
-                                className="w-9 h-9 rounded-xl border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] shrink-0"
-                                style={{ backgroundColor: m.bg }}
-                              >
-                                <SvgIcon className="w-4.5 h-4.5 text-black stroke-[2.5]" />
-                              </div>
-
-                              <div className="text-left">
-                                <span className="font-display font-black text-xs uppercase text-black leading-none">
-                                  {m.title} ({val}/5★)
-                                </span>
-                                <span className="text-[10px] font-mono text-neutral-600 block leading-tight mt-0.5">
-                                  {m.desc}
-                                </span>
-                              </div>
-                            </div>
-
-                            {isSelected && (
-                              <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                              </div>
-                            )}
+                            <SvgIcon className="w-4 h-4 text-black stroke-[2.5]" />
+                            <span className="text-[9px] font-mono font-black mt-0.5">{val}★</span>
                           </motion.button>
                         );
                       })}
                     </div>
 
-                    {/* Sphere Note Multi-Line Field */}
-                    <div className="pt-2.5 border-t-2 border-black/10 space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px] font-mono font-bold text-neutral-700">
-                        <span className="uppercase">Reflection Notes: {currentSphere.name}</span>
-                        {currentSphereData.notes && <span className="text-emerald-700 font-bold">✓ Saved</span>}
+                    {/* Sphere-Specific Reflection Note */}
+                    <div className="pt-2 border-t border-black/10 space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-mono font-bold text-neutral-600">
+                        <span className="uppercase">Reflection Note</span>
+                        {sData.notes && <span className="text-emerald-700 font-black">✓ Saved</span>}
                       </div>
                       <textarea
-                        rows={3}
-                        placeholder={`What happened at ${currentSphere.name}? (Wins, struggles, highlights)`}
-                        value={currentSphereData.notes || ''}
-                        onChange={(e) => handleSaveSphereNoteMobile(currentSphere.id, e.target.value)}
-                        className="w-full px-3 py-2 text-xs font-mono bg-white border-2 border-black rounded-xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black resize-none leading-relaxed"
+                        rows={2}
+                        placeholder={`What happened at ${sphere.name}?`}
+                        value={sData.notes || ''}
+                        onChange={(e) => handleSaveSphereNoteMobile(sphere.id, e.target.value)}
+                        className="w-full p-2 text-xs font-mono bg-white border-2 border-black rounded-xl placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-black resize-none leading-relaxed"
                       />
                     </div>
                   </div>
                 );
-              })()}
-
+              })}
             </div>
           ) : (
             /* Single-Verdict Standard 5 Tactile Cards */
@@ -823,19 +766,21 @@ export default function MobileAppView({
               );
             })()}
 
-            {/* Action Row: Reflection Drawer Trigger & Wallpaper Export */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic('light');
-                  setShowNoteDrawer(true);
-                }}
-                className="py-3 px-2 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
-              >
-                <PenLine className="w-4 h-4" />
-                <span className="truncate">{entries[todayStr]?.notes ? '✏️ MASTER DIARY' : '+ MASTER DIARY'}</span>
-              </button>
+            {/* Action Row: Reflection Drawer Trigger (Single Mode only) & Wallpaper Export */}
+            <div className={`grid ${sphereModeActive ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+              {!sphereModeActive && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setShowNoteDrawer(true);
+                  }}
+                  className="py-3 px-2 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
+                >
+                  <PenLine className="w-4 h-4" />
+                  <span className="truncate">{entries[todayStr]?.notes ? '✏️ MASTER DIARY' : '+ MASTER DIARY'}</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -846,7 +791,7 @@ export default function MobileAppView({
                 className="py-3 px-2 rounded-xl border-2 border-black bg-[#FDC800] hover:bg-amber-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-black" />
-                <span>WALLPAPER</span>
+                <span>EXPORT WALLPAPER</span>
               </button>
             </div>
           </div>
