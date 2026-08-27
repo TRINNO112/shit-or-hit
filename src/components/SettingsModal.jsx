@@ -27,7 +27,8 @@ import RadialClockPicker from './RadialClockPicker';
 export default function SettingsModal({
   isOpen,
   onClose,
-  user
+  user,
+  onOpenIconLab
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('21:00');
@@ -292,6 +293,32 @@ export default function SettingsModal({
                 <span className="px-2.5 py-1 rounded-xl border-2 border-black bg-[#FDC800] text-black font-mono text-[10px] font-black">
                   PWA v1.0
                 </span>
+              </div>
+
+              {/* 5. Icon Laboratory & SVG Customizer */}
+              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-black text-sm uppercase">
+                      Icon Lab & SVG Studio
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600">
+                      Test, customize & preview PWA app icons
+                    </p>
+                  </div>
+                </div>
+                {onOpenIconLab && (
+                  <button
+                    type="button"
+                    onClick={onOpenIconLab}
+                    className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95"
+                  >
+                    OPEN LAB
+                  </button>
+                )}
               </div>
 
             </div>

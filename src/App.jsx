@@ -11,6 +11,7 @@ import AestheticCardExportModal from './components/AestheticCardExportModal';
 import ForensicStatsModal from './components/ForensicStatsModal';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import SettingsModal from './components/SettingsModal';
+import IconLab from './components/IconLab';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName } from './services/firebase';
@@ -27,6 +28,10 @@ function useIsMobile() {
 
 export default function App() {
   const isMobile = useIsMobile();
+  const [showIconLab, setShowIconLab] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.search.includes('view=icons') || window.location.hash.includes('icons');
+  });
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -41,6 +46,18 @@ export default function App() {
     month: new Date().getMonth() + 1
   });
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
+
+  useEffect(() => {
+    const checkHash = () => {
+      setShowIconLab(window.location.search.includes('view=icons') || window.location.hash.includes('icons'));
+    };
+    window.addEventListener('popstate', checkHash);
+    window.addEventListener('hashchange', checkHash);
+    return () => {
+      window.removeEventListener('popstate', checkHash);
+      window.removeEventListener('hashchange', checkHash);
+    };
+  }, []);
 
   const now = new Date();
   const y = now.getFullYear();
@@ -134,6 +151,17 @@ export default function App() {
   const todayObj = new Date(`${todayStr}T00:00:00`);
   const dayCount = Math.max(1, Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24)) + 1);
   const userDisplayName = currentUser ? getUserDisplayName(currentUser.email, currentUser.displayName) : 'Daily Operator';
+
+  if (showIconLab) {
+    return (
+      <IconLab
+        onBack={() => {
+          setShowIconLab(false);
+          window.history.replaceState(null, '', window.location.pathname);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-black font-sans selection:bg-[#FDC800] selection:text-black">
@@ -269,6 +297,10 @@ export default function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         user={currentUser}
+        onOpenIconLab={() => {
+          setIsSettingsOpen(false);
+          setShowIconLab(true);
+        }}
       />
 
     </div>
