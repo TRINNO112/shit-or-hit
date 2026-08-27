@@ -24,6 +24,7 @@ import {
 import confetti from 'canvas-confetti';
 import { Layers } from 'lucide-react';
 import SphereIcon from './SphereIcon';
+import AutoExpandTextarea from './AutoExpandTextarea';
 
 const IconMap = {
   AlertCircle,
@@ -323,17 +324,18 @@ export default function EditDayModal({
                             })}
                           </div>
 
-                          {/* Multi-Line Sphere-Specific Reflection Note */}
+                          {/* Multi-Line Sphere-Specific Reflection Note with Auto-Expansion */}
                           <div className="pt-2 border-t border-black/10 flex-1 flex flex-col justify-end space-y-1">
                             <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase">
                               Reflection Note:
                             </label>
-                            <textarea
-                              rows={4}
+                            <AutoExpandTextarea
+                              minHeight={42}
+                              maxHeight={220}
                               placeholder={`What happened at ${sphere.name}?`}
                               value={sData.notes || ''}
                               onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
-                              className="w-full p-2.5 text-xs font-mono bg-white border border-black/40 rounded-xl placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black min-h-[95px] leading-relaxed overflow-y-auto"
+                              className="w-full p-2.5 text-xs font-mono bg-white border border-black/40 rounded-xl placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black leading-relaxed"
                             />
                           </div>
                         </div>

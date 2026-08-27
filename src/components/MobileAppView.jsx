@@ -50,6 +50,7 @@ import confetti from 'canvas-confetti';
 import JourneyTimeline from './JourneyTimeline';
 import StatsWidget from './StatsWidget';
 import SphereIcon from './SphereIcon';
+import AutoExpandTextarea from './AutoExpandTextarea';
 
 const IconMap = {
   AlertCircle,
@@ -658,18 +659,19 @@ export default function MobileAppView({
                       })}
                     </div>
 
-                    {/* Sphere-Specific Multi-Line Reflection Note with Generous Height */}
+                    {/* Sphere-Specific Multi-Line Reflection Note with Dynamic Auto-Expansion */}
                     <div className="pt-2.5 border-t-2 border-black/10 space-y-1.5">
                       <div className="flex items-center justify-between text-[11px] font-mono font-bold text-neutral-700">
                         <span className="uppercase">Reflection Note • {sphere.name}</span>
                         {sData.notes && <span className="text-emerald-700 font-black">✓ Saved</span>}
                       </div>
-                      <textarea
-                        rows={4}
+                      <AutoExpandTextarea
+                        minHeight={46}
+                        maxHeight={260}
                         placeholder={`What happened at ${sphere.name}? (Wins, struggles, events)`}
                         value={sData.notes || ''}
                         onChange={(e) => handleSaveSphereNoteMobile(sphere.id, e.target.value)}
-                        className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black min-h-[110px] leading-relaxed overflow-y-auto"
+                        className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
                       />
                     </div>
                   </div>

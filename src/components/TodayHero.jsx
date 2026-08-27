@@ -26,6 +26,7 @@ import MagneticButton from './MagneticButton';
 import confetti from 'canvas-confetti';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import SphereIcon from './SphereIcon';
+import AutoExpandTextarea from './AutoExpandTextarea';
 
 const IconMap = {
   AlertCircle,
@@ -565,13 +566,14 @@ export default function TodayHero({
 
                     {isExpanded && (
                       <div className="space-y-2">
-                        <textarea
-                          rows={4}
+                        <AutoExpandTextarea
+                          minHeight={48}
+                          maxHeight={260}
                           placeholder={`What happened at ${sphere.name}? (Wins, struggles, events)`}
                           value={currentSphereData.notes || ''}
                           onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
                           onBlur={(e) => handleSphereNoteBlur(sphere.id, e.target.value)}
-                          className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black min-h-[110px] leading-relaxed overflow-y-auto"
+                          className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
                         />
                         <div className="flex justify-between items-center text-[10px] font-mono text-neutral-500">
                           <span>Auto-saves on typing</span>
