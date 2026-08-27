@@ -209,9 +209,11 @@ const ICON_PRESETS = [
 ];
 
 import AestheticCardExportModal from './AestheticCardExportModal';
+import AestheticCardVariantDeepseek from './AestheticCardVariantDeepseek';
 
 export default function IconLab({ onBack }) {
-  const [activeLabTab, setActiveLabTab] = useState('icons'); // 'icons' | 'wallpaper'
+  const [activeLabTab, setActiveLabTab] = useState('wallpaper'); // Default to wallpaper tab per user request!
+  const [selectedStudioDesign, setSelectedStudioDesign] = useState('darkroom'); // 'darkroom' | 'deepseek'
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState('shield_volt');
   const [customSvgInput, setCustomSvgInput] = useState('');
@@ -482,77 +484,163 @@ export default function IconLab({ onBack }) {
           <div className="space-y-6">
             
             {/* Top Action Bar */}
-            <div className="bg-neutral-900 border-3 border-black rounded-3xl p-6 text-white shadow-[6px_6px_0px_#000000] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#00E599] animate-pulse" />
-                  <h3 className="font-display font-black text-lg uppercase tracking-tight text-white">
-                    🖼️ Aesthetic Wallpaper Studio Sandbox
-                  </h3>
+            <div className="bg-neutral-900 border-3 border-black rounded-3xl p-6 text-white shadow-[6px_6px_0px_#000000] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00E599] animate-pulse" />
+                    <h3 className="font-display font-black text-lg uppercase tracking-tight text-white">
+                      🖼️ Wallpaper & Poster Studio Multi-Design Arena
+                    </h3>
+                  </div>
+                  <p className="text-xs font-mono text-neutral-400 mt-1">
+                    Compare different layout designs (Darkroom Studio vs DeepSeek Soft Glass) live in the browser.
+                  </p>
                 </div>
-                <p className="text-xs font-mono text-neutral-400 mt-1">
-                  Test and inspect the live darkroom studio modal, canvas renderer, format switcher, and lossless 1080p exporter.
-                </p>
+
+                <button
+                  type="button"
+                  onClick={() => setIsWallpaperModalOpen(true)}
+                  className="w-full sm:w-auto px-6 py-3.5 bg-[#00E599] hover:bg-[#00F0A0] text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0"
+                >
+                  <Sparkles className="w-4 h-4 stroke-[3]" />
+                  <span>🚀 LAUNCH {selectedStudioDesign === 'darkroom' ? 'DARKROOM' : 'DEEPSEEK'} MODAL</span>
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsWallpaperModalOpen(true)}
-                className="w-full sm:w-auto px-6 py-3.5 bg-[#00E599] hover:bg-[#00F0A0] text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0"
-              >
-                <Sparkles className="w-4 h-4 stroke-[3]" />
-                <span>🚀 LAUNCH LIVE STUDIO MODAL</span>
-              </button>
-            </div>
+              {/* Design Selector Pill Strip */}
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10">
+                <span className="text-xs font-mono font-bold text-neutral-400">ACTIVE DESIGN VARIANT:</span>
+                
+                <button
+                  type="button"
+                  onClick={() => setSelectedStudioDesign('darkroom')}
+                  className={`px-3.5 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+                    selectedStudioDesign === 'darkroom'
+                      ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+                  }`}
+                >
+                  🌌 DESIGN 1: DARKROOM STUDIO (CYBERPUNK / EDITORIAL)
+                </button>
 
-            {/* Feature Highlights Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white border-3 border-black rounded-2xl p-5 shadow-[4px_4px_0px_#000000] space-y-2">
-                <div className="text-xs font-mono font-black text-[#FDC800] bg-black px-2 py-0.5 rounded-md inline-block">
-                  FORMAT 01
-                </div>
-                <h4 className="font-display font-black text-sm uppercase">📱 9:16 Story Poster</h4>
-                <p className="text-xs font-mono text-neutral-600 leading-relaxed">
-                  Engineered for Instagram Stories, TikTok, and lockscreen wallpapers (1080 × 1920).
-                </p>
-              </div>
-
-              <div className="bg-white border-3 border-black rounded-2xl p-5 shadow-[4px_4px_0px_#000000] space-y-2">
-                <div className="text-xs font-mono font-black text-[#00E599] bg-black px-2 py-0.5 rounded-md inline-block">
-                  FORMAT 02
-                </div>
-                <h4 className="font-display font-black text-sm uppercase">🖼️ 1:1 Feed Card</h4>
-                <p className="text-xs font-mono text-neutral-600 leading-relaxed">
-                  Squared perfection for Twitter/X posts, Discord status, and Instagram feeds (1080 × 1080).
-                </p>
-              </div>
-
-              <div className="bg-white border-3 border-black rounded-2xl p-5 shadow-[4px_4px_0px_#000000] space-y-2">
-                <div className="text-xs font-mono font-black text-[#FF4D6D] bg-black px-2 py-0.5 rounded-md inline-block">
-                  THEMES
-                </div>
-                <h4 className="font-display font-black text-sm uppercase">🎨 3 Visual Systems</h4>
-                <p className="text-xs font-mono text-neutral-600 leading-relaxed">
-                  Switch instantly between ⚡ Gold (Streetwear), 🖤 Obsidian (Cyberpunk), and 🔥 Crimson (Sunset).
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStudioDesign('deepseek')}
+                  className={`px-3.5 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+                    selectedStudioDesign === 'deepseek'
+                      ? 'bg-[#00E599] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+                  }`}
+                >
+                  💎 DESIGN 2: DEEPSEEK SOFT FROSTED GLASS
+                </button>
               </div>
             </div>
 
-            {/* Render Full Wallpaper Modal when triggered */}
-            <AestheticCardExportModal
-              isOpen={isWallpaperModalOpen}
-              onClose={() => setIsWallpaperModalOpen(false)}
-              entries={{
-                [new Date().toISOString().slice(0, 10)]: {
-                  rating: 5,
-                  notes: 'Crushed the daily workout, 4 hours deep work, finished AI integrations.'
-                }
-              }}
-              dateStr={new Date().toISOString().slice(0, 10)}
-              dayCount={8}
-              startDate="2026-08-20"
-              displayName="Daily Operator"
-            />
+            {/* Design Comparison Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Card 1: Darkroom Studio */}
+              <div className={`bg-white border-3 border-black rounded-3xl p-6 shadow-[5px_5px_0px_#000000] space-y-4 flex flex-col justify-between ${
+                selectedStudioDesign === 'darkroom' ? 'ring-4 ring-[#FDC800]' : 'opacity-85'
+              }`}>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-black text-black bg-[#FDC800] px-2.5 py-0.5 rounded-md border border-black">
+                      DESIGN 01
+                    </span>
+                    {selectedStudioDesign === 'darkroom' && (
+                      <span className="text-xs font-mono font-bold text-[#00E599] bg-black px-2 py-0.5 rounded-md">
+                        ✓ SELECTED
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-display font-black text-base uppercase">🌌 Darkroom Masterpiece Studio</h4>
+                  <p className="text-xs font-mono text-neutral-600 leading-relaxed">
+                    High-contrast darkroom environment with ambient neon radial glows, segmented seamless controls, live 1080p canvas engine, and lossless PNG export dock.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedStudioDesign('darkroom');
+                    setIsWallpaperModalOpen(true);
+                  }}
+                  className="w-full py-3 bg-neutral-900 hover:bg-black text-white font-display font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>TEST DESIGN 1 (DARKROOM)</span>
+                </button>
+              </div>
+
+              {/* Card 2: DeepSeek Design */}
+              <div className={`bg-white border-3 border-black rounded-3xl p-6 shadow-[5px_5px_0px_#000000] space-y-4 flex flex-col justify-between ${
+                selectedStudioDesign === 'deepseek' ? 'ring-4 ring-[#00E599]' : 'opacity-85'
+              }`}>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-black text-black bg-[#00E599] px-2.5 py-0.5 rounded-md border border-black">
+                      DESIGN 02
+                    </span>
+                    {selectedStudioDesign === 'deepseek' && (
+                      <span className="text-xs font-mono font-bold text-[#00E599] bg-black px-2 py-0.5 rounded-md">
+                        ✓ SELECTED
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-display font-black text-base uppercase">💎 DeepSeek Soft Frosted Glass</h4>
+                  <p className="text-xs font-mono text-neutral-600 leading-relaxed">
+                    Lightweight pill navigation, glassmorphic frosted cards, responsive device mockup border, and streamlined theme switching.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedStudioDesign('deepseek');
+                    setIsWallpaperModalOpen(true);
+                  }}
+                  className="w-full py-3 bg-[#00E599] hover:bg-[#00F0A0] text-black font-display font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>TEST DESIGN 2 (DEEPSEEK)</span>
+                </button>
+              </div>
+
+            </div>
+
+            {/* Render the Active Modal Design */}
+            {selectedStudioDesign === 'darkroom' ? (
+              <AestheticCardExportModal
+                isOpen={isWallpaperModalOpen}
+                onClose={() => setIsWallpaperModalOpen(false)}
+                entries={{
+                  [new Date().toISOString().slice(0, 10)]: {
+                    rating: 5,
+                    notes: 'Crushed the daily workout, 4 hours deep work, finished AI integrations.'
+                  }
+                }}
+                dateStr={new Date().toISOString().slice(0, 10)}
+                dayCount={8}
+                startDate="2026-08-20"
+                displayName="Daily Operator"
+              />
+            ) : (
+              <AestheticCardVariantDeepseek
+                isOpen={isWallpaperModalOpen}
+                onClose={() => setIsWallpaperModalOpen(false)}
+                entries={{
+                  [new Date().toISOString().slice(0, 10)]: {
+                    rating: 5,
+                    notes: 'Crushed the daily workout, 4 hours deep work, finished AI integrations.'
+                  }
+                }}
+                dateStr={new Date().toISOString().slice(0, 10)}
+                dayCount={8}
+                startDate="2026-08-20"
+                displayName="Daily Operator"
+              />
+            )}
 
           </div>
         )}
