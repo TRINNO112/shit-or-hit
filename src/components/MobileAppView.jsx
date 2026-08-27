@@ -462,12 +462,27 @@ export default function MobileAppView({
     const isFuture = dateStr > todayStr;
     const entry = entries[dateStr] || null;
 
+    // Accurate day count relative to challenge start date (e.g. Day 8)
+    const startMs = new Date(startDate + 'T00:00:00').getTime();
+    const currentMs = new Date(dateStr + 'T00:00:00').getTime();
+    const computedDayIndex = Math.floor((currentMs - startMs) / (1000 * 60 * 60 * 24)) + 1;
+    const dayIndex = isBeforeStart ? d : Math.max(1, computedDayIndex);
+
     let isDimmed = false;
     if (calendarFilter === 'hits' && (!entry?.rating || entry.rating < 4)) isDimmed = true;
     if (calendarFilter === 'leaks' && (!entry?.rating || entry.rating > 2)) isDimmed = true;
     if (calendarFilter === 'notes' && !entry?.notes) isDimmed = true;
 
-    calDays.push({ dayNum: d, dateStr, entry, isBeforeStart, isFuture, isToday: dateStr === todayStr, isDimmed });
+    calDays.push({ 
+      dayNum: d, 
+      dayIndex, 
+      dateStr, 
+      entry, 
+      isBeforeStart, 
+      isFuture, 
+      isToday: dateStr === todayStr, 
+      isDimmed 
+    });
   }
 
   return (
@@ -893,7 +908,7 @@ export default function MobileAppView({
                   <div key={`blank-${i}`} className="aspect-square opacity-0" />
                 ))}
 
-                {calDays.map(({ dayNum, dateStr, entry, isBeforeStart, isFuture, isToday, isDimmed }) => {
+                {calDays.map(({ dayNum, dayIndex, dateStr, entry, isBeforeStart, isFuture, isToday, isDimmed }) => {
                   const rating = entry?.rating || null;
                   const m = rating ? ratingMeta[rating] : null;
 
@@ -903,7 +918,7 @@ export default function MobileAppView({
                       disabled={isFuture || isBeforeStart}
                       onClick={() => {
                         triggerHaptic('light');
-                        onEditDay({ dateStr, dayIndex: dayNum, entry });
+                        onEditDay({ dateStr, dayIndex, entry });
                       }}
                       className={`aspect-square rounded-xl border-2 border-black flex flex-col items-center justify-center p-1 relative transition-all cursor-pointer shadow-[2px_2px_0px_#000000] disabled:opacity-20 disabled:shadow-none ${
                         isToday ? 'ring-2.5 ring-black font-black' : ''

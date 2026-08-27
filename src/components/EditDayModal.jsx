@@ -264,7 +264,7 @@ export default function EditDayModal({
                   </div>
 
                   {/* Wide Grid of Life Spheres */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 items-stretch">
                     {spheresConfig.map((sphere) => {
                       const sData = spheresData[sphere.id] || {};
                       const sRating = sData.rating;
@@ -272,22 +272,22 @@ export default function EditDayModal({
                       return (
                         <div 
                           key={sphere.id} 
-                          className="p-4 bg-[#FFFDF8] rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] flex flex-col justify-between space-y-3 h-full"
+                          className="p-5 bg-[#FFFDF8] rounded-3xl border-3 border-black shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-3.5 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[6px_6px_0px_#000000]"
                         >
                           {/* Sphere Header */}
                           <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0">
                               <div 
-                                className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]"
+                                className="w-11 h-11 rounded-2xl border-2 border-black flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#000000] transition-transform hover:scale-105"
                                 style={{ backgroundColor: sphere.color || '#FDC800' }}
                               >
-                                <SphereIcon icon={sphere.icon} className="w-5 h-5 text-black stroke-[2.5]" />
+                                <SphereIcon icon={sphere.icon} className="w-6 h-6 text-black stroke-[2.5]" />
                               </div>
                               <div className="min-w-0">
-                                <span className="font-display font-black text-xs uppercase truncate text-black block leading-tight">
+                                <span className="font-display font-black text-sm uppercase truncate text-black block leading-tight">
                                   {sphere.name}
                                 </span>
-                                <span className="text-[10px] font-mono text-neutral-500 truncate block">
+                                <span className="text-[10px] font-mono text-neutral-500 truncate block mt-0.5">
                                   {sphere.desc}
                                 </span>
                               </div>
@@ -295,18 +295,18 @@ export default function EditDayModal({
 
                             {sRating ? (
                               <span 
-                                className="px-2 py-0.5 rounded-lg border border-black font-mono text-[10px] font-black shadow-[0.5px_0.5px_0px_#000000] shrink-0"
+                                className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shadow-[1px_1px_0px_#000000] shrink-0"
                                 style={{ backgroundColor: ratingMeta[sRating]?.bg }}
                               >
-                                {sRating}★
+                                {sRating}★ {ratingMeta[sRating]?.title}
                               </span>
                             ) : (
-                              <span className="text-[9px] font-mono text-neutral-400 shrink-0">UNRATED</span>
+                              <span className="text-[10px] font-mono text-neutral-400 font-bold shrink-0">UNRATED</span>
                             )}
                           </div>
 
-                          {/* 1★ to 5★ Mini Buttons */}
-                          <div className="grid grid-cols-5 gap-1 pt-0.5">
+                          {/* 1★ to 5★ Tactile Mini Buttons with Hover Scale */}
+                          <div className="grid grid-cols-5 gap-1.5 pt-0.5">
                             {[1, 2, 3, 4, 5].map((sVal) => {
                               const isSel = sRating === sVal;
                               return (
@@ -314,8 +314,10 @@ export default function EditDayModal({
                                   key={sVal}
                                   type="button"
                                   onClick={() => handleRateSphere(sphere.id, sVal)}
-                                  className={`py-1.5 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer transition-all active:scale-95 ${
-                                    isSel ? 'bg-[#FDC800] shadow-[1px_1px_0px_#000000] font-black' : 'bg-white hover:bg-neutral-100'
+                                  className={`py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all active:scale-90 hover:scale-105 ${
+                                    isSel 
+                                      ? 'bg-[#FDC800] shadow-[2px_2px_0px_#000000] font-black scale-[1.03]' 
+                                      : 'bg-white hover:bg-neutral-100 hover:shadow-[1.5px_1.5px_0px_#000000]'
                                   }`}
                                 >
                                   {sVal}★
@@ -325,17 +327,17 @@ export default function EditDayModal({
                           </div>
 
                           {/* Multi-Line Sphere-Specific Reflection Note with Auto-Expansion */}
-                          <div className="pt-2 border-t border-black/10 flex-1 flex flex-col justify-end space-y-1">
-                            <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase">
+                          <div className="pt-2.5 border-t-2 border-black/10 flex-1 flex flex-col justify-end space-y-1.5">
+                            <label className="block text-[11px] font-mono font-bold text-neutral-700 uppercase">
                               Reflection Note:
                             </label>
                             <AutoExpandTextarea
-                              minHeight={42}
-                              maxHeight={220}
+                              minHeight={52}
+                              maxHeight={260}
                               placeholder={`What happened at ${sphere.name}?`}
                               value={sData.notes || ''}
                               onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
-                              className="w-full p-2.5 text-xs font-mono bg-white border border-black/40 rounded-xl placeholder:text-neutral-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black leading-relaxed"
+                              className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
                             />
                           </div>
                         </div>
