@@ -211,12 +211,12 @@ export default function EditDayModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className="w-full max-w-6xl min-h-[580px] sm:min-h-[530px] max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-6 sm:p-8"
+            className={`w-full ${sphereModeActive ? 'max-w-6xl' : 'max-w-3xl'} min-h-[500px] sm:min-h-[560px] max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-5 sm:p-7`}
             onClick={(e) => e.stopPropagation()}
           >
 
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-black/10 shrink-0">
+            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b-2 border-black/10 shrink-0">
               <div className="flex items-center gap-3.5">
                 <div className="w-11 h-11 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center font-display font-black text-base shadow-[2.5px_2.5px_0px_#000000]">
                   D{dayIndex}
@@ -231,33 +231,7 @@ export default function EditDayModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 sm:gap-3">
-                {/* Interactive Mode Switcher */}
-                <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
-                  <button
-                    type="button"
-                    onClick={() => setSphereModeActive(false)}
-                    className={`px-2.5 sm:px-3 py-1 rounded-lg font-mono text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
-                      !sphereModeActive
-                        ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]'
-                        : 'text-neutral-600 hover:text-black'
-                    }`}
-                  >
-                    ⚡ UNIFIED
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSphereModeActive(true)}
-                    className={`px-2.5 sm:px-3 py-1 rounded-lg font-mono text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
-                      sphereModeActive
-                        ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]'
-                        : 'text-neutral-600 hover:text-black'
-                    }`}
-                  >
-                    🌐 SPHERES
-                  </button>
-                </div>
-
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={onClose}
@@ -270,7 +244,7 @@ export default function EditDayModal({
             </div>
 
             {/* Scrollable Content Body */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-4">
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden pr-1 space-y-4">
 
               {/* If Multi-Sphere Mode Active: Landscape Spheres Matrix */}
               {sphereModeActive && spheresConfig.length > 0 ? (
@@ -368,10 +342,10 @@ export default function EditDayModal({
                 </div>
               ) : (
                 /* Single-Verdict Standard Rating & Single Diary Area */
-                <div className="space-y-4">
+                <div className="flex-1 flex flex-col min-h-0 space-y-4">
 
                   {/* Rating Selector */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 shrink-0">
                     <label className="block text-xs font-mono font-black text-neutral-700 uppercase">
                       1. SELECT VERDICT RATING
                     </label>
@@ -406,8 +380,8 @@ export default function EditDayModal({
                   </div>
 
                   {/* Single Diary Reflection Textarea */}
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
+                  <div className="flex-1 flex flex-col min-h-0 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black shrink-0">
                       <span>2. EDIT DIARY REFLECTION NOTE</span>
 
                       <div className="flex items-center gap-2">
@@ -463,11 +437,10 @@ export default function EditDayModal({
                     </div>
 
                     <textarea
-                      rows={5}
-                      placeholder="Type your reflection or edits here..."
+                      placeholder="Type your reflection, thoughts, or wins for this day..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black"
+                      className="w-full flex-1 min-h-[200px] sm:min-h-[260px] p-4 text-xs sm:text-sm font-mono bg-white border-2 border-black rounded-2xl text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed shadow-[2px_2px_0px_#000000] resize-none"
                     />
                   </div>
                 </div>
