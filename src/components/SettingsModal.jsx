@@ -48,7 +48,7 @@ export default function SettingsModal({
   const [reminderTimeVal, setReminderTimeVal] = useState('22:00');
   const [notificationMsg, setNotificationMsg] = useState('');
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'notifications' | 'about'
-  const [showClockModal, setShowClockModal] = useState(false);
+  const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
   const [aiLanguage, setAiLanguage] = useState('auto');
   
   // Segmented Multi-Sphere Matrix Settings
