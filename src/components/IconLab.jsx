@@ -6,7 +6,24 @@ import {
   Layers, Check, Copy, ArrowLeft, Download, RefreshCw
 } from 'lucide-react';
 
+export function MedalRibbonIcon({ className = "w-14 h-14", color = "#FDC800" }) {
+  return (
+    <svg viewBox="0 0 1024 1024" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M841.7 915.2L518.5 797.3 183.1 915.2V107.1h658.6z" fill="#FFFDF5" />
+      <path d="M849.7 926.7L518.4 805.8 175.1 926.5V99.1h674.5v827.6zM191.1 115.1v788.8l327.4-115.1 315.1 115V115.1H191.1z" fill="#000000" />
+      <path d="M752.2 791.2l-235.4-85.9-244.2 85.9V196.6h479.6z" fill={color} />
+      <path d="M512.4 305.7l42.9 86.8 95.8 13.9-69.4 67.6 16.4 95.5-85.7-45.1-85.7 45.1 16.4-95.5-69.4-67.6 95.8-13.9z" fill="#FFFFFF" />
+      <path d="M608.7 584.1l-96.3-50.6-96.3 50.6 18.4-107.3-77.9-76 107.7-15.7 48.2-97.6 48.2 97.6 107.7 15.7-77.9 76 18.2 107.3z m-96.3-68.7l75.1 39.5-14.3-83.6 60.7-59.2-83.9-12.2-37.5-76.1-37.5 76.1-84.1 12.1 60.7 59.2-14.3 83.6 75.1-39.4z" fill="#000000" />
+      <path d="M205.7 140h50.9v50.9h-50.9z" fill="#FF4D4D" />
+      <path d="M264.6 198.9h-66.9V132h66.9v66.9z m-50.9-16h34.9V148h-34.9v34.9z" fill="#000000" />
+      <path d="M768.2 140h50.9v50.9h-50.9z" fill="#FF4D4D" />
+      <path d="M827.1 198.9h-66.9V132h66.9v66.9z m-50.9-16h34.9V148h-34.9v34.9z" fill="#000000" />
+    </svg>
+  );
+}
+
 const ICON_PRESETS = [
+  { id: 'medal', name: 'Honor Medal Ribbon', icon: MedalRibbonIcon, category: 'Military & Glory', vibe: 'Daily Verdict discipline badge & victory star' },
   { id: 'flame', name: 'Inferno Flame', icon: Flame, category: 'Energy & Heat', vibe: 'Raw streak momentum & intensity' },
   { id: 'crown', name: 'Godmode Crown', icon: Crown, category: 'Dominance', vibe: 'Peak 5-star daily mastery' },
   { id: 'skull', name: 'Streetwear Skull', icon: Skull, category: 'Chaos & Trench', vibe: '1★ Cooked Goblin & combat resilience' },
