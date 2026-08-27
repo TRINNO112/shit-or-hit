@@ -227,13 +227,13 @@ export default function AestheticCardExportModal({
         }
       }
 
-      // Dynamic Diagonal Streetwear Ribbon
+      // Dynamic Diagonal Streetwear Ribbon (Overshot by 20px to eliminate any subpixel corner/border seam)
       ctx.fillStyle = '#FDC800';
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(width, 0);
-      ctx.lineTo(width, format === 'wallpaper' ? 220 : 160);
-      ctx.lineTo(0, format === 'wallpaper' ? 340 : 260);
+      ctx.moveTo(-20, -20);
+      ctx.lineTo(width + 20, -20);
+      ctx.lineTo(width + 20, format === 'wallpaper' ? 220 : 160);
+      ctx.lineTo(-20, format === 'wallpaper' ? 340 : 260);
       ctx.closePath();
       ctx.fill();
     } else if (activeTheme === 'cyberpunk') {
@@ -972,15 +972,17 @@ export default function AestheticCardExportModal({
               {/* RIGHT COLUMN: Full Natural Aspect Ratio Preview (6 cols on desktop) */}
               <div className="md:col-span-6 flex items-center justify-center p-1">
                 {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt="Aesthetic Card Preview"
-                    className={`rounded-2xl border-3 border-black shadow-[6px_6px_0px_#000000] object-contain ${
-                      format === 'wallpaper'
-                        ? 'max-h-[460px] aspect-[9/16]'
-                        : 'max-h-[420px] aspect-square'
-                    }`}
-                  />
+                  <div className={`rounded-2xl border-3 border-black shadow-[6px_6px_0px_#000000] overflow-hidden bg-black flex items-center justify-center ${
+                    format === 'wallpaper'
+                      ? 'max-h-[460px] aspect-[9/16]'
+                      : 'max-h-[420px] aspect-square'
+                  }`}>
+                    <img
+                      src={previewUrl}
+                      alt="Aesthetic Card Preview"
+                      className="w-full h-full object-contain block"
+                    />
+                  </div>
                 ) : (
                   <div className="text-neutral-500 font-mono text-xs py-16 text-center">
                     Rendering high-res poster artwork...

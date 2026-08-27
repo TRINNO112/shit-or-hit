@@ -165,12 +165,13 @@ export default function StickerVaultModal({
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-2">
                 <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h3 className="font-display font-black text-lg sm:text-2xl text-black uppercase leading-tight truncate">
                   STICKER & MASCOT VAULT
                 </h3>
-                <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-600 mt-0.5 truncate">
-                  Official collection & custom PNG stickers for your high-res wallpapers
+                <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-600 mt-0.5 leading-tight truncate">
+                  <span className="sm:hidden">Custom & official wallpaper stickers</span>
+                  <span className="hidden sm:inline">Official collection & custom PNG stickers for high-res wallpapers</span>
                 </p>
               </div>
             </div>
