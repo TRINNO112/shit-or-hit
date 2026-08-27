@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Smartphone, X, Sparkles, CheckCircle2 } from 'lucide-react';
+import ShieldVoltIcon from './ShieldVoltIcon';
 
 export default function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -29,7 +30,7 @@ export default function PWAInstallBanner() {
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
-      console.log('Daily Verdict PWA successfully installed!');
+      console.log('SHIT OR HIT PWA successfully installed!');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -78,12 +79,12 @@ export default function PWAInstallBanner() {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-black text-[#FDC800] flex items-center justify-center font-mono font-black text-sm border-2 border-black shrink-0">
-              ⚡
+            <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center p-0.5 shrink-0 shadow-[1px_1px_0px_#000000]">
+              <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
             </div>
             <div className="min-w-0">
               <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase leading-tight truncate">
-                Install Daily Verdict Web App
+                Install SHIT OR HIT App
               </h4>
               <p className="text-[10px] sm:text-xs font-mono text-neutral-800 font-bold truncate">
                 Get 1-tap home screen access, offline storage & push reminders

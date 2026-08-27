@@ -4,6 +4,8 @@ import { exportDatabaseBackup } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
 import MagneticButton from './MagneticButton';
 
+import ShieldVoltIcon from './ShieldVoltIcon';
+
 export default function Header({ 
   startDate, 
   entries, 
@@ -79,15 +81,15 @@ export default function Header({
       
       {/* Brand */}
       <div className="flex items-center gap-3 sm:gap-4">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center text-black shadow-[3px_3px_0px_#000000] shrink-0">
-          <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-black stroke-[3] fill-black" />
+        <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0 p-1">
+          <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
         </div>
         <div>
           <h1 className="font-display font-black text-xl sm:text-2xl text-black tracking-tight leading-none uppercase">
-            Daily Verdict
+            SHIT OR HIT
           </h1>
           <span className="text-[11px] sm:text-xs font-mono font-bold text-neutral-600 block mt-1">
-            {isWhitelisted ? `☁️ Cloud Sync Active (${user.displayName || 'Trinno'})` : 'Day 1 starts today • Local Database Active'}
+            {isWhitelisted ? `☁️ Cloud Sync Active (${user.displayName || 'Trinno'})` : 'Daily Verdict OS • 100% Local Data Active'}
           </span>
         </div>
       </div>

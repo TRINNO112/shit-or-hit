@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ShieldVoltIcon from './ShieldVoltIcon';
 import { 
   Zap, 
   Flame, 
@@ -342,15 +343,15 @@ export default function MobileAppView({
       {/* 📱 TOP COMPACT APP BAR (Guaranteed Single-Line Layout) */}
       <header className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between shadow-[0_2px_0px_#000000]">
         <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0">
-            <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[3] fill-black" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0 p-0.5">
+            <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
           </div>
           <div className="min-w-0">
             <h1 className="font-display font-black text-sm sm:text-base uppercase leading-none tracking-tight whitespace-nowrap">
-              Daily Verdict
+              SHIT OR HIT
             </h1>
             <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate max-w-[120px] sm:max-w-[200px]">
-              {isWhitelisted ? `☁️ ${user.displayName || 'Cloud Synced'}` : 'Offline Local Mode'}
+              {isWhitelisted ? `☁️ ${user.displayName || 'Cloud Synced'}` : 'Daily Verdict OS'}
             </span>
           </div>
         </div>
