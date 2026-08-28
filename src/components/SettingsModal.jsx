@@ -780,6 +780,8 @@ export default function SettingsModal({
                 >
                   MANAGE VAULT
                 </button>
+              </div>
+
               {/* 7. Developer Academy & Architectural Lab */}
               <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
