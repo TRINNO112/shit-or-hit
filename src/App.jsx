@@ -14,6 +14,7 @@ import SettingsModal from './components/SettingsModal';
 import IconLab from './components/IconLab';
 import StickerVaultModal from './components/StickerVaultModal';
 import SkeletonLoader from './components/SkeletonLoader';
+import DevLab from './components/DevLab';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings } from './services/firebase';
@@ -33,6 +34,14 @@ export default function App() {
   const [showIconLab, setShowIconLab] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.location.search.includes('view=icons') || window.location.hash.includes('icons');
+  });
+  const [showDevLab, setShowDevLab] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.search.includes('view=lab') || window.location.hash.includes('lab');
+  });
+  const [showSkeletonPreview, setShowSkeletonPreview] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton');
   });
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
   const [entries, setEntries] = useState({});
@@ -55,6 +64,8 @@ export default function App() {
   useEffect(() => {
     const checkHash = () => {
       setShowIconLab(window.location.search.includes('view=icons') || window.location.hash.includes('icons'));
+      setShowDevLab(window.location.search.includes('view=lab') || window.location.hash.includes('lab'));
+      setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
     };
     window.addEventListener('popstate', checkHash);
     window.addEventListener('hashchange', checkHash);
@@ -180,6 +191,38 @@ export default function App() {
           window.history.replaceState(null, '', window.location.pathname);
         }}
       />
+    );
+  }
+
+  if (showDevLab) {
+    return (
+      <DevLab
+        onBack={() => {
+          setShowDevLab(false);
+          window.history.replaceState(null, '', window.location.pathname);
+        }}
+      />
+    );
+  }
+
+  if (showSkeletonPreview) {
+    return (
+      <div className="relative">
+        <div className="fixed top-3 right-4 z-50 flex items-center gap-2 bg-black text-white px-3.5 py-2 rounded-2xl border-2 border-white shadow-[4px_4px_0px_#000000]">
+          <span className="font-mono text-xs font-bold text-[#FDC800]">🦴 SKELETON PREVIEW ACTIVE</span>
+          <button
+            type="button"
+            onClick={() => {
+              setShowSkeletonPreview(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+            className="px-2.5 py-1 bg-[#FF4D4D] hover:bg-red-600 text-black hover:text-white rounded-xl font-mono text-xs font-black cursor-pointer ml-1"
+          >
+            EXIT PREVIEW
+          </button>
+        </div>
+        <SkeletonLoader isMobile={isMobile} />
+      </div>
     );
   }
 
@@ -329,6 +372,14 @@ export default function App() {
         onOpenIconLab={() => {
           setIsSettingsOpen(false);
           setShowIconLab(true);
+        }}
+        onOpenDevLab={() => {
+          setIsSettingsOpen(false);
+          setShowDevLab(true);
+        }}
+        onPreviewSkeleton={() => {
+          setIsSettingsOpen(false);
+          setShowSkeletonPreview(true);
         }}
         onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
       />

@@ -45,6 +45,8 @@ export default function SettingsModal({
   onClose,
   user,
   onOpenIconLab,
+  onOpenDevLab,
+  onPreviewSkeleton,
   onSettingsChanged
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
@@ -778,6 +780,56 @@ export default function SettingsModal({
                 >
                   MANAGE VAULT
                 </button>
+              {/* 7. Developer Academy & Architectural Lab */}
+              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#00D8F6] border-2 border-black flex items-center justify-center">
+                    <Code className="w-4 h-4 text-black stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-black text-sm uppercase">
+                      Developer Academy & Lab
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600">
+                      Learn React state, Canvas 2D math & PWA architectures
+                    </p>
+                  </div>
+                </div>
+                {onOpenDevLab && (
+                  <button
+                    type="button"
+                    onClick={onOpenDevLab}
+                    className="py-1.5 px-3 bg-[#00D8F6] hover:bg-cyan-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0"
+                  >
+                    DEV LAB
+                  </button>
+                )}
+              </div>
+
+              {/* 8. Skeleton Screen Inspector */}
+              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#FF4D6D] border-2 border-black flex items-center justify-center">
+                    <Layers className="w-4 h-4 text-white stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-black text-sm uppercase">
+                      Loading Skeletons Tester
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600">
+                      Test and inspect Desktop & Mobile skeleton screens
+                    </p>
+                  </div>
+                </div>
+                {onPreviewSkeleton && (
+                  <button
+                    type="button"
+                    onClick={onPreviewSkeleton}
+                    className="py-1.5 px-3 bg-[#FF4D6D] hover:bg-rose-500 text-white border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0"
+                  >
+                    PREVIEW
+                  </button>
+                )}
               </div>
 
             </div>
