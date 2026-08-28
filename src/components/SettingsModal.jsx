@@ -17,7 +17,8 @@ import {
   Plus,
   Trash2,
   Pencil,
-  RotateCcw
+  RotateCcw,
+  Code
 } from 'lucide-react';
 import { 
   isNotificationSupported, 
