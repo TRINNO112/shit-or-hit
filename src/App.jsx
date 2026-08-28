@@ -14,7 +14,6 @@ import SettingsModal from './components/SettingsModal';
 import IconLab from './components/IconLab';
 import StickerVaultModal from './components/StickerVaultModal';
 import SkeletonLoader from './components/SkeletonLoader';
-import DevLab from './components/DevLab';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings } from './services/firebase';
@@ -34,10 +33,6 @@ export default function App() {
   const [showIconLab, setShowIconLab] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.location.search.includes('view=icons') || window.location.hash.includes('icons');
-  });
-  const [showDevLab, setShowDevLab] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.location.search.includes('view=lab') || window.location.hash.includes('lab');
   });
   const [showSkeletonPreview, setShowSkeletonPreview] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -61,10 +56,28 @@ export default function App() {
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
+  // Secret developer key sequence listener (type "iconlab" or "skeleton" anywhere)
+  useEffect(() => {
+    let keyBuffer = '';
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      
+      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-10);
+      if (keyBuffer.endsWith('iconlab')) {
+        setShowIconLab(prev => !prev);
+        keyBuffer = '';
+      } else if (keyBuffer.endsWith('skeleton')) {
+        setShowSkeletonPreview(prev => !prev);
+        keyBuffer = '';
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   useEffect(() => {
     const checkHash = () => {
       setShowIconLab(window.location.search.includes('view=icons') || window.location.hash.includes('icons'));
-      setShowDevLab(window.location.search.includes('view=lab') || window.location.hash.includes('lab'));
       setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
     };
     window.addEventListener('popstate', checkHash);
@@ -188,17 +201,6 @@ export default function App() {
       <IconLab
         onBack={() => {
           setShowIconLab(false);
-          window.history.replaceState(null, '', window.location.pathname);
-        }}
-      />
-    );
-  }
-
-  if (showDevLab) {
-    return (
-      <DevLab
-        onBack={() => {
-          setShowDevLab(false);
           window.history.replaceState(null, '', window.location.pathname);
         }}
       />
@@ -369,18 +371,6 @@ export default function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         user={currentUser}
-        onOpenIconLab={() => {
-          setIsSettingsOpen(false);
-          setShowIconLab(true);
-        }}
-        onOpenDevLab={() => {
-          setIsSettingsOpen(false);
-          setShowDevLab(true);
-        }}
-        onPreviewSkeleton={() => {
-          setIsSettingsOpen(false);
-          setShowSkeletonPreview(true);
-        }}
         onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
       />
 
