@@ -34,6 +34,14 @@ const IconMap = {
   Sparkles
 };
 
+const EVENT_PRESETS = [
+  { id: 'party', name: '🎉 Party & Social', icon: 'Sparkles', color: '#FF4D6D', desc: 'Night out, party, festival or celebration' },
+  { id: 'travel', name: '✈️ Travel & Roadtrip', icon: 'Zap', color: '#00D8F6', desc: 'Journey, exploring, or vacation' },
+  { id: 'tournament', name: '🏆 Tournament / Match', icon: 'ShieldAlert', color: '#FDC800', desc: 'Sports, gaming or competition' },
+  { id: 'outing', name: '🍕 Outing & Hangout', icon: 'Flame', color: '#00E599', desc: 'Dinner, cafe, or friends hangout' },
+  { id: 'allnighter', name: '⚡ Hackathon / Grind', icon: 'Terminal', color: '#9D4EDD', desc: 'All-nighter coding or deep project sprint' }
+];
+
 export default function EditDayModal({
   isOpen,
   onClose,
@@ -53,6 +61,8 @@ export default function EditDayModal({
   const [sphereModeActive, setSphereModeActive] = useState(false);
   const [spheresConfig, setSpheresConfig] = useState([]);
   const [spheresData, setSpheresData] = useState({});
+  const [showAddEventMenu, setShowAddEventMenu] = useState(false);
+  const [customEventName, setCustomEventName] = useState('');
 
   // History stack for Undo / Redo / Revert
   const [historyStack, setHistoryStack] = useState([entryData?.notes || '']);
@@ -79,13 +89,76 @@ export default function EditDayModal({
           name: s.name,
           icon: s.icon,
           color: s.color,
+          desc: s.desc,
           rating: entryData?.spheres?.[s.id]?.rating || null,
           notes: entryData?.spheres?.[s.id]?.notes || ''
         };
       });
+
+      // Also restore any previously saved ad-hoc event spheres for this specific day
+      if (entryData?.spheres) {
+        Object.entries(entryData.spheres).forEach(([sId, sVal]) => {
+          if (!initialSpheres[sId] && sVal && (sVal.isDayEvent || sVal.rating || sVal.notes)) {
+            initialSpheres[sId] = {
+              id: sId,
+              name: sVal.name || sId,
+              icon: sVal.icon || 'Sparkles',
+              color: sVal.color || '#FF4D6D',
+              desc: sVal.desc || 'Day-specific outlier event',
+              rating: sVal.rating || null,
+              notes: sVal.notes || '',
+              isDayEvent: true
+            };
+          }
+        });
+      }
+
       setSpheresData(initialSpheres);
     }
   }, [entryData, dateStr, sphereSettingsVer]);
+
+  const handleAddEventSphere = (preset) => {
+    const sId = preset.id.startsWith('event_') ? preset.id : `event_${preset.id}_${Date.now()}`;
+    const newSphere = {
+      id: sId,
+      name: preset.name,
+      icon: preset.icon || 'Sparkles',
+      color: preset.color || '#FF4D6D',
+      desc: preset.desc || 'Day-specific outlier event',
+      rating: null,
+      notes: '',
+      isDayEvent: true
+    };
+    setSpheresData(prev => ({
+      ...prev,
+      [sId]: newSphere
+    }));
+    setShowAddEventMenu(false);
+    setCustomEventName('');
+  };
+
+  const handleAddCustomEventSphere = () => {
+    if (!customEventName.trim()) return;
+    handleAddEventSphere({
+      id: `custom_${Date.now()}`,
+      name: `✨ ${customEventName.trim()}`,
+      icon: 'Sparkles',
+      color: '#00D8F6',
+      desc: 'Custom special day event'
+    });
+  };
+
+  const handleRemoveEventSphere = (sphereId) => {
+    setSpheresData(prev => {
+      const copy = { ...prev };
+      delete copy[sphereId];
+      const comp = calculateCompositeScore(copy);
+      if (comp) {
+        setRating(comp.rating);
+      }
+      return copy;
+    });
+  };
 
   const formattedDate = new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -259,16 +332,18 @@ export default function EditDayModal({
                     </span>
                   </div>
 
-                  {/* Wide Grid of Life Spheres */}
+                  {/* Wide Grid of Life Spheres (Standard + Special Day Events) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
-                    {spheresConfig.map((sphere) => {
-                      const sData = spheresData[sphere.id] || {};
-                      const sRating = sData.rating;
+                    {Object.values(spheresData).map((sphere) => {
+                      const sRating = sphere.rating;
+                      const isDayEvent = !!sphere.isDayEvent;
 
                       return (
                         <div
                           key={sphere.id}
-                          className="p-6 bg-[#FFFDF8] rounded-3xl border-3 border-black shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-4 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000000]"
+                          className={`p-6 rounded-3xl border-3 border-black shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-4 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000000] ${
+                            isDayEvent ? 'bg-[#FFF9F2] ring-2 ring-[#FF4D6D]/30' : 'bg-[#FFFDF8]'
+                          }`}
                         >
                           {/* Sphere Header */}
                           <div className="flex items-center justify-between gap-2">
@@ -280,25 +355,45 @@ export default function EditDayModal({
                                 <SphereIcon icon={sphere.icon} className="w-6 h-6 text-black stroke-[2.5]" />
                               </div>
                               <div className="min-w-0">
-                                <span className="font-display font-black text-base uppercase truncate text-black block leading-tight">
-                                  {sphere.name}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-display font-black text-base uppercase truncate text-black block leading-tight">
+                                    {sphere.name}
+                                  </span>
+                                  {isDayEvent && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-[#FF4D6D] text-white font-mono text-[9px] font-black shrink-0">
+                                      EVENT
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="text-[11px] font-mono text-neutral-500 truncate block mt-0.5">
-                                  {sphere.desc}
+                                  {sphere.desc || (isDayEvent ? 'Special day outlier event' : '')}
                                 </span>
                               </div>
                             </div>
 
-                            {sRating ? (
-                              <span
-                                className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
-                                style={{ backgroundColor: ratingMeta[sRating]?.bg }}
-                              >
-                                {sRating}★ {ratingMeta[sRating]?.title}
-                              </span>
-                            ) : (
-                              <span className="text-[11px] font-mono text-neutral-400 font-bold shrink-0">UNRATED</span>
-                            )}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {sRating ? (
+                                <span
+                                  className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+                                  style={{ backgroundColor: ratingMeta[sRating]?.bg }}
+                                >
+                                  {sRating}★ {ratingMeta[sRating]?.title}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] font-mono text-neutral-400 font-bold shrink-0">UNRATED</span>
+                              )}
+
+                              {isDayEvent && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveEventSphere(sphere.id)}
+                                  className="p-1 rounded-lg bg-red-100 hover:bg-red-200 border-1.5 border-black text-black cursor-pointer transition-all"
+                                  title="Remove this event sphere"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
 
                           {/* 1★ to 5★ Tactile Mini Buttons with Hover Scale */}
@@ -329,8 +424,8 @@ export default function EditDayModal({
                             <AutoExpandTextarea
                               minHeight={68}
                               maxHeight={280}
-                              placeholder={`What happened at ${sphere.name}?`}
-                              value={sData.notes || ''}
+                              placeholder={`What happened during ${sphere.name}?`}
+                              value={sphere.notes || ''}
                               onChange={(e) => handleSphereNoteChange(sphere.id, e.target.value)}
                               className="w-full p-3 text-xs font-mono bg-white border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
                             />
@@ -338,6 +433,70 @@ export default function EditDayModal({
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* 🌟 Special Day Event Sphere Adder Bar */}
+                  <div className="pt-2">
+                    {!showAddEventMenu ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowAddEventMenu(true)}
+                        className="w-full py-2.5 px-4 bg-white hover:bg-[#FFFDF5] border-2 border-dashed border-black/40 hover:border-black rounded-2xl font-mono text-xs font-black text-black flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 shadow-[1.5px_1.5px_0px_#000000]"
+                      >
+                        <Sparkles className="w-4 h-4 text-[#FDC800]" />
+                        <span>+ ADD SPECIAL OUTLIER EVENT FOR TODAY (Party, Roadtrip, Tournament, etc.)</span>
+                      </button>
+                    ) : (
+                      <div className="p-4 bg-[#FFFDF5] border-2 border-black rounded-2xl space-y-3 shadow-[3px_3px_0px_#000000]">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-black text-black uppercase flex items-center gap-1.5">
+                            <Sparkles className="w-4 h-4 text-[#FDC800]" />
+                            <span>Select Outlier Event or Create Custom:</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowAddEventMenu(false)}
+                            className="p-1 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-black cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Quick Presets */}
+                        <div className="flex flex-wrap gap-2">
+                          {EVENT_PRESETS.map(preset => (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              onClick={() => handleAddEventSphere(preset)}
+                              className="px-3 py-1.5 bg-white hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-bold text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95"
+                            >
+                              {preset.name}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Custom Event Creator */}
+                        <div className="flex items-center gap-2 pt-1 border-t border-black/10">
+                          <input
+                            type="text"
+                            value={customEventName}
+                            onChange={(e) => setCustomEventName(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddCustomEventSphere()}
+                            placeholder="Or type custom event (e.g. Wedding, Concert, Hackathon)..."
+                            className="flex-1 px-3 py-1.5 bg-white border-2 border-black rounded-xl font-mono text-xs text-black placeholder:text-neutral-400 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddCustomEventSphere}
+                            disabled={!customEventName.trim()}
+                            className="px-4 py-1.5 bg-[#00E599] disabled:opacity-50 hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+                          >
+                            ADD EVENT
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

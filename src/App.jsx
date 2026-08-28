@@ -13,6 +13,7 @@ import PWAInstallBanner from './components/PWAInstallBanner';
 import SettingsModal from './components/SettingsModal';
 import IconLab from './components/IconLab';
 import StickerVaultModal from './components/StickerVaultModal';
+import SkeletonLoader from './components/SkeletonLoader';
 import { fetchDatabase, saveEntry } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings } from './services/firebase';
@@ -49,6 +50,7 @@ export default function App() {
   });
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
     const checkHash = () => {
@@ -101,6 +103,8 @@ export default function App() {
       }
     } catch (err) {
       console.error('Failed to load database in App:', err);
+    } finally {
+      setIsInitialLoading(false);
     }
   }, []);
 
@@ -177,6 +181,10 @@ export default function App() {
         }}
       />
     );
+  }
+
+  if (isInitialLoading) {
+    return <SkeletonLoader isMobile={isMobile} />;
   }
 
   return (
