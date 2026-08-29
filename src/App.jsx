@@ -55,6 +55,7 @@ export default function App() {
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [activeDesktopTab, setActiveDesktopTab] = useState('today');
 
   // Secret developer key sequence listener (type "iconlab" or "skeleton" anywhere)
   useEffect(() => {
@@ -231,8 +232,6 @@ export default function App() {
   if (isInitialLoading) {
     return <SkeletonLoader isMobile={isMobile} />;
   }
-
-  const [activeDesktopTab, setActiveDesktopTab] = useState('today');
 
   const handleDesktopTabChange = (tabId) => {
     setActiveDesktopTab(tabId);

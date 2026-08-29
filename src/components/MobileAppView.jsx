@@ -499,7 +499,7 @@ export default function MobileAppView({
             <h1 className="font-display font-black text-sm sm:text-base uppercase leading-none tracking-tight whitespace-nowrap">
               DAILY VERDICT
             </h1>
-            <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate max-w-[120px] sm:max-w-[200px]">
+            <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate max-w-30 sm:max-w-50">
               {isWhitelisted ? `☁️ ${user.displayName || 'Cloud Synced'}` : 'Life Matrix OS'}
             </span>
           </div>
@@ -552,6 +552,18 @@ export default function MobileAppView({
             <Download className="w-4 h-4 stroke-[2.5]" />
           </button>
 
+          {/* Settings Button */}
+          <button
+            onClick={() => {
+              triggerHaptic('light');
+              if (onOpenSettings) onOpenSettings();
+            }}
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+            title="Settings & Reminders"
+          >
+            <Settings className="w-4 h-4 text-black" />
+          </button>
+
           {/* Sticker Vault Button */}
           {onOpenStickerVault && (
             <button
@@ -565,138 +577,107 @@ export default function MobileAppView({
               <Sparkles className="w-4 h-4 text-black" />
             </button>
           )}
-
-          {/* Settings Button */}
-          {onOpenSettings && (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                onOpenSettings();
-              }}
-              className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
-              title="App Settings & Reminders"
-            >
-              <Settings className="w-4 h-4 text-black" />
-            </button>
-          )}
         </div>
       </header>
 
       {/* ========================================================= */}
-      {/* ⚡ TAB 1: RAPID 1-TAP MOOD LOGGER / MULTI-SPHERE MATRIX */}
+      {/* ⚡ TAB 1: TODAY ACTIVE WORKSPACE */}
       {/* ========================================================= */}
-      {activeTab === 'log' && (
+      {activeTab === 'today' && (
         <main className="flex-1 px-4 py-3.5 space-y-3.5 max-w-lg mx-auto w-full">
           
-          {/* Hero Date Banner */}
-          <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] flex items-center justify-between">
+          {/* Header Context Banner */}
+          <div className="flex items-center justify-between bg-white border-2 border-black p-3 rounded-2xl shadow-[3px_3px_0px_#000000]">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-black text-white text-[10px] font-mono font-black mb-1.5">
-                <span>TODAY</span>
-                <span>•</span>
-                <span>DAY {dayCount}</span>
-                {sphereModeActive && <span>• MATRIX</span>}
+              <div className="flex items-center gap-1.5">
+                <span className="font-display font-black text-lg text-black uppercase leading-tight">
+                  {dayName}
+                </span>
+                <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-[#FDC800] border border-black shadow-[1px_1px_0px_#000000]">
+                  DAY {dayCount}
+                </span>
               </div>
-              <h2 className="font-display font-black text-2xl uppercase tracking-tight leading-none text-black">
-                {dayName}
-              </h2>
-              <p className="text-xs font-mono font-bold text-neutral-700 mt-1.5">
-                {fullDate}
-              </p>
+              <span className="text-xs font-mono font-bold text-neutral-600 block mt-0.5">
+                {fullDate} • {sphereModeActive ? 'Multi-Sphere Matrix Active' : 'Unified Verdict Mode'}
+              </span>
             </div>
 
-            {selectedRating && (
-              <div 
-                className="w-13 h-13 rounded-2xl border-2 border-black flex items-center justify-center shadow-[2.5px_2.5px_0px_#000000]"
-                style={{ backgroundColor: ratingMeta[selectedRating]?.bg }}
-              >
-                {React.createElement(IconMap[ratingMeta[selectedRating]?.icon] || Sparkles, {
-                  className: "w-7 h-7 text-black stroke-[2.5]"
-                })}
-              </div>
-            )}
+            <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+              <Zap className="w-5 h-5 text-black fill-black" />
+            </div>
           </div>
 
-          {/* If Multi-Sphere Mode is Active: Streamlined Stacked Life Spheres Matrix */}
+          {/* Rating Engine: Segmented Sphere Cards vs Standard Verdict */}
           {sphereModeActive ? (
-            <div className="space-y-4">
-              {spheresConfig.map((sphere) => {
-                const sData = spheresData[sphere.id] || {};
-                const sRating = sData.rating;
+            /* Multi-Sphere Segmentation Cards */
+            <div className="space-y-3">
+              {spheresList.map((sphere) => {
+                const sData = spheresData[sphere.id] || { rating: null, notes: '' };
+                const currentSphereRating = sData.rating;
 
                 return (
-                  <div
+                  <div 
                     key={sphere.id}
-                    className="bg-[#FFFDF8] rounded-3xl border-3 border-black p-4 sm:p-5 shadow-[4px_4px_0px_#000000] space-y-3.5"
+                    className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] space-y-2.5"
                   >
-                    {/* Sphere Header */}
-                    <div className="flex items-center justify-between gap-2 border-b-2 border-black/10 pb-3">
-                      <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
                         <div 
-                          className="w-11 h-11 rounded-2xl border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+                          className="w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] shrink-0"
                           style={{ backgroundColor: sphere.color || '#FDC800' }}
                         >
-                          <SphereIcon icon={sphere.icon} className="w-5 h-5 text-black stroke-[2.5]" />
+                          <SphereIcon icon={sphere.icon} className="w-4 h-4 text-black stroke-[2.5]" />
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="font-display font-black text-xs sm:text-sm uppercase text-black leading-tight truncate">
+                        <div>
+                          <div className="font-display font-black text-sm uppercase leading-tight">
                             {sphere.name}
-                          </h3>
-                          <p className="text-[10px] font-mono text-neutral-500 truncate mt-0.5">
+                          </div>
+                          <div className="text-[10px] font-mono text-neutral-500 leading-tight">
                             {sphere.desc}
-                          </p>
+                          </div>
                         </div>
                       </div>
 
-                      {sRating ? (
-                        <span 
-                          className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shadow-[1px_1px_0px_#000000] shrink-0"
-                          style={{ backgroundColor: ratingMeta[sRating]?.bg }}
+                      {currentSphereRating && (
+                        <div 
+                          className="px-2 py-0.5 rounded-lg border-2 border-black font-display font-black text-xs uppercase shadow-[1px_1px_0px_#000000]"
+                          style={{ backgroundColor: ratingMeta[currentSphereRating]?.bg }}
                         >
-                          {sRating}★ {ratingMeta[sRating]?.title}
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-mono text-neutral-400 font-bold shrink-0">UNRATED</span>
+                          {ratingMeta[currentSphereRating]?.title} ({currentSphereRating}/5)
+                        </div>
                       )}
                     </div>
 
-                    {/* 1★ to 5★ Tactile Horizontal Rating Bar */}
-                    <div className="grid grid-cols-5 gap-1.5">
+                    {/* Compact 1-5 Radio Buttons for Sphere */}
+                    <div className="grid grid-cols-5 gap-1.5 pt-1">
                       {[1, 2, 3, 4, 5].map((val) => {
                         const m = ratingMeta[val];
-                        const SvgIcon = IconMap[m.icon];
-                        const isSelected = sRating === val;
-
+                        const isR = currentSphereRating === val;
                         return (
-                          <motion.button
+                          <button
                             key={val}
                             type="button"
-                            whileTap={{ scale: 0.92 }}
-                            onClick={() => handleRateSphereMobile(sphere.id, val)}
-                            className={`py-2 px-1 rounded-xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all ${
-                              isSelected 
-                                ? 'shadow-[2px_2px_0px_#000000] ring-2 ring-black font-black scale-[1.03]' 
-                                : 'bg-white hover:bg-neutral-50 text-neutral-700'
+                            onClick={() => handleRateSphere(sphere.id, val)}
+                            className={`py-2 px-1 rounded-xl border-2 border-black font-mono text-xs font-black flex flex-col items-center justify-center transition-all cursor-pointer ${
+                              isR 
+                                ? 'scale-105 shadow-[2px_2px_0px_#000000] ring-2 ring-black font-black' 
+                                : 'bg-neutral-50 hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
                             }`}
-                            style={{ 
-                              backgroundColor: isSelected ? m.bg : '#FFFFFF'
-                            }}
+                            style={{ backgroundColor: isR ? m.bg : undefined }}
                           >
-                            <SvgIcon className="w-4 h-4 text-black stroke-[2.5]" />
-                            <span className="text-[9px] font-mono font-black mt-0.5">{val}★</span>
-                          </motion.button>
+                            <span className="leading-none text-black">{val}★</span>
+                            <span className="text-[9px] font-display font-bold leading-none mt-1 truncate max-w-full text-black">
+                              {m.title}
+                            </span>
+                          </button>
                         );
                       })}
                     </div>
 
-                    {/* Sphere-Specific Multi-Line Reflection Note with Dynamic Auto-Expansion */}
-                    <div className="pt-2.5 border-t-2 border-black/10 space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px] font-mono font-bold text-neutral-700">
-                        <span className="uppercase">Reflection Note • {sphere.name}</span>
-                        {sData.notes && <span className="text-emerald-700 font-black">✓ Saved</span>}
-                      </div>
-                      <AutoExpandTextarea
-                        minHeight={46}
+                    {/* Optional Inline Sphere Note */}
+                    <div className="pt-1">
+                      <GrowingTextarea
+                        minHeight={42}
                         maxHeight={260}
                         placeholder={`What happened at ${sphere.name}? (Wins, struggles, events)`}
                         value={sData.notes || ''}
@@ -983,18 +964,13 @@ export default function MobileAppView({
           {/* Dossier Header Card */}
           <div className="p-4 rounded-2xl border-2 border-black bg-[#FFFDF5] shadow-[3px_3px_0px_#000000] space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
-                  <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
-                </div>
-                <div>
-                  <h3 className="font-display font-black text-base uppercase text-black leading-none">
-                    Monthly Dossier
-                  </h3>
-                  <span className="text-[11px] font-mono font-bold text-neutral-600">
-                    Gemini AI Behavioral Intelligence
-                  </span>
-                </div>
+              <div>
+                <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#FDC800] border border-black">
+                  MONTHLY INTELLIGENCE
+                </span>
+                <h2 className="font-display font-black text-xl uppercase tracking-tight text-black mt-1">
+                  Performance Dossier
+                </h2>
               </div>
 
               {/* Month Switcher */}
