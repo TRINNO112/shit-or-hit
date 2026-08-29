@@ -117,25 +117,66 @@ export default function TodayHero({
   const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
   const fullDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  const handleRate = async (val, e) => {
-    if (val <= 2) {
-      setSadSettle(true);
-      setTimeout(() => setSadSettle(false), 800);
-    } else if (val === 5) {
+  const triggerRatingExpression = (val, originY = 0.6) => {
+    if (val === 5) {
+      // 5★ Peak: Golden & Emerald Mega Burst
       confetti({
-        particleCount: 60,
-        spread: 65,
-        origin: { y: 0.6 },
-        colors: ['#FDC800', '#000000', '#00E599']
+        particleCount: 75,
+        spread: 70,
+        origin: { y: originY },
+        colors: ['#FDC800', '#00E599', '#000000', '#FFFFFF']
       });
     } else if (val === 4) {
+      // 4★ Good: Emerald Flow Surge
+      confetti({
+        particleCount: 40,
+        spread: 55,
+        origin: { y: originY },
+        colors: ['#00E599', '#FDC800', '#000000']
+      });
+    } else if (val === 3) {
+      // 3★ Okay: Balanced Electric Sparks
+      confetti({
+        particleCount: 22,
+        spread: 40,
+        startVelocity: 18,
+        origin: { y: originY },
+        colors: ['#FDC800', '#60A5FA', '#000000'],
+        scalar: 0.85
+      });
+    } else if (val === 2) {
+      // 2★ Down: Blue Melancholy Droplets
+      setSadSettle(true);
+      setTimeout(() => setSadSettle(false), 900);
       confetti({
         particleCount: 25,
-        spread: 45,
-        origin: { y: 0.65 },
-        colors: ['#00E599', '#000000']
+        spread: 60,
+        startVelocity: 12,
+        gravity: 1.4,
+        origin: { y: originY - 0.1 },
+        colors: ['#60A5FA', '#3B82F6', '#94A3B8', '#1E293B'],
+        ticks: 120,
+        shapes: ['circle']
+      });
+    } else if (val === 1) {
+      // 1★ Rough: Crimson & Charcoal Shatter Embers
+      setSadSettle(true);
+      setTimeout(() => setSadSettle(false), 1000);
+      confetti({
+        particleCount: 35,
+        spread: 80,
+        startVelocity: 20,
+        gravity: 1.1,
+        origin: { y: originY },
+        colors: ['#FF4D4D', '#000000', '#991B1B', '#475569'],
+        ticks: 140,
+        shapes: ['square']
       });
     }
+  };
+
+  const handleRate = async (val, e) => {
+    triggerRatingExpression(val, 0.6);
 
     setSyncedBadge(true);
     if (saveHandler) {
@@ -162,14 +203,7 @@ export default function TodayHero({
     };
     setSpheresData(updatedSpheres);
 
-    if (val === 5) {
-      confetti({
-        particleCount: 35,
-        spread: 50,
-        origin: { y: 0.7 },
-        colors: ['#FDC800', '#000000']
-      });
-    }
+    triggerRatingExpression(val, 0.7);
 
     const comp = calculateCompositeScore(updatedSpheres);
     const finalRating = comp ? comp.rating : (selectedRating || val);

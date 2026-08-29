@@ -335,15 +335,24 @@ export default function MobileAppView({
     }
   };
 
+  const triggerRatingExpressionMobile = (val, originY = 0.7) => {
+    if (val === 5) {
+      confetti({ particleCount: 65, spread: 70, origin: { y: originY }, colors: ['#FDC800', '#000000', '#00E599', '#FFFFFF'] });
+    } else if (val === 4) {
+      confetti({ particleCount: 35, spread: 50, origin: { y: originY }, colors: ['#00E599', '#FDC800', '#000000'] });
+    } else if (val === 3) {
+      confetti({ particleCount: 18, spread: 35, startVelocity: 16, origin: { y: originY }, colors: ['#FDC800', '#60A5FA', '#000000'], scalar: 0.85 });
+    } else if (val === 2) {
+      confetti({ particleCount: 22, spread: 55, startVelocity: 10, gravity: 1.4, origin: { y: originY - 0.1 }, colors: ['#60A5FA', '#3B82F6', '#94A3B8'], ticks: 100, shapes: ['circle'] });
+    } else if (val === 1) {
+      confetti({ particleCount: 30, spread: 75, startVelocity: 18, gravity: 1.1, origin: { y: originY }, colors: ['#FF4D4D', '#000000', '#991B1B'], ticks: 120, shapes: ['square'] });
+    }
+  };
+
   const handleRate = async (val) => {
     triggerHaptic(val >= 4 ? 'success' : 'medium');
     playSound(val === 5 ? 'chime' : 'click');
-
-    if (val === 5) {
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 }, colors: ['#FDC800', '#000000', '#00E599'] });
-    } else if (val === 4) {
-      confetti({ particleCount: 25, spread: 45, origin: { y: 0.75 }, colors: ['#00E599', '#000000'] });
-    }
+    triggerRatingExpressionMobile(val, 0.7);
 
     setSavedFlash(true);
     await onSaveToday({
@@ -359,10 +368,7 @@ export default function MobileAppView({
   const handleRateSphereMobile = async (sphereId, val) => {
     triggerHaptic(val >= 4 ? 'success' : 'medium');
     playSound(val === 5 ? 'chime' : 'click');
-
-    if (val === 5) {
-      confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 }, colors: ['#FDC800', '#000000'] });
-    }
+    triggerRatingExpressionMobile(val, 0.7);
 
     const updated = {
       ...spheresData,
