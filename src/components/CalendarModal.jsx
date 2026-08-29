@@ -142,20 +142,8 @@ export default function CalendarModal({
         </div>
       </div>
 
-                {/* High-visibility Close Button with text and icon */}
-                <button
-                  onClick={onClose}
-                  title="Close Calendar (Esc / Click Outside)"
-                  className="neo-btn px-3.5 py-2 bg-[#FF4D4D] hover:bg-red-400 text-black flex items-center gap-1.5 cursor-pointer ml-1"
-                >
-                  <X className="w-4 h-4 stroke-[3]" />
-                  <span className="font-mono text-xs font-black">CLOSE</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Scrollable / Scalable Grid Container */}
-            <div className="overflow-y-auto pr-1">
+      {/* Scrollable / Scalable Grid Container */}
+      <div className="overflow-y-auto pr-1">
               {/* Day of Week Headers */}
               <div className="grid grid-cols-7 gap-2 mb-2 text-center">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
