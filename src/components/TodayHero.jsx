@@ -22,8 +22,10 @@ import {
   getSphereConfig,
   calculateCompositeScore
 } from '../services/api';
+import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
 import confetti from 'canvas-confetti';
+import { soundFx } from '../services/soundEffects';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
@@ -118,6 +120,8 @@ export default function TodayHero({
   const fullDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   const triggerRatingExpression = (val, originY = 0.6) => {
+    soundFx.playMood(val);
+
     if (val === 5) {
       // 5★ Peak: Golden & Emerald Mega Burst
       confetti({
@@ -410,7 +414,7 @@ export default function TodayHero({
                     {isSelected && (
                       <motion.div
                         layoutId="active-cyber-box"
-                        className="absolute -inset-[2px] rounded-2xl border-[3px] border-black pointer-events-none"
+                        className="absolute -inset-0.5 rounded-2xl border-[3px] border-black pointer-events-none"
                         transition={{ type: 'spring', stiffness: 480, damping: 26 }}
                       />
                     )}
@@ -603,8 +607,15 @@ export default function TodayHero({
         </div>
       )}
 
+      {/* Rich Graphical Mood Reaction Showcase */}
+      {(sphereModeActive ? (compositeStats?.rating || selectedRating) : selectedRating) && (
+        <div className="mt-6">
+          <MoodReactionBanner rating={sphereModeActive && compositeStats ? compositeStats.rating : selectedRating} />
+        </div>
+      )}
+
       {/* Bottom Bar: Status Verdict + Expandable Note */}
-      <div className="mt-8 pt-6 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="mt-6 pt-5 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         
         {/* Active Verdict Pill with Crisp Icon */}
         {(sphereModeActive ? (compositeStats || selectedRating) : selectedRating) ? (
@@ -617,7 +628,7 @@ export default function TodayHero({
             style={{ backgroundColor: ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.bg }}
           >
             {React.createElement(IconMap[ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.icon] || Sparkles, {
-              className: "w-4 h-4 text-black stroke-[3] shrink-0"
+              className: "w-4 h-4 text-black stroke-3 shrink-0"
             })}
 
             <span>
@@ -627,7 +638,7 @@ export default function TodayHero({
 
             {syncedBadge && (
               <span className="flex items-center gap-1 bg-black text-white px-2 py-0.5 rounded-md font-mono text-[10px] uppercase font-black ml-1">
-                <Check className="w-3 h-3 stroke-[3]" /> Saved
+                <Check className="w-3 h-3 stroke-3" /> Saved
               </span>
             )}
           </motion.div>
@@ -674,7 +685,7 @@ export default function TodayHero({
                     onClick={handleUndo}
                     disabled={historyIdx <= 0}
                     title="Undo last change"
-                    className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
+                    className="p-1 rounded hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-black"
                   >
                     <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
@@ -684,7 +695,7 @@ export default function TodayHero({
                     onClick={handleRedo}
                     disabled={historyIdx >= historyStack.length - 1}
                     title="Redo change"
-                    className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
+                    className="p-1 rounded hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-black"
                   >
                     <Redo2 className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
@@ -738,7 +749,7 @@ export default function TodayHero({
               placeholder="Write your raw diary thoughts here... (what went wrong, what went right, real struggles)"
               value={noteText}
               onChange={(e) => handleNoteChange(e.target.value)}
-              className="neo-input text-xs text-black placeholder:text-neutral-500 font-mono leading-relaxed"
+              className="neo-input text-xs font-mono leading-relaxed"
               style={{ minHeight: '140px' }}
             />
 
@@ -751,7 +762,7 @@ export default function TodayHero({
               <button
                 type="button"
                 onClick={handleSaveNote}
-                className="px-6 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black text-xs font-mono font-black border-2 border-black rounded-xl cursor-pointer shadow-[3px_3px_0px_#000000] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000000]"
+                className="px-6 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black text-xs font-mono font-black border-2 border-black rounded-xl cursor-pointer shadow-[3px_3px_0px_#000000] transition-all hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0px_#000000] active:translate-x-px active:translate-y-px"
               >
                 SAVE DIARY ENTRY
               </button>

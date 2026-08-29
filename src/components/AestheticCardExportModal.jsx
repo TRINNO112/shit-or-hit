@@ -802,7 +802,7 @@ export default function AestheticCardExportModal({
             className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0"
             title="Close Wallpaper Studio"
           >
-            <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-3" />
           </button>
         )}
       </div>
@@ -822,7 +822,7 @@ export default function AestheticCardExportModal({
                     className="px-2.5 py-1.5 bg-neutral-100 hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1 transition-all shrink-0"
                     title="Previous Day"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5 stroke-[3]" />
+                    <ChevronLeft className="w-3.5 h-3.5 stroke-3" />
                     <span className="hidden sm:inline">PREV</span>
                   </button>
 
@@ -846,7 +846,7 @@ export default function AestheticCardExportModal({
                     title="Next Day"
                   >
                     <span className="hidden sm:inline">NEXT</span>
-                    <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
+                    <ChevronRight className="w-3.5 h-3.5 stroke-3" />
                   </button>
                 </div>
 
@@ -970,8 +970,8 @@ export default function AestheticCardExportModal({
                 {previewUrl ? (
                   <div className={`rounded-2xl border-3 border-black shadow-[6px_6px_0px_#000000] overflow-hidden bg-black flex items-center justify-center ${
                     format === 'wallpaper'
-                      ? 'max-h-[460px] aspect-[9/16]'
-                      : 'max-h-[420px] aspect-square'
+                      ? 'max-h-115 aspect-9/16'
+                      : 'max-h-105 aspect-square'
                   }`}>
                     <img
                       src={previewUrl}
@@ -1005,7 +1005,7 @@ export default function AestheticCardExportModal({
               disabled={downloading || !previewUrl}
               className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 min-w-0"
             >
-              <Download className="w-4 h-4 stroke-[3] shrink-0" />
+              <Download className="w-4 h-4 stroke-3 shrink-0" />
               <span className="truncate">
                 {downloading ? 'GENERATING POSTER...' : (
                   <>

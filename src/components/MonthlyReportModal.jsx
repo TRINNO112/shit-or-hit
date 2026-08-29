@@ -184,7 +184,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
       className={`w-full ${
         isEmbedded 
           ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative' 
-          : 'w-[96vw] max-w-[1400px] h-[92vh] max-h-[92vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative'
+          : 'w-[96vw] max-w-350 h-[92vh] max-h-[92vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative'
       }`}
       style={{ padding: '0px' }}
       onClick={(e) => e.stopPropagation()}
@@ -241,7 +241,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
               title="Close Dossier"
             >
-              <X className="w-4 h-4 stroke-[3]" />
+              <X className="w-4 h-4 stroke-3" />
             </button>
           )}
         </div>
@@ -255,7 +255,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   title="Previous Month"
                   className="p-1 rounded-lg hover:bg-neutral-100 text-black cursor-pointer"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5 stroke-[3]" />
+                  <ChevronLeft className="w-3.5 h-3.5 stroke-3" />
                 </button>
 
                 <span className="px-2 font-mono font-black text-xs text-black uppercase select-none">
@@ -267,7 +267,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   title="Next Month"
                   className="p-1 rounded-lg hover:bg-neutral-100 text-black cursor-pointer"
                 >
-                  <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
+                  <ChevronRight className="w-3.5 h-3.5 stroke-3" />
                 </button>
               </div>
 
@@ -291,7 +291,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     title="Copy Dossier Markdown to Clipboard"
                     className="h-8 sm:h-9 neo-btn px-2.5 sm:px-3 bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1 shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
+                    {copied ? <Check className="w-3.5 h-3.5 stroke-3" /> : <Copy className="w-3.5 h-3.5 stroke-[2.5]" />}
                     <span className="hidden sm:inline">{copied ? 'COPIED' : 'COPY'}</span>
                   </button>
                 )}

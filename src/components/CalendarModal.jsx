@@ -119,7 +119,7 @@ export default function CalendarModal({
             title="Previous Month"
             className="neo-btn p-2 text-black cursor-pointer"
           >
-            <ChevronLeft className="w-4 h-4 stroke-[3]" />
+            <ChevronLeft className="w-4 h-4 stroke-3" />
           </button>
 
           <button
@@ -127,7 +127,7 @@ export default function CalendarModal({
             title="Next Month"
             className="neo-btn p-2 text-black cursor-pointer"
           >
-            <ChevronRight className="w-4 h-4 stroke-[3]" />
+            <ChevronRight className="w-4 h-4 stroke-3" />
           </button>
 
           {!isEmbedded && onClose && (
@@ -136,7 +136,7 @@ export default function CalendarModal({
               title="Close Calendar"
               className="neo-btn p-2 bg-[#FF4D4D] text-black cursor-pointer"
             >
-              <X className="w-4 h-4 stroke-[3]" />
+              <X className="w-4 h-4 stroke-3" />
             </button>
           )}
         </div>
@@ -156,7 +156,7 @@ export default function CalendarModal({
               {/* Days Grid with responsive height */}
               <div className="grid grid-cols-7 gap-2">
                 {Array.from({ length: leadingBlanks }).map((_, i) => (
-                  <div key={`blank-${i}`} className="min-h-[58px] sm:min-h-[68px] rounded-xl bg-neutral-50 border border-neutral-200/50 opacity-20" />
+                  <div key={`blank-${i}`} className="min-h-14.5 sm:min-h-17 rounded-xl bg-neutral-50 border border-neutral-200/50 opacity-20" />
                 ))}
 
                 {days.map(({ dayNumber, dayIndex, dateStr, isToday, isBeforeStart, isFuture, entry }) => {
@@ -173,7 +173,7 @@ export default function CalendarModal({
                           onEditDay({ dateStr, dayIndex, entry });
                         }
                       }}
-                      className={`min-h-[58px] sm:min-h-[68px] p-2 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
+                      className={`min-h-14.5 sm:min-h-17 p-2 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
                         isToday ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000000]' : 'bg-white'
                       } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
                       style={{ backgroundColor: meta ? meta.bg : undefined }}
