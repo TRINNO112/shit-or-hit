@@ -497,9 +497,9 @@ export default function MobileAppView({
           </div>
           <div className="min-w-0">
             <h1 className="font-display font-black text-sm sm:text-base uppercase leading-none tracking-tight whitespace-nowrap">
-              DAILY VERDICT
+              VERDICT
             </h1>
-            <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate max-w-30 sm:max-w-50">
+            <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate max-w-28 sm:max-w-40">
               {isWhitelisted ? `☁️ ${user.displayName || 'Cloud Synced'}` : 'Life Matrix OS'}
             </span>
           </div>
@@ -583,7 +583,7 @@ export default function MobileAppView({
       {/* ========================================================= */}
       {/* ⚡ TAB 1: TODAY ACTIVE WORKSPACE */}
       {/* ========================================================= */}
-      {activeTab === 'today' && (
+      {(activeTab === 'log' || activeTab === 'today') && (
         <main className="flex-1 px-4 py-3.5 space-y-3.5 max-w-lg mx-auto w-full">
           
           {/* Header Context Banner */}
