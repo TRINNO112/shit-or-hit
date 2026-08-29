@@ -301,16 +301,16 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Right (5 cols): Deep Forensic Telemetry & Momentum Hub */}
+                  {/* Right (5 cols): Deep Forensic Telemetry Hub */}
                   <div className="lg:col-span-5 space-y-4">
-                    <div className="p-5 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-4">
+                    <div className="p-6 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-4">
                       <div className="flex items-center justify-between border-b border-black/10 pb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
-                            <Zap className="w-4 h-4 text-black fill-black" />
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                            <Zap className="w-5 h-5 text-black fill-black" />
                           </div>
                           <div>
-                            <h4 className="font-display font-black text-sm uppercase">Forensic Telemetry Hub</h4>
+                            <h4 className="font-display font-black text-sm uppercase leading-tight">Forensic Telemetry Hub</h4>
                             <span className="text-[10px] font-mono text-neutral-500 font-bold">Deep behavioral analytics & momentum radar</span>
                           </div>
                         </div>
@@ -320,39 +320,16 @@ export default function App() {
                       </div>
 
                       <p className="text-xs font-mono text-neutral-700 leading-relaxed">
-                        Track streak velocity, volatility index, peak performance clusters, and multi-sphere distribution across your whole journey.
+                        Track streak velocity, volatility index, peak performance clusters, and multi-sphere distribution across your journey.
                       </p>
 
                       <button
                         type="button"
                         onClick={() => setIsTelemetryOpen(true)}
-                        className="w-full py-3 bg-[#00E599] hover:bg-emerald-400 font-display font-black text-xs uppercase border-2 border-black rounded-xl shadow-[2.5px_2.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
+                        className="w-full py-3.5 bg-[#00E599] hover:bg-emerald-400 font-display font-black text-xs uppercase border-2 border-black rounded-xl shadow-[2.5px_2.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
                       >
                         <Zap className="w-4 h-4 text-black fill-black" />
                         <span>LAUNCH FULL FORENSIC SUITE</span>
-                      </button>
-                    </div>
-
-                    <div className="p-5 bg-[#FFFDF5] border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-black" />
-                          <h4 className="font-display font-black text-xs uppercase">Calendar & Timeline Stream</h4>
-                        </div>
-                        <span className="text-[10px] font-mono font-bold text-neutral-500">{Object.keys(entries).length} days logged</span>
-                      </div>
-
-                      <p className="text-xs font-mono text-neutral-600">
-                        View your full month-by-month heatmap grid, past reflections, and chronological day stream.
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={() => setActiveDesktopTab('timeline')}
-                        className="w-full py-2.5 bg-white hover:bg-[#FDC800] font-display font-black text-xs uppercase border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] cursor-pointer transition-all flex items-center justify-center gap-1.5"
-                      >
-                        <span>OPEN CALENDAR & TIMELINE</span>
-                        <span>→</span>
                       </button>
                     </div>
                   </div>

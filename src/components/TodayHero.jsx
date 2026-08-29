@@ -135,43 +135,16 @@ export default function TodayHero({
         colors: ['#00E599', '#FDC800', '#000000']
       });
     } else if (val === 3) {
-      // 3★ Okay: Balanced Electric Sparks
-      confetti({
-        particleCount: 22,
-        spread: 40,
-        startVelocity: 18,
-        origin: { y: originY },
-        colors: ['#FDC800', '#60A5FA', '#000000'],
-        scalar: 0.85
-      });
+      // 3★ Okay: Balanced Equilibrium Lock (Zero confetti, tactile focus)
+      setSadSettle(false);
     } else if (val === 2) {
-      // 2★ Down: Blue Melancholy Droplets
+      // 2★ Down: Sombre low-energy settle (Zero confetti)
       setSadSettle(true);
       setTimeout(() => setSadSettle(false), 900);
-      confetti({
-        particleCount: 25,
-        spread: 60,
-        startVelocity: 12,
-        gravity: 1.4,
-        origin: { y: originY - 0.1 },
-        colors: ['#60A5FA', '#3B82F6', '#94A3B8', '#1E293B'],
-        ticks: 120,
-        shapes: ['circle']
-      });
     } else if (val === 1) {
-      // 1★ Rough: Crimson & Charcoal Shatter Embers
+      // 1★ Rough: Visceral Screen Shudder & Glitch Rumble (Zero confetti)
       setSadSettle(true);
-      setTimeout(() => setSadSettle(false), 1000);
-      confetti({
-        particleCount: 35,
-        spread: 80,
-        startVelocity: 20,
-        gravity: 1.1,
-        origin: { y: originY },
-        colors: ['#FF4D4D', '#000000', '#991B1B', '#475569'],
-        ticks: 140,
-        shapes: ['square']
-      });
+      setTimeout(() => setSadSettle(false), 1100);
     }
   };
 

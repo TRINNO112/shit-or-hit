@@ -340,12 +340,6 @@ export default function MobileAppView({
       confetti({ particleCount: 65, spread: 70, origin: { y: originY }, colors: ['#FDC800', '#000000', '#00E599', '#FFFFFF'] });
     } else if (val === 4) {
       confetti({ particleCount: 35, spread: 50, origin: { y: originY }, colors: ['#00E599', '#FDC800', '#000000'] });
-    } else if (val === 3) {
-      confetti({ particleCount: 18, spread: 35, startVelocity: 16, origin: { y: originY }, colors: ['#FDC800', '#60A5FA', '#000000'], scalar: 0.85 });
-    } else if (val === 2) {
-      confetti({ particleCount: 22, spread: 55, startVelocity: 10, gravity: 1.4, origin: { y: originY - 0.1 }, colors: ['#60A5FA', '#3B82F6', '#94A3B8'], ticks: 100, shapes: ['circle'] });
-    } else if (val === 1) {
-      confetti({ particleCount: 30, spread: 75, startVelocity: 18, gravity: 1.1, origin: { y: originY }, colors: ['#FF4D4D', '#000000', '#991B1B'], ticks: 120, shapes: ['square'] });
     }
   };
 
