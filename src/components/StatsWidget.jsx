@@ -117,10 +117,10 @@ export default function StatsWidget({ entries, dayCount, onOpenTelemetry }) {
           <button
             type="button"
             onClick={onOpenTelemetry}
-            className="w-full py-2.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-display font-black text-xs text-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all hover:translate-x-[-1px] hover:translate-y-[-1px]"
+            className="w-full py-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-display font-black text-xs text-black uppercase shadow-[2.5px_2.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
           >
-            <Zap className="w-3.5 h-3.5 stroke-[3]" />
-            <span>FORENSIC TELEMETRY HUB</span>
+            <Zap className="w-4 h-4 text-black fill-black" />
+            <span>OPEN FORENSIC TELEMETRY HUB</span>
           </button>
         )}
         <p className="text-xs font-mono text-neutral-600 font-bold text-center">
