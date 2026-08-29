@@ -46,7 +46,7 @@ export function getUserDisplayName(email, fallbackName = null) {
   );
 
   const emailLower = (email || '').toLowerCase();
-  if (emailLower.includes('pathak.amitkumar') || emailLower.includes('trinno') || isLocalHost) {
+  if (emailLower.includes('pathak.amitkumar') || emailLower.includes('trinno') || emailLower.includes('kaushtubh') || isLocalHost) {
     return 'Trinno';
   }
 

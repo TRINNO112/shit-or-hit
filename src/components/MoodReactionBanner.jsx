@@ -111,29 +111,32 @@ export default function MoodReactionBanner({ rating }) {
           {/* Subtle Ambient Glow */}
           <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-white/20 blur-3xl pointer-events-none" />
 
-          {/* Neobrutalist Geometric Dot Grid Matrix Overlay */}
-          <div className="absolute inset-0 pointer-events-none opacity-10 overflow-hidden">
+          {/* Neobrutalist Architectural Blueprint Grid & Cross-Hatch Pattern */}
+          <div className="absolute inset-0 pointer-events-none opacity-15 overflow-hidden">
             <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <pattern id="neoDotGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <circle cx="10" cy="10" r="1.8" fill="currentColor" />
+                <pattern id="neoTechGrid" width="28" height="28" patternUnits="userSpaceOnUse">
+                  <path d="M 28 0 L 0 0 0 28" fill="none" stroke="currentColor" strokeWidth="0.9" />
+                  <path d="M 0 28 L 28 0" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3 3" />
+                  <circle cx="0" cy="0" r="1.5" fill="currentColor" />
                 </pattern>
               </defs>
-              <rect width="100%" height="100%" fill="url(#neoDotGrid)" />
+              <rect width="100%" height="100%" fill="url(#neoTechGrid)" />
             </svg>
           </div>
 
           {/* Technical Corner Crosshairs */}
-          <div className="absolute top-2.5 right-3 text-[9px] font-mono font-black opacity-30 select-none tracking-widest">
-            + + [ VERDICT OS ]
+          <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-35 select-none tracking-widest">
+            + + [ VERDICT OS // SPEC ]
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6 relative z-10">
-            {/* Left Content Area */}
-            <div className="flex-1 min-w-0 space-y-2.5 text-left w-full sm:w-auto">
+          {/* Top-Aligned Content Row with Generous Spacing */}
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6 sm:gap-8 relative z-10">
+            {/* Left Content Area (Top-Aligned) */}
+            <div className="flex-1 min-w-0 space-y-3 text-left w-full sm:w-auto">
               
               {/* Badges Row */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <span className="px-3 py-1 rounded-xl border-2 border-black font-mono font-black text-xs text-black uppercase shadow-[1.5px_1.5px_0px_#000000] flex items-center gap-1.5 bg-white">
                   <Icon className="w-4 h-4 stroke-3 text-black" />
                   <span>{config.badgeText}</span>
