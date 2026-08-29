@@ -232,6 +232,17 @@ export default function App() {
     return <SkeletonLoader isMobile={isMobile} />;
   }
 
+  const [activeDesktopTab, setActiveDesktopTab] = useState('today');
+
+  const handleDesktopTabChange = (tabId) => {
+    setActiveDesktopTab(tabId);
+    if (tabId === 'dossier') {
+      handleOpenMonthlyReport();
+    } else if (tabId === 'studio') {
+      handleOpenWallpaper(null, todayStr);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-black font-sans selection:bg-[#FDC800] selection:text-black">
       
@@ -255,54 +266,106 @@ export default function App() {
         />
       ) : (
         <div className="flex flex-col min-h-screen">
-          <div className="border-b-3 border-black bg-white">
+          <div className="border-b-3 border-black bg-white sticky top-0 z-30">
             <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6">
               <Header
                 startDate={startDate}
                 entries={entries}
                 dayCount={dayCount}
-                onToggleCalendar={() => setIsCalendarOpen(prev => !prev)}
-                isCalendarOpen={isCalendarOpen}
-                onOpenMonthlyReport={() => handleOpenMonthlyReport()}
-                onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
+                todayStr={todayStr}
+                activeTab={activeDesktopTab}
+                onTabChange={handleDesktopTabChange}
                 onOpenSettings={() => setIsSettingsOpen(true)}
-                onOpenStickerVault={() => setIsStickerVaultOpen(true)}
                 onSyncRefresh={loadData}
               />
             </div>
           </div>
 
           <main className="flex-1 w-full max-w-[1380px] mx-auto p-4 sm:p-6 space-y-6">
-            <TodayHero
-              todayStr={todayStr}
-              dayCount={dayCount}
-              todayEntry={entries[todayStr] || null}
-              currentEntry={entries[todayStr] || null}
-              onSaveToday={handleSaveEntry}
-              onSave={handleSaveEntry}
-              onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
-              sphereSettingsVer={sphereSettingsVer}
-            />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <JourneyTimeline
-                  startDate={startDate}
-                  entries={entries}
+            {/* VIEW 1: TODAY HERO & STATS */}
+            {activeDesktopTab === 'today' && (
+              <div className="space-y-6">
+                <TodayHero
                   todayStr={todayStr}
-                  onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-                  onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
-                />
-              </div>
-
-              <div className="lg:col-span-1">
-                <StatsWidget
-                  entries={entries}
                   dayCount={dayCount}
-                  onOpenTelemetry={() => setIsTelemetryOpen(true)}
+                  todayEntry={entries[todayStr] || null}
+                  currentEntry={entries[todayStr] || null}
+                  onSaveToday={handleSaveEntry}
+                  onSave={handleSaveEntry}
+                  onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
+                  sphereSettingsVer={sphereSettingsVer}
+                />
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <JourneyTimeline
+                      startDate={startDate}
+                      entries={entries}
+                      todayStr={todayStr}
+                      onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                      onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+                    />
+                  </div>
+
+                  <div className="lg:col-span-1">
+                    <StatsWidget
+                      entries={entries}
+                      dayCount={dayCount}
+                      onOpenTelemetry={() => setIsTelemetryOpen(true)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 2: TIMELINE STREAM & FULL CALENDAR */}
+            {activeDesktopTab === 'timeline' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                <div className="lg:col-span-2">
+                  <JourneyTimeline
+                    startDate={startDate}
+                    entries={entries}
+                    todayStr={todayStr}
+                    onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                    onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+                  />
+                </div>
+
+                <div className="lg:col-span-1 space-y-6">
+                  <StatsWidget
+                    entries={entries}
+                    dayCount={dayCount}
+                    onOpenTelemetry={() => setIsTelemetryOpen(true)}
+                  />
+                  <div className="p-4 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] text-center space-y-3">
+                    <h4 className="font-display font-black text-sm uppercase">Interactive Calendar Modal</h4>
+                    <p className="text-xs font-mono text-neutral-600">Open full month matrix with heatmaps & streak filters</p>
+                    <button
+                      onClick={() => setIsCalendarOpen(true)}
+                      className="w-full py-2 bg-[#FDC800] hover:bg-amber-400 font-display font-black text-xs uppercase border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] cursor-pointer"
+                    >
+                      OPEN CALENDAR GRID
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 3 & 4: FALLBACK / DEFAULT HERO */}
+            {activeDesktopTab !== 'today' && activeDesktopTab !== 'timeline' && (
+              <div className="space-y-6">
+                <TodayHero
+                  todayStr={todayStr}
+                  dayCount={dayCount}
+                  todayEntry={entries[todayStr] || null}
+                  currentEntry={entries[todayStr] || null}
+                  onSaveToday={handleSaveEntry}
+                  onSave={handleSaveEntry}
+                  onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
+                  sphereSettingsVer={sphereSettingsVer}
                 />
               </div>
-            </div>
+            )}
           </main>
 
           <footer className="w-full max-w-[1380px] mx-auto text-center text-xs font-mono font-bold text-neutral-600 py-10 px-6 border-t-2 border-black/10 mt-14 mb-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">

@@ -11,12 +11,9 @@ export default function Header({
   entries = {}, 
   dayCount = 1,
   todayStr = '2026-08-01',
-  onToggleCalendar,
-  isCalendarOpen,
-  onOpenMonthlyReport,
-  onOpenWallpaper,
+  activeTab = 'today',
+  onTabChange,
   onOpenSettings,
-  onOpenStickerVault,
   onSyncRefresh
 }) {
   const [user, setUser] = useState(null);
@@ -78,45 +75,75 @@ export default function Header({
 
   const isWhitelisted = user && isEmailWhitelisted(user.email);
 
+  const TABS = [
+    { id: 'today', label: 'TODAY', icon: Zap },
+    { id: 'timeline', label: 'TIMELINE & GRID', icon: Calendar },
+    { id: 'dossier', label: 'DOSSIER', icon: Sparkles },
+    { id: 'studio', label: 'CREATIVE STUDIO', icon: Sparkles },
+  ];
+
   return (
-    <header className="w-full max-w-[1380px] mx-auto px-4 sm:px-10 pt-6 sm:pt-10 pb-4 sm:pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <header className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
       
-      {/* Brand */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0 p-1">
+      {/* 1. Left: Brand & Day Streak */}
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="w-10 h-10 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-1">
           <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
         </div>
         <div>
-          <h1 className="font-display font-black text-xl sm:text-2xl text-black tracking-tight leading-none uppercase">
-            SHIT OR HIT
-          </h1>
-          <span className="text-[11px] sm:text-xs font-mono font-bold text-neutral-600 block mt-1">
-            {isWhitelisted ? `☁️ Cloud Sync Active (${user.displayName || 'Trinno'})` : 'Daily Verdict OS • 100% Local Data Active'}
+          <div className="flex items-center gap-2">
+            <h1 className="font-display font-black text-lg sm:text-xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
+              SHIT OR HIT
+            </h1>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#00E599] border-2 border-black text-black text-[10px] font-mono font-black shadow-[1.5px_1.5px_0px_#000000]">
+              <Flame className="w-3 h-3 text-black fill-black" />
+              <span>DAY {dayCount}</span>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
+            {isWhitelisted ? `☁️ Cloud Sync (${user.displayName || 'Trinno'})` : 'Daily Verdict OS'}
           </span>
         </div>
       </div>
 
-      {/* Actions: Streak, Cloud Sync, Monthly Dossier, Calendar, Backup */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
-        
-        {/* Streak Badge */}
-        <div className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-[#00E599] border-2 border-black text-black text-xs font-mono font-black shadow-[2px_2px_0px_#000000]">
-          <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black fill-black" />
-          <span>DAY {dayCount}</span>
-        </div>
+      {/* 2. Center: Segmented Navigation Tabs */}
+      <nav className="flex items-center bg-[#F4F2E6] p-1 rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] gap-1 shrink-0">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange && onTabChange(tab.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-display font-black text-xs uppercase transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                  : 'text-neutral-700 hover:text-black hover:bg-black/5 border-2 border-transparent'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
-        {/* Firebase Cloud Sync Button */}
+      {/* 3. Right: Subtle Cloud Status, Backup & Settings */}
+      <div className="flex items-center gap-2 shrink-0">
+        
+        {/* Minimal Cloud Status Pill / Dropdown */}
         {user ? (
-          <div className="relative" ref={userMenuRef}>
+          <div className="relative shrink-0" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className={`px-3 py-2 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
-                isWhitelisted ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-700'
+              className={`px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all ${
+                isWhitelisted ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-700'
               }`}
               title={isWhitelisted ? `Cloud Synced (${user.displayName || 'Trinno'})` : `Local mode`}
             >
+              <div className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse shrink-0" />
               <Cloud className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="truncate max-w-[120px]">{user.displayName || 'Trinno'}</span>
+              <span className="truncate max-w-[90px]">{user.displayName || 'Trinno'}</span>
             </button>
 
             {showUserMenu && (
@@ -153,78 +180,34 @@ export default function Header({
           <button
             onClick={handleGoogleLogin}
             disabled={authLoading}
-            className="px-3 py-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer"
-            title="Sign in with Google for Cloud Sync"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0"
+            title="Connect Google Cloud Sync"
           >
-            <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>{authLoading ? 'Signing In...' : 'CLOUD SYNC'}</span>
+            <Cloud className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span className="hidden sm:inline">{authLoading ? 'Signing In...' : 'SYNC'}</span>
           </button>
         )}
-
-        {/* Monthly Performance Intelligence Dossier Button */}
-        <MagneticButton
-          onClick={onOpenMonthlyReport}
-          title="Open Monthly AI Performance Intelligence Dossier"
-          className="px-3 sm:px-4 py-2 rounded-xl bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_#000000] cursor-pointer"
-        >
-          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-          <span>DOSSIER</span>
-        </MagneticButton>
-
-        {/* Calendar Toggle Button */}
-        <MagneticButton
-          onClick={onToggleCalendar}
-          className={`px-3 sm:px-4 py-2 rounded-xl border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_#000000] cursor-pointer ${
-            isCalendarOpen ? 'bg-[#FDC800]' : 'bg-white'
-          }`}
-        >
-          <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-          <span className="hidden sm:inline">{isCalendarOpen ? 'CLOSE CALENDAR' : 'CALENDAR'}</span>
-          <span className="sm:hidden">GRID</span>
-        </MagneticButton>
-
-        {/* Stickers & Mascots Vault Button */}
-        {onOpenStickerVault && (
-          <button
-            onClick={onOpenStickerVault}
-            title="Open Sticker & Mascot Vault"
-            className="px-3 py-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-black" />
-            <span className="hidden sm:inline">STICKERS</span>
-          </button>
-        )}
-
-        {/* Wallpaper & Social Export Button */}
-        <button
-          onClick={onOpenWallpaper}
-          title="Export Aesthetic Phone Wallpaper or Social Card"
-          className="px-3 py-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-black" />
-          <span className="hidden sm:inline">WALLPAPER</span>
-        </button>
 
         {/* Backup Button */}
         <button
           onClick={handleExport}
           title="Backup JSON Data"
-          className="px-3 py-2 rounded-xl bg-white border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
+          className="p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all cursor-pointer shrink-0"
         >
-          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-          <span className="hidden sm:inline">BACKUP</span>
+          <Download className="w-4 h-4 stroke-[2.5]" />
         </button>
 
-        {/* App Settings Button */}
+        {/* Settings Button */}
         {onOpenSettings && (
           <button
             onClick={onOpenSettings}
-            title="App Settings & Notifications"
-            className="p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black shadow-[2px_2px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000000] transition-all cursor-pointer"
+            title="App Settings & Customizations"
+            className="p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all cursor-pointer shrink-0"
           >
             <Settings className="w-4 h-4 text-black" />
           </button>
         )}
+
       </div>
 
     </header>
