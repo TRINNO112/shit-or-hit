@@ -83,7 +83,7 @@ export default function Header({
   ];
 
   return (
-    <header className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+    <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
       
       {/* 1. Left: Brand & Day Streak */}
       <div className="flex items-center gap-3 shrink-0">
@@ -143,7 +143,7 @@ export default function Header({
             >
               <div className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse shrink-0" />
               <Cloud className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="truncate max-w-[90px]">{user.displayName || 'Trinno'}</span>
+              <span className="truncate max-w-24">{user.displayName || 'Trinno'}</span>
             </button>
 
             {showUserMenu && (
@@ -192,7 +192,7 @@ export default function Header({
         <button
           onClick={handleExport}
           title="Backup JSON Data"
-          className="p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all cursor-pointer shrink-0"
+          className="p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0"
         >
           <Download className="w-4 h-4 stroke-[2.5]" />
         </button>
@@ -202,7 +202,7 @@ export default function Header({
           <button
             onClick={onOpenSettings}
             title="App Settings & Customizations"
-            className="p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all cursor-pointer shrink-0"
+            className="p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0"
           >
             <Settings className="w-4 h-4 text-black" />
           </button>

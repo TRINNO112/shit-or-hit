@@ -86,7 +86,7 @@ export default function JourneyTimeline({
                 layout
                 whileHover={{ y: -2, scale: 1.005 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className={`p-2.5 sm:p-3.5 rounded-xl border-2 border-black flex items-center justify-between shadow-[2.5px_2.5px_0px_#000000] transition-all group min-h-[64px] sm:min-h-[68px] ${
+                className={`p-2.5 sm:p-3.5 rounded-xl border-2 border-black flex items-center justify-between shadow-[2.5px_2.5px_0px_#000000] transition-all group min-h-16 sm:min-h-17 ${
                   isToday ? 'bg-[#FFFDF5] border-[2.5px]' : 'bg-white'
                 }`}
               >
