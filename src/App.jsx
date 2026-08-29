@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Zap, Calendar } from 'lucide-react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
