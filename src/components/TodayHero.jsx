@@ -269,18 +269,23 @@ export default function TodayHero({
     setNoteText(newVal);
   };
 
-  const handleAIEnhance = async () => {
+  const [aiCustomPrompt, setAiCustomPrompt] = useState('');
+  const [showCustomPromptInput, setShowCustomPromptInput] = useState(false);
+
+  const handleAIEnhance = async (overridePrompt = null) => {
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
     if ((!noteText || noteText.trim() === '') && !hasSphereNotes) return;
     
     const currentVal = noteText;
+    const activePrompt = overridePrompt || (showCustomPromptInput ? aiCustomPrompt : null);
     setIsEnhancing(true);
     try {
       const enhanced = await enhanceReflectionWithAI(
         currentVal, 
         compositeStats?.rating || selectedRating || 3, 
         todayStr,
-        sphereModeActive ? spheresData : null
+        sphereModeActive ? spheresData : null,
+        activePrompt
       );
       
       const newStack = historyStack.slice(0, historyIdx + 1);
@@ -742,6 +747,91 @@ export default function TodayHero({
                   <X className="w-3.5 h-3.5 stroke-[2.5]" />
                 </button>
               </div>
+            </div>
+
+            {/* 🤖 Tactical AI Ghostwriter Commands Suite */}
+            <div className="bg-neutral-50 p-2.5 rounded-2xl border-2 border-black space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-1.5">
+                <span className="text-[10px] font-mono font-black uppercase text-neutral-600 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-[#FDC800]" />
+                  <span>AI DIRECTIVES:</span>
+                </span>
+
+                {/* Quick Directive Chips */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow')}
+                    disabled={isEnhancing}
+                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
+                  >
+                    ⚡ Auto Polish
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Analyze and highlight the root causes of friction or success today, extracting key behavioral takeaways')}
+                    disabled={isEnhancing}
+                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
+                  >
+                    🎯 Root Causes
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Write through a stoic, resilient lens emphasizing emotional mastery, calm discipline, and tactical battlefield focus')}
+                    disabled={isEnhancing}
+                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
+                  >
+                    🛡️ Stoic Grit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways')}
+                    disabled={isEnhancing}
+                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
+                  >
+                    📝 Action Bullets
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomPromptInput(!showCustomPromptInput)}
+                    className={`px-2.5 py-1 border border-black rounded-lg text-[10px] font-mono font-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1 ${
+                      showCustomPromptInput ? 'bg-black text-white' : 'bg-white hover:bg-neutral-200 text-black'
+                    }`}
+                  >
+                    💬 Custom Command {showCustomPromptInput ? '▲' : '▼'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Custom Command Input Drawer */}
+              {showCustomPromptInput && (
+                <div className="pt-1 flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    placeholder="Give AI custom directive (e.g. 'Focus on my workout struggle and study plan', 'Use concise military log tone')"
+                    value={aiCustomPrompt}
+                    onChange={(e) => setAiCustomPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && aiCustomPrompt.trim()) {
+                        handleAIEnhance(aiCustomPrompt);
+                      }
+                    }}
+                    className="flex-1 px-3 py-1.5 bg-white border-2 border-black rounded-xl text-xs font-mono font-bold text-black focus:outline-none placeholder:text-neutral-400 shadow-[1.5px_1.5px_0px_#000000]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance(aiCustomPrompt)}
+                    disabled={isEnhancing || !aiCustomPrompt.trim()}
+                    className="px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-50 border-2 border-black rounded-xl text-xs font-display font-black text-black uppercase cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all shrink-0"
+                  >
+                    RUN COMMAND
+                  </button>
+                </div>
+              )}
             </div>
 
             <textarea

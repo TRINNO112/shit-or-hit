@@ -265,11 +265,12 @@ export default function MobileAppView({
         currentVal, 
         comp?.rating || selectedRating || 3, 
         todayStr,
-        sphereModeActive ? spheresData : null
+        sphereModeActive ? spheresData : null,
+        overridePrompt || null
       );
       if (enhanced && enhanced !== currentVal) {
         triggerHaptic('success');
-        playSound('chime');
+        soundFx.playPeak();
         confetti({ particleCount: 35, spread: 55, origin: { y: 0.6 }, colors: ['#FDC800', '#00E599', '#000000'] });
         const newStack = historyStack.slice(0, historyIdx + 1);
         newStack.push(enhanced);
@@ -1491,11 +1492,51 @@ export default function MobileAppView({
                   className="flex-1 w-full p-3.5 rounded-2xl border-2 border-black bg-white font-mono text-xs text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto"
                 />
 
+                {/* 🤖 Mobile AI Directives Bar */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0">
+                  <span className="text-[9px] font-mono font-black uppercase text-neutral-500 shrink-0 flex items-center gap-0.5">
+                    <Sparkles className="w-2.5 h-2.5 text-[#FDC800]" />
+                    <span>AI:</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow')}
+                    disabled={isEnhancing}
+                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
+                  >
+                    ⚡ Auto Polish
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Analyze and highlight root causes of friction or success today, extracting key takeaways')}
+                    disabled={isEnhancing}
+                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
+                  >
+                    🎯 Root Causes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Write through a stoic lens emphasizing emotional mastery and calm discipline')}
+                    disabled={isEnhancing}
+                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
+                  >
+                    🛡️ Stoic Grit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways')}
+                    disabled={isEnhancing}
+                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
+                  >
+                    📝 Bullets
+                  </button>
+                </div>
+
                 {/* AI Polish Toolbar & History Controls */}
                 <div className="flex items-center justify-between gap-2 pt-0.5">
                   <button
                     type="button"
-                    onClick={handleAIEnhance}
+                    onClick={() => handleAIEnhance()}
                     disabled={isEnhancing || !noteText || !noteText.trim()}
                     className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
                       isEnhancing ? 'bg-amber-100 opacity-70 animate-pulse' : 'bg-[#FDC800] hover:bg-amber-400'

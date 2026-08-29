@@ -251,7 +251,7 @@ export async function saveEntry(entryData) {
   return formatted;
 }
 
-export async function enhanceReflectionWithAI(notes, rating, date, spheres = null) {
+export async function enhanceReflectionWithAI(notes, rating, date, spheres = null, customInstruction = null) {
   if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) return notes;
 
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
@@ -261,7 +261,7 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
     const res = await fetch(`${API_BASE}/ai/enhance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres })
+      body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres, customInstruction })
     });
     if (res.ok) {
       const data = await res.json();
@@ -305,17 +305,23 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
         }
       }
 
-      const prompt = `You are a personal diary ghostwriter.
+      const directiveSection = customInstruction && customInstruction.trim()
+        ? `\n\n🎯 USER'S DIRECT CUSTOM DIRECTIVE / COMMAND TO YOU:
+"${customInstruction.trim()}"
+You MUST strictly prioritize and execute this specific custom command while maintaining the 1st-person diary structure.`
+        : '';
+
+      const prompt = `You are a personal diary ghostwriter and tactical reflection co-pilot.
 The user logged their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
 ${spheres ? 'The user logged segmented life domains (e.g. Work/School, Home, Social).' : ''}
 
 User's raw journal inputs and domain ratings:
-"${journalInput}"
+"${journalInput}"${directiveSection}
 
 CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
-- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Synthesize the domain events into a unified, chronological, vivid personal diary reflection (from morning through night).
+- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Synthesize the domain events into a unified, chronological, vivid personal diary reflection (from morning through night).
 - ${languageRule}
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
