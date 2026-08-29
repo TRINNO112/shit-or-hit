@@ -291,48 +291,13 @@ export default function App() {
                   sphereSettingsVer={sphereSettingsVer}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  {/* Left (7 cols): Full Lifetime Metrics Widget */}
-                  <div className="lg:col-span-7">
-                    <StatsWidget
-                      entries={entries}
-                      dayCount={dayCount}
-                      onOpenTelemetry={() => setIsTelemetryOpen(true)}
-                    />
-                  </div>
-
-                  {/* Right (5 cols): Deep Forensic Telemetry Hub */}
-                  <div className="lg:col-span-5 space-y-4">
-                    <div className="p-6 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-4">
-                      <div className="flex items-center justify-between border-b border-black/10 pb-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
-                            <Zap className="w-5 h-5 text-black fill-black" />
-                          </div>
-                          <div>
-                            <h4 className="font-display font-black text-sm uppercase leading-tight">Forensic Telemetry Hub</h4>
-                            <span className="text-[10px] font-mono text-neutral-500 font-bold">Deep behavioral analytics & momentum radar</span>
-                          </div>
-                        </div>
-                        <span className="px-2 py-0.5 rounded bg-black text-[#FDC800] text-[9px] font-mono font-black">
-                          PRO
-                        </span>
-                      </div>
-
-                      <p className="text-xs font-mono text-neutral-700 leading-relaxed">
-                        Track streak velocity, volatility index, peak performance clusters, and multi-sphere distribution across your journey.
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={() => setIsTelemetryOpen(true)}
-                        className="w-full py-3.5 bg-[#00E599] hover:bg-emerald-400 font-display font-black text-xs uppercase border-2 border-black rounded-xl shadow-[2.5px_2.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
-                      >
-                        <Zap className="w-4 h-4 text-black fill-black" />
-                        <span>LAUNCH FULL FORENSIC SUITE</span>
-                      </button>
-                    </div>
-                  </div>
+                {/* Full Width Lifetime Metrics Widget */}
+                <div className="w-full">
+                  <StatsWidget
+                    entries={entries}
+                    dayCount={dayCount}
+                    onOpenTelemetry={() => setIsTelemetryOpen(true)}
+                  />
                 </div>
               </div>
             )}

@@ -160,24 +160,28 @@ export default function MoodReactionBanner({ rating }) {
             <motion.div 
               initial={{ scale: 0.9, rotate: -2 }}
               animate={{ scale: 1, rotate: 0 }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.06, rotate: 2 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 450, damping: 20 }}
               onClick={() => setIsZoomed(true)}
               className="shrink-0 flex flex-col items-center justify-center relative cursor-pointer group"
               title="Click to view full-size mascot illustration"
             >
-              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white border-3 border-black p-2.5 shadow-[4px_4px_0px_#000000] flex items-center justify-center relative overflow-hidden">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white border-3 border-black p-2.5 shadow-[4px_4px_0px_#000000] flex items-center justify-center relative overflow-hidden group-hover:shadow-[6px_6px_0px_#000000] transition-shadow">
                 <img
                   src={config.mascot}
                   alt={config.title}
-                  className="w-full h-full object-contain filter drop-shadow-md transition-transform duration-300 group-hover:scale-110"
+                  className="w-full h-full object-contain filter drop-shadow-md transition-transform duration-300 group-hover:scale-112"
                 />
               </div>
 
-              <span className="mt-2 px-3 py-1 rounded-xl bg-black text-white text-[10px] font-mono font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_#000000] group-hover:bg-white group-hover:text-black transition-colors">
+              <motion.span 
+                whileHover={{ scale: 1.15, y: -2 }}
+                transition={{ type: 'spring', stiffness: 400 }}
+                className="mt-2.5 px-3 py-1 rounded-xl bg-black text-white text-[10px] font-mono font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_#000000] group-hover:bg-[#FDC800] group-hover:text-black group-hover:shadow-[2.5px_2.5px_0px_#000000] transition-all"
+              >
                 {config.tag}
-              </span>
+              </motion.span>
             </motion.div>
 
           </div>
