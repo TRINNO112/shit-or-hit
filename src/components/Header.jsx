@@ -71,7 +71,8 @@ export default function Header({
   const isWhitelisted = user && isEmailWhitelisted(user.email);
 
   const TABS = [
-    { id: 'log', label: 'LOG & TIMELINE', icon: Zap },
+    { id: 'today', label: 'TODAY', icon: Zap },
+    { id: 'timeline', label: 'CALENDAR & TIMELINE', icon: Calendar },
     { id: 'dossier', label: 'MONTHLY DOSSIER', icon: Sparkles },
     { id: 'studio', label: 'CREATIVE STUDIO', icon: Palette },
   ];
@@ -79,21 +80,15 @@ export default function Header({
   return (
     <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
       
-      {/* 1. Left: Brand & Day Streak */}
+      {/* 1. Left: Pure Clean Brand */}
       <div className="flex items-center gap-3 shrink-0">
         <div className="w-10 h-10 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-1">
           <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
         </div>
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="font-display font-black text-lg sm:text-xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
-              SHIT OR HIT
-            </h1>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#00E599] border-2 border-black text-black text-xs font-mono font-black shadow-[2px_2px_0px_#000000]">
-              <Flame className="w-4 h-4 text-black fill-black" />
-              <span>DAY {dayCount}</span>
-            </div>
-          </div>
+          <h1 className="font-display font-black text-lg sm:text-xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
+            SHIT OR HIT
+          </h1>
           <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
             {isWhitelisted ? `☁️ Cloud Sync (${user.displayName || 'Trinno'})` : 'Daily Verdict OS'}
           </span>
@@ -109,7 +104,7 @@ export default function Header({
             <button
               key={tab.id}
               onClick={() => onTabChange && onTabChange(tab.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-display font-black text-xs uppercase transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase transition-all cursor-pointer ${
                 isActive
                   ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black hover:bg-black/5 border-2 border-transparent'
@@ -122,9 +117,15 @@ export default function Header({
         })}
       </nav>
 
-      {/* 3. Right: Subtle Cloud Status, Backup & Settings */}
+      {/* 3. Right: Prominent Day Counter, Cloud Status, Backup & Settings */}
       <div className="flex items-center gap-2 shrink-0">
         
+        {/* 🔥 Prominent Day Streak Counter Pill */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00E599] border-2 border-black text-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+          <Flame className="w-4 h-4 text-black fill-black" />
+          <span>DAY {dayCount}</span>
+        </div>
+
         {/* Minimal Cloud Status Pill / Dropdown */}
         {user ? (
           <div className="relative shrink-0" ref={userMenuRef}>

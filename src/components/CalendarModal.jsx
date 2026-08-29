@@ -29,7 +29,8 @@ export default function CalendarModal({
   startDate, 
   todayStr,
   onEditDay,
-  onOpenMonthlyReport
+  onOpenMonthlyReport,
+  isEmbedded = false
 }) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -76,71 +77,70 @@ export default function CalendarModal({
     });
   }
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/65 backdrop-blur-xs overflow-y-auto"
-          onClick={onClose}
-        >
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className="neo-card w-full max-w-3xl bg-white my-auto max-h-[92vh] flex flex-col justify-between overflow-hidden" 
-            style={{ padding: '24px 28px' }}
-            onClick={(e) => e.stopPropagation()}
+  if (!isOpen) return null;
+
+  const contentJSX = (
+    <div 
+      className={`neo-card w-full ${isEmbedded ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] p-5 sm:p-6' : 'max-w-3xl my-auto max-h-[92vh] p-6'} bg-white flex flex-col justify-between overflow-hidden`} 
+      onClick={(e) => e.stopPropagation()}
+    >
+      
+      {/* Sticky Header with prominent AI Report & Close buttons */}
+      <div className="flex flex-wrap items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0 gap-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
+            <CalIcon className="w-5 h-5 text-black stroke-[2.5]" />
+          </div>
+          <div>
+            <h3 className="font-display font-black text-xl text-black uppercase leading-tight">
+              {monthName}
+            </h3>
+            <span className="text-xs font-mono font-bold text-neutral-500">
+              Click any active day to view or edit reflection
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Launch AI Report for this specific month */}
+          {onOpenMonthlyReport && (
+            <button
+              onClick={() => onOpenMonthlyReport({ year, month })}
+              title={`Generate AI Performance Report for ${monthName}`}
+              className="neo-btn px-3 py-1.5 bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>AI REPORT</span>
+            </button>
+          )}
+
+          <button
+            onClick={handlePrev}
+            title="Previous Month"
+            className="neo-btn p-2 text-black cursor-pointer"
           >
-            
-            {/* Sticky Header with prominent AI Report & Close buttons */}
-            <div className="flex flex-wrap items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0 gap-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
-                  <CalIcon className="w-5 h-5 text-black stroke-[2.5]" />
-                </div>
-                <div>
-                  <h3 className="font-display font-black text-xl text-black uppercase leading-tight">
-                    {monthName}
-                  </h3>
-                  <span className="text-xs font-mono font-bold text-neutral-500">
-                    Click any active day to view or edit reflection
-                  </span>
-                </div>
-              </div>
+            <ChevronLeft className="w-4 h-4 stroke-[3]" />
+          </button>
 
-              <div className="flex items-center gap-2">
-                {/* Launch AI Report for this specific month */}
-                {onOpenMonthlyReport && (
-                  <button
-                    onClick={() => onOpenMonthlyReport({ year, month })}
-                    title={`Generate AI Performance Report for ${monthName}`}
-                    className="neo-btn px-3 py-1.5 bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>AI REPORT</span>
-                  </button>
-                )}
+          <button
+            onClick={handleNext}
+            title="Next Month"
+            className="neo-btn p-2 text-black cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4 stroke-[3]" />
+          </button>
 
-                <button
-                  onClick={handlePrev}
-                  title="Previous Month"
-                  className="neo-btn p-2 text-black cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4 stroke-[3]" />
-                </button>
-
-                <button
-                  onClick={handleNext}
-                  title="Next Month"
-                  className="neo-btn p-2 text-black cursor-pointer"
-                >
-                  <ChevronRight className="w-4 h-4 stroke-[3]" />
-                </button>
+          {!isEmbedded && onClose && (
+            <button
+              onClick={onClose}
+              title="Close Calendar"
+              className="neo-btn p-2 bg-[#FF4D4D] text-black cursor-pointer"
+            >
+              <X className="w-4 h-4 stroke-[3]" />
+            </button>
+          )}
+        </div>
+      </div>
 
                 {/* High-visibility Close Button with text and icon */}
                 <button
@@ -231,7 +231,25 @@ export default function CalendarModal({
               </div>
             </div>
 
-          </motion.div>
+    </div>
+  );
+
+  if (isEmbedded) {
+    return contentJSX;
+  }
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/65 backdrop-blur-xs overflow-y-auto"
+          onClick={onClose}
+        >
+          {contentJSX}
         </motion.div>
       )}
     </AnimatePresence>

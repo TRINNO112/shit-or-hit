@@ -55,7 +55,7 @@ export default function App() {
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeDesktopTab, setActiveDesktopTab] = useState('log');
+  const [activeDesktopTab, setActiveDesktopTab] = useState('today');
 
   // Secret developer key sequence listener (type "iconlab" or "skeleton" anywhere)
   useEffect(() => {
@@ -276,8 +276,8 @@ export default function App() {
           </div>
 
           <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-            {/* VIEW 1: TODAY ACTIVE WORKSPACE + STATS + TIMELINE */}
-            {activeDesktopTab === 'log' && (
+            {/* VIEW 1: TODAY ACTIVE WORKSPACE & STATS */}
+            {activeDesktopTab === 'today' && (
               <div className="space-y-6">
                 <TodayHero
                   todayStr={todayStr}
@@ -301,28 +301,45 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="lg:col-span-1 space-y-6">
+                  <div className="lg:col-span-1">
                     <StatsWidget
                       entries={entries}
                       dayCount={dayCount}
                       onOpenTelemetry={() => setIsTelemetryOpen(true)}
                     />
-                    <div className="p-4 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] text-center space-y-3">
-                      <h4 className="font-display font-black text-sm uppercase">Interactive Calendar Matrix</h4>
-                      <p className="text-xs font-mono text-neutral-600">Open full month matrix with heatmaps & streak filters</p>
-                      <button
-                        onClick={() => setIsCalendarOpen(true)}
-                        className="w-full py-2.5 bg-[#FDC800] hover:bg-amber-400 font-display font-black text-xs uppercase border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] cursor-pointer"
-                      >
-                        OPEN CALENDAR GRID
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* VIEW 2: FULL IN-PAGE MONTHLY DOSSIER */}
+            {/* VIEW 2: CALENDAR MATRIX & JOURNEY TIMELINE */}
+            {activeDesktopTab === 'timeline' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="lg:col-span-7">
+                  <CalendarModal
+                    isOpen={true}
+                    isEmbedded={true}
+                    entries={entries}
+                    startDate={startDate}
+                    todayStr={todayStr}
+                    onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                    onOpenMonthlyReport={handleOpenMonthlyReport}
+                  />
+                </div>
+
+                <div className="lg:col-span-5 space-y-6">
+                  <JourneyTimeline
+                    startDate={startDate}
+                    entries={entries}
+                    todayStr={todayStr}
+                    onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                    onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 3: FULL IN-PAGE MONTHLY DOSSIER */}
             {activeDesktopTab === 'dossier' && (
               <div className="w-full">
                 <MonthlyReportModal
@@ -334,7 +351,7 @@ export default function App() {
               </div>
             )}
 
-            {/* VIEW 3: FULL IN-PAGE CREATIVE STUDIO */}
+            {/* VIEW 4: FULL IN-PAGE CREATIVE STUDIO */}
             {activeDesktopTab === 'studio' && (
               <div className="w-full">
                 <AestheticCardExportModal
