@@ -84,7 +84,8 @@ export default function AestheticCardExportModal({
   dayCount,
   entries = {},
   startDate = '2026-08-01',
-  displayName = 'Daily Operator'
+  displayName = 'Daily Operator',
+  isEmbedded = false
 }) {
   const [format, setFormat] = useState('wallpaper'); // 'wallpaper' (Story Poster) | 'social' (Feed Card)
   const [activeTheme, setActiveTheme] = useState('streetwear');
@@ -770,46 +771,41 @@ export default function AestheticCardExportModal({
     }
   };
 
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.94, y: 15 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.94, y: 15 }}
-          className="w-full max-w-4xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[8px_8px_0px_#000000] space-y-4 max-h-[90vh] flex flex-col my-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Pinned Header */}
-          <div className="flex items-center justify-between border-b-2 border-black/10 pb-3 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
-                <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
-              </div>
-              <div>
-                <h3 className="font-display font-black text-lg sm:text-xl uppercase leading-none">
-                  Wallpaper Studio
-                </h3>
-                <span className="text-xs font-mono text-neutral-600">
-                  Streetwear story posters & feed cards
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0"
-              title="Close Wallpaper Studio"
-            >
-              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
-            </button>
+  if (!isOpen) return null;
+
+  const contentJSX = (
+    <div
+      className={`w-full bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-4 ${
+        isEmbedded ? '' : 'max-w-4xl max-h-[90vh] flex flex-col my-auto'
+      }`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Pinned Header */}
+      <div className="flex items-center justify-between border-b-2 border-black/10 pb-3 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
+            <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
           </div>
+          <div>
+            <h3 className="font-display font-black text-lg sm:text-xl uppercase leading-none">
+              Wallpaper Studio
+            </h3>
+            <span className="text-xs font-mono text-neutral-600">
+              Streetwear story posters & feed cards
+            </span>
+          </div>
+        </div>
+        {!isEmbedded && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0"
+            title="Close Wallpaper Studio"
+          >
+            <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
+          </button>
+        )}
+      </div>
 
           {/* Scrollable Middle Container with Responsive 2-Column Grid on Desktop */}
           <div className="overflow-y-auto flex-1 pr-1">
@@ -1020,8 +1016,26 @@ export default function AestheticCardExportModal({
               </span>
             </button>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+  );
+
+  return (
+    <>
+      {isEmbedded ? (
+        contentJSX
+      ) : (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+            onClick={onClose}
+          >
+            {contentJSX}
+          </motion.div>
+        </AnimatePresence>
+      )}
 
       {/* Embedded Sticker Vault Modal */}
       {showStickerVault && (
@@ -1040,6 +1054,6 @@ export default function AestheticCardExportModal({
           }}
         />
       )}
-    </AnimatePresence>
+    </>
   );
 }

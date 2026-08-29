@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings } from 'lucide-react';
+import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette } from 'lucide-react';
 import { exportDatabaseBackup } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
 import MagneticButton from './MagneticButton';
@@ -11,7 +11,7 @@ export default function Header({
   entries = {}, 
   dayCount = 1,
   todayStr = '2026-08-01',
-  activeTab = 'today',
+  activeTab = 'log',
   onTabChange,
   onOpenSettings,
   onSyncRefresh
@@ -29,23 +29,18 @@ export default function Header({
     };
     if (showUserMenu) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [showUserMenu]);
 
   useEffect(() => {
     const unsubscribe = subscribeAuthState((currentUser) => {
       setUser(currentUser);
-      if (currentUser && isEmailWhitelisted(currentUser.email)) {
-        if (onSyncRefresh) onSyncRefresh();
-      }
     });
     return () => unsubscribe();
-  }, [onSyncRefresh]);
+  }, []);
 
   const handleGoogleLogin = async () => {
     setAuthLoading(true);
@@ -76,10 +71,9 @@ export default function Header({
   const isWhitelisted = user && isEmailWhitelisted(user.email);
 
   const TABS = [
-    { id: 'today', label: 'TODAY', icon: Zap },
-    { id: 'timeline', label: 'TIMELINE & GRID', icon: Calendar },
-    { id: 'dossier', label: 'DOSSIER', icon: Sparkles },
-    { id: 'studio', label: 'CREATIVE STUDIO', icon: Sparkles },
+    { id: 'log', label: 'LOG & TIMELINE', icon: Zap },
+    { id: 'dossier', label: 'MONTHLY DOSSIER', icon: Sparkles },
+    { id: 'studio', label: 'CREATIVE STUDIO', icon: Palette },
   ];
 
   return (
@@ -91,12 +85,12 @@ export default function Header({
           <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
         </div>
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <h1 className="font-display font-black text-lg sm:text-xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
               SHIT OR HIT
             </h1>
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#00E599] border-2 border-black text-black text-[10px] font-mono font-black shadow-[1.5px_1.5px_0px_#000000]">
-              <Flame className="w-3 h-3 text-black fill-black" />
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#00E599] border-2 border-black text-black text-xs font-mono font-black shadow-[2px_2px_0px_#000000]">
+              <Flame className="w-4 h-4 text-black fill-black" />
               <span>DAY {dayCount}</span>
             </div>
           </div>

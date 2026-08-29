@@ -36,7 +36,8 @@ export default function MonthlyReportModal({
   isOpen, 
   onClose, 
   initialYear, 
-  initialMonth 
+  initialMonth,
+  isEmbedded = false
 }) {
   const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
@@ -178,84 +179,75 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
   if (!isOpen) return null;
 
-  return (
-    <AnimatePresence>
-      <motion.div 
-        key="dossier-backdrop"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/75 backdrop-blur-xs"
-        onClick={handleClose}
-      >
-        <motion.div 
-          key="dossier-modal-card"
-          initial={{ opacity: 0, scale: 0.92, y: 25 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 25 }}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="w-[96vw] max-w-[1400px] h-[92vh] max-h-[92vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative"
-          style={{ padding: '0px' }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          
-          {/* Top Sticky Reading Progress Tracker */}
-          <div className="bg-black text-white px-5 sm:px-7 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
-            <div className="flex items-center gap-2 font-mono text-[11px] font-black">
-              <Compass className="w-3.5 h-3.5 text-[#FDC800] animate-spin" style={{ animationDuration: '6s' }} />
-              <span>MONTHLY PERFORMANCE INTELLIGENCE DOSSIER</span>
-            </div>
+  const contentJSX = (
+    <div 
+      className={`w-full ${
+        isEmbedded 
+          ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative' 
+          : 'w-[96vw] max-w-[1400px] h-[92vh] max-h-[92vh] rounded-3xl border-3 border-black shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative'
+      }`}
+      style={{ padding: '0px' }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      
+      {/* Top Sticky Reading Progress Tracker */}
+      <div className="bg-black text-white px-5 sm:px-7 py-1.5 flex items-center justify-between border-b-2 border-black shrink-0">
+        <div className="flex items-center gap-2 font-mono text-[11px] font-black">
+          <Compass className="w-3.5 h-3.5 text-[#FDC800] animate-spin" style={{ animationDuration: '6s' }} />
+          <span>MONTHLY PERFORMANCE INTELLIGENCE DOSSIER</span>
+        </div>
 
-            <div className="flex items-center gap-3">
-              <div className="w-36 sm:w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-white/20">
-                <motion.div 
-                  className="h-full bg-[#FDC800]"
-                  style={{ width: `${scrollProgress}%` }}
-                  transition={{ ease: 'easeOut', duration: 0.15 }}
-                />
+        <div className="flex items-center gap-3">
+          <div className="w-36 sm:w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-white/20">
+            <motion.div 
+              className="h-full bg-[#FDC800]"
+              style={{ width: `${scrollProgress}%` }}
+              transition={{ ease: 'easeOut', duration: 0.15 }}
+            />
+          </div>
+          <span className="font-mono text-[11px] font-black text-[#FDC800] w-12 text-right">
+            {scrollProgress}%
+          </span>
+        </div>
+      </div>
+
+      {/* Mobile-Optimized Clean Header */}
+      <div className="px-3.5 sm:px-7 py-2 sm:py-3 border-b-2 border-black/10 flex flex-col gap-2 shrink-0 bg-[#FFFDF5]">
+        {/* Row 1: Title & Optional Close Button */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="font-display font-black text-sm sm:text-lg text-black uppercase leading-none tracking-tight truncate">
+                  MONTHLY DOSSIER
+                </h3>
+                <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase shrink-0">
+                  GEMINI AI
+                </span>
               </div>
-              <span className="font-mono text-[11px] font-black text-[#FDC800] w-12 text-right">
-                {scrollProgress}%
+              <span className="text-[10px] font-mono font-bold text-neutral-500 hidden md:block truncate mt-0.5">
+                Deep behavioral intelligence, root-cause forensics & tactical battle plan.
               </span>
             </div>
           </div>
 
-          {/* Mobile-Optimized Clean Header */}
-          <div className="px-3.5 sm:px-7 py-2 sm:py-3 border-b-2 border-black/10 flex flex-col gap-2 shrink-0 bg-[#FFFDF5]">
-            {/* Row 1: Title & Pinned Close Button */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <h3 className="font-display font-black text-sm sm:text-lg text-black uppercase leading-none tracking-tight truncate">
-                      MONTHLY DOSSIER
-                    </h3>
-                    <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase shrink-0">
-                      GEMINI AI
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-mono font-bold text-neutral-500 hidden md:block truncate mt-0.5">
-                    Deep behavioral intelligence, root-cause forensics & tactical battle plan.
-                  </span>
-                </div>
-              </div>
+          {/* Optional Close Button (Only in Modal Mode) */}
+          {!isEmbedded && (
+            <button
+              onClick={handleClose}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
+              title="Close Dossier"
+            >
+              <X className="w-4 h-4 stroke-[3]" />
+            </button>
+          )}
+        </div>
 
-              {/* Pinned Close Button */}
-              <button
-                onClick={handleClose}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FF4D4D] hover:bg-red-400 border-2 border-black flex items-center justify-center text-black cursor-pointer shadow-[2px_2px_0px_#000000] shrink-0"
-                title="Close Dossier"
-              >
-                <X className="w-4 h-4 stroke-[3]" />
-              </button>
-            </div>
-
-            {/* Row 2: Controls (Month Switcher, Evaluate Button, Copy Button) */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* Row 2: Controls (Month Switcher, Evaluate Button, Copy Button) */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
               {/* Month Navigator */}
               <div className="h-8 sm:h-9 flex items-center bg-white border-2 border-black rounded-xl px-1 shadow-[2px_2px_0px_#000000]">
                 <button
@@ -851,7 +843,25 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             ) : null}
           </div>
 
-        </motion.div>
+        </div>
+  );
+
+  if (isEmbedded) {
+    return contentJSX;
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        key="dossier-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/75 backdrop-blur-xs"
+        onClick={handleClose}
+      >
+        {contentJSX}
       </motion.div>
     </AnimatePresence>
   );
