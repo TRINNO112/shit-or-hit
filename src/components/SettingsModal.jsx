@@ -272,14 +272,14 @@ export default function SettingsModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.94, y: 15 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.94, y: 15 }}
-            className="w-full max-w-md bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-4 max-h-[88vh] flex flex-col"
+            className="w-full max-w-lg bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-3.5 h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pinned Header with High-Contrast Desktop & Mobile Close ✕ Button */}

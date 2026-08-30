@@ -68,6 +68,29 @@ const IconMap = {
   Sparkles
 };
 
+function GrowingTextarea({ minHeight = 42, maxHeight = 260, placeholder, value, onChange, className }) {
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(maxHeight, Math.max(minHeight, textareaRef.current.scrollHeight))}px`;
+    }
+  }, [value, minHeight, maxHeight]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className={className}
+      rows={1}
+      style={{ minHeight: `${minHeight}px`, maxHeight: `${maxHeight}px`, resize: 'none' }}
+    />
+  );
+}
+
 export default function MobileAppView({
   startDate = new Date().toISOString().slice(0, 10),
   entries = {},
