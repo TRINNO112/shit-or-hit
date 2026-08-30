@@ -1,11 +1,15 @@
 // Smart Brotherly Notification & Reminder Engine (Zero-PII)
 
 const HINGLISH_REMINDERS = [
-  "Bhai karle aaj register! Din kaisa tha?",
-  "⏰ 9 PM ho gaye bhai! Aaj ka verdict lock in karle.",
-  "Bhai sun... diary entry bachi hai! 1-tap rating de de.",
-  "⚡ Aaj Hit tha ya Miss? Register karle mere bhai!",
-  "Bhai 2 minute nikal ke aaj ka verdict note karle."
+  "🔥 Bhai sun, aaj ka verdict lock-in karle! 2 minute ka game hai bas.",
+  "⚡ Hit tha ya Miss? Streak tootne mat de mere bhai, 1-tap rating de de!",
+  "🧠 Bhai aaj din kaisa raha? Quick verdict de aur tension-free so ja.",
+  "🏆 Consistency is King bhai! Aaj ka score register kar aur chill kar.",
+  "🛡️ Chahe rough day tha ya peak win, entry log karna zaroori hai bhai!",
+  "🚨 Oye bhai! Raat ho gayi, streak freeze hone se pehle entry lock karle.",
+  "🎯 1 tap verdict + 2 line reflection = Peak mental clarity. Karle bhai!",
+  "⭐ Aaj tu jeeta ya seekha? Aaj ka verdict record karle mere bhai!",
+  "☕ Bhai 2 minute nikal aur diary wrap up karle, kal subah fresh start lenge!"
 ];
 
 export function getRandomReminderText() {

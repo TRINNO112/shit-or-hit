@@ -371,28 +371,7 @@ export default function SettingsModal({
                       </button>
                     ))}
                   </div>
-
-                  {/* Instant Test Notification Button */}
-                  <div className="pt-2 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        showInstantReminderNotification("⚡ Test Notification: Your streak reminder is fully operational!");
-                        setNotificationMsg('🔔 Test notification sent to your desktop!');
-                      }}
-                      className="px-3 py-1.5 bg-white hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-[11px] font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
-                    >
-                      <Bell className="w-3.5 h-3.5 stroke-3" />
-                      <span>SEND TEST NOTIFICATION</span>
-                    </button>
-                  </div>
                 </div>
-
-                {notificationMsg && (
-                  <div className="p-2 bg-neutral-100 border border-black/20 rounded-xl text-[11px] font-mono font-bold text-neutral-800">
-                    {notificationMsg}
-                  </div>
-                )}
               </div>
 
               {/* 2. AI Ghostwriter Preferred Language */}
