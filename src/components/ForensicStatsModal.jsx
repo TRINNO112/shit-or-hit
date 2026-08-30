@@ -30,8 +30,6 @@ export default function ForensicStatsModal({
   startDate = '2026-08-01',
   todayStr
 }) {
-  if (!isOpen) return null;
-
   // 1. Calculate Core Analytics
   const entryList = Object.entries(entries).map(([date, data]) => ({
     date,
@@ -90,20 +88,22 @@ export default function ForensicStatsModal({
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
-        onClick={onClose}
-      >
+      {isOpen && (
         <motion.div
-          initial={{ scale: 0.94, y: 15 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.94, y: 15 }}
-          className="w-full max-w-2xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-6 shadow-[8px_8px_0px_#000000] space-y-4 max-h-[88vh] flex flex-col"
-          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+          onClick={onClose}
         >
+          <motion.div
+            initial={{ scale: 0.94, y: 15 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.94, y: 15 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+            className="w-full max-w-2xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-5 sm:p-6 shadow-[8px_8px_0px_#000000] space-y-4 max-h-[88vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Pinned Header */}
           <div className="flex items-center justify-between border-b-2 border-black/10 pb-3 shrink-0">
             <div className="flex items-center gap-3">
@@ -350,6 +350,7 @@ export default function ForensicStatsModal({
           </div>
         </motion.div>
       </motion.div>
+      )}
     </AnimatePresence>
   );
 }

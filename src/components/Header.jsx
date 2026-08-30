@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette } from 'lucide-react';
 import { exportDatabaseBackup } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState } from '../services/firebase';
+import { soundEngine } from '../services/soundEngine';
 import MagneticButton from './MagneticButton';
 
 import ShieldVoltIcon from './ShieldVoltIcon';
@@ -143,13 +145,23 @@ export default function Header({
           return (
             <button
               key={tab.id}
-              onClick={() => onTabChange && onTabChange(tab.id)}
-              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              onClick={() => {
+                soundEngine.playClick();
+                if (onTabChange) onTabChange(tab.id);
+              }}
+              className={`relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer whitespace-nowrap shrink-0 transition-colors z-10 ${
                 isActive
-                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
-                  : 'text-neutral-700 hover:text-black hover:bg-black/5 border-2 border-transparent'
+                  ? 'text-black'
+                  : 'text-neutral-700 hover:text-black hover:bg-black/5'
               }`}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="desktop-active-nav-pill"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  className="absolute inset-0 bg-[#FDC800] border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000] -z-10"
+                />
+              )}
               <Icon className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
               <span className="hidden 2xl:inline">{tab.label}</span>
               <span className="2xl:hidden">{tab.shortLabel}</span>
