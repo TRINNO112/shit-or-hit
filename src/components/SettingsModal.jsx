@@ -18,7 +18,12 @@ import {
   Trash2,
   Pencil,
   RotateCcw,
-  Code
+  Code,
+  Zap,
+  Target,
+  ListOrdered,
+  Terminal,
+  BookOpen
 } from 'lucide-react';
 import { 
   isNotificationSupported, 
@@ -72,6 +77,26 @@ export default function SettingsModal({
   const [editSphereColor, setEditSphereColor] = useState('#FDC800');
   const [editSphereDesc, setEditSphereDesc] = useState('');
 
+  // Custom Context Tags Management
+  const [tagsList, setTagsList] = useState([]);
+  const [newTagInput, setNewTagInput] = useState('');
+
+  const getSavedTags = () => {
+    try {
+      const saved = localStorage.getItem('daily_verdict_custom_tags');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      'Deep Work',
+      'Screen Trap',
+      'High Energy',
+      'Study Grind',
+      'Sleep Deficit',
+      'Locked In',
+      'Burnout'
+    ];
+  };
+
   useEffect(() => {
     if (isOpen) {
       setNotificationsOn(isNotificationEnabled());
@@ -79,11 +104,29 @@ export default function SettingsModal({
       setAiLanguage(localStorage.getItem('daily_verdict_ai_language') || 'auto');
       setSphereModeOn(isSphereModeEnabled());
       setSpheresList(getSphereConfig());
+      setTagsList(getSavedTags());
       setNotificationMsg('');
       setIsAddingSphere(false);
       setEditingSphereId(null);
     }
   }, [isOpen]);
+
+  const handleAddTag = (e) => {
+    e.preventDefault();
+    if (!newTagInput.trim()) return;
+    const clean = newTagInput.trim();
+    if (tagsList.includes(clean)) return;
+    const updated = [...tagsList, clean];
+    setTagsList(updated);
+    localStorage.setItem('daily_verdict_custom_tags', JSON.stringify(updated));
+    setNewTagInput('');
+  };
+
+  const handleDeleteTag = (tagToDelete) => {
+    const updated = tagsList.filter(t => t !== tagToDelete);
+    setTagsList(updated);
+    localStorage.setItem('daily_verdict_custom_tags', JSON.stringify(updated));
+  };
 
   const handleToggleSphereMode = () => {
     const next = !sphereModeOn;
@@ -261,19 +304,19 @@ export default function SettingsModal({
               {/* 1. Daily Reminder & Radial Clock Setting */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                       {notificationsOn ? (
                         <Bell className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
                       ) : (
                         <BellOff className="w-4 h-4 text-neutral-500" />
                       )}
                     </div>
-                    <div>
-                      <h4 className="font-display font-black text-sm uppercase">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-display font-black text-sm uppercase truncate">
                         Daily Streak Reminder
                       </h4>
-                      <p className="text-[11px] font-mono text-neutral-600">
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
                         Evening alert if today's log is empty
                       </p>
                     </div>
@@ -282,7 +325,7 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleNotifications}
-                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 ${
+                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 ${
                       notificationsOn 
                         ? 'bg-[#00E599] text-black' 
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
@@ -303,7 +346,7 @@ export default function SettingsModal({
                     <button
                       type="button"
                       onClick={() => setIsClockPickerOpen(true)}
-                      className="px-3 py-1.5 bg-[#FFFDF0] hover:bg-[#FDC800] border-2 border-black rounded-xl font-display font-black text-sm text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
+                      className="px-3 py-1.5 bg-[#FFFDF0] hover:bg-[#FDC800] border-2 border-black rounded-xl font-display font-black text-sm text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all shrink-0"
                       title="Open Interactive Clock Dial"
                     >
                       <span>{formatDisplayTime(reminderTimeVal)}</span>
@@ -354,15 +397,15 @@ export default function SettingsModal({
 
               {/* 2. AI Ghostwriter Preferred Language */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                     <Sparkles className="w-4 h-4 text-purple-600 stroke-[2.5]" />
                   </div>
-                  <div>
-                    <h4 className="font-display font-black text-sm uppercase">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display font-black text-sm uppercase truncate">
                       AI Diary Ghostwriter Language
                     </h4>
-                    <p className="text-[11px] font-mono text-neutral-600">
+                    <p className="text-[11px] font-mono text-neutral-600 truncate">
                       Prevent accidental language translation
                     </p>
                   </div>
@@ -391,19 +434,150 @@ export default function SettingsModal({
                 </div>
               </div>
 
+              {/* 📖 Tactical AI Directives & Command Reference Guide */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FAF8ED] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <BookOpen className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-display font-black text-sm uppercase truncate">
+                        AI Directives Guide
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                        Preset guidelines & custom commands
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-lg border border-black bg-[#00E599] text-black font-mono text-[9px] font-black uppercase shrink-0">
+                    SPECIAL GUIDE
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono pt-1">
+                  <div className="p-3 rounded-xl bg-amber-50 border-2 border-black space-y-1">
+                    <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
+                      <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                      <span>⚡ AUTO POLISH (DEFAULT)</span>
+                    </div>
+                    <p className="text-neutral-700 leading-tight text-[10px]">
+                      Preserves full story length & every single detail. Fixes awkward phrasing & grammar while keeping 100% of your authentic 1st-person voice.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-orange-50 border-2 border-black space-y-1">
+                    <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
+                      <Target className="w-3.5 h-3.5 text-orange-600 stroke-[2.5]" />
+                      <span>🎯 ROOT CAUSES</span>
+                    </div>
+                    <p className="text-neutral-700 leading-tight text-[10px]">
+                      Forensically diagnoses underlying triggers behind friction or peak performance clusters, surfacing actionable psychological insights.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-100 border-2 border-black space-y-1">
+                    <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
+                      <ShieldCheck className="w-3.5 h-3.5 text-blue-600 stroke-[2.5]" />
+                      <span>🛡️ STOIC GRIT</span>
+                    </div>
+                    <p className="text-neutral-700 leading-tight text-[10px]">
+                      Battlefield mindset lens. Re-centers thoughts around emotional resilience, duty, mental toughness, and taking full ownership.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-emerald-50 border-2 border-black space-y-1">
+                    <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
+                      <ListOrdered className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                      <span>📝 ACTION BULLETS</span>
+                    </div>
+                    <p className="text-neutral-700 leading-tight text-[10px]">
+                      Converts messy reflections into structured chronological bullets and decisive execution action items for tomorrow.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-[#FAF8ED] border border-black rounded-xl text-[10px] font-mono text-neutral-800 flex items-start gap-2">
+                  <Terminal className="w-4 h-4 text-black shrink-0 mt-0.5 stroke-[2.5]" />
+                  <span>
+                    <strong>💬 Custom Commands:</strong> Type any specific instruction into the Custom input bar in the diary (e.g. <em>"Focus on exam prep"</em>, <em>"Rewrite in 3 punchy lines"</em>) and Gemini AI will strictly prioritize it.
+                  </span>
+                </div>
+              </div>
+
+              {/* 🏷️ Context Tags Manager Setting */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-display font-black text-sm uppercase truncate">
+                        Diary Context Tags
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                        Manage 1-tap badges for mobile & web diary
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-lg border border-black bg-neutral-100 text-black font-mono text-[9px] font-black uppercase shrink-0">
+                    {tagsList.length} TAGS
+                  </span>
+                </div>
+
+                {/* Tags List */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {tagsList.map((tag) => (
+                    <div
+                      key={tag}
+                      className="px-2.5 py-1 bg-neutral-50 border-2 border-black rounded-xl text-[11px] font-mono font-bold text-black flex items-center gap-1.5 shadow-[1px_1px_0px_#000000]"
+                    >
+                      <span>{tag}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTag(tag)}
+                        className="text-neutral-400 hover:text-red-600 cursor-pointer text-xs font-black"
+                        title={`Remove ${tag}`}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add Tag Input Form - strictly bounded */}
+                <form onSubmit={handleAddTag} className="flex items-center gap-1.5 pt-1 w-full min-w-0">
+                  <input
+                    type="text"
+                    placeholder="New tag (e.g. Gym Beast)"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    className="flex-1 min-w-0 px-2.5 py-1.5 bg-neutral-50 border-2 border-black rounded-xl text-xs font-mono font-bold text-black focus:outline-none placeholder:text-neutral-400 shadow-[1px_1px_0px_#000000]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newTagInput.trim()}
+                    className="px-2.5 py-1.5 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-50 border-2 border-black rounded-xl font-display font-black text-xs text-black uppercase cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all shrink-0 whitespace-nowrap"
+                  >
+                    + ADD TAG
+                  </button>
+                </form>
+              </div>
+
               {/* 3. Segmented Day Matrix (Multi-Sphere Classification Mode) */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                       <Layers className="w-4 h-4 text-black stroke-[2.5]" />
                     </div>
-                    <div>
-                      <h4 className="font-display font-black text-sm uppercase flex items-center gap-1.5">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-display font-black text-sm uppercase flex items-center gap-1.5 truncate">
                         <span>Segmented Day Matrix</span>
-                        <span className="text-[9px] font-mono bg-black text-[#FDC800] px-1.5 py-0.5 rounded font-black">PRO</span>
+                        <span className="text-[9px] font-mono bg-black text-[#FDC800] px-1.5 py-0.5 rounded font-black shrink-0">PRO</span>
                       </h4>
-                      <p className="text-[11px] font-mono text-neutral-600">
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
                         Classify Work, Home, Social & Custom spheres
                       </p>
                     </div>
@@ -412,7 +586,7 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleSphereMode}
-                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 ${
+                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 ${
                       sphereModeOn 
                         ? 'bg-[#00E599] text-black' 
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
@@ -577,14 +751,16 @@ export default function SettingsModal({
                               </button>
 
                               {/* Delete Button */}
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSphere(sphere.id)}
-                                className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 cursor-pointer"
-                                title="Delete this sphere"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              {sphere.isCustom && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteSphere(sphere.id)}
+                                  className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 cursor-pointer"
+                                  title="Delete this sphere"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
 
                               {/* Toggle Enable Button */}
                               <button
@@ -605,64 +781,56 @@ export default function SettingsModal({
 
                     {/* Add Custom Sphere Section */}
                     {isAddingSphere ? (
-                      <form onSubmit={handleAddCustomSphere} className="p-3.5 bg-neutral-50 border-2 border-dashed border-black rounded-xl space-y-2.5">
-                        <div className="text-xs font-mono font-black uppercase text-neutral-800 flex items-center gap-1.5">
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Add New Life Sphere</span>
+                      <form onSubmit={handleAddCustomSphere} className="p-3 bg-neutral-100 rounded-xl border-2 border-black space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-display font-black text-xs uppercase">Add Life Sphere</span>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddingSphere(false)}
+                            className="text-neutral-500 hover:text-black text-xs font-mono cursor-pointer"
+                          >
+                            ✕
+                          </button>
                         </div>
-                        
-                        <div>
-                          <label className="block text-[10px] font-mono font-bold text-neutral-600 uppercase mb-1">
-                            Choose Infographic Icon:
-                          </label>
-                          <div className="grid grid-cols-6 gap-1 p-1.5 bg-white border-2 border-black rounded-lg max-h-28 overflow-y-auto">
-                            {SPHERE_INFOGRAPHIC_ICONS.map(item => {
-                              const Svg = item.icon;
-                              const isSel = newSphereIcon === item.id;
-                              return (
-                                <button
-                                  key={item.id}
-                                  type="button"
-                                  onClick={() => setNewSphereIcon(item.id)}
-                                  className={`p-1.5 rounded flex flex-col items-center justify-center border cursor-pointer transition-all ${
-                                    isSel ? 'bg-[#FDC800] border-black shadow-[1px_1px_0px_#000000]' : 'border-transparent hover:bg-neutral-100'
-                                  }`}
-                                  title={item.label}
-                                >
-                                  <Svg className="w-4 h-4 text-black stroke-[2.5]" />
-                                </button>
-                              );
-                            })}
-                          </div>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="Sphere Name (e.g. Fitness)"
+                            value={newSphereName}
+                            onChange={(e) => setNewSphereName(e.target.value)}
+                            className="flex-1 px-3 py-1.5 text-xs font-mono font-bold border-2 border-black rounded-xl bg-white focus:outline-none"
+                            autoFocus
+                          />
+                          <input
+                            type="text"
+                            maxLength={2}
+                            placeholder="⚡"
+                            value={newSphereIcon}
+                            onChange={(e) => setNewSphereIcon(e.target.value)}
+                            className="w-12 text-center px-1 py-1.5 text-xs font-mono font-bold border-2 border-black rounded-xl bg-white focus:outline-none"
+                            title="Emoji icon"
+                          />
                         </div>
 
                         <input
                           type="text"
-                          placeholder="Sphere Name (e.g. Fitness & Gym)"
-                          value={newSphereName}
-                          onChange={(e) => setNewSphereName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 border-2 border-black rounded-lg text-xs font-bold bg-white font-display uppercase"
-                          autoFocus
-                        />
-
-                        <input
-                          type="text"
-                          placeholder="Short description (e.g. Workouts & physical training)"
+                          placeholder="Short description (e.g. Work projects, gym)"
                           value={newSphereDesc}
                           onChange={(e) => setNewSphereDesc(e.target.value)}
-                          className="w-full px-2.5 py-1 border-2 border-black rounded-lg text-[11px] bg-white font-mono"
+                          className="w-full px-3 py-1.5 text-[11px] font-mono border-2 border-black rounded-xl bg-white focus:outline-none"
                         />
 
-                        {/* Color Selector */}
-                        <div className="flex items-center gap-2 pt-0.5">
-                          <span className="text-[10px] font-mono text-neutral-600">Accent:</span>
-                          <div className="flex gap-1.5">
-                            {['#FDC800', '#00E599', '#FF8A00', '#FF4D4D', '#A855F7', '#38BDF8'].map(c => (
+                        {/* Color Picker Chips */}
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[10px] font-mono text-neutral-600 uppercase">Accent Theme:</span>
+                          <div className="flex items-center gap-1.5">
+                            {['#FDC800', '#00E599', '#3B82F6', '#EC4899', '#A855F7', '#FF4D4D', '#14B8A6'].map((c) => (
                               <button
                                 key={c}
                                 type="button"
                                 onClick={() => setNewSphereColor(c)}
-                                className={`w-5 h-5 rounded-full border-2 border-black cursor-pointer ${
+                                className={`w-5 h-5 rounded-full border border-black cursor-pointer transition-transform ${
                                   newSphereColor === c ? 'scale-125 ring-2 ring-black' : ''
                                 }`}
                                 style={{ backgroundColor: c }}
@@ -705,21 +873,21 @@ export default function SettingsModal({
               </div>
 
               {/* 3. Cloud Sync Profile */}
-              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
+              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                     <Cloud className="w-4 h-4 text-blue-600 stroke-[2.5]" />
                   </div>
-                  <div>
-                    <h4 className="font-display font-black text-sm uppercase">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display font-black text-sm uppercase truncate">
                       Cloud Sync
                     </h4>
-                    <p className="text-[11px] font-mono text-neutral-600">
+                    <p className="text-[11px] font-mono text-neutral-600 truncate">
                       {user ? `Connected as ${user.displayName || 'Trinno'}` : 'Offline Local Storage'}
                     </p>
                   </div>
                 </div>
-                <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black ${
+                <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shrink-0 ${
                   user ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
                 }`}>
                   {user ? 'SYNCED' : 'LOCAL'}
@@ -727,44 +895,44 @@ export default function SettingsModal({
               </div>
 
               {/* 4. PWA Status */}
-              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center">
+              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                     <Smartphone className="w-4 h-4 text-purple-600 stroke-[2.5]" />
                   </div>
-                  <div>
-                    <h4 className="font-display font-black text-sm uppercase">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display font-black text-sm uppercase truncate">
                       PWA App Mode
                     </h4>
-                    <p className="text-[11px] font-mono text-neutral-600">
+                    <p className="text-[11px] font-mono text-neutral-600 truncate">
                       Android & iOS Standalone Ready
                     </p>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-xl border-2 border-black bg-[#FDC800] text-black font-mono text-[10px] font-black">
+                <span className="px-2.5 py-1 rounded-xl border-2 border-black bg-[#FDC800] text-black font-mono text-[10px] font-black shrink-0">
                   PWA v1.0
                 </span>
               </div>
 
               {/* 5. Custom Sticker Vault & Mascots */}
-              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center">
+              <div className="bg-white border-2 border-black rounded-2xl p-3.5 shadow-[3px_3px_0px_#000000] flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                     <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
                   </div>
-                  <div>
-                    <h4 className="font-display font-black text-sm uppercase">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display font-black text-sm uppercase truncate">
                       Sticker & Mascot Vault
                     </h4>
-                    <p className="text-[11px] font-mono text-neutral-600">
-                      Upload custom PNG stickers for wallpapers & exports
+                    <p className="text-[11px] font-mono text-neutral-600 truncate">
+                      Upload custom PNG stickers
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsStickerVaultOpen(true)}
-                  className="py-1.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0"
+                  className="py-1.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap"
                 >
                   MANAGE VAULT
                 </button>

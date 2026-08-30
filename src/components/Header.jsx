@@ -71,32 +71,72 @@ export default function Header({
   const isWhitelisted = user && isEmailWhitelisted(user.email);
 
   const TABS = [
-    { id: 'today', label: 'TODAY', icon: Zap },
-    { id: 'timeline', label: 'CALENDAR & TIMELINE', icon: Calendar },
-    { id: 'dossier', label: 'MONTHLY DOSSIER', icon: Sparkles },
-    { id: 'studio', label: 'CREATIVE STUDIO', icon: Palette },
+    { id: 'today', label: 'TODAY', shortLabel: 'TODAY', icon: Zap },
+    { id: 'timeline', label: 'CALENDAR & TIMELINE', shortLabel: 'TIMELINE', icon: Calendar },
+    { id: 'dossier', label: 'MONTHLY DOSSIER', shortLabel: 'DOSSIER', icon: Sparkles },
+    { id: 'studio', label: 'CREATIVE STUDIO', shortLabel: 'STUDIO', icon: Palette },
   ];
 
   return (
-    <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+    <header className="w-full max-w-7xl mx-auto py-3 sm:py-4 flex flex-col xl:flex-row items-center justify-between gap-3 sm:gap-4">
       
-      {/* 1. Left: Pure Clean Brand */}
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="w-10 h-10 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-1">
-          <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
+      {/* Top / Left Row: Brand + Right Controls on Tablet */}
+      <div className="w-full xl:w-auto flex items-center justify-between gap-3 shrink-0">
+        {/* 1. Brand */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-1">
+            <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
+          </div>
+          <div>
+            <h1 className="font-display font-black text-lg sm:text-xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
+              SHIT OR HIT
+            </h1>
+            <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
+              {isWhitelisted ? `☁️ Cloud Sync (${user.displayName || 'Trinno'})` : 'Daily Verdict OS'}
+            </span>
+          </div>
         </div>
-        <div>
-          <h1 className="font-display font-black text-lg sm:text-xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
-            SHIT OR HIT
-          </h1>
-          <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
-            {isWhitelisted ? `☁️ Cloud Sync (${user.displayName || 'Trinno'})` : 'Daily Verdict OS'}
-          </span>
+
+        {/* Right Controls for Tablet / Medium screens (hidden on xl desktop where it sits on the right) */}
+        <div className="flex xl:hidden items-center gap-2 shrink-0">
+          {/* 🔥 Day Counter */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00E599] border-2 border-black text-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+            <Flame className="w-3.5 h-3.5 text-black fill-black" />
+            <span>DAY {dayCount}</span>
+          </div>
+
+          {/* Cloud Status */}
+          {user ? (
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className={`px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all ${
+                isWhitelisted ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-700'
+              }`}
+            >
+              <div className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse shrink-0" />
+              <span className="max-w-[80px] truncate">{user.displayName || 'Trinno'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={loginWithGoogle}
+              className="px-2.5 py-1.5 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all"
+            >
+              LOGIN
+            </button>
+          )}
+
+          {/* Settings */}
+          <button
+            onClick={onOpenSettings}
+            className="p-1.5 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl cursor-pointer shadow-[1.5px_1.5px_0px_#000000]"
+          >
+            <Settings className="w-4 h-4 text-black stroke-[2.5]" />
+          </button>
         </div>
       </div>
 
       {/* 2. Center: Segmented Navigation Tabs */}
-      <nav className="flex items-center bg-[#F4F2E6] p-1 rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] gap-1 shrink-0">
+      <nav className="w-full xl:w-auto flex items-center justify-center bg-[#F4F2E6] p-1 rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] gap-1 overflow-x-auto no-scrollbar shrink-0">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -104,21 +144,22 @@ export default function Header({
             <button
               key={tab.id}
               onClick={() => onTabChange && onTabChange(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black hover:bg-black/5 border-2 border-transparent'
               }`}
             >
-              <Icon className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>{tab.label}</span>
+              <Icon className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
+              <span className="hidden 2xl:inline">{tab.label}</span>
+              <span className="2xl:hidden">{tab.shortLabel}</span>
             </button>
           );
         })}
       </nav>
 
-      {/* 3. Right: Prominent Day Counter, Cloud Status, Backup & Settings */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* 3. Right: Prominent Day Counter, Cloud Status, Backup & Settings (Visible on xl+ desktop) */}
+      <div className="hidden xl:flex items-center gap-2 shrink-0">
         
         {/* 🔥 Prominent Day Streak Counter Pill */}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00E599] border-2 border-black text-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">

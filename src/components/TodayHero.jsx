@@ -13,7 +13,13 @@ import {
   Loader2,
   Undo2,
   Redo2,
-  RotateCcw
+  RotateCcw,
+  Target,
+  ShieldCheck,
+  ListOrdered,
+  Terminal,
+  HelpCircle,
+  BookOpen
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -271,13 +277,18 @@ export default function TodayHero({
 
   const [aiCustomPrompt, setAiCustomPrompt] = useState('');
   const [showCustomPromptInput, setShowCustomPromptInput] = useState(false);
+  const [activeDirective, setActiveDirective] = useState('auto'); // 'auto' | 'root_causes' | 'stoic' | 'bullets' | 'custom'
 
-  const handleAIEnhance = async (overridePrompt = null) => {
+  const handleAIEnhance = async (overridePrompt = null, directiveId = null) => {
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
     if ((!noteText || noteText.trim() === '') && !hasSphereNotes) return;
     
+    if (directiveId) {
+      setActiveDirective(directiveId);
+    }
+    
     const currentVal = noteText;
-    const activePrompt = overridePrompt || (showCustomPromptInput ? aiCustomPrompt : null);
+    const activePrompt = overridePrompt || (directiveId === 'custom' || showCustomPromptInput ? aiCustomPrompt : null);
     setIsEnhancing(true);
     try {
       const enhanced = await enhanceReflectionWithAI(
@@ -750,85 +761,123 @@ export default function TodayHero({
             </div>
 
             {/* 🤖 Tactical AI Ghostwriter Commands Suite */}
-            <div className="bg-neutral-50 p-2.5 rounded-2xl border-2 border-black space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-1.5">
-                <span className="text-[10px] font-mono font-black uppercase text-neutral-600 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-[#FDC800]" />
-                  <span>AI DIRECTIVES:</span>
-                </span>
+            <div className="bg-[#FAF8ED] p-3 rounded-2xl border-2 border-black space-y-2.5 shadow-[2px_2px_0px_#000000]">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="px-2.5 py-1 bg-black text-[#FDC800] rounded-xl font-mono text-[10px] font-black uppercase flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#FDC800]">
+                  <Sparkles className="w-3.5 h-3.5 text-[#FDC800] fill-[#FDC800]" />
+                  <span>AI DIRECTIVES</span>
+                </div>
 
-                {/* Quick Directive Chips */}
+                {/* Quick Directive Chips with Visual Active Indicator */}
                 <div className="flex flex-wrap items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow')}
+                    onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow', 'auto')}
                     disabled={isEnhancing}
-                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
-                  >
-                    ⚡ Auto Polish
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Analyze and highlight the root causes of friction or success today, extracting key behavioral takeaways')}
-                    disabled={isEnhancing}
-                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
-                  >
-                    🎯 Root Causes
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Write through a stoic, resilient lens emphasizing emotional mastery, calm discipline, and tactical battlefield focus')}
-                    disabled={isEnhancing}
-                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
-                  >
-                    🛡️ Stoic Grit
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways')}
-                    disabled={isEnhancing}
-                    className="px-2.5 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[10px] font-mono font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1"
-                  >
-                    📝 Action Bullets
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomPromptInput(!showCustomPromptInput)}
-                    className={`px-2.5 py-1 border border-black rounded-lg text-[10px] font-mono font-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all flex items-center gap-1 ${
-                      showCustomPromptInput ? 'bg-black text-white' : 'bg-white hover:bg-neutral-200 text-black'
+                    title="Auto Polish: Flawless grammar & natural 1st-person storytelling (Default)"
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
+                      activeDirective === 'auto'
+                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
+                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
                     }`}
                   >
-                    💬 Custom Command {showCustomPromptInput ? '▲' : '▼'}
+                    <Zap className="w-3.5 h-3.5 text-black fill-black" />
+                    <span>Auto Polish</span>
+                    {activeDirective === 'auto' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Analyze and highlight the root causes of friction or success today, extracting key behavioral takeaways', 'root_causes')}
+                    disabled={isEnhancing}
+                    title="Root Causes: Dissect core factors behind friction or peak flow"
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
+                      activeDirective === 'root_causes'
+                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
+                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
+                    }`}
+                  >
+                    <Target className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                    <span>Root Causes</span>
+                    {activeDirective === 'root_causes' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Write through a stoic, resilient lens emphasizing emotional mastery, calm discipline, and tactical battlefield focus', 'stoic')}
+                    disabled={isEnhancing}
+                    title="Stoic Grit: Reframes experiences with calm discipline and resilience"
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
+                      activeDirective === 'stoic'
+                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
+                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                    <span>Stoic Grit</span>
+                    {activeDirective === 'stoic' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways', 'bullets')}
+                    disabled={isEnhancing}
+                    title="Action Bullets: Concise chronological bullets & action items"
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
+                      activeDirective === 'bullets'
+                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
+                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
+                    }`}
+                  >
+                    <ListOrdered className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                    <span>Action Bullets</span>
+                    {activeDirective === 'bullets' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomPromptInput(!showCustomPromptInput);
+                      if (!showCustomPromptInput) setActiveDirective('custom');
+                    }}
+                    className={`px-3 py-1.5 border-2 border-black rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 active:scale-95 ${
+                      showCustomPromptInput || activeDirective === 'custom'
+                        ? 'bg-black text-white shadow-[2px_2px_0px_#000000]'
+                        : 'bg-white hover:bg-neutral-200 text-black shadow-[1px_1px_0px_#000000]'
+                    }`}
+                  >
+                    <Terminal className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Custom {showCustomPromptInput ? '▲' : '▼'}</span>
                   </button>
                 </div>
               </div>
 
-              {/* Custom Command Input Drawer */}
+              {/* Custom Command Input Drawer ONLY */}
               {showCustomPromptInput && (
-                <div className="pt-1 flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    placeholder="Give AI custom directive (e.g. 'Focus on my workout struggle and study plan', 'Use concise military log tone')"
-                    value={aiCustomPrompt}
-                    onChange={(e) => setAiCustomPrompt(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && aiCustomPrompt.trim()) {
-                        handleAIEnhance(aiCustomPrompt);
-                      }
-                    }}
-                    className="flex-1 px-3 py-1.5 bg-white border-2 border-black rounded-xl text-xs font-mono font-bold text-black focus:outline-none placeholder:text-neutral-400 shadow-[1.5px_1.5px_0px_#000000]"
-                  />
+                <div className="pt-2 border-t-2 border-black/15 flex items-center gap-2">
+                  <div className="flex-1 relative flex items-center">
+                    <Terminal className="w-4 h-4 text-black absolute left-3 pointer-events-none stroke-[2.5]" />
+                    <input
+                      type="text"
+                      placeholder="Type custom command (e.g. 'Focus on workout & study', 'Rewrite in 3 punchy lines')"
+                      value={aiCustomPrompt}
+                      onChange={(e) => setAiCustomPrompt(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && aiCustomPrompt.trim()) {
+                          handleAIEnhance(aiCustomPrompt, 'custom');
+                        }
+                      }}
+                      className="w-full pl-9 pr-3 py-2 bg-white border-2 border-black rounded-xl text-xs font-mono font-bold text-black focus:outline-none placeholder:text-neutral-400 shadow-[2px_2px_0px_#000000]"
+                    />
+                  </div>
                   <button
                     type="button"
-                    onClick={() => handleAIEnhance(aiCustomPrompt)}
+                    onClick={() => handleAIEnhance(aiCustomPrompt, 'custom')}
                     disabled={isEnhancing || !aiCustomPrompt.trim()}
-                    className="px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-50 border-2 border-black rounded-xl text-xs font-display font-black text-black uppercase cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all shrink-0"
+                    className="px-4 py-2 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-50 border-2 border-black rounded-xl text-xs font-display font-black text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0 flex items-center gap-1.5"
                   >
-                    RUN COMMAND
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>RUN DIRECTIVE</span>
                   </button>
                 </div>
               )}
@@ -839,8 +888,8 @@ export default function TodayHero({
               placeholder="Write your raw diary thoughts here... (what went wrong, what went right, real struggles)"
               value={noteText}
               onChange={(e) => handleNoteChange(e.target.value)}
-              className="neo-input text-xs font-mono leading-relaxed"
-              style={{ minHeight: '140px' }}
+              className="neo-input text-sm sm:text-base font-mono leading-relaxed p-4"
+              style={{ minHeight: '160px' }}
             />
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2 pb-1">

@@ -33,7 +33,11 @@ import {
   RotateCcw,
   Undo2,
   Redo2,
-  Settings
+  Settings,
+  Target,
+  ShieldCheck,
+  ListOrdered,
+  Terminal
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -121,6 +125,10 @@ export default function MobileAppView({
   const [historyStack, setHistoryStack] = useState([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [originalDraft, setOriginalDraft] = useState('');
+  const [mobileCustomPrompt, setMobileCustomPrompt] = useState('');
+  const [showMobileCustomPrompt, setShowMobileCustomPrompt] = useState(false);
+  const [activeDirective, setActiveDirective] = useState('auto');
+  const [selectedTags, setSelectedTags] = useState([]);
 
   // Embedded Calendar State
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -231,33 +239,45 @@ export default function MobileAppView({
   const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
   const fullDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  const QUICK_TAGS = [
-    '🔥 Deep Work',
-    '📱 Screen Trap',
-    '⚡ High Energy',
-    '☕ Canteen Vibe',
-    '📚 Study Grind',
-    '💤 Sleep Deficit',
-    '🎯 Locked In',
-    '😤 Burnout'
-  ];
+  const [customTags, setCustomTags] = useState(() => {
+    try {
+      const saved = localStorage.getItem('daily_verdict_custom_tags');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      'Deep Work',
+      'Screen Trap',
+      'High Energy',
+      'Study Grind',
+      'Sleep Deficit',
+      'Locked In',
+      'Burnout'
+    ];
+  });
 
-  const handleAddTag = (tag) => {
+  const handleToggleTag = (tag) => {
     triggerHaptic('light');
-    playSound('click');
-    setNoteText(prev => {
-      const cleanPrev = prev ? prev.trim() : '';
-      if (cleanPrev.includes(tag)) return prev;
-      return cleanPrev ? `${cleanPrev} • [${tag}]` : `[${tag}]`;
+    soundFx.playClick();
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      }
+      return [...prev, tag];
     });
   };
 
-  const handleAIEnhance = async () => {
+  const handleAIEnhance = async (overridePrompt = null, directiveId = null) => {
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
     if ((!noteText || noteText.trim() === '') && !hasSphereNotes) return;
+    
+    if (directiveId) {
+      setActiveDirective(directiveId);
+    }
+    
     triggerHaptic('medium');
-    playSound('click');
+    soundFx.playClick();
     const currentVal = noteText;
+    const activePrompt = overridePrompt || (directiveId === 'custom' || showMobileCustomPrompt ? mobileCustomPrompt : null);
     setIsEnhancing(true);
     try {
       const comp = calculateCompositeScore(spheresData);
@@ -266,7 +286,7 @@ export default function MobileAppView({
         comp?.rating || selectedRating || 3, 
         todayStr,
         sphereModeActive ? spheresData : null,
-        overridePrompt || null
+        activePrompt
       );
       if (enhanced && enhanced !== currentVal) {
         triggerHaptic('success');
@@ -1465,71 +1485,153 @@ export default function MobileAppView({
 
               {/* Scrollable Textarea Body */}
               <div className="flex-1 p-4 flex flex-col overflow-hidden min-h-0 space-y-2.5">
-                {/* 1-Tap Quick Mood & Context Chips */}
+                {/* 1-Tap Quick Context & Tag Chips */}
                 <div>
-                  <span className="text-[10px] font-mono font-black text-neutral-500 uppercase block mb-1.5">
-                    1-Tap Quick Tags (Appends to note):
-                  </span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-mono font-black text-neutral-600 uppercase">
+                      DAY CONTEXT TAGS:
+                    </span>
+                    {selectedTags.length > 0 && (
+                      <span className="text-[9px] font-mono font-bold bg-black text-[#00E599] px-1.5 py-0.5 rounded">
+                        {selectedTags.length} SELECTED
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-                    {QUICK_TAGS.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => handleAddTag(tag)}
-                        className="px-2.5 py-1 rounded-lg border border-black bg-white hover:bg-[#FDC800] text-black font-mono text-[10px] font-bold shrink-0 shadow-[1px_1px_0px_#000000] cursor-pointer active:scale-95 transition-all"
-                      >
-                        {tag}
-                      </button>
-                    ))}
+                    {customTags.map((tag) => {
+                      const isSelected = selectedTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => handleToggleTag(tag)}
+                          className={`px-2.5 py-1 rounded-xl font-mono text-[10px] font-black shrink-0 border-2 border-black cursor-pointer active:scale-95 transition-all flex items-center gap-1 ${
+                            isSelected
+                              ? 'bg-[#00E599] text-black shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
+                              : 'bg-white hover:bg-[#FDC800] text-neutral-800 shadow-[1px_1px_0px_#000000]'
+                          }`}
+                        >
+                          {isSelected && <span>✓</span>}
+                          <span>{tag}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Textarea */}
+                {/* Textarea with Enhanced Text Size & Line Height */}
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
                   placeholder="What went wrong? What went right? Write your unfiltered thoughts..."
-                  className="flex-1 w-full p-3.5 rounded-2xl border-2 border-black bg-white font-mono text-xs text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto"
+                  className="flex-1 w-full p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto"
                 />
 
-                {/* 🤖 Mobile AI Directives Bar */}
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0">
-                  <span className="text-[9px] font-mono font-black uppercase text-neutral-500 shrink-0 flex items-center gap-0.5">
-                    <Sparkles className="w-2.5 h-2.5 text-[#FDC800]" />
-                    <span>AI:</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow')}
-                    disabled={isEnhancing}
-                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
-                  >
-                    ⚡ Auto Polish
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Analyze and highlight root causes of friction or success today, extracting key takeaways')}
-                    disabled={isEnhancing}
-                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
-                  >
-                    🎯 Root Causes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Write through a stoic lens emphasizing emotional mastery and calm discipline')}
-                    disabled={isEnhancing}
-                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
-                  >
-                    🛡️ Stoic Grit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways')}
-                    disabled={isEnhancing}
-                    className="px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-[9px] font-mono font-black text-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95"
-                  >
-                    📝 Bullets
-                  </button>
+                {/* 🤖 Mobile AI Directives Bar with Active Highlighting */}
+                <div className="space-y-1.5 shrink-0">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0">
+                    <span className="text-[9px] font-mono font-black uppercase text-neutral-600 shrink-0 flex items-center gap-0.5">
+                      <Sparkles className="w-2.5 h-2.5 text-[#FDC800] fill-[#FDC800]" />
+                      <span>AI:</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow', 'auto')}
+                      disabled={isEnhancing}
+                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
+                        activeDirective === 'auto'
+                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
+                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
+                      }`}
+                    >
+                      <Zap className="w-2.5 h-2.5 fill-black" />
+                      <span>Auto Polish</span>
+                      {activeDirective === 'auto' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAIEnhance('Analyze and highlight root causes of friction or success today, extracting key takeaways', 'root_causes')}
+                      disabled={isEnhancing}
+                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
+                        activeDirective === 'root_causes'
+                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
+                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
+                      }`}
+                    >
+                      <Target className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span>Root Causes</span>
+                      {activeDirective === 'root_causes' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAIEnhance('Write through a stoic lens emphasizing emotional mastery and calm discipline', 'stoic')}
+                      disabled={isEnhancing}
+                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
+                        activeDirective === 'stoic'
+                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
+                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
+                      }`}
+                    >
+                      <ShieldCheck className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span>Stoic Grit</span>
+                      {activeDirective === 'stoic' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways', 'bullets')}
+                      disabled={isEnhancing}
+                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
+                        activeDirective === 'bullets'
+                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
+                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
+                      }`}
+                    >
+                      <ListOrdered className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span>Bullets</span>
+                      {activeDirective === 'bullets' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMobileCustomPrompt(prev => !prev);
+                        if (!showMobileCustomPrompt) setActiveDirective('custom');
+                      }}
+                      className={`px-2.5 py-1 border-2 border-black rounded-xl text-[9px] font-mono font-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95 flex items-center gap-1 ${
+                        showMobileCustomPrompt || activeDirective === 'custom' ? 'bg-black text-white' : 'bg-white text-black'
+                      }`}
+                    >
+                      <Terminal className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span>Custom {showMobileCustomPrompt ? '▲' : '▼'}</span>
+                    </button>
+                  </div>
+
+                  {/* Mobile Custom Command Input Drawer */}
+                  {showMobileCustomPrompt && (
+                    <div className="p-2 bg-neutral-100 rounded-xl border border-black space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          placeholder="Type directive (e.g. 'Focus on workout', '3 lines')"
+                          value={mobileCustomPrompt}
+                          onChange={(e) => setMobileCustomPrompt(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && mobileCustomPrompt.trim()) {
+                              handleAIEnhance(mobileCustomPrompt);
+                            }
+                          }}
+                          className="flex-1 px-2.5 py-1 bg-white border border-black rounded-lg text-[11px] font-mono font-bold text-black focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAIEnhance(mobileCustomPrompt)}
+                          disabled={isEnhancing || !mobileCustomPrompt.trim()}
+                          className="px-2.5 py-1 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-50 border border-black rounded-lg text-[10px] font-display font-black text-black uppercase cursor-pointer active:scale-95 shrink-0"
+                        >
+                          RUN
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* AI Polish Toolbar & History Controls */}
