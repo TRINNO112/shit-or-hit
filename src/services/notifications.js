@@ -82,8 +82,8 @@ export async function showInstantReminderNotification(customBody = null) {
           console.log('🔔 [Notification Debug] Step 3a: Firing notification via ServiceWorkerRegistration.showNotification()');
           await registration.showNotification('⚡ Daily Verdict', {
             body,
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
             vibrate: [150, 50, 150],
             tag: 'daily-verdict-reminder',
             renotify: true
@@ -100,7 +100,8 @@ export async function showInstantReminderNotification(customBody = null) {
     console.log('🔔 [Notification Debug] Step 3b: Firing notification via standard new Notification() API');
     const n = new Notification('⚡ Daily Verdict', {
       body,
-      icon: '/favicon.ico',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
       vibrate: [150, 50, 150],
       tag: 'daily-verdict-reminder',
       requireInteraction: false
