@@ -104,10 +104,12 @@ export default function App() {
   useEffect(() => {
     scheduleLocalEveningReminder();
     const unsubscribe = subscribeAuthState((u) => {
+      console.log('🛡️ [App Engine] Auth Hydration:', u ? `Logged in as ${u.displayName} (${u.email}) [UID: ${u.uid}]` : 'Local Mode');
       setCurrentUser(u);
       if (u?.uid) {
         fetchCloudUserSettings(u.uid).then(cloudSettings => {
           if (cloudSettings) {
+            console.log('☁️ [Cloud Settings] Loaded settings for user:', u.uid, cloudSettings);
             if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
               localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
             }
@@ -116,7 +118,7 @@ export default function App() {
             }
             setSphereSettingsVer(v => v + 1);
           }
-        }).catch(() => {});
+        }).catch((err) => console.warn('Cloud settings fetch error:', err));
       }
     });
     return () => unsubscribe();

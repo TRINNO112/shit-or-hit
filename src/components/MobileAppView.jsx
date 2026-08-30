@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShieldVoltIcon from './ShieldVoltIcon';
 import { 
@@ -193,6 +193,7 @@ export default function MobileAppView({
 
   useEffect(() => {
     const unsub = subscribeAuthState((currentUser) => {
+      console.log('📱 [MobileAppView] Active User:', currentUser ? `${currentUser.displayName} (${currentUser.email})` : 'Anonymous Local');
       setUser(currentUser);
     });
     return () => unsub();
