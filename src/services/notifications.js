@@ -1,15 +1,13 @@
 // Smart Brotherly Notification & Reminder Engine (Zero-PII)
 
 const HINGLISH_REMINDERS = [
-  "🔥 Bhai sun, aaj ka verdict lock-in karle! 2 minute ka game hai bas.",
-  "⚡ Hit tha ya Miss? Streak tootne mat de mere bhai, 1-tap rating de de!",
-  "🧠 Bhai aaj din kaisa raha? Quick verdict de aur tension-free so ja.",
-  "🏆 Consistency is King bhai! Aaj ka score register kar aur chill kar.",
-  "🛡️ Chahe rough day tha ya peak win, entry log karna zaroori hai bhai!",
-  "🚨 Oye bhai! Raat ho gayi, streak freeze hone se pehle entry lock karle.",
-  "🎯 1 tap verdict + 2 line reflection = Peak mental clarity. Karle bhai!",
-  "⭐ Aaj tu jeeta ya seekha? Aaj ka verdict record karle mere bhai!",
-  "☕ Bhai 2 minute nikal aur diary wrap up karle, kal subah fresh start lenge!"
+  "🤦‍♂️ Bhai yaar rating nahi dali na tune? Kar le na shanti se, kya timepass kar raha hai!",
+  "⏰ Bhai aaj ka daalna tu bhool chuka hai, yaad dila raha hoon bas... baad mein kahega yaad nahi dilaya!",
+  "🥱 Are yaar daal de na rating, achhi khasi late ho gayi hai! Poore din karta nahi, raat ko karne mein bhi natak!",
+  "🙏 Bhai bhai please please please rating daal de, please please please... matlab rating daal de aur kya apni!",
+  "👑 Wah insaan! Mere devta, mere prabhu... rating de di aaj ke day ki? Main aapke bhale ke liye bol raha hoon!",
+  "⚡ Bhai sun na, Hit tha ya Shit? Bas 1 tap deke rating lock karle!",
+  "👀 Oye hero! Diary entry kaun karega? 1 minute lagega bas, abhi निपटा le!"
 ];
 
 export function getRandomReminderText() {
@@ -174,7 +172,7 @@ export function scheduleLocalEveningReminder() {
         if (db.entries && db.entries[todayStr] && db.entries[todayStr].rating) {
           isLoggedToday = true;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (!isLoggedToday) {
