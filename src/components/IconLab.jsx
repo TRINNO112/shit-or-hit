@@ -248,7 +248,7 @@ export default function IconLab({ onBack }) {
               onClick={onBack || (() => window.history.back())}
               className="p-2.5 rounded-2xl bg-white hover:bg-[#FDC800] border-3 border-black shadow-[3px_3px_0px_#000000] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 font-display font-black text-xs uppercase"
             >
-              <ArrowLeft className="w-4 h-4 stroke-[3]" />
+              <ArrowLeft className="w-4 h-4 stroke-3" />
               <span>BACK TO APP</span>
             </button>
             <div>
@@ -406,7 +406,7 @@ export default function IconLab({ onBack }) {
                     onClick={handleCopySvg}
                     className="flex-1 py-3 bg-[#00E599] hover:bg-[#00F0A0] text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-95"
                   >
-                    {copied ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4 stroke-[2.5]" />}
+                    {copied ? <Check className="w-4 h-4 stroke-3" /> : <Copy className="w-4 h-4 stroke-[2.5]" />}
                     <span>{copied ? 'COPIED TO CLIPBOARD!' : 'COPY SVG CODE'}</span>
                   </button>
                 </div>
@@ -430,7 +430,7 @@ export default function IconLab({ onBack }) {
                   value={customSvgInput}
                   onChange={(e) => setCustomSvgInput(e.target.value)}
                   placeholder="Paste your raw <svg>...</svg> code here to preview it live in the phone mockup above..."
-                  className="w-full h-24 p-3 bg-neutral-50 border-2 border-black rounded-xl font-mono text-[11px] outline-none focus:bg-white resize-none"
+                  className="w-full h-24 p-3 bg-neutral-50 border-2 border-black rounded-xl font-mono text-[11px] outline-none resize-none"
                 />
                 <p className="text-[10px] font-mono text-neutral-500">
                   Tip: Any valid SVG path or XML string will be rendered automatically.
@@ -452,7 +452,7 @@ export default function IconLab({ onBack }) {
                 </div>
 
                 {/* Grid of Icons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[560px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-140 overflow-y-auto pr-1">
                   {ICON_PRESETS.map((item) => {
                     const Icon = item.icon;
                     const isSelected = selectedIconId === item.id && !customSvgInput;
@@ -466,7 +466,7 @@ export default function IconLab({ onBack }) {
                         }}
                         className={`p-3.5 rounded-2xl border-2 border-black text-left cursor-pointer transition-all flex flex-col justify-between gap-3 ${
                           isSelected
-                            ? 'bg-[#FDC800] text-black shadow-[3px_3px_0px_#000000] translate-y-[-2px]'
+                            ? 'bg-[#FDC800] text-black shadow-[3px_3px_0px_#000000] -translate-y-0.5'
                             : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-800'
                         }`}
                       >
@@ -522,7 +522,7 @@ export default function IconLab({ onBack }) {
                   onClick={() => setIsWallpaperModalOpen(true)}
                   className="w-full sm:w-auto px-6 py-3.5 bg-[#00E599] hover:bg-[#00F0A0] text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0"
                 >
-                  <Sparkles className="w-4 h-4 stroke-[3]" />
+                  <Sparkles className="w-4 h-4 stroke-3" />
                   <span>🚀 LAUNCH {selectedStudioDesign === 'darkroom' ? 'DARKROOM' : 'DEEPSEEK'} MODAL</span>
                 </button>
               </div>

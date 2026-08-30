@@ -90,7 +90,7 @@ export default function MotivationalRecoveryModal({ isOpen, onClose }) {
           className="w-full py-3 bg-[#00E599] hover:bg-emerald-400 border-3 border-black rounded-2xl font-display font-black text-sm uppercase text-black shadow-[3px_3px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:scale-98 transition-all"
         >
           <span>Got This Bhai — I'm Ready</span>
-          <ArrowRight className="w-4 h-4 stroke-[3]" />
+          <ArrowRight className="w-4 h-4 stroke-3" />
         </button>
       </motion.div>
     </motion.div>

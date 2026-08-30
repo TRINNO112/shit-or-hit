@@ -63,18 +63,39 @@ export default function App() {
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
 
-  // Secret developer key sequence listener (type "iconlab" or "skeleton" anywhere)
+  // Auto-lock vault on tab blur / window switch
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isVaultPinActive()) {
+        setIsVaultLocked(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleVisibilityChange);
+    };
+  }, []);
+
+  // Secret developer key sequence listener (type "iconlab", "skeleton", or "recovery" anywhere)
+  useEffect(() => {
+    // Expose global developer testing helper in console
+    window.__testRecoveryModal = () => setIsMotivationalOpen(true);
+
     let keyBuffer = '';
     const handleKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
       
-      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-10);
+      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-12);
       if (keyBuffer.endsWith('iconlab')) {
         setShowIconLab(prev => !prev);
         keyBuffer = '';
       } else if (keyBuffer.endsWith('skeleton')) {
         setShowSkeletonPreview(prev => !prev);
+        keyBuffer = '';
+      } else if (keyBuffer.endsWith('recovery')) {
+        setIsMotivationalOpen(prev => !prev);
         keyBuffer = '';
       }
     };
@@ -86,7 +107,11 @@ export default function App() {
     const checkHash = () => {
       setShowIconLab(window.location.search.includes('view=icons') || window.location.hash.includes('icons'));
       setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
+      if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
+        setIsMotivationalOpen(true);
+      }
     };
+    checkHash();
     window.addEventListener('popstate', checkHash);
     window.addEventListener('hashchange', checkHash);
     return () => {

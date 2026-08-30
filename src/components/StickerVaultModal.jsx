@@ -148,7 +148,7 @@ export default function StickerVaultModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs select-none"
+        className="fixed inset-0 z-90 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs select-none"
         onClick={onClose}
       >
         <motion.div
@@ -156,7 +156,7 @@ export default function StickerVaultModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.93, y: 20 }}
           transition={{ type: 'spring', stiffness: 360, damping: 26 }}
-          className="w-full max-w-5xl min-h-[580px] sm:min-h-[540px] max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-6 sm:p-8"
+          className="w-full max-w-5xl min-h-145 sm:min-h-135 max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-6 sm:p-8"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -182,7 +182,7 @@ export default function StickerVaultModal({
               className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0 ml-2"
               title="Close"
             >
-              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-3" />
             </button>
           </div>
 
@@ -197,7 +197,7 @@ export default function StickerVaultModal({
                   ⚡ Auto-Linked to Mood Rating
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 bg-[#FDC800] border border-black rounded-lg font-mono text-[11px] sm:text-xs font-black text-black truncate max-w-[170px] sm:max-w-xs">
+                <span className="px-2.5 py-0.5 bg-[#FDC800] border border-black rounded-lg font-mono text-[11px] sm:text-xs font-black text-black truncate max-w-42.5 sm:max-w-xs">
                   🎨 Fixed Custom Sticker Selected
                 </span>
               )}
@@ -270,7 +270,7 @@ export default function StickerVaultModal({
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full sm:w-auto px-4 py-2 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black text-black flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#000000] active:scale-95 cursor-pointer disabled:opacity-50"
                 >
-                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <Plus className="w-4 h-4 stroke-3" />
                   <span>{isUploading ? 'Uploading...' : 'CHOOSE FILE'}</span>
                 </button>
               </div>
@@ -291,12 +291,12 @@ export default function StickerVaultModal({
                 {(selectedCategory === 'all' || selectedCategory === 'official') && (
                   <div
                     onClick={() => handleSelectActive('auto')}
-                    className={`h-[160px] sm:h-[175px] p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-between text-center cursor-pointer transition-all hover:-translate-y-1 ${activeId === 'auto'
+                    className={`h-40 sm:h-43.75 p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-between text-center cursor-pointer transition-all hover:-translate-y-1 ${activeId === 'auto'
                       ? 'bg-[#FFFDF0] ring-2.5 ring-black shadow-[4px_4px_0px_#000000]'
                       : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
                       }`}
                   >
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-black bg-gradient-to-br from-amber-200 to-emerald-200 flex items-center justify-center p-2 shadow-[1.5px_1.5px_0px_#000000] mb-1 shrink-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-black bg-linear-to-br from-amber-200 to-emerald-200 flex items-center justify-center p-2 shadow-[1.5px_1.5px_0px_#000000] mb-1 shrink-0">
                       <Sparkles className="w-7 h-7 text-black" />
                     </div>
                     <div className="min-w-0 w-full mb-1">
@@ -327,7 +327,7 @@ export default function StickerVaultModal({
                       <div
                         key={m.id}
                         onClick={() => handleSelectActive(m.id)}
-                        className={`h-[160px] sm:h-[175px] p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-between text-center cursor-pointer transition-all hover:-translate-y-1 ${isSelected
+                        className={`h-40 sm:h-43.75 p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-between text-center cursor-pointer transition-all hover:-translate-y-1 ${isSelected
                           ? 'bg-[#FFFDF0] ring-2.5 ring-black shadow-[4px_4px_0px_#000000]'
                           : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
                           }`}
@@ -367,7 +367,7 @@ export default function StickerVaultModal({
                       <div
                         key={s.id}
                         onClick={() => handleSelectActive(s.id)}
-                        className={`h-[160px] sm:h-[175px] p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-between text-center cursor-pointer transition-all relative group hover:-translate-y-1 ${isSelected
+                        className={`h-40 sm:h-43.75 p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-between text-center cursor-pointer transition-all relative group hover:-translate-y-1 ${isSelected
                           ? 'bg-[#FFFDF0] ring-2.5 ring-black shadow-[4px_4px_0px_#000000]'
                           : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
                           }`}

@@ -215,7 +215,7 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
       {/* Dynamic Utility Progress Bar */}
       <div className="w-full bg-neutral-100 border-2 border-black rounded-full h-3 overflow-hidden shadow-[1px_1px_0px_#000000]">
         <div 
-          className="h-full bg-gradient-to-r from-[#00E599] to-[#FDC800] transition-all duration-300 rounded-full"
+          className="h-full bg-linear-to-r from-[#00E599] to-[#FDC800] transition-all duration-300 rounded-full"
           style={{ width: `${totalUtils > 0 ? (achievedUtils / totalUtils) * 100 : 0}%` }}
         />
       </div>

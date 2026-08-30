@@ -323,12 +323,12 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
         >
           {downloadSuccess ? (
             <>
-              <Check className="w-4 h-4 stroke-[3]" />
+              <Check className="w-4 h-4 stroke-3" />
               <span>WALLPAPER SAVED!</span>
             </>
           ) : (
             <>
-              <Download className="w-4 h-4 stroke-[3]" />
+              <Download className="w-4 h-4 stroke-3" />
               <span>DOWNLOAD HIGH-RES PNG</span>
             </>
           )}
@@ -435,7 +435,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
         <div className="max-w-full overflow-auto flex justify-center p-2 rounded-2xl bg-neutral-950 border border-white/10">
           <canvas
             ref={canvasRef}
-            className="max-h-[520px] w-auto rounded-xl shadow-2xl border border-white/20"
+            className="max-h-130 w-auto rounded-xl shadow-2xl border border-white/20"
           />
         </div>
       </div>

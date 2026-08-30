@@ -192,7 +192,7 @@ export default function AestheticCardVariantDeepseek({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+        className="fixed inset-0 z-80 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
         onClick={onClose}
       >
         <motion.div
@@ -334,12 +334,12 @@ export default function AestheticCardVariantDeepseek({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
-                className="relative w-full max-w-[280px] lg:max-w-[340px] mx-auto"
+                className="relative w-full max-w-70 lg:max-w-85 mx-auto"
               >
                 {/* Device mockup */}
                 <div
                   className={`relative rounded-3xl overflow-hidden shadow-2xl ${
-                    format === 'wallpaper' ? 'aspect-[9/16]' : 'aspect-square'
+                    format === 'wallpaper' ? 'aspect-9/16' : 'aspect-square'
                   }`}
                   style={{
                     border: '4px solid white',

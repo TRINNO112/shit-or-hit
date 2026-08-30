@@ -358,7 +358,7 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
                         type="text"
                         value={item.title}
                         onChange={(e) => handleUpdateAnchor(idx, 'title', e.target.value)}
-                        className="flex-1 px-2.5 py-1.5 sm:py-2 text-xs font-mono font-black border-2 border-black rounded-xl bg-[#FAF8ED] min-w-0 focus:bg-white"
+                        className="flex-1 px-2.5 py-1.5 sm:py-2 text-xs font-mono font-black border-2 border-black rounded-xl bg-[#FAF8ED] min-w-0"
                         placeholder={`Habit #${idx + 1}`}
                       />
 
@@ -422,7 +422,7 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
                 onClick={handleAddNewAnchor}
                 className="w-full py-2.5 sm:py-3 bg-white hover:bg-neutral-100 border-2 sm:border-3 border-dashed border-black rounded-2xl text-xs font-display font-black uppercase text-black flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95"
               >
-                <Plus className="w-4 h-4 stroke-[3]" />
+                <Plus className="w-4 h-4 stroke-3" />
                 <span>+ ADD ANOTHER HABIT TASK</span>
               </button>
             </div>
@@ -504,7 +504,7 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
             onClick={onClose}
             className="px-5 py-2 sm:px-6 sm:py-2.5 bg-[#00E599] hover:bg-emerald-400 font-display font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 text-black"
           >
-            <Check className="w-4 h-4 stroke-[3]" />
+            <Check className="w-4 h-4 stroke-3" />
             <span>SAVE & RETURN</span>
           </button>
         </div>

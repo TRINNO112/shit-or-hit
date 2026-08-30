@@ -125,7 +125,7 @@ export default function ForensicStatsModal({
               className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0"
               title="Close Telemetry Hub"
             >
-              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-3" />
             </button>
           </div>
 
@@ -196,7 +196,7 @@ export default function ForensicStatsModal({
                       </span>
                       
                       {/* Vertical Graphic Bar */}
-                      <div className="w-full max-w-[32px] bg-neutral-100 rounded-t-xl border-2 border-black overflow-hidden flex flex-col justify-end p-0.5 shadow-[1px_1px_0px_#000000]">
+                      <div className="w-full max-w-8 bg-neutral-100 rounded-t-xl border-2 border-black overflow-hidden flex flex-col justify-end p-0.5 shadow-[1px_1px_0px_#000000]">
                         <div 
                           className="w-full rounded-t-lg transition-all duration-300"
                           style={{
