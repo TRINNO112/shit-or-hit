@@ -701,7 +701,7 @@ export default function TodayHero({
                     onClick={handleUndo}
                     disabled={historyIdx <= 0}
                     title="Undo last change"
-                    className="p-1 rounded hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-black"
+                    className="p-1 rounded hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed text-black"
                   >
                     <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
@@ -711,7 +711,7 @@ export default function TodayHero({
                     onClick={handleRedo}
                     disabled={historyIdx >= historyStack.length - 1}
                     title="Redo change"
-                    className="p-1 rounded hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer text-black"
+                    className="p-1 rounded hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed text-black"
                   >
                     <Redo2 className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
@@ -721,7 +721,7 @@ export default function TodayHero({
                       type="button"
                       onClick={handleRevertOriginal}
                       title="Revert back to original raw text"
-                      className="px-2 py-0.5 rounded hover:bg-white text-[10px] font-black uppercase cursor-pointer text-neutral-800"
+                      className="px-2 py-0.5 rounded hover:bg-white text-[10px] font-black uppercase text-neutral-800"
                     >
                       ORIGINAL
                     </button>
@@ -734,7 +734,7 @@ export default function TodayHero({
                   onClick={handleAIEnhance}
                   disabled={isEnhancing || (!noteText.trim() && !Object.values(spheresData).some(s => s?.notes && s.notes.trim()))}
                   title="Synthesize sphere reflections and polish your diary with Gemini AI (maintains 1st person)"
-                  className="px-3.5 py-1.5 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-[2px_2px_0px_#000000]"
+                  className="px-3.5 py-1.5 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000000]"
                 >
                   {isEnhancing ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

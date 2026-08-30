@@ -114,7 +114,7 @@ export default function Header({
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse shrink-0" />
-              <span className="max-w-[80px] truncate">{user.displayName || 'Trinno'}</span>
+              <span className="max-w-20 truncate">{user.displayName || 'Trinno'}</span>
             </button>
           ) : (
             <button
