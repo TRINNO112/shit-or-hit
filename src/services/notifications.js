@@ -5,7 +5,7 @@ const HINGLISH_REMINDERS = [
   "⏰ Bhai aaj ka daalna tu bhool chuka hai, yaad dila raha hoon bas... baad mein kahega yaad nahi dilaya!",
   "🥱 Are yaar daal de na rating, achhi khasi late ho gayi hai! Poore din karta nahi, raat ko karne mein bhi natak!",
   "🙏 Bhai bhai please please please rating daal de, please please please... matlab rating daal de aur kya apni!",
-  "👑 Wah insaan! Mere devta, mere prabhu... rating de di aaj ke day ki? Main aapke bhale ke liye bol raha hoon!",
+  "👑 Mere devta, mere prabhu... rating de di aaj ke day ki? Main aapke bhale ke liye bol raha hoon!",
   "⚡ Bhai sun na, Hit tha ya Shit? Bas 1 tap deke rating lock karle!",
   "👀 Oye hero! Diary entry kaun karega? 1 minute lagega bas, abhi निपटा le!"
 ];
