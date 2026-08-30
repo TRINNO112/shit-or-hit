@@ -210,9 +210,10 @@ const ICON_PRESETS = [
 
 import AestheticCardExportModal from './AestheticCardExportModal';
 import AestheticCardVariantDeepseek from './AestheticCardVariantDeepseek';
+import YearInPixelsWallpaperEngine from './YearInPixelsWallpaperEngine';
 
 export default function IconLab({ onBack }) {
-  const [activeLabTab, setActiveLabTab] = useState('wallpaper'); // Default to wallpaper tab per user request!
+  const [activeLabTab, setActiveLabTab] = useState('year_pixels'); // Default to 365-day wallpaper
   const [selectedStudioDesign, setSelectedStudioDesign] = useState('darkroom'); // 'darkroom' | 'deepseek'
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState('shield_volt');
@@ -255,37 +256,55 @@ export default function IconLab({ onBack }) {
                 🧪 Experimental Studio & Lab
               </h1>
               <p className="text-xs font-mono text-neutral-600">
-                Live sandbox for PWA App Icons, SVGs, and Wallpaper / Story Poster layouts.
+                Live sandbox for 365-Day Wallpapers, PWA App Icons, and Story Posters.
               </p>
             </div>
           </div>
 
           {/* Tab Selector */}
-          <div className="flex items-center p-1 bg-neutral-200 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000]">
+          <div className="flex items-center p-1 bg-neutral-200 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] flex-wrap gap-1">
             <button
               type="button"
-              onClick={() => setActiveLabTab('icons')}
-              className={`px-3.5 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
-                activeLabTab === 'icons'
+              onClick={() => setActiveLabTab('year_pixels')}
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+                activeLabTab === 'year_pixels'
                   ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black border-2 border-transparent'
               }`}
             >
-              ⚡ APP ICONS & SVG
+              🗓️ 365-DAY WALLPAPER
             </button>
             <button
               type="button"
-              onClick={() => setActiveLabTab('wallpaper')}
-              className={`px-3.5 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
-                activeLabTab === 'wallpaper'
+              onClick={() => setActiveLabTab('icons')}
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+                activeLabTab === 'icons'
                   ? 'bg-[#00E599] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black border-2 border-transparent'
               }`}
             >
-              🖼️ WALLPAPER STUDIO
+              ⚡ ICONS & SVG
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveLabTab('wallpaper')}
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+                activeLabTab === 'wallpaper'
+                  ? 'bg-black text-white border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                  : 'text-neutral-700 hover:text-black border-2 border-transparent'
+              }`}
+            >
+              🖼️ POSTER ARENA
             </button>
           </div>
         </div>
+
+        {/* TAB 0: 365-DAY YEAR IN PIXELS WALLPAPER ENGINE */}
+        {activeLabTab === 'year_pixels' && (
+          <div className="space-y-6">
+            <YearInPixelsWallpaperEngine />
+          </div>
+        )}
 
         {/* TAB 1: ICONS & SVG */}
         {activeLabTab === 'icons' && (

@@ -39,7 +39,8 @@ import {
 } from '../services/notifications';
 import { soundEngine } from '../services/soundEngine';
 import { VaultPinSettings } from './VaultPinModal';
-import { NonNegotiablesSettings } from './NonNegotiableCard';
+import { isNonNegotiablesActive } from './NonNegotiableCard';
+import NonNegotiablesStudioModal from './NonNegotiablesStudioModal';
 import {
   isSphereModeEnabled,
   setSphereModeEnabled,
@@ -62,6 +63,7 @@ export default function SettingsModal({
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('22:00');
   const [soundFxOn, setSoundFxOn] = useState(() => soundEngine.isSoundEnabled());
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState('');
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'notifications' | 'about'
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
@@ -425,10 +427,42 @@ export default function SettingsModal({
                 if (onSettingsChanged) onSettingsChanged();
               }} />
 
-              {/* 4. Daily Non-Negotiables Mode (Default OFF) */}
-              <NonNegotiablesSettings onSettingsUpdated={() => {
-                if (onSettingsChanged) onSettingsChanged();
-              }} />
+              {/* 4. Daily Non-Negotiables Studio */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <ShieldCheck className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-display font-black text-sm uppercase truncate">
+                          Daily Non-Negotiables Studio
+                        </h4>
+                        <span className={`px-2 py-0.5 rounded-lg border border-black text-[9px] font-mono font-black uppercase ${
+                          isNonNegotiablesActive() ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                        }`}>
+                          {isNonNegotiablesActive() ? 'ACTIVE' : 'OFF'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                        Configure 3 rating modes, habit templates, and economic utils points
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playClick();
+                      setIsStudioOpen(true);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black bg-[#FDC800] text-black hover:bg-[#ffe169] shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 active:scale-95 transition-all flex items-center gap-1.5"
+                  >
+                    <span>CONFIGURE ➔</span>
+                  </button>
+                </div>
+              </div>
 
               {/* 5. AI Ghostwriter Preferred Language */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
@@ -1004,6 +1038,13 @@ export default function SettingsModal({
           onClose={() => setIsStickerVaultOpen(false)}
         />
       )}
+
+      {/* Dedicated Non-Negotiables Studio Modal */}
+      <NonNegotiablesStudioModal
+        isOpen={isStudioOpen}
+        onClose={() => setIsStudioOpen(false)}
+        onSettingsChanged={onSettingsChanged}
+      />
     </>
   );
 }
