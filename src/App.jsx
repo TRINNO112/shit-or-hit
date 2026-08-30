@@ -60,22 +60,12 @@ export default function App() {
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
-  const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
+  const [isVaultLocked, setIsVaultLocked] = useState(false);
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
 
-  // Auto-lock vault on tab blur / window switch
+  // Auto-lock paused while migrating to Netlify serverless mediator
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && isVaultPinActive()) {
-        setIsVaultLocked(true);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleVisibilityChange);
-    };
+    // Lock gatekeeper paused safely
   }, []);
 
   // Secret developer key sequence listener (type "iconlab", "skeleton", or "recovery" anywhere)
@@ -138,8 +128,17 @@ export default function App() {
             if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
               localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
             }
-            if (cloudSettings.sphereModeEnabled !== undefined) {
-              localStorage.setItem('daily_verdict_sphere_mode_enabled', cloudSettings.sphereModeEnabled ? 'true' : 'false');
+            if (cloudSettings.vaultPinCipher !== undefined || cloudSettings.vaultPinHash !== undefined || cloudSettings.vaultPin !== undefined) {
+              const activeCipher = cloudSettings.vaultPinCipher || cloudSettings.vaultPinHash || cloudSettings.vaultPin;
+              if (activeCipher) {
+                localStorage.setItem('daily_verdict_vault_pin_cipher', activeCipher);
+                setIsVaultLocked(true);
+              } else {
+                localStorage.removeItem('daily_verdict_vault_pin_cipher');
+                localStorage.removeItem('daily_verdict_vault_pin_hash');
+                localStorage.removeItem('daily_verdict_vault_pin');
+                setIsVaultLocked(false);
+              }
             }
             setSphereSettingsVer(v => v + 1);
           }

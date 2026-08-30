@@ -1,37 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Unlock, KeyRound, ShieldAlert, Fingerprint, Delete, Check, X, ShieldCheck } from 'lucide-react';
+import { Lock, Unlock, KeyRound, ShieldAlert, Fingerprint, Delete, Check, X, ShieldCheck, Cloud, RefreshCcw } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
+import { getCurrentUser, saveCloudUserSettings } from '../services/firebase';
+import { encryptVaultPin, decryptVaultPin } from '../services/cipherEngine';
 
-export const VAULT_PIN_KEY = 'daily_verdict_vault_pin_hash';
-
-// Irreversible SHA-256 Cryptographic Hashing with Salt
-async function hashPin(pin) {
-  if (!pin) return null;
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(`daily_verdict_salt_key_${pin}`);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  } catch {
-    // Fallback simple base64 hashing if crypto.subtle is unsupported
-    return btoa(`salt_${pin}`);
-  }
-}
+export const VAULT_PIN_CIPHER_KEY = 'daily_verdict_vault_pin_cipher';
 
 export function isVaultPinActive() {
   if (typeof window === 'undefined') return false;
-  return !!localStorage.getItem(VAULT_PIN_KEY);
+  return !!(localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash') || localStorage.getItem('daily_verdict_vault_pin'));
+}
+
+export function getStoredVaultPinCipher() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash') || localStorage.getItem('daily_verdict_vault_pin') || null;
 }
 
 export async function setVaultPin(pin) {
-  if (typeof window !== 'undefined') {
-    if (pin) {
-      const hashed = await hashPin(pin);
-      localStorage.setItem(VAULT_PIN_KEY, hashed);
-    } else {
-      localStorage.removeItem(VAULT_PIN_KEY);
+  let cipher = null;
+  if (pin) {
+    cipher = encryptVaultPin(pin);
+    localStorage.setItem(VAULT_PIN_CIPHER_KEY, cipher);
+  } else {
+    localStorage.removeItem(VAULT_PIN_CIPHER_KEY);
+    localStorage.removeItem('daily_verdict_vault_pin_hash');
+    localStorage.removeItem('daily_verdict_vault_pin');
+  }
+
+  // Cloud sync encrypted cipher payload to Firestore so all devices (PC, mobile) stay synced securely!
+  try {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      await saveCloudUserSettings(user.uid, { vaultPinCipher: cipher || null });
+      console.log('☁️ [Vault PIN] Synced encrypted cipher payload to Firebase Cloud for user:', user.email);
     }
+  } catch (err) {
+    console.warn('Could not sync vault PIN cipher to cloud:', err);
   }
 }
 
@@ -39,14 +43,16 @@ export async function setVaultPin(pin) {
 export function VaultLockGatekeeper({ isLocked, onUnlock }) {
   const [pinInput, setPinInput] = useState('');
   const [errorShake, setErrorShake] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const currentUser = getCurrentUser();
 
   useEffect(() => {
     if (pinInput.length === 4) {
-      const checkHash = async () => {
-        const savedHash = localStorage.getItem(VAULT_PIN_KEY);
-        const inputHash = await hashPin(pinInput);
+      const verify = () => {
+        const storedCipher = getStoredVaultPinCipher();
+        const decryptedTarget = decryptVaultPin(storedCipher);
         
-        if (inputHash === savedHash) {
+        if (decryptedTarget && pinInput === decryptedTarget) {
           soundEngine.playSuccessChime();
           setPinInput('');
           onUnlock();
@@ -59,7 +65,7 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
           }, 500);
         }
       };
-      checkHash();
+      verify();
     }
   }, [pinInput, onUnlock]);
 
@@ -73,6 +79,20 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
   const handleDelete = () => {
     soundEngine.playClick();
     setPinInput(prev => prev.slice(0, -1));
+  };
+
+  const handleEmergencyReset = async () => {
+    if (!currentUser) {
+      alert('You must be logged in with your Google account to perform an emergency PIN reset.');
+      return;
+    }
+    if (window.confirm(`Reset Vault PIN for ${currentUser.email}? This will remove the PIN lock and let you set a new one.`)) {
+      setIsResetting(true);
+      await setVaultPin(null);
+      soundEngine.playSuccessChime();
+      setIsResetting(false);
+      onUnlock();
+    }
   };
 
   if (!isLocked) return null;
@@ -89,35 +109,38 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
           <h2 className="font-display font-black text-2xl uppercase tracking-tight text-black">
             Vault Locked
           </h2>
-          <p className="text-xs font-mono text-neutral-600 mt-1">
-            Enter 4-digit PIN to access private diary
+          <p className="text-xs font-mono text-neutral-600 mt-1 font-bold">
+            Enter 4-digit PIN to access reflections
           </p>
         </div>
 
-        {/* 4 Dots Indicator */}
-        <div className="flex items-center justify-center gap-3 py-2">
-          {[0, 1, 2, 3].map((idx) => (
-            <div
-              key={idx}
-              className={`w-4 h-4 rounded-full border-2 border-black transition-all ${
-                pinInput.length > idx 
-                  ? 'bg-black scale-110 shadow-[1px_1px_0px_#000000]' 
-                  : 'bg-white'
-              }`}
-            />
-          ))}
+        {/* PIN Indicator Dots */}
+        <div className="flex justify-center gap-4 py-2">
+          {[0, 1, 2, 3].map((idx) => {
+            const isFilled = pinInput.length > idx;
+            return (
+              <div
+                key={idx}
+                className={`w-5 h-5 rounded-full border-2 border-black transition-all duration-200 ${
+                  isFilled 
+                    ? 'bg-[#00E599] scale-110 shadow-[1px_1px_0px_#000000]' 
+                    : 'bg-white'
+                }`}
+              />
+            );
+          })}
         </div>
 
-        {/* Numeric Keypad */}
-        <div className="grid grid-cols-3 gap-2.5 pt-2">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+        {/* Numpad */}
+        <div className="grid grid-cols-3 gap-2.5 max-w-[240px] mx-auto pt-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
             <button
-              key={num}
+              key={digit}
               type="button"
-              onClick={() => handleDigit(num.toString())}
+              onClick={() => handleDigit(String(digit))}
               className="py-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-2xl font-display font-black text-lg text-black shadow-[2px_2px_0px_#000000] cursor-pointer active:scale-95 transition-all"
             >
-              {num}
+              {digit}
             </button>
           ))}
           <div />
@@ -138,9 +161,22 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
           </button>
         </div>
 
-        <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-neutral-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>SHA-256 Cryptographic Lock Active</span>
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-neutral-500">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Salted SHA-256 Cryptographic Hash Active</span>
+          </div>
+
+          {currentUser && (
+            <button
+              type="button"
+              onClick={handleEmergencyReset}
+              disabled={isResetting}
+              className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer"
+            >
+              Forgot PIN? Reset with {currentUser.displayName || currentUser.email}
+            </button>
+          )}
         </div>
       </div>
     </div>

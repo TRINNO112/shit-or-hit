@@ -422,10 +422,33 @@ export default function SettingsModal({
                 </div>
               </div>
 
-              {/* 3. Private 4-Digit Vault PIN Gatekeeper */}
-              <VaultPinSettings onPinUpdated={() => {
-                if (onSettingsChanged) onSettingsChanged();
-              }} />
+              {/* 3. Private 4-Digit Vault PIN Gatekeeper (Under Netlify Cloud Hardening) */}
+              <div className="bg-neutral-50/80 border-2 border-neutral-300 rounded-2xl p-4 shadow-[2px_2px_0px_#d4d4d4] space-y-2 opacity-90">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-neutral-200 border-2 border-neutral-400 flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <KeyRound className="w-4 h-4 text-neutral-600 stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-display font-black text-sm uppercase text-neutral-800 truncate">
+                          Private 4-Digit Vault PIN
+                        </h4>
+                        <span className="px-2 py-0.5 rounded-full bg-amber-100 border border-amber-400 text-amber-900 font-mono text-[9px] font-black uppercase shrink-0">
+                          CLOUD MEDIATOR WIP
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-500 truncate">
+                        Undergoing Netlify serverless asymmetric key hardening. Safe & disabled for now.
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-1 rounded-xl border border-neutral-400 font-mono text-[10px] font-black bg-neutral-200 text-neutral-600 shrink-0">
+                    PAUSED
+                  </span>
+                </div>
+              </div>
 
               {/* 4. Daily Non-Negotiables Studio */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
