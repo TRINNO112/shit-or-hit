@@ -38,10 +38,15 @@ export function getUserDisplayName(email, fallbackName = null) {
   const customAlias = getCustomDisplayName();
   if (customAlias) return customAlias;
 
-  if (fallbackName && fallbackName.trim() && !fallbackName.toLowerCase().includes('pathak')) {
+  // 1. If Google account has a displayName, use it directly (e.g. 'Kartik Pathak', etc.)
+  if (fallbackName && fallbackName.trim()) {
+    if (email && (email.toLowerCase().includes('kaushtubh457') || email.toLowerCase().includes('pathak.amitkumar'))) {
+      return 'Trinno';
+    }
     return fallbackName.trim();
   }
 
+  // 2. Fallback to clean username from email
   if (email) {
     const emailLower = email.toLowerCase();
     if (emailLower.includes('pathak.amitkumar') || emailLower.includes('trinno') || emailLower.includes('kaushtubh')) {
@@ -51,7 +56,7 @@ export function getUserDisplayName(email, fallbackName = null) {
     return username.charAt(0).toUpperCase() + username.slice(1);
   }
 
-  return 'Trinno';
+  return 'Daily Operator';
 }
 
 let authInstance = null;

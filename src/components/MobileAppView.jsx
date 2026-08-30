@@ -650,7 +650,7 @@ export default function MobileAppView({
           {sphereModeActive ? (
             /* Multi-Sphere Segmentation Cards */
             <div className="space-y-3">
-              {spheresList.map((sphere) => {
+              {spheresConfig.map((sphere) => {
                 const sData = spheresData[sphere.id] || { rating: null, notes: '' };
                 const currentSphereRating = sData.rating;
 
