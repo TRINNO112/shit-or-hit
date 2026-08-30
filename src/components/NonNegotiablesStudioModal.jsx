@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
   Shield, 
@@ -123,8 +124,22 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
   const totalUtils = anchors.reduce((acc, curr) => acc + (Number(curr.utils) || 0), 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-[#FFFDF5] border-3 border-black rounded-3xl w-full max-w-2xl h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-[8px_8px_0px_#000000] overflow-hidden">
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/80 backdrop-blur-md"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.94, y: 15 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.94, y: 15 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+          className="bg-[#FFFDF5] border-3 border-black rounded-3xl w-full max-w-2xl h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-[8px_8px_0px_#000000] overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
         
         {/* Clean, Non-Cramped Top Header */}
         <div className="p-3.5 sm:p-5 flex items-center justify-between bg-white border-b-3 border-black shrink-0">
@@ -494,7 +509,8 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
           </button>
         </div>
 
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

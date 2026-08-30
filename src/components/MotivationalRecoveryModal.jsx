@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Sparkles, Heart, Zap, ArrowRight, X, BatteryCharging, Moon, Compass } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import mascot1 from '../assets/mascots/mascot_1_rough.png';
@@ -7,8 +8,22 @@ export default function MotivationalRecoveryModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-[#FFFDF5] border-3 border-black rounded-3xl p-5 sm:p-7 max-w-md w-full shadow-[6px_6px_0px_#000000] relative space-y-4 animate-scale-up">
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.93, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.93, y: 15 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+          className="bg-[#FFFDF5] border-3 border-black rounded-3xl p-5 sm:p-7 max-w-md w-full shadow-[6px_6px_0px_#000000] relative space-y-4"
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Close Button */}
         <button
           type="button"
@@ -77,7 +92,8 @@ export default function MotivationalRecoveryModal({ isOpen, onClose }) {
           <span>Got This Bhai — I'm Ready</span>
           <ArrowRight className="w-4 h-4 stroke-[3]" />
         </button>
-      </div>
-    </div>
-  );
+      </motion.div>
+    </motion.div>
+  </AnimatePresence>
+);
 }

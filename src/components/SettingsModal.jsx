@@ -279,7 +279,7 @@ export default function SettingsModal({
             initial={{ scale: 0.94, y: 15 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.94, y: 15 }}
-            className="w-full max-w-lg bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-3.5 h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col"
+            className="w-full max-w-2xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[8px_8px_0px_#000000] space-y-3.5 h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pinned Header with High-Contrast Desktop & Mobile Close ✕ Button */}
@@ -528,7 +528,7 @@ export default function SettingsModal({
                   <div className="p-3 rounded-xl bg-amber-50 border-2 border-black space-y-1">
                     <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
                       <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                      <span>⚡ AUTO POLISH (DEFAULT)</span>
+                      <span>AUTO POLISH (DEFAULT)</span>
                     </div>
                     <p className="text-neutral-700 leading-tight text-[10px]">
                       Preserves full story length & every single detail. Fixes awkward phrasing & grammar while keeping 100% of your authentic 1st-person voice.
@@ -538,7 +538,7 @@ export default function SettingsModal({
                   <div className="p-3 rounded-xl bg-orange-50 border-2 border-black space-y-1">
                     <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
                       <Target className="w-3.5 h-3.5 text-orange-600 stroke-[2.5]" />
-                      <span>🎯 ROOT CAUSES</span>
+                      <span>ROOT CAUSES</span>
                     </div>
                     <p className="text-neutral-700 leading-tight text-[10px]">
                       Forensically diagnoses underlying triggers behind friction or peak performance clusters, surfacing actionable psychological insights.
@@ -548,7 +548,7 @@ export default function SettingsModal({
                   <div className="p-3 rounded-xl bg-slate-100 border-2 border-black space-y-1">
                     <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
                       <ShieldCheck className="w-3.5 h-3.5 text-blue-600 stroke-[2.5]" />
-                      <span>🛡️ STOIC GRIT</span>
+                      <span>STOIC GRIT</span>
                     </div>
                     <p className="text-neutral-700 leading-tight text-[10px]">
                       Battlefield mindset lens. Re-centers thoughts around emotional resilience, duty, mental toughness, and taking full ownership.
@@ -558,7 +558,7 @@ export default function SettingsModal({
                   <div className="p-3 rounded-xl bg-emerald-50 border-2 border-black space-y-1">
                     <div className="flex items-center gap-1.5 font-display font-black text-xs text-black uppercase">
                       <ListOrdered className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                      <span>📝 ACTION BULLETS</span>
+                      <span>ACTION BULLETS</span>
                     </div>
                     <p className="text-neutral-700 leading-tight text-[10px]">
                       Converts messy reflections into structured chronological bullets and decisive execution action items for tomorrow.
@@ -569,7 +569,7 @@ export default function SettingsModal({
                 <div className="p-2.5 bg-[#FAF8ED] border border-black rounded-xl text-[10px] font-mono text-neutral-800 flex items-start gap-2">
                   <Terminal className="w-4 h-4 text-black shrink-0 mt-0.5 stroke-[2.5]" />
                   <span>
-                    <strong>💬 Custom Commands:</strong> Type any specific instruction into the Custom input bar in the diary (e.g. <em>"Focus on exam prep"</em>, <em>"Rewrite in 3 punchy lines"</em>) and Gemini AI will strictly prioritize it.
+                    <strong>Custom Commands:</strong> Type any specific instruction into the Custom input bar in the diary (e.g. <em>"Focus on exam prep"</em>, <em>"Rewrite in 3 punchy lines"</em>) and Gemini AI will strictly prioritize it.
                   </span>
                 </div>
               </div>
