@@ -49,15 +49,21 @@ export function disableNotifications() {
 }
 
 export async function showInstantReminderNotification(customBody = null) {
-  if (!isNotificationSupported()) return false;
+  console.log('🔔 [Notification Debug] Step 1: Checking browser support...');
+  if (!isNotificationSupported()) {
+    console.warn('❌ [Notification Debug] Notifications are NOT supported in this browser window environment.');
+    return false;
+  }
 
   const body = customBody || getRandomReminderText();
+  console.log(`🔔 [Notification Debug] Step 2: Notification Permission is currently: "${Notification.permission}"`);
 
   // If permission not granted yet, ask for it
   if (Notification.permission !== 'granted') {
+    console.log('🔔 [Notification Debug] Requesting permission from user...');
     const perm = await requestNotificationPermission();
+    console.log(`🔔 [Notification Debug] User response: ${perm ? 'GRANTED' : 'DENIED / DISMISSED'}`);
     if (!perm) {
-      // Fallback: emit custom in-app visual banner event
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('in_app_reminder', { detail: { title: '⚡ Daily Verdict', body } }));
       }
@@ -65,31 +71,51 @@ export async function showInstantReminderNotification(customBody = null) {
     }
   }
 
+  console.log('🔔 [Notification Debug] Step 3: Triggering notification payload:', { title: '⚡ Daily Verdict', body });
+
   try {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'TRIGGER_NOTIFICATION',
-        title: '⚡ Daily Verdict',
-        body
-      });
-    } else {
-      const n = new Notification('⚡ Daily Verdict', {
-        body,
-        icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22><polygon points=%2213 2 3 14 12 14 11 22 21 10 12 10 13 2%22 fill=%22%23FDC800%22/></svg>',
-        vibrate: [100, 50, 100],
-        requireInteraction: false
-      });
-      if (n) {
-        n.onclick = () => {
-          window.focus();
-          n.close();
-        };
+    // Method A: Check for active Service Worker Registration (Most reliable for PWAs & Chrome on Windows)
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration && registration.showNotification) {
+          console.log('🔔 [Notification Debug] Step 3a: Firing notification via ServiceWorkerRegistration.showNotification()');
+          await registration.showNotification('⚡ Daily Verdict', {
+            body,
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            vibrate: [150, 50, 150],
+            tag: 'daily-verdict-reminder',
+            renotify: true
+          });
+          console.log('✅ [Notification Debug] Step 4: ServiceWorker notification fired successfully!');
+          return true;
+        }
+      } catch (swErr) {
+        console.warn('⚠️ [Notification Debug] ServiceWorker trigger fallback:', swErr);
       }
     }
+
+    // Method B: Standard Web Notification API
+    console.log('🔔 [Notification Debug] Step 3b: Firing notification via standard new Notification() API');
+    const n = new Notification('⚡ Daily Verdict', {
+      body,
+      icon: '/favicon.ico',
+      vibrate: [150, 50, 150],
+      tag: 'daily-verdict-reminder',
+      requireInteraction: false
+    });
+
+    n.onshow = () => console.log('✅ [Notification Debug] Step 4: Notification displayed on screen!');
+    n.onerror = (e) => console.error('❌ [Notification Debug] Notification encountered error:', e);
+    n.onclick = () => {
+      window.focus();
+      n.close();
+    };
+
     return true;
   } catch (err) {
-    console.error('Show notification failed:', err);
-    // Fallback: emit custom in-app visual banner event
+    console.error('❌ [Notification Debug] Show notification failed:', err);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('in_app_reminder', { detail: { title: '⚡ Daily Verdict', body } }));
     }
