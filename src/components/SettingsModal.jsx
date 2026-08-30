@@ -23,7 +23,10 @@ import {
   Target,
   ListOrdered,
   Terminal,
-  BookOpen
+  BookOpen,
+  Volume2,
+  VolumeX,
+  KeyRound
 } from 'lucide-react';
 import { 
   isNotificationSupported, 
@@ -34,6 +37,9 @@ import {
   setReminderTime,
   showInstantReminderNotification
 } from '../services/notifications';
+import { soundEngine } from '../services/soundEngine';
+import { VaultPinSettings } from './VaultPinModal';
+import { NonNegotiablesSettings } from './NonNegotiableCard';
 import {
   isSphereModeEnabled,
   setSphereModeEnabled,
@@ -55,6 +61,7 @@ export default function SettingsModal({
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('22:00');
+  const [soundFxOn, setSoundFxOn] = useState(() => soundEngine.isSoundEnabled());
   const [notificationMsg, setNotificationMsg] = useState('');
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'notifications' | 'about'
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
@@ -374,7 +381,56 @@ export default function SettingsModal({
                 </div>
               </div>
 
-              {/* 2. AI Ghostwriter Preferred Language */}
+              {/* 2. Tactile Procedural Sound FX Synthesizer (Default OFF) */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      {soundFxOn ? (
+                        <Volume2 className="w-4 h-4 text-black stroke-[2.5]" />
+                      ) : (
+                        <VolumeX className="w-4 h-4 text-black stroke-[2.5]" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-display font-black text-sm uppercase truncate">
+                        Tactile Web Audio Sound FX
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                        Procedural mechanical clicks & rating chimes
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !soundFxOn;
+                      setSoundFxOn(next);
+                      soundEngine.setSoundEnabled(next);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 ${
+                      soundFxOn 
+                        ? 'bg-[#00E599] text-black' 
+                        : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                    }`}
+                  >
+                    {soundFxOn ? 'ACTIVE (ON)' : 'MUTED (OFF)'}
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Private 4-Digit Vault PIN Gatekeeper */}
+              <VaultPinSettings onPinUpdated={() => {
+                if (onSettingsChanged) onSettingsChanged();
+              }} />
+
+              {/* 4. Daily Non-Negotiables Mode (Default OFF) */}
+              <NonNegotiablesSettings onSettingsUpdated={() => {
+                if (onSettingsChanged) onSettingsChanged();
+              }} />
+
+              {/* 5. AI Ghostwriter Preferred Language */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">

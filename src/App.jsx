@@ -15,7 +15,10 @@ import SettingsModal from './components/SettingsModal';
 import IconLab from './components/IconLab';
 import StickerVaultModal from './components/StickerVaultModal';
 import SkeletonLoader from './components/SkeletonLoader';
-import { fetchDatabase, saveEntry } from './services/api';
+import MotivationalRecoveryModal from './components/MotivationalRecoveryModal';
+import { VaultLockGatekeeper, isVaultPinActive } from './components/VaultPinModal';
+import { soundEngine } from './services/soundEngine';
+import { fetchDatabase, saveEntry, ratingMeta } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings } from './services/firebase';
 
@@ -57,6 +60,8 @@ export default function App() {
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
+  const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
+  const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
 
   // Secret developer key sequence listener (type "iconlab" or "skeleton" anywhere)
   useEffect(() => {
@@ -138,6 +143,25 @@ export default function App() {
     loadData();
   }, [loadData]);
 
+  const checkConsecutiveRoughDays = (allEntries) => {
+    if (!allEntries) return;
+    const todayRating = allEntries[todayStr]?.rating;
+    
+    // Calculate yesterday's date
+    const yestObj = new Date(`${todayStr}T00:00:00`);
+    yestObj.setDate(yestObj.getDate() - 1);
+    const yestStr = yestObj.toISOString().slice(0, 10);
+    const yestRating = allEntries[yestStr]?.rating;
+
+    const alreadyShown = sessionStorage.getItem('daily_verdict_motivational_shown') === todayStr;
+    if (!alreadyShown && todayRating && yestRating && Number(todayRating) <= 2 && Number(yestRating) <= 2) {
+      sessionStorage.setItem('daily_verdict_motivational_shown', todayStr);
+      setTimeout(() => {
+        setIsMotivationalOpen(true);
+      }, 5000);
+    }
+  };
+
   const handleSaveEntry = async (entryData) => {
     const formatted = {
       ...entryData,
@@ -162,6 +186,10 @@ export default function App() {
           entries: next
         }));
       } catch (e) {}
+
+      // Check consecutive rough days trigger
+      checkConsecutiveRoughDays(next);
+
       return next;
     });
 
@@ -193,9 +221,11 @@ export default function App() {
     setIsWallpaperModalOpen(true);
   };
 
-  const startObj = new Date(`${startDate}T00:00:00`);
+  const safeStartDate = startDate || todayStr;
+  const startObj = new Date(`${safeStartDate}T00:00:00`);
   const todayObj = new Date(`${todayStr}T00:00:00`);
-  const dayCount = Math.max(1, Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24)) + 1);
+  const diffDays = Math.floor((todayObj - startObj) / (1000 * 60 * 60 * 24));
+  const dayCount = Math.max(1, isNaN(diffDays) ? 1 : diffDays + 1);
   const userDisplayName = currentUser ? getUserDisplayName(currentUser.email, currentUser.displayName) : 'Daily Operator';
 
   if (showIconLab) {
@@ -431,6 +461,18 @@ export default function App() {
       <StickerVaultModal
         isOpen={isStickerVaultOpen}
         onClose={() => setIsStickerVaultOpen(false)}
+      />
+
+      {/* 🛡️ 2-Consecutive Rough Days Motivational Recovery Modal */}
+      <MotivationalRecoveryModal
+        isOpen={isMotivationalOpen}
+        onClose={() => setIsMotivationalOpen(false)}
+      />
+
+      {/* 🔐 Private 4-Digit Vault PIN Gatekeeper */}
+      <VaultLockGatekeeper
+        isLocked={isVaultLocked}
+        onUnlock={() => setIsVaultLocked(false)}
       />
 
     </div>

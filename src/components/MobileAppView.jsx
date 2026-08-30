@@ -57,6 +57,8 @@ import JourneyTimeline from './JourneyTimeline';
 import StatsWidget from './StatsWidget';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
+import NonNegotiableCard from './NonNegotiableCard';
+import { soundEngine } from '../services/soundEngine';
 
 const IconMap = {
   AlertCircle,
@@ -67,10 +69,10 @@ const IconMap = {
 };
 
 export default function MobileAppView({
-  startDate,
-  entries,
-  dayCount,
-  todayStr,
+  startDate = new Date().toISOString().slice(0, 10),
+  entries = {},
+  dayCount = 1,
+  todayStr = new Date().toISOString().slice(0, 10),
   onSaveToday,
   onOpenMonthlyReport,
   onEditDay,
@@ -115,7 +117,7 @@ export default function MobileAppView({
 
   const [user, setUser] = useState(null);
   const [showNoteDrawer, setShowNoteDrawer] = useState(false);
-  const [noteText, setNoteText] = useState(entries[todayStr]?.notes || '');
+  const [noteText, setNoteText] = useState(entries?.[todayStr]?.notes || '');
   const [savedFlash, setSavedFlash] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
@@ -151,7 +153,7 @@ export default function MobileAppView({
       setActiveSphereId(cfg[0].id);
     }
 
-    const currentEntry = entries[todayStr] || {};
+    const currentEntry = entries?.[todayStr] || {};
     const initialSpheres = {};
     cfg.forEach(s => {
       initialSpheres[s.id] = {
@@ -174,10 +176,10 @@ export default function MobileAppView({
   }, []);
 
   useEffect(() => {
-    if (entries[todayStr]?.notes !== undefined) {
-      setNoteText(entries[todayStr].notes);
-      setOriginalDraft(entries[todayStr].notes);
-      setHistoryStack([entries[todayStr].notes]);
+    if (entries?.[todayStr]?.notes !== undefined) {
+      setNoteText(entries?.[todayStr]?.notes || '');
+      setOriginalDraft(entries?.[todayStr]?.notes || '');
+      setHistoryStack([entries?.[todayStr]?.notes || '']);
       setHistoryIdx(0);
     }
   }, [entries, todayStr]);
@@ -232,7 +234,7 @@ export default function MobileAppView({
     }
   };
 
-  const selectedRating = entries[todayStr]?.rating || null;
+  const selectedRating = entries?.[todayStr]?.rating || null;
   const isWhitelisted = user && isEmailWhitelisted(user.email);
 
   const now = new Date();
@@ -346,7 +348,13 @@ export default function MobileAppView({
 
   const handleRate = async (val) => {
     triggerHaptic(val >= 4 ? 'success' : 'medium');
-    soundFx.playMood(val);
+    if (val >= 4) {
+      soundEngine.playSuccessChime();
+    } else if (val <= 2) {
+      soundEngine.playRoughTone();
+    } else {
+      soundEngine.playClick();
+    }
     triggerRatingExpressionMobile(val, 0.7);
 
     setSavedFlash(true);
@@ -429,6 +437,36 @@ export default function MobileAppView({
     setShowNoteDrawer(false);
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 2000);
+  };
+
+  const handleAnchorScoreUpdateMobile = async (scoreInfo) => {
+    if (!scoreInfo) return;
+    if (scoreInfo.mode === 'deterministic_100') {
+      const roundedRating = Math.max(1, Math.min(5, Math.round(scoreInfo.calculatedRating) || 1));
+      await onSaveToday({
+        date: todayStr,
+        rating: roundedRating,
+        verdict: ratingMeta[roundedRating]?.title || 'Verdict',
+        notes: noteText,
+        calculatedScore: scoreInfo.calculatedRating,
+        spheres: spheresData
+      });
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 2000);
+    } else if (scoreInfo.mode === 'hybrid_50_50' && selectedRating) {
+      const blended = Number(((0.5 * selectedRating) + (0.5 * scoreInfo.calculatedRating)).toFixed(1));
+      const roundedRating = Math.max(1, Math.min(5, Math.round(blended) || 1));
+      await onSaveToday({
+        date: todayStr,
+        rating: roundedRating,
+        verdict: ratingMeta[roundedRating]?.title || 'Verdict',
+        notes: noteText,
+        calculatedScore: blended,
+        spheres: spheresData
+      });
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 2000);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -744,6 +782,11 @@ export default function MobileAppView({
               })}
             </div>
           )}
+
+          {/* 3 Daily Non-Negotiables Card */}
+          <div className="pt-1">
+            <NonNegotiableCard dateStr={todayStr} onScoreUpdate={handleAnchorScoreUpdateMobile} />
+          </div>
 
           {/* Active Verdict Status & Reflection Button */}
           <div className="pt-1.5 space-y-2.5">

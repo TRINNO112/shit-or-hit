@@ -38,26 +38,19 @@ export function getUserDisplayName(email, fallbackName = null) {
   const customAlias = getCustomDisplayName();
   if (customAlias) return customAlias;
 
-  // Localhost calibration or primary developer email
-  const isLocalHost = typeof window !== 'undefined' && (
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    window.location.port === '5173'
-  );
-
-  const emailLower = (email || '').toLowerCase();
-  if (emailLower.includes('pathak.amitkumar') || emailLower.includes('trinno') || emailLower.includes('kaushtubh') || isLocalHost) {
-    return 'Trinno';
-  }
-
   if (fallbackName && fallbackName.trim() && !fallbackName.toLowerCase().includes('pathak')) {
     return fallbackName.trim();
   }
 
   if (email) {
+    const emailLower = email.toLowerCase();
+    if (emailLower.includes('pathak.amitkumar') || emailLower.includes('trinno') || emailLower.includes('kaushtubh')) {
+      return 'Trinno';
+    }
     const username = email.split('@')[0];
     return username.charAt(0).toUpperCase() + username.slice(1);
   }
+
   return 'Trinno';
 }
 

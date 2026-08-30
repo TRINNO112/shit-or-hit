@@ -31,10 +31,11 @@ import {
 import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
 import confetti from 'canvas-confetti';
-import { soundFx } from '../services/soundEffects';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
+import NonNegotiableCard from './NonNegotiableCard';
+import { soundEngine } from '../services/soundEngine';
 
 const IconMap = {
   AlertCircle,
@@ -126,7 +127,13 @@ export default function TodayHero({
   const fullDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   const triggerRatingExpression = (val, originY = 0.6) => {
-    soundFx.playMood(val);
+    if (val >= 4) {
+      soundEngine.playSuccessChime();
+    } else if (val <= 2) {
+      soundEngine.playRoughTone();
+    } else {
+      soundEngine.playClick();
+    }
 
     if (val === 5) {
       // 5★ Peak: Golden & Emerald Mega Burst
@@ -173,6 +180,36 @@ export default function TodayHero({
       });
     }
     setTimeout(() => setSyncedBadge(false), 2500);
+  };
+
+  const handleAnchorScoreUpdate = async (scoreInfo) => {
+    if (!scoreInfo) return;
+    if (scoreInfo.mode === 'deterministic_100') {
+      const roundedRating = Math.max(1, Math.min(5, Math.round(scoreInfo.calculatedRating) || 1));
+      if (saveHandler) {
+        await saveHandler({
+          date: todayStr,
+          rating: roundedRating,
+          verdict: ratingMeta[roundedRating]?.title || 'Verdict',
+          notes: noteText,
+          calculatedScore: scoreInfo.calculatedRating,
+          spheres: sphereModeActive ? spheresData : undefined
+        });
+      }
+    } else if (scoreInfo.mode === 'hybrid_50_50' && selectedRating) {
+      const blended = Number(((0.5 * selectedRating) + (0.5 * scoreInfo.calculatedRating)).toFixed(1));
+      const roundedRating = Math.max(1, Math.min(5, Math.round(blended) || 1));
+      if (saveHandler) {
+        await saveHandler({
+          date: todayStr,
+          rating: roundedRating,
+          verdict: ratingMeta[roundedRating]?.title || 'Verdict',
+          notes: noteText,
+          calculatedScore: blended,
+          spheres: sphereModeActive ? spheresData : undefined
+        });
+      }
+    }
   };
 
   const handleRateSphere = async (sphereId, val) => {
@@ -629,6 +666,11 @@ export default function TodayHero({
           <MoodReactionBanner rating={sphereModeActive && compositeStats ? compositeStats.rating : selectedRating} />
         </div>
       )}
+
+      {/* 3 Daily Non-Negotiable Anchors */}
+      <div className="mt-6">
+        <NonNegotiableCard dateStr={todayStr} onScoreUpdate={handleAnchorScoreUpdate} />
+      </div>
 
       {/* Bottom Bar: Status Verdict + Expandable Note */}
       <div className="mt-6 pt-5 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
