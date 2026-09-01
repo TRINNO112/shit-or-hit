@@ -132,20 +132,6 @@ export function subscribeAuthState(callback) {
           const name = getUserDisplayName(user.email, user.displayName);
           const userObj = { email: user.email, displayName: name, uid: user.uid };
           localStorage.setItem('local_auth_user', JSON.stringify(userObj));
-          
-          // Auto-sync existing local entries to Firestore upon successful auth
-          try {
-            const cachedDb = localStorage.getItem('goodness_db');
-            if (cachedDb) {
-              const parsed = JSON.parse(cachedDb);
-              if (parsed.entries && Object.keys(parsed.entries).length > 0) {
-                batchSaveCloudEntries(user.uid, parsed.entries);
-              }
-            }
-          } catch (e) {
-            console.warn('Auto-sync error on auth change:', e);
-          }
-
           callback(userObj);
         } else {
           localStorage.removeItem('local_auth_user');

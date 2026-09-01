@@ -423,6 +423,8 @@ export default function MobileAppView({
     setTimeout(() => setSavedFlash(false), 2000);
   };
 
+  const handleRateSphere = handleRateSphereMobile;
+
   const handleSaveSphereNoteMobile = async (sphereId, note) => {
     const updated = {
       ...spheresData,
@@ -822,8 +824,6 @@ export default function MobileAppView({
               if (activeR) {
                 return (
                   <div className="space-y-2.5">
-                    <MoodReactionBanner rating={activeR} isCompact={true} />
-                    
                     <div 
                       className="p-3 rounded-xl border-2 border-black text-xs font-mono font-bold text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
                       style={{ backgroundColor: ratingMeta[activeR]?.bg }}

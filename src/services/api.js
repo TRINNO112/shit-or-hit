@@ -142,13 +142,24 @@ export function calculateCompositeScore(spheres) {
   };
 }
 
+export const isStaticHost = typeof window !== 'undefined' && (
+  window.location.hostname.includes('github.io') ||
+  window.location.hostname.includes('netlify.app') ||
+  window.location.hostname.includes('web.app') ||
+  window.location.hostname.includes('firebaseapp.com') ||
+  window.location.protocol === 'file:'
+);
+
+export function getDbStorageKey(userId) {
+  return userId ? `goodness_db_${userId}` : 'goodness_db_guest';
+}
+
 export async function fetchDatabase() {
-  // 1. First fetch local data from server API (if local dev) or localStorage
+  const currentUser = getCurrentUser();
+  const storageKey = getDbStorageKey(currentUser?.uid);
+
+  // 1. First fetch local data from server API (if local dev) or user-scoped localStorage
   let localData = { startDate: new Date().toISOString().slice(0, 10), entries: {} };
-  const isStaticHost = typeof window !== 'undefined' && (
-    window.location.hostname.includes('github.io') ||
-    window.location.protocol === 'file:'
-  );
 
   if (!isStaticHost) {
     try {
@@ -165,7 +176,7 @@ export async function fetchDatabase() {
     }
   }
 
-  const cached = localStorage.getItem('goodness_db');
+  const cached = localStorage.getItem(storageKey);
   if (cached) {
     try { 
       const parsed = JSON.parse(cached);
@@ -176,26 +187,17 @@ export async function fetchDatabase() {
   }
 
   // 2. If user is logged in with whitelisted Firebase account, sync with Firestore
-  const currentUser = getCurrentUser();
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
       const cloudEntries = await fetchCloudEntries(currentUser.uid);
       const cloudCount = Object.keys(cloudEntries).length;
-      const localCount = Object.keys(localData.entries || {}).length;
 
-      // If local has data but Firestore is empty, auto-upload local database to Firestore
-      if (localCount > 0 && cloudCount === 0) {
-        console.log('☁️ Auto-populating empty Firestore with local database entries...');
-        await batchSaveCloudEntries(currentUser.uid, localData.entries);
-        return localData;
-      }
-
-      // If Firestore has data, merge and use Firestore
+      // If Firestore has data, merge and use Firestore for this specific user
       if (cloudCount > 0) {
         const mergedEntries = { ...localData.entries, ...cloudEntries };
         const dates = Object.keys(mergedEntries).sort();
         const startDate = dates[0] || localData.startDate;
-        localStorage.setItem('goodness_db', JSON.stringify({ startDate, entries: mergedEntries }));
+        localStorage.setItem(storageKey, JSON.stringify({ startDate, entries: mergedEntries }));
         return { startDate, entries: mergedEntries };
       }
     } catch (err) {
@@ -214,17 +216,19 @@ export async function saveEntry(entryData) {
     updatedAt: new Date().toISOString()
   };
 
-  // 1. Always update local storage database immediately
+  const currentUser = getCurrentUser();
+  const storageKey = getDbStorageKey(currentUser?.uid);
+
+  // 1. Always update user-scoped local storage database immediately
   try {
-    const dbStr = localStorage.getItem('goodness_db');
+    const dbStr = localStorage.getItem(storageKey);
     let db = dbStr ? JSON.parse(dbStr) : { startDate: new Date().toISOString().slice(0, 10), entries: {} };
     if (!db.entries) db.entries = {};
     db.entries[formatted.date] = formatted;
-    localStorage.setItem('goodness_db', JSON.stringify(db));
+    localStorage.setItem(storageKey, JSON.stringify(db));
   } catch (e) {}
 
   // 2. Cloud save with 4s timeout protection against slow connections
-  const currentUser = getCurrentUser();
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
       const cloudPromise = saveCloudEntry(currentUser.uid, formatted);
@@ -235,18 +239,20 @@ export async function saveEntry(entryData) {
     }
   }
 
-  // 3. Local server save if available
-  try {
-    const res = await fetch(`${API_BASE}/entries`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formatted)
-    });
-    if (res.ok) {
-      const json = await res.json();
-      return json.entry || formatted;
-    }
-  } catch (err) {}
+  // 3. Local server save if available (and not on static host like GitHub Pages)
+  if (!isStaticHost) {
+    try {
+      const res = await fetch(`${API_BASE}/entries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formatted)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.entry || formatted;
+      }
+    } catch (err) {}
+  }
 
   return formatted;
 }
@@ -256,19 +262,21 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
 
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
 
-  // 1. Try local dev backend if running
-  try {
-    const res = await fetch(`${API_BASE}/ai/enhance`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres, customInstruction })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.enhancedText) return data.enhancedText;
+  // 1. Try local dev backend if running (and not on static host)
+  if (!isStaticHost) {
+    try {
+      const res = await fetch(`${API_BASE}/ai/enhance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres, customInstruction })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.enhancedText) return data.enhancedText;
+      }
+    } catch (err) {
+      // Backend offline (e.g. GitHub Pages static deployment)
     }
-  } catch (err) {
-    // Backend offline (e.g. GitHub Pages static deployment)
   }
 
   // 2. Direct client-side Gemini fallback
@@ -366,17 +374,19 @@ export async function getSavedMonthlyReport(year, month, archetypeId = null) {
   const targetDataset = archetypeId || 'real';
   const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
 
-  try {
-    const res = await fetch(`${API_BASE}/monthly-report?year=${year}&month=${month}&archetypeId=${archetypeId || ''}`);
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && json.data) {
-        localStorage.setItem(reportKey, JSON.stringify(json.data));
-        return json.data;
+  if (!isStaticHost) {
+    try {
+      const res = await fetch(`${API_BASE}/monthly-report?year=${year}&month=${month}&archetypeId=${archetypeId || ''}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          localStorage.setItem(reportKey, JSON.stringify(json.data));
+          return json.data;
+        }
       }
+    } catch (err) {
+      console.warn('Backend GET /api/monthly-report unavailable, checking local storage:', err);
     }
-  } catch (err) {
-    console.warn('Backend GET /api/monthly-report unavailable, checking local storage:', err);
   }
 
   // Check local cache
@@ -403,22 +413,24 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
     } catch (e) {}
   }
 
-  // 1. Try local dev backend if running
-  try {
-    const res = await fetch(`${API_BASE}/monthly-report`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage })
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && json.data) {
-        localStorage.setItem(reportKey, JSON.stringify(json.data));
-        return json.data;
+  // 1. Try local dev backend if running (and not on static host)
+  if (!isStaticHost) {
+    try {
+      const res = await fetch(`${API_BASE}/monthly-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          localStorage.setItem(reportKey, JSON.stringify(json.data));
+          return json.data;
+        }
       }
+    } catch (err) {
+      // Backend offline (e.g. static site or mobile device)
     }
-  } catch (err) {
-    // Backend offline (e.g. static site or mobile device)
   }
 
   // 2. Direct client-side forensic synthesis with live Gemini AI fallback
