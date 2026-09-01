@@ -5,20 +5,260 @@
 
 ---
 
+## 🏛️ System Architecture
+
+A high-level view of how the app is wired together. Click any layer below to expand its detailed component diagram.
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 55, 'rankSpacing': 75, 'curve': 'basis'}}}%%
+flowchart TD
+    L1["🖥️ 1. Workspace Routing & Entry"]
+    L2["🎯 2. Daily Evaluation & Scoring"]
+    L3["📝 3. Reflection & AI Ghostwriter"]
+    L4["📅 4. Historical Time Matrix"]
+    L5["🔒 5. Storage & Multi-User Isolation"]
+    L6["📊 6. Forensic Analytics & Dossier"]
+    L7["🎨 7. Creative Studio & Wallpapers"]
+    L8["⚙️ 8. Settings, Dials & Sound Engine"]
+
+    L1 --> L2
+    L1 --> L4
+    L1 --> L6
+    L1 --> L7
+    L1 --> L8
+    L2 --> L3
+    L2 -.->|Audio Triggers| L8
+    L2 --> L5
+    L3 --> L5
+    L4 --> L5
+    L5 --> L6
+
+    classDef l1 fill:#E3F2FD,stroke:#1976D2,color:#0D47A1
+    classDef l2 fill:#FFF3E0,stroke:#F57C00,color:#E65100
+    classDef l3 fill:#F3E5F5,stroke:#8E24AA,color:#4A148C
+    classDef l4 fill:#E8F5E9,stroke:#43A047,color:#1B5E20
+    classDef l5 fill:#FCE4EC,stroke:#D81B60,color:#880E4F
+    classDef l6 fill:#E0F7FA,stroke:#00838F,color:#006064
+    classDef l7 fill:#FFFDE7,stroke:#FBC02D,color:#F57F17
+    classDef l8 fill:#EFEBE9,stroke:#6D4C41,color:#3E2723
+    class L1 l1
+    class L2 l2
+    class L3 l3
+    class L4 l4
+    class L5 l5
+    class L6 l6
+    class L7 l7
+    class L8 l8
+```
+
+<details>
+<summary><strong>🖥️ Layer 1 — Workspace Routing & Entry</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    User(["👤 User Session"]) --> AuthCheck{"🔑 Auth State"}
+    AuthCheck -->|Header.jsx| HeaderNav["🧭 Header.jsx<br/>(Nav, Auth Pill, Export)"]
+    AuthCheck -->|PWA Check| PWABanner["📱 PWAInstallBanner.jsx<br/>(1-Tap Install)"]
+    HeaderNav --> ViewRouter{"📱 Screen Size Router"}
+    ViewRouter -->|"Small Screens < 768px"| MobileView["📱 MobileAppView.jsx<br/>(4-Tab Compact App: Today, History, Dossier, Settings)"]
+    ViewRouter -->|Desktop / Tablet| DesktopView["💻 TodayHero.jsx<br/>(Interactive Dashboard & Live Scoring)"]
+
+    classDef l1 fill:#E3F2FD,stroke:#1976D2,color:#0D47A1
+    class User,AuthCheck,HeaderNav,PWABanner,ViewRouter,MobileView,DesktopView l1
+```
+
+**Feeds into:** Layer 2 (view → scoring), Layer 4 (nav → calendar/timeline/week), Layer 6 (nav → forensic/dossier), Layer 7 (nav → creative studio), Layer 8 (nav → settings).
+
+</details>
+
+<details>
+<summary><strong>🎯 Layer 2 — Daily Evaluation & Scoring Matrix</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    SingleTier["⭐ 5-Tier Verdict System<br/>(Rough 1★, Down 2★, Okay 3★, Good 4★, Peak 5★)"]
+    SphereEngine["🌐 Multi-Sphere Domain Ratings<br/>(SphereIcon.jsx — Work, Health, Social)"]
+    AnchorEngine["⚓ NonNegotiableCard.jsx<br/>(Checklist, Hybrid 50/50, Deterministic 100%)"]
+    AnchorStudio["🛠️ NonNegotiablesStudioModal.jsx<br/>(Custom Habit Template Builder)"]
+    DayRatingPopup["⚡ DayRatingModal.jsx<br/>(Quick Verdict Picker)"]
+    CompositeMath["🧮 Composite Math Synthesizer<br/>calculateCompositeScore()"]
+
+    AnchorStudio -.->|Configures| AnchorEngine
+    SphereEngine -->|Domain Scores| CompositeMath
+    AnchorEngine -->|Anchor %| CompositeMath
+    SingleTier --> CompositeMath
+
+    classDef l2 fill:#FFF3E0,stroke:#F57C00,color:#E65100
+    class SingleTier,SphereEngine,AnchorEngine,AnchorStudio,DayRatingPopup,CompositeMath l2
+```
+
+**Receives from:** Layer 1 (Mobile/Desktop View). **Feeds into:** Layer 3 (composite score → reflection), Layer 5 (score → storage write), Layer 8 (audio triggers).
+
+</details>
+
+<details>
+<summary><strong>📝 Layer 3 — Reflection, AI Ghostwriter & Resilience</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    AutoTextarea["✍️ AutoExpandTextarea.jsx<br/>(Smart Diary Input)"]
+    GeminiGhostwriter["🤖 AI Diary Ghostwriter<br/>(gemini-3.5-flash-lite / Language Mirror)"]
+    ReactionBanner["🎭 MoodReactionBanner.jsx<br/>(Mascot & Live Quotes)"]
+    RecoveryModal["🚨 MotivationalRecoveryModal.jsx<br/>(2-Day Slump Interceptor & Stoic Protocol)"]
+
+    AutoTextarea --> GeminiGhostwriter
+    ReactionBanner
+    RecoveryModal
+
+    classDef l3 fill:#F3E5F5,stroke:#8E24AA,color:#4A148C
+    class AutoTextarea,GeminiGhostwriter,ReactionBanner,RecoveryModal l3
+```
+
+**Receives from:** Layer 2 — Composite Math Synthesizer drives `ReactionBanner` directly, and triggers `RecoveryModal` after 2 consecutive Rough days. **Feeds into:** Layer 5 (diary/reflection → storage write).
+
+</details>
+
+<details>
+<summary><strong>📅 Layer 4 — Historical Time Matrix & Day Editing</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    CalendarModal["📆 CalendarModal.jsx<br/>(Month Grid & Filter Chips)"]
+    MonthCalendar["🗓️ MonthCalendar.jsx<br/>(31-Day Interactive Grid)"]
+    WeekView["📊 WeekView.jsx<br/>(7-Day Horizontal Strip)"]
+    TimelineView["📜 JourneyTimeline.jsx<br/>(Chronological Reflection Stream)"]
+    EditDayModal["✏️ EditDayModal.jsx<br/>(Full History Editor + Outlier Event Domains)"]
+
+    CalendarModal --> EditDayModal
+    TimelineView --> EditDayModal
+    MonthCalendar --> EditDayModal
+    WeekView --> EditDayModal
+
+    classDef l4 fill:#E8F5E9,stroke:#43A047,color:#1B5E20
+    class CalendarModal,MonthCalendar,WeekView,TimelineView,EditDayModal l4
+```
+
+**Receives from:** Layer 1 (Header nav → Calendar; Mobile view → Timeline; Desktop view → Week). **Feeds into:** Layer 5 (Edit Day Modal → storage write).
+
+</details>
+
+<details>
+<summary><strong>🔒 Layer 5 — Storage Sovereignty & Multi-User Isolation</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    StorageKeyGen["🔑 getDbStorageKey(userId)"]
+    GuestStorage[("💾 LocalStorage:<br/>goodness_db_guest")]
+    UserStorage[("💾 LocalStorage:<br/>goodness_db_{uid}")]
+    FirestoreSync[("☁️ Firebase Firestore<br/>(4s Race Timeout)")]
+    VaultSecurity["🔐 VaultPinModal.jsx & cipherEngine.js<br/>(Encrypted Diary Protection)"]
+
+    StorageKeyGen -->|Unauthenticated| GuestStorage
+    StorageKeyGen -->|Authenticated| UserStorage
+    StorageKeyGen -->|Cloud Sync| FirestoreSync
+    VaultSecurity
+
+    classDef l5 fill:#FCE4EC,stroke:#D81B60,color:#880E4F
+    class StorageKeyGen,GuestStorage,UserStorage,FirestoreSync,VaultSecurity l5
+```
+
+**Receives from:** Layers 2, 3 & 4 — all writes funnel through `getDbStorageKey()`. **Feeds into:** Layer 6 (stored data → analytics).
+
+</details>
+
+<details>
+<summary><strong>📊 Layer 6 — Forensic Analytics & Intelligence Dossier</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    StatsWidget["⚡ StatsWidget.jsx<br/>(Lifetime Metrics Pill)"]
+    ForensicModal["📈 ForensicStatsModal.jsx<br/>(Hit Rate, Streak Counter, Slump Curves)"]
+    AnalyticsPanel["📉 AnalyticsPanel.jsx<br/>(Telemetry Charting)"]
+    MonthlyDossierModal["🧠 MonthlyReportModal.jsx<br/>(Executive Summary, Homie Letters, AI Re-eval)"]
+
+    StatsWidget --> ForensicModal
+    ForensicModal --> AnalyticsPanel
+    MonthlyDossierModal
+
+    classDef l6 fill:#E0F7FA,stroke:#00838F,color:#006064
+    class StatsWidget,ForensicModal,AnalyticsPanel,MonthlyDossierModal l6
+```
+
+**Receives from:** Layer 1 (Header nav shortcuts), Layer 5 (stored data).
+
+</details>
+
+<details>
+<summary><strong>🎨 Layer 7 — Creative Studio & Streetwear Wallpaper Engine</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    AestheticModal["🖼️ AestheticCardExportModal.jsx<br/>(4K Canvas Post Exporter)"]
+    DeepseekCard["✨ AestheticCardVariantDeepseek.jsx<br/>(Cyberpunk Poster)"]
+    YearInPixels["🟩 YearInPixelsWallpaperEngine.jsx<br/>(365-Day Lockscreen Grid)"]
+    StickerVault["🎭 StickerVaultModal.jsx<br/>(Mascot & Custom Sticker Manager)"]
+    IconLabModal["🔬 IconLab.jsx<br/>(Custom SVG Icon Studio)"]
+
+    AestheticModal --> DeepseekCard
+    AestheticModal --> StickerVault
+    YearInPixels
+    IconLabModal
+
+    classDef l7 fill:#FFFDE7,stroke:#FBC02D,color:#F57F17
+    class AestheticModal,DeepseekCard,YearInPixels,StickerVault,IconLabModal l7
+```
+
+**Receives from:** Layer 1 (Header nav shortcuts).
+
+</details>
+
+<details>
+<summary><strong>⚙️ Layer 8 — Hardware Dials, Settings & Procedural Audio</strong></summary>
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
+flowchart TD
+    SettingsModal["⚙️ SettingsModal.jsx<br/>(Domains, Language, Tags, Vault)"]
+    RadialClock["🕒 RadialClockPicker.jsx<br/>(SVG Mechanical 24h/12h Dial)"]
+    NotifModal["🔔 NotificationOptInModal.jsx +<br/>ReminderBanner.jsx"]
+    SoundEngine["🔊 soundEngine.js + soundEffects.js<br/>(Procedural Mechanical Clicks & Chimes)"]
+
+    SettingsModal --> RadialClock
+    SettingsModal --> NotifModal
+    SettingsModal -.->|Audio Triggers| SoundEngine
+
+    classDef l8 fill:#EFEBE9,stroke:#6D4C41,color:#3E2723
+    class SettingsModal,RadialClock,NotifModal,SoundEngine l8
+```
+
+**Receives from:** Layer 1 (Header nav → Settings), Layer 2 (audio triggers, dashed line).
+
+</details>
+
+---
+
 ## 📖 Table of Contents
 
-1. [⚡ Core Philosophy & Behavioral Science](#-core-philosophy--behavioral-science)
-2. [🎭 The 5 Verdict Tiers & Mascot Lore](#-the-5-verdict-tiers--mascot-lore)
-3. [🕒 The Interactive Radial Dial Clock (Master Guide)](#-the-interactive-radial-dial-clock-master-guide)
-4. [🌐 Segmented Day Matrix & Multi-Sphere Classification](#-segmented-day-matrix--multi-sphere-classification)
-5. [🖼️ Wallpaper Studio & Streetwear Poster Engine](#️-wallpaper-studio--streetwear-poster-engine)
-6. [🤖 AI Diary Ghostwriter & Language Isolation](#-ai-diary-ghostwriter--language-isolation)
-7. [📊 Monthly AI Performance Forensic Dossier](#-monthly-ai-performance-forensic-dossier)
-8. [🛡️ Offline-First Architecture & Cloud Sync](#️-offline-first-architecture--cloud-sync)
-9. [🤖 Master Automated System Audit Suite](#-master-automated-system-audit-suite)
-10. [📱 Installing as a Native Mobile App (PWA)](#-installing-as-a-native-mobile-app-pwa)
-11. [⌨️ Developer CLI Tooling](#️-developer-cli-tooling)
-12. [🛠️ Tech Stack & Local Setup](#️-tech-stack--local-setup)
+1. [🏛️ System Architecture](#️-system-architecture)
+2. [⚡ Core Philosophy & Behavioral Science](#-core-philosophy--behavioral-science)
+3. [🎭 The 5 Verdict Tiers & Mascot Lore](#-the-5-verdict-tiers--mascot-lore)
+4. [🕒 The Interactive Radial Dial Clock (Master Guide)](#-the-interactive-radial-dial-clock-master-guide)
+5. [🌐 Segmented Day Matrix & Multi-Sphere Classification](#-segmented-day-matrix--multi-sphere-classification)
+6. [🖼️ Wallpaper Studio & Streetwear Poster Engine](#️-wallpaper-studio--streetwear-poster-engine)
+7. [🤖 AI Diary Ghostwriter & Language Isolation](#-ai-diary-ghostwriter--language-isolation)
+8. [📊 Monthly AI Performance Forensic Dossier](#-monthly-ai-performance-forensic-dossier)
+9. [🛡️ Offline-First Architecture & Cloud Sync](#️-offline-first-architecture--cloud-sync)
+10. [🤖 Master Automated System Audit Suite](#-master-automated-system-audit-suite)
+11. [📱 Installing as a Native Mobile App (PWA)](#-installing-as-a-native-mobile-app-pwa)
+12. [⌨️ Developer CLI Tooling](#️-developer-cli-tooling)
+13. [🛠️ Tech Stack & Local Setup](#️-tech-stack--local-setup)
 
 ---
 
