@@ -60,12 +60,32 @@ export default function App() {
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
-  const [isVaultLocked, setIsVaultLocked] = useState(false);
+  const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
 
-  // Auto-lock paused while migrating to Netlify serverless mediator
+  // 🔐 Auto-Lock Gatekeeper whenever user switches browser tabs, minimizes, or leaves window
   useEffect(() => {
-    // Lock gatekeeper paused safely
+    const handleLock = () => {
+      if (isVaultPinActive()) {
+        setIsVaultLocked(true);
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden && isVaultPinActive()) {
+        setIsVaultLocked(true);
+      }
+    };
+
+    window.addEventListener('blur', handleLock);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('vault-pin-updated', handleLock);
+
+    return () => {
+      window.removeEventListener('blur', handleLock);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('vault-pin-updated', handleLock);
+    };
   }, []);
 
   // Secret developer key sequence listener (type "iconlab", "skeleton", or "recovery" anywhere)

@@ -36,6 +36,9 @@ export async function setVaultPin(pin) {
     localStorage.removeItem('daily_verdict_vault_pin_hash');
     localStorage.removeItem('daily_verdict_vault_pin');
   }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('vault-pin-updated'));
+  }
 }
 
 // 1. Full-Screen Gatekeeper Lock Screen
