@@ -79,7 +79,7 @@ export function sha256Sync(ascii) {
 // 🛡️ Zero-Knowledge Irreversible Hashes for Unified Owner Vaults (Zero Plaintext in GitHub)
 const OWNER_EMAIL_HASHES = [
   '2bf73073f0477bdf305748485fb73ecd9c3507a9ca40516800178e63c78e3b4a', // Primary Account
-  'c1666232b2a1c40fdb71142f7317feb3c56d05670c8b179d0f03a3a0cb801508'  // Secondary Account
+  '2aecfde19853992974a8c358fabd2db6ca8fb40bde80b8e73da5b4b471f1fb66'  // Secondary Account
 ];
 
 // Dynamic User Profile Management & Multi-User Isolation (Zero Hardcoded PII)
