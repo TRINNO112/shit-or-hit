@@ -130,20 +130,26 @@ export function getEffectiveUserId(user) {
   return user.uid ? `user_${user.uid}` : 'guest';
 }
 
+export function isOwnerAccount(email) {
+  if (!email) return false;
+  const hash = sha256Sync(email.toLowerCase().trim());
+  return OWNER_EMAIL_HASHES.includes(hash);
+}
+
 export function getUserDisplayName(email, fallbackName = null) {
   const emailLower = (email || '').toLowerCase().trim();
 
-  // 1. User-configured custom alias in settings
-  const customAlias = getCustomDisplayName(emailLower);
-  if (customAlias) return customAlias;
-
-  // 2. Zero-Knowledge Owner Recognition
+  // 1. Zero-Knowledge Owner Recognition (Always Trinno for unified Owner accounts)
   if (emailLower) {
     const emailHash = sha256Sync(emailLower);
     if (OWNER_EMAIL_HASHES.includes(emailHash)) {
       return 'Trinno';
     }
   }
+
+  // 2. User-configured custom alias in settings
+  const customAlias = getCustomDisplayName(emailLower);
+  if (customAlias) return customAlias;
 
   // 3. Dynamic Google OAuth Display Name from Authenticated Google Account
   if (fallbackName && fallbackName.trim()) {
