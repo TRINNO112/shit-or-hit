@@ -3,6 +3,8 @@
 > **The Neobrutalist Daily Life Logger, Habit Tracker & AI Performance Forensic Hub.**  
 > Built with 100% data sovereignty, offline-first PWA architecture, an interactive SVG radial dial clock, and high-resolution streetwear poster exports.
 
+![System Architecture Matrix](docs/architecture_matrix.png)
+
 ---
 
 ## 📖 Table of Contents
@@ -15,9 +17,10 @@
 6. [🤖 AI Diary Ghostwriter & Language Isolation](#-ai-diary-ghostwriter--language-isolation)
 7. [📊 Monthly AI Performance Forensic Dossier](#-monthly-ai-performance-forensic-dossier)
 8. [🛡️ Offline-First Architecture & Cloud Sync](#️-offline-first-architecture--cloud-sync)
-9. [📱 Installing as a Native Mobile App (PWA)](#-installing-as-a-native-mobile-app-pwa)
-10. [⌨️ Developer CLI Tooling](#️-developer-cli-tooling)
-11. [🛠️ Tech Stack & Local Setup](#️-tech-stack--local-setup)
+9. [🤖 Master Automated System Audit Suite](#-master-automated-system-audit-suite)
+10. [📱 Installing as a Native Mobile App (PWA)](#-installing-as-a-native-mobile-app-pwa)
+11. [⌨️ Developer CLI Tooling](#️-developer-cli-tooling)
+12. [🛠️ Tech Stack & Local Setup](#️-tech-stack--local-setup)
 
 ---
 
@@ -207,8 +210,32 @@ Your data belongs entirely to you. SHIT OR HIT combines instant local performanc
 2. **4-Second Cloud Sync Race Timeout**:
    - When signed in with Google, entries sync to Firebase Firestore asynchronously.
    - If your network drops or lags, the save operation times out after 4 seconds and queues locally, preventing the UI from freezing.
-3. **Developer Privacy & Trinno Identity Calibration**:
-   - When running on `localhost:5173` or authenticated as the primary developer, personal enterprise emails are masked as `Trinno` (`trinno@cloud.sync`) to prevent PII leaks on live streams and screenshots.
+3. **Multi-User Isolation & Instant Logout Memory Flush**:
+   - Local database partitions dynamically per user (`goodness_db_${uid}` vs `goodness_db_guest`).
+   - Logging out triggers a clean in-memory React state reload (`window.location.reload()`), immediately flushing cached telemetry and diary entries.
+
+---
+
+## 🤖 Master Automated System Audit Suite
+
+The application includes a built-in automated test suite covering all **33 components, math engines, audio synthesizers, and security layers**.
+
+```bash
+# Run the 10-suite audit anytime:
+npm run audit
+```
+
+### 10 Test Suites Included:
+1. **Core Navigation & Views**: Validates Header sliding pill, mobile radio ratings, and PWA install handlers.
+2. **Calendar Matrix & Day Editor**: Verifies date click matrix bindings and outlier event domain injection.
+3. **Forensic Analytics & Telemetry**: Tests hit rates, streak algorithms, and slump progression formulas.
+4. **Monthly Dossier Intelligence**: Asserts executive summaries, homie letters, and on-demand AI re-evaluations.
+5. **Creative Studio & Wallpapers**: Tests 4K canvas rasterization and 365-day pixel grid generators.
+6. **Sticker & Mascot Vault**: Validates custom sticker uploads, tag categorizations, and deletion pipelines.
+7. **Daily Non-Negotiables**: Tests Checklist, Hybrid 50/50, and Deterministic 100% habit modes.
+8. **Settings & Radial Dial**: Asserts sphere domain customizations, mechanical 24h dial, and notification schedulers.
+9. **Procedural Web Audio**: Verifies oscillator frequencies and 5-level mood sound synthesis.
+10. **Multi-User Isolation & Build**: Validates user-scoped storage keys, static host 405 error prevention on GitHub Pages, and executes a full Vite production build verification.
 
 ---
 

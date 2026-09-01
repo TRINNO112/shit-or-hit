@@ -173,7 +173,12 @@ export async function logoutUser() {
   localStorage.removeItem('local_auth_user');
   const fb = await getFirebase();
   if (fb && fb.authMod && fb.auth) {
-    await fb.authMod.signOut(fb.auth);
+    try {
+      await fb.authMod.signOut(fb.auth);
+    } catch (e) {}
+  }
+  if (typeof window !== 'undefined') {
+    window.location.reload();
   }
 }
 
