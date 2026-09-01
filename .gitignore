@@ -28,7 +28,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Local Netlify folder & Functions
+# Local Netlify folder
 .netlify
-netlify/functions/
+
 

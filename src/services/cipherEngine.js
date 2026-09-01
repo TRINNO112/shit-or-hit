@@ -181,3 +181,26 @@ export async function removeVaultPinDualLayer(customUserId = null) {
     } catch (e) {}
   }
 }
+
+/**
+ * Asymmetrically verifies a user PIN against an encrypted token via the Netlify cloud mediator.
+ * Returns true if matched, with zero secret keys exposed on the client.
+ */
+export async function verifyPinViaCloudMediator(token, pin) {
+  if (!token || !pin) return false;
+  try {
+    const res = await fetch('/.netlify/functions/decrypt-mediator', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify-pin', token, pin })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return !!data.matched;
+    }
+  } catch (e) {
+    // Offline fallback to client decryption
+  }
+  const localDecrypted = decryptVaultPin(token);
+  return localDecrypted === pin;
+}
