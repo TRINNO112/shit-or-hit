@@ -78,9 +78,15 @@ export function sha256Sync(ascii) {
 
 // 🛡️ Zero-Knowledge Irreversible Hashes for Unified Owner Vaults (Zero Plaintext in GitHub)
 const OWNER_EMAIL_HASHES = [
-  '2bf73073f0477bdf305748485fb73ecd9c3507a9ca40516800178e63c78e3b4a',
-  'c1666232b2a1c40fdb71142f7317feb3c56d05670c8b179d0f03a3a0cb801508'
+  '2bf73073f0477bdf305748485fb73ecd9c3507a9ca40516800178e63c78e3b4a', // Owner Personal
+  'c1666232b2a1c40fdb71142f7317feb3c56d05670c8b179d0f03a3a0cb801508'  // Owner Work
 ];
+
+// 🛡️ Zero-Knowledge Identity Map for Known Accounts (Zero Plaintext Emails)
+const KNOWN_USER_HASH_MAP = {
+  '31bf12386a161aa1534c04ce4966f484a0a3c9297b3ec13637cd4cf2649628c7': 'Kartik Pathak',
+  '41af4e617dc4e6a5f6f285a6f73ffb23f2e21d08d94bfa80324297c829cdd3c3': 'Yuvraj Mohanty'
+};
 
 // Dynamic User Profile Management & Multi-User Isolation (Zero Hardcoded PII)
 export function getCustomDisplayName(email = null) {
@@ -137,11 +143,14 @@ export function getUserDisplayName(email, fallbackName = null) {
   const customAlias = getCustomDisplayName(emailLower);
   if (customAlias) return customAlias;
 
-  // 2. Zero-Knowledge Owner Recognition
+  // 2. Zero-Knowledge Owner & Known User Recognition via SHA-256
   if (emailLower) {
     const emailHash = sha256Sync(emailLower);
     if (OWNER_EMAIL_HASHES.includes(emailHash)) {
       return 'Trinno';
+    }
+    if (KNOWN_USER_HASH_MAP[emailHash]) {
+      return KNOWN_USER_HASH_MAP[emailHash];
     }
   }
 
