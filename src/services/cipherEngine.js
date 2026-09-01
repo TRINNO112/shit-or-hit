@@ -4,19 +4,34 @@
  * while maintaining instant offline decryption in local storage.
  */
 
-import { saveCloudUserSettings, fetchCloudUserSettings, getCurrentUser, getEffectiveUserId } from './firebase';
+import { saveCloudUserSettings, fetchCloudUserSettings, getCurrentUser, getEffectiveUserId, sha256Sync } from './firebase';
 
-const MASTER_CIPHER_SECRET = 'TRINNO_SHIT_OR_HIT_MASTER_SECRET_KEY_2026';
+const getMasterCipherSecret = () => {
+  if (typeof process !== 'undefined' && process.env && process.env.TRINNO_VAULT_SECRET) {
+    return process.env.TRINNO_VAULT_SECRET;
+  }
+  return 'TRINNO_SHIT_OR_HIT_MASTER_SECRET_KEY_2026';
+};
 
 /**
- * Encrypts a string (e.g. 4-digit PIN) into an authenticated encrypted cipher token.
+ * Computes a salted cryptographic hash for local PIN storage.
+ * Ensures zero plaintext PINs are ever stored in browser memory.
+ */
+export function hashPinWithSalt(pin, salt) {
+  if (!pin || !salt) return null;
+  const raw = `TRINNO_SALT:${salt}:${pin}:${salt}`;
+  return sha256Sync(raw);
+}
+
+/**
+ * Encrypts a string (e.g. 4-digit PIN) into an authenticated encrypted cipher token for cloud transit.
  * @param {string} text - Plain text PIN (e.g. "4829")
  * @returns {string} - Encrypted cipher token (e.g. "TRINNO_ENC_V2:...")
  */
 export function encryptVaultPin(text) {
   if (!text) return null;
   try {
-    const keyBytes = new TextEncoder().encode(MASTER_CIPHER_SECRET);
+    const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
     
     // High-entropy dynamic salt prefix for forward secrecy
     const salt = Math.floor(100000 + Math.random() * 900000).toString();
@@ -50,7 +65,7 @@ export function decryptVaultPin(cipherToken) {
     if (cipherToken.startsWith('TRINNO_ENC_V2:')) {
       const hex = cipherToken.replace('TRINNO_ENC_V2:', '');
       const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-      const keyBytes = new TextEncoder().encode(MASTER_CIPHER_SECRET);
+      const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
       
       const decryptedBytes = bytes.map((byte, i) => {
         const k = keyBytes[i % keyBytes.length];
@@ -69,7 +84,7 @@ export function decryptVaultPin(cipherToken) {
     if (cipherToken.startsWith('TRINNO_ENC_V1:')) {
       const hex = cipherToken.replace('TRINNO_ENC_V1:', '');
       const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-      const keyBytes = new TextEncoder().encode(MASTER_CIPHER_SECRET);
+      const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
       
       const decryptedBytes = bytes.map((byte, i) => byte ^ keyBytes[i % keyBytes.length]);
       const decryptedStr = new TextDecoder().decode(decryptedBytes);
@@ -97,16 +112,65 @@ export function decryptVaultPin(cipherToken) {
 }
 
 /**
+ * Verifies an entered PIN against locally stored salted hash.
+ * 100% zero plaintext in localStorage.
+ */
+export function verifyStoredVaultPin(inputPin) {
+  if (!inputPin || typeof window === 'undefined') return false;
+  
+  // 1. Check Salted Hash (Primary, 100% Zero Plaintext)
+  const storedHashEntry = localStorage.getItem('daily_verdict_vault_pin_hash');
+  if (storedHashEntry && storedHashEntry.startsWith('TRINNO_SALTED_HASH:')) {
+    const parts = storedHashEntry.split(':');
+    if (parts.length >= 3) {
+      const salt = parts[1];
+      const targetHash = parts[2];
+      const computedHash = hashPinWithSalt(inputPin, salt);
+      return computedHash === targetHash;
+    }
+  }
+
+  // 2. Legacy fallback & seamless auto-upgrade
+  const legacyCipher = localStorage.getItem('daily_verdict_vault_pin_cipher');
+  if (legacyCipher) {
+    const decrypted = decryptVaultPin(legacyCipher);
+    if (decrypted && decrypted === inputPin) {
+      const salt = Math.floor(100000 + Math.random() * 900000).toString();
+      const hash = hashPinWithSalt(inputPin, salt);
+      localStorage.setItem('daily_verdict_vault_pin_hash', `TRINNO_SALTED_HASH:${salt}:${hash}`);
+      localStorage.removeItem('daily_verdict_vault_pin_cipher');
+      localStorage.removeItem('daily_verdict_vault_pin');
+      return true;
+    }
+  }
+
+  const rawPin = localStorage.getItem('daily_verdict_vault_pin');
+  if (rawPin && rawPin === inputPin) {
+    const salt = Math.floor(100000 + Math.random() * 900000).toString();
+    const hash = hashPinWithSalt(inputPin, salt);
+    localStorage.setItem('daily_verdict_vault_pin_hash', `TRINNO_SALTED_HASH:${salt}:${hash}`);
+    localStorage.removeItem('daily_verdict_vault_pin');
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Dual-Layer Vault PIN Persistence:
- * 1. Saves locally in LocalStorage for 0ms offline access.
+ * 1. Saves ONLY Salted Hash in LocalStorage (Zero Plaintext in Browser Memory).
  * 2. Transmits encrypted cipher token to Firestore for cloud sync & recovery.
  */
 export async function saveVaultPinDualLayer(pin, customUserId = null) {
   if (!pin) return;
   
-  // 1. Instant Local Storage Save
+  // 1. Instant Salted Hash Save (Zero Plaintext PIN in LocalStorage)
   if (typeof window !== 'undefined') {
-    localStorage.setItem('daily_verdict_vault_pin', pin);
+    const salt = Math.floor(100000 + Math.random() * 900000).toString();
+    const hash = hashPinWithSalt(pin, salt);
+    localStorage.setItem('daily_verdict_vault_pin_hash', `TRINNO_SALTED_HASH:${salt}:${hash}`);
+    localStorage.removeItem('daily_verdict_vault_pin');
+    localStorage.removeItem('daily_verdict_vault_pin_cipher');
   }
 
   // 2. Encrypted Cloud Transit & Firestore Persistence

@@ -7,19 +7,24 @@ import {
   decryptVaultPin, 
   saveVaultPinDualLayer, 
   fetchVaultPinDualLayer, 
-  removeVaultPinDualLayer 
+  removeVaultPinDualLayer,
+  verifyStoredVaultPin
 } from '../services/cipherEngine';
 
 export const VAULT_PIN_CIPHER_KEY = 'daily_verdict_vault_pin_cipher';
 
 export function isVaultPinActive() {
   if (typeof window === 'undefined') return false;
-  return !!(localStorage.getItem('daily_verdict_vault_pin') || localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash'));
+  return !!(
+    localStorage.getItem('daily_verdict_vault_pin_hash') ||
+    localStorage.getItem('daily_verdict_vault_pin') || 
+    localStorage.getItem(VAULT_PIN_CIPHER_KEY)
+  );
 }
 
 export function getStoredVaultPinCipher() {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('daily_verdict_vault_pin') || localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash') || null;
+  return localStorage.getItem('daily_verdict_vault_pin_hash') || localStorage.getItem('daily_verdict_vault_pin') || localStorage.getItem(VAULT_PIN_CIPHER_KEY) || null;
 }
 
 export async function setVaultPin(pin) {
@@ -29,6 +34,7 @@ export async function setVaultPin(pin) {
     await removeVaultPinDualLayer();
     localStorage.removeItem(VAULT_PIN_CIPHER_KEY);
     localStorage.removeItem('daily_verdict_vault_pin_hash');
+    localStorage.removeItem('daily_verdict_vault_pin');
   }
 }
 
@@ -41,24 +47,19 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
 
   useEffect(() => {
     if (pinInput.length === 4) {
-      const verify = () => {
-        const storedCipher = getStoredVaultPinCipher();
-        const decryptedTarget = decryptVaultPin(storedCipher);
-        
-        if (decryptedTarget && pinInput === decryptedTarget) {
-          soundEngine.playSuccessChime();
+      const isCorrect = verifyStoredVaultPin(pinInput);
+      if (isCorrect) {
+        soundEngine.playSuccessChime();
+        setPinInput('');
+        onUnlock();
+      } else {
+        soundEngine.playRoughTone();
+        setErrorShake(true);
+        setTimeout(() => {
           setPinInput('');
-          onUnlock();
-        } else {
-          soundEngine.playRoughTone();
-          setErrorShake(true);
-          setTimeout(() => {
-            setPinInput('');
-            setErrorShake(false);
-          }, 500);
-        }
-      };
-      verify();
+          setErrorShake(false);
+        }, 500);
+      }
     }
   }, [pinInput, onUnlock]);
 
