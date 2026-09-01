@@ -3,8 +3,6 @@
 > **The Neobrutalist Daily Life Logger, Habit Tracker & AI Performance Forensic Hub.**  
 > Built with 100% data sovereignty, offline-first PWA architecture, an interactive SVG radial dial clock, and high-resolution streetwear poster exports.
 
-![System Architecture Matrix](docs/architecture_matrix.png)
-
 ---
 
 ## 📖 Table of Contents
