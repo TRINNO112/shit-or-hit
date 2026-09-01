@@ -66,6 +66,24 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
     }
   }, [pinInput, onUnlock]);
 
+  // Physical Keyboard Listener (0-9, Backspace) for desktop PC convenience
+  useEffect(() => {
+    if (!isLocked) return;
+    const handlePhysicalKey = (e) => {
+      if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
+        if (pinInput.length < 4) {
+          soundEngine.playClick();
+          setPinInput(prev => prev + e.key);
+        }
+      } else if (e.key === 'Backspace') {
+        soundEngine.playClick();
+        setPinInput(prev => prev.slice(0, -1));
+      }
+    };
+    window.addEventListener('keydown', handlePhysicalKey);
+    return () => window.removeEventListener('keydown', handlePhysicalKey);
+  }, [isLocked, pinInput]);
+
   const handleDigit = (digit) => {
     if (pinInput.length < 4) {
       soundEngine.playClick();
@@ -79,11 +97,7 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
   };
 
   const handleEmergencyReset = async () => {
-    if (!currentUser) {
-      alert('You must be logged in with your Google account to perform an emergency PIN reset.');
-      return;
-    }
-    if (window.confirm(`Reset Vault PIN for ${currentUser.email}? This will remove the PIN lock and let you set a new one.`)) {
+    if (window.confirm('Reset / Disable Vault PIN lock on this device?')) {
       setIsResetting(true);
       await setVaultPin(null);
       soundEngine.playSuccessChime();
@@ -107,7 +121,7 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
             Vault Locked
           </h2>
           <p className="text-xs font-mono text-neutral-600 mt-1 font-bold">
-            Enter 4-digit PIN to access reflections
+            Enter 4-digit PIN (Type or Click)
           </p>
         </div>
 
@@ -164,16 +178,14 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
             <span>Salted SHA-256 Cryptographic Hash Active</span>
           </div>
 
-          {currentUser && (
-            <button
-              type="button"
-              onClick={handleEmergencyReset}
-              disabled={isResetting}
-              className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer"
-            >
-              Forgot PIN? Reset with {currentUser.displayName || currentUser.email}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleEmergencyReset}
+            disabled={isResetting}
+            className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer block mx-auto"
+          >
+            Reset / Remove Vault PIN
+          </button>
         </div>
       </div>
     </div>
