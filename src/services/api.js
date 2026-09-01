@@ -1,5 +1,6 @@
 import { 
   getCurrentUser, 
+  getEffectiveUserId,
   saveCloudUserSettings,
   saveCloudEntry, 
   fetchCloudEntries, 
@@ -151,12 +152,17 @@ export const isStaticHost = typeof window !== 'undefined' && (
 );
 
 export function getDbStorageKey(userId) {
-  return userId ? `goodness_db_${userId}` : 'goodness_db_guest';
+  if (!userId) return 'goodness_db_guest';
+  if (typeof userId === 'object') {
+    return `goodness_db_${getEffectiveUserId(userId)}`;
+  }
+  return `goodness_db_${userId}`;
 }
 
 export async function fetchDatabase() {
   const currentUser = getCurrentUser();
-  const storageKey = getDbStorageKey(currentUser?.uid);
+  const effectiveId = getEffectiveUserId(currentUser);
+  const storageKey = getDbStorageKey(effectiveId);
 
   // 1. First fetch local data from server API (if local dev) or user-scoped localStorage
   let localData = { startDate: new Date().toISOString().slice(0, 10), entries: {} };
@@ -189,7 +195,7 @@ export async function fetchDatabase() {
   // 2. If user is logged in with whitelisted Firebase account, sync with Firestore
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
-      const cloudEntries = await fetchCloudEntries(currentUser.uid);
+      const cloudEntries = await fetchCloudEntries(effectiveId);
       const cloudCount = Object.keys(cloudEntries).length;
 
       // If Firestore has data, merge and use Firestore for this specific user
@@ -217,7 +223,8 @@ export async function saveEntry(entryData) {
   };
 
   const currentUser = getCurrentUser();
-  const storageKey = getDbStorageKey(currentUser?.uid);
+  const effectiveId = getEffectiveUserId(currentUser);
+  const storageKey = getDbStorageKey(effectiveId);
 
   // 1. Always update user-scoped local storage database immediately
   try {
@@ -231,7 +238,7 @@ export async function saveEntry(entryData) {
   // 2. Cloud save with 4s timeout protection against slow connections
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
-      const cloudPromise = saveCloudEntry(currentUser.uid, formatted);
+      const cloudPromise = saveCloudEntry(effectiveId, formatted);
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Cloud save timeout')), 4000));
       await Promise.race([cloudPromise, timeoutPromise]);
     } catch (err) {
@@ -370,13 +377,14 @@ Return ONLY the complete polished diary entry text without quotes or preamble.`;
   return notes;
 }
 
-export async function getSavedMonthlyReport(year, month, archetypeId = null) {
-  const targetDataset = archetypeId || 'real';
-  const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+export async function getSavedMonthlyReport(year, month) {
+  const currentUser = getCurrentUser();
+  const userPrefix = currentUser?.uid ? `user_${currentUser.uid}` : 'guest';
+  const reportKey = `report_${userPrefix}_${year}_${String(month).padStart(2, '0')}`;
 
   if (!isStaticHost) {
     try {
-      const res = await fetch(`${API_BASE}/monthly-report?year=${year}&month=${month}&archetypeId=${archetypeId || ''}`);
+      const res = await fetch(`${API_BASE}/monthly-report?year=${year}&month=${month}`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
@@ -401,9 +409,10 @@ export async function getSavedMonthlyReport(year, month, archetypeId = null) {
 }
 
 export async function fetchMonthlyReport(year, month, customEntries = null, archetypeId = null, forceReevaluate = false) {
-  const targetDataset = archetypeId || 'real';
+  const currentUser = getCurrentUser();
+  const userPrefix = currentUser?.uid ? `user_${currentUser.uid}` : 'guest';
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
-  const reportKey = `report_${targetDataset}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
+  const reportKey = `report_${userPrefix}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
 
   // Check cached report if not forcing reevaluation
   if (!forceReevaluate) {
@@ -419,7 +428,7 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
       const res = await fetch(`${API_BASE}/monthly-report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage })
+        body: JSON.stringify({ year, month, customEntries, forceReevaluate, preferredLanguage })
       });
       if (res.ok) {
         const json = await res.json();
@@ -453,7 +462,9 @@ async function generateClientMonthlyReport(year, month, customEntries = null, pr
       allEntries = customEntries;
     }
   } else {
-    const cached = localStorage.getItem('goodness_db');
+    const currentUser = getCurrentUser();
+    const storageKey = getDbStorageKey(currentUser?.uid);
+    const cached = localStorage.getItem(storageKey);
     allEntries = cached ? JSON.parse(cached).entries || {} : {};
   }
 

@@ -161,7 +161,6 @@ export default function MobileAppView({
   // Embedded Dossier State
   const [dossierYear, setDossierYear] = useState(new Date().getFullYear());
   const [dossierMonth, setDossierMonth] = useState(new Date().getMonth() + 1);
-  const [dossierArchetype, setDossierArchetype] = useState(null);
   const [dossierReport, setDossierReport] = useState(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [dossierError, setDossierError] = useState(null);
@@ -211,27 +210,27 @@ export default function MobileAppView({
   // Auto-load saved dossier when switching to Dossier tab
   useEffect(() => {
     if (activeTab === 'dossier') {
-      loadDossier(dossierArchetype, dossierYear, dossierMonth, false);
+      loadDossier(dossierYear, dossierMonth, false);
     }
-  }, [activeTab, dossierArchetype, dossierYear, dossierMonth]);
+  }, [activeTab, dossierYear, dossierMonth]);
 
-  const loadDossier = async (archId, yr, mo, force = false) => {
+  const loadDossier = async (yr, mo, force = false) => {
     setDossierLoading(true);
     setDossierError(null);
     try {
       if (!force) {
-        const saved = await getSavedMonthlyReport(yr, mo, archId);
-        if (saved) {
+        const saved = await getSavedMonthlyReport(yr, mo);
+        if (saved && saved.executiveSummary) {
           setDossierReport(saved);
           setDossierLoading(false);
           return;
         }
       }
-      const data = await fetchMonthlyReport(yr, mo, null, archId, force);
+      const data = await fetchMonthlyReport(yr, mo, null, null, force);
       setDossierReport(data);
     } catch (err) {
-      console.error('Failed to load mobile dossier:', err);
-      setDossierError('Could not load evaluation. Tap Retry below.');
+      console.error('Failed to load mobile monthly report:', err);
+      setDossierError(err.message || 'Failed to synthesize dossier.');
     } finally {
       setDossierLoading(false);
     }
@@ -1075,27 +1074,15 @@ export default function MobileAppView({
               </div>
             </div>
 
-            {/* Target Dataset & Re-evaluate Buttons */}
-            <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-black/10">
+            {/* Action Bar */}
+            <div className="pt-1.5 border-t border-black/10">
               <button
-                onClick={() => {
-                  const nextArch = dossierArchetype ? null : 'strugglingStudent';
-                  setDossierArchetype(nextArch);
-                }}
-                className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer ${
-                  dossierArchetype ? 'bg-[#FF8A00] text-black shadow-[2px_2px_0px_#000000]' : 'bg-white text-neutral-800'
-                }`}
-              >
-                {dossierArchetype ? "🎓 Aryan's 30d Test" : "↩️ My Real DB"}
-              </button>
-
-              <button
-                onClick={() => loadDossier(dossierArchetype, dossierYear, dossierMonth, true)}
+                onClick={() => loadDossier(dossierYear, dossierMonth, true)}
                 disabled={dossierLoading}
-                className="px-3.5 py-1.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98 transition-all"
               >
                 <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${dossierLoading ? 'animate-spin' : ''}`} />
-                <span>{dossierLoading ? 'Evaluating...' : dossierReport ? '🔄 Re-Evaluate' : '⚡ Run Evaluation'}</span>
+                <span>{dossierLoading ? 'Synthesizing...' : dossierReport ? '🔄 Re-Evaluate Dossier' : '⚡ Run Monthly Evaluation'}</span>
               </button>
             </div>
           </div>
@@ -1455,14 +1442,24 @@ export default function MobileAppView({
               )}
 
             </div>
+          ) : dossierReport && dossierReport.totalLogged === 0 ? (
+            <div className="p-6 rounded-2xl border-2 border-black bg-white text-center space-y-3 shadow-[3px_3px_0px_#000000]">
+              <Calendar className="w-9 h-9 text-neutral-600 mx-auto stroke-[2.5]" />
+              <h4 className="font-display font-black text-base uppercase text-black">
+                No Entries Logged Yet
+              </h4>
+              <p className="text-xs font-mono text-neutral-600">
+                Log your daily verdicts on the Today tab or Calendar to unlock monthly performance intelligence.
+              </p>
+            </div>
           ) : (
             <div className="p-6 rounded-2xl border-2 border-black bg-white text-center space-y-3 shadow-[3px_3px_0px_#000000]">
-              <Lock className="w-9 h-9 text-[#00E599] mx-auto stroke-[2.5]" />
+              <Sparkles className="w-9 h-9 text-[#00E599] mx-auto stroke-[2.5]" />
               <h4 className="font-display font-black text-base uppercase text-black">
                 Ready for Evaluation
               </h4>
               <p className="text-xs font-mono text-neutral-600">
-                Tap the button above to run Gemini AI performance forensics for this month.
+                Tap the button above to synthesize Gemini AI performance forensics for this month.
               </p>
             </div>
           )}

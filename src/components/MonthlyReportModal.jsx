@@ -29,7 +29,6 @@ import {
   MessageSquareQuote
 } from 'lucide-react';
 import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
-import { mockArchetypes } from '../data/mockArchetypes';
 import confetti from 'canvas-confetti';
 
 export default function MonthlyReportModal({ 
@@ -42,7 +41,6 @@ export default function MonthlyReportModal({
   const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
   const [report, setReport] = useState(null);
-  const [selectedArchetype, setSelectedArchetype] = useState(null); // null = real data
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -57,11 +55,11 @@ export default function MonthlyReportModal({
     if (initialMonth) setMonth(initialMonth);
   }, [initialYear, initialMonth]);
 
-  // Check and load saved report from database when modal opens or month/dataset changes
+  // Check and load saved report from database when modal opens or month changes
   useEffect(() => {
     let isMounted = true;
     if (isOpen) {
-      getSavedMonthlyReport(year, month, selectedArchetype).then((saved) => {
+      getSavedMonthlyReport(year, month).then((saved) => {
         if (isMounted) {
           if (saved && saved.executiveSummary) {
             setReport(saved);
@@ -74,21 +72,14 @@ export default function MonthlyReportModal({
       });
     }
     return () => { isMounted = false; };
-  }, [isOpen, year, month, selectedArchetype]);
+  }, [isOpen, year, month]);
 
   // Load / Re-evaluate report
-  const loadReportData = async (archetypeId = selectedArchetype, currentYear = year, currentMonth = month, forceReevaluate = true) => {
+  const loadReportData = async (currentYear = year, currentMonth = month, forceReevaluate = true) => {
     setIsLoading(true);
     setError(null);
     try {
-      let customEntries = null;
-      if (archetypeId && mockArchetypes[archetypeId]) {
-        const arch = mockArchetypes[archetypeId];
-        customEntries = typeof arch.getEntries === 'function' 
-          ? arch.getEntries(currentYear, currentMonth) 
-          : arch.entries;
-      }
-      const data = await fetchMonthlyReport(currentYear, currentMonth, customEntries, archetypeId, forceReevaluate);
+      const data = await fetchMonthlyReport(currentYear, currentMonth, null, null, forceReevaluate);
       setReport(data);
       if (data?.hitRate >= 75) {
         confetti({
@@ -104,11 +95,6 @@ export default function MonthlyReportModal({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Switching dataset selects it and triggers saved report check
-  const handleSelectArchetype = (archetypeId) => {
-    setSelectedArchetype(archetypeId);
   };
 
   // Close and clean up state
@@ -299,48 +285,6 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             </div>
           </div>
 
-          {/* 🧪 TEST DATASET QUICK SWITCHER BAR */}
-          <div className="bg-neutral-100 border-b-2 border-black px-3.5 sm:px-7 py-1.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 shrink-0">
-            <div className="flex items-center gap-1.5 font-mono text-[11px] sm:text-xs font-black text-black">
-              <span>🧪 TARGET DATASET:</span>
-              {selectedArchetype ? (
-                <span className="px-1.5 py-0.5 rounded bg-[#FF8A00] text-black text-[9px] sm:text-[10px] font-black uppercase border border-black shadow-[1px_1px_0px_#000000]">
-                  ARYAN'S CHRONICLES (30 IN HELL, 1 WIN)
-                </span>
-              ) : (
-                <span className="px-1.5 py-0.5 rounded bg-black text-white text-[9px] sm:text-[10px] font-black uppercase shadow-[1px_1px_0px_#FDC800]">
-                  MY REAL DATABASE
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleSelectArchetype('strugglingStudent')}
-                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] sm:text-xs font-black cursor-pointer transition-all ${
-                  selectedArchetype === 'strugglingStudent'
-                    ? 'bg-[#FF8A00] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
-                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
-                }`}
-              >
-                🎓 Aryan's Chronicles (30 Days in Hell, 1 Win)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSelectArchetype(null)}
-                className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[11px] sm:text-xs font-black cursor-pointer transition-all ${
-                  selectedArchetype === null
-                    ? 'bg-black text-white shadow-[2px_2px_0px_#FDC800] scale-[1.02]'
-                    : 'bg-white hover:bg-neutral-50 text-neutral-800 opacity-80'
-                }`}
-              >
-                ↩️ My Real Database
-              </button>
-            </div>
-          </div>
-
           {/* Scrollable Dossier Content Area */}
           <div 
             ref={scrollContainerRef}
@@ -359,7 +303,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     Synthesizing Performance Intelligence...
                   </h4>
                   <p className="text-xs font-mono text-neutral-600">
-                    Gemini AI is reading your 31 diary entries, finding root causes, and writing your real-talk analysis.
+                    Gemini AI is reading your diary entries, calculating telemetry, and drafting real-talk analysis.
                   </p>
                 </div>
               </div>
@@ -373,17 +317,17 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   {error}
                 </p>
                 <button
-                  onClick={() => loadReportData(selectedArchetype, year, month)}
+                  onClick={() => loadReportData(year, month)}
                   className="neo-btn px-4 py-2 bg-black text-[#FDC800] text-xs font-mono font-black shadow-[2px_2px_0px_#000000] cursor-pointer"
                 >
                   RETRY SYNTHESIS
                 </button>
               </div>
             ) : !report ? (
-              /* Privacy-First Ready to Synthesize Launcher Screen */
+              /* Ready to Synthesize Launcher Screen */
               <div className="p-8 sm:p-12 rounded-3xl border-3 border-black bg-[#FFFDF5] shadow-[6px_6px_0px_#000000] text-center space-y-6 max-w-2xl mx-auto my-6">
                 <div className="w-16 h-16 rounded-2xl bg-[#00E599] border-3 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_#000000]">
-                  <Lock className="w-8 h-8 text-black stroke-[2.5]" />
+                  <Sparkles className="w-8 h-8 text-black stroke-[2.5]" />
                 </div>
                 
                 <div className="space-y-2">
@@ -391,18 +335,33 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     READY FOR MONTHLY EVALUATION
                   </h4>
                   <p className="text-xs font-mono text-neutral-700 max-w-lg mx-auto leading-relaxed">
-                    <strong>100% Privacy Lock Active:</strong> Your verdicts and diary notes remain strictly local on your device. Click the button below when you are ready to evaluate {selectedArchetype ? "Aryan's 31-Day Struggle" : "your real database"}.
+                    Generate comprehensive behavioral forensics, hit-rate curves, and candid homie advice for <strong>{new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</strong>.
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                   <button
-                    onClick={() => loadReportData(selectedArchetype, year, month)}
+                    onClick={() => loadReportData(year, month)}
                     className="neo-btn px-6 py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-sm uppercase flex items-center gap-2 shadow-[3px_3px_0px_#000000] cursor-pointer"
                   >
                     <Wand2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>⚡ RUN EVALUATION ({selectedArchetype ? "ARYAN'S 31 DAYS" : `${new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`})</span>
+                    <span>⚡ RUN EVALUATION ({new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span>
                   </button>
+                </div>
+              </div>
+            ) : report.totalLogged === 0 ? (
+              /* Clean Empty Month State */
+              <div className="p-8 sm:p-12 rounded-3xl border-3 border-black bg-white shadow-[6px_6px_0px_#000000] text-center space-y-5 max-w-2xl mx-auto my-6">
+                <div className="w-16 h-16 rounded-2xl bg-neutral-100 border-3 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_#000000]">
+                  <Calendar className="w-8 h-8 text-neutral-600 stroke-[2.5]" />
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-display font-black text-xl uppercase text-black">
+                    NO ENTRIES LOGGED FOR {new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}
+                  </h4>
+                  <p className="text-xs font-mono text-neutral-600 max-w-md mx-auto leading-relaxed">
+                    You have not logged any daily verdicts for this month yet. Log your days on the dashboard or calendar to generate your monthly performance dossier.
+                  </p>
                 </div>
               </div>
             ) : report ? (

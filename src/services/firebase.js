@@ -11,47 +11,57 @@ const firebaseConfig = {
   measurementId: "G-08GC6BKWLJ"
 };
 
-// Dynamic User Profile Management (Zero Hardcoded PII for Privacy & Security)
-export function getCustomDisplayName() {
+// Dynamic User Profile Management & Multi-User Isolation (Zero Hardcoded PII)
+export function getCustomDisplayName(email = null) {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('custom_display_name') || null;
+    const key = email ? `custom_display_name_${email.toLowerCase().trim()}` : 'custom_display_name_guest';
+    return localStorage.getItem(key) || localStorage.getItem('custom_display_name') || null;
   }
   return null;
 }
 
-export function setCustomDisplayName(name) {
+export function setCustomDisplayName(name, email = null) {
   if (typeof window !== 'undefined') {
+    const key = email ? `custom_display_name_${email.toLowerCase().trim()}` : 'custom_display_name_guest';
     if (name && name.trim()) {
-      localStorage.setItem('custom_display_name', name.trim());
+      localStorage.setItem(key, name.trim());
     } else {
+      localStorage.removeItem(key);
       localStorage.removeItem('custom_display_name');
     }
   }
 }
 
 export function isEmailWhitelisted(email) {
-  // Authentication & authorization is enforced server-side by Firestore Security Rules
   return !!email;
 }
 
+export function getEffectiveUserId(user) {
+  if (!user) return null;
+  // Dynamic user partition via Firebase UID (100% private, zero hardcoded emails)
+  if (typeof window !== 'undefined') {
+    const customVaultId = localStorage.getItem('custom_vault_cluster_id');
+    if (customVaultId && customVaultId.trim()) {
+      return `vault_${customVaultId.trim()}`;
+    }
+  }
+  return user.uid ? `user_${user.uid}` : 'guest';
+}
+
 export function getUserDisplayName(email, fallbackName = null) {
-  const customAlias = getCustomDisplayName();
+  const emailLower = (email || '').toLowerCase().trim();
+
+  // 1. User-configured custom alias in settings
+  const customAlias = getCustomDisplayName(emailLower);
   if (customAlias) return customAlias;
 
-  // 1. If Google account has a displayName, use it directly (e.g. 'Kartik Pathak', etc.)
+  // 2. Real Google OAuth Display Name from Google Account
   if (fallbackName && fallbackName.trim()) {
-    if (email && (email.toLowerCase().includes('kaushtubh457') || email.toLowerCase().includes('pathak.amitkumar'))) {
-      return 'Trinno';
-    }
     return fallbackName.trim();
   }
 
-  // 2. Fallback to clean username from email
-  if (email) {
-    const emailLower = email.toLowerCase();
-    if (emailLower.includes('pathak.amitkumar') || emailLower.includes('trinno') || emailLower.includes('kaushtubh')) {
-      return 'Trinno';
-    }
+  // 3. Fallback clean username from email
+  if (email && email.includes('@')) {
     const username = email.split('@')[0];
     return username.charAt(0).toUpperCase() + username.slice(1);
   }

@@ -7,12 +7,20 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+firebase-debug.log*
+*.log
 
 # PRIVATE DATA (Never commit your personal logs)
 data/
 data/entries.json
 data/reports.json
 data/*.tmp
+
+# Secret Specs & Plans
+docs/
+*.spec.md
+*SPECIFICATION*.md
+*PLAN*.md
 
 # IDE & OS
 .DS_Store

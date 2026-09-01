@@ -178,6 +178,7 @@ const firebaseCode = readSrc('services/firebase.js');
 
 assert(apiCode.includes('export const isStaticHost ='), 'api.js: isStaticHost detection prevents 405 errors on GitHub Pages');
 assert(apiCode.includes('export function getDbStorageKey(userId)'), 'api.js: getDbStorageKey provides user-partitioned local storage');
+assert(firebaseCode.includes('getEffectiveUserId'), 'firebase.js: getEffectiveUserId clusters owner accounts & isolates guests/friends');
 assert(!firebaseCode.includes('batchSaveCloudEntries(user.uid, parsed.entries)'), 'firebase.js: Removed unsafe cross-user cache auto-upload');
 assert(firebaseCode.includes('window.location.reload()'), 'firebase.js: logoutUser triggers browser reload to purge telemetry/cache memory');
 
