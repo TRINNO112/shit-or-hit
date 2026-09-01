@@ -1,41 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Unlock, KeyRound, ShieldAlert, Fingerprint, Delete, Check, X, ShieldCheck, Cloud, RefreshCcw } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
-import { getCurrentUser, saveCloudUserSettings } from '../services/firebase';
-import { encryptVaultPin, decryptVaultPin } from '../services/cipherEngine';
+import { getCurrentUser } from '../services/firebase';
+import { 
+  encryptVaultPin, 
+  decryptVaultPin, 
+  saveVaultPinDualLayer, 
+  fetchVaultPinDualLayer, 
+  removeVaultPinDualLayer 
+} from '../services/cipherEngine';
 
 export const VAULT_PIN_CIPHER_KEY = 'daily_verdict_vault_pin_cipher';
 
 export function isVaultPinActive() {
   if (typeof window === 'undefined') return false;
-  return !!(localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash') || localStorage.getItem('daily_verdict_vault_pin'));
+  return !!(localStorage.getItem('daily_verdict_vault_pin') || localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash'));
 }
 
 export function getStoredVaultPinCipher() {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash') || localStorage.getItem('daily_verdict_vault_pin') || null;
+  return localStorage.getItem('daily_verdict_vault_pin') || localStorage.getItem(VAULT_PIN_CIPHER_KEY) || localStorage.getItem('daily_verdict_vault_pin_hash') || null;
 }
 
 export async function setVaultPin(pin) {
-  let cipher = null;
   if (pin) {
-    cipher = encryptVaultPin(pin);
-    localStorage.setItem(VAULT_PIN_CIPHER_KEY, cipher);
+    await saveVaultPinDualLayer(pin);
   } else {
+    await removeVaultPinDualLayer();
     localStorage.removeItem(VAULT_PIN_CIPHER_KEY);
     localStorage.removeItem('daily_verdict_vault_pin_hash');
-    localStorage.removeItem('daily_verdict_vault_pin');
-  }
-
-  // Cloud sync encrypted cipher payload to Firestore so all devices (PC, mobile) stay synced securely!
-  try {
-    const user = getCurrentUser();
-    if (user?.uid) {
-      await saveCloudUserSettings(user.uid, { vaultPinCipher: cipher || null });
-      console.log('☁️ [Vault PIN] Synced encrypted cipher payload to Firebase Cloud for user:', user.email);
-    }
-  } catch (err) {
-    console.warn('Could not sync vault PIN cipher to cloud:', err);
   }
 }
 

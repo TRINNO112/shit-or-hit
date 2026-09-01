@@ -11,6 +11,77 @@ const firebaseConfig = {
   measurementId: "G-08GC6BKWLJ"
 };
 
+// 🔒 Pure-JS Zero-Knowledge Deterministic SHA-256 Engine (Zero External Dependencies)
+export function sha256Sync(ascii) {
+  if (!ascii) return '';
+  function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+  const mathPow = Math.pow;
+  const maxWord = mathPow(2, 32);
+  const lengthProperty = 'length';
+  let i, j;
+  let result = '';
+  const words = [];
+  const asciiBitLength = ascii[lengthProperty] * 8;
+  const hash = sha256Sync.h = sha256Sync.h || [];
+  const k = sha256Sync.k = sha256Sync.k || [];
+  let primeCounter = k[lengthProperty];
+  const isComposite = {};
+  for (let candidate = 2; primeCounter < 64; candidate++) {
+    if (!isComposite[candidate]) {
+      for (i = 0; i < 313; i += candidate) { isComposite[i] = candidate; }
+      hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+      k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+    }
+  }
+  ascii += '\x80';
+  while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+  for (i = 0; i < ascii[lengthProperty]; i++) {
+    j = ascii.charCodeAt(i);
+    if (j >> 8) return '';
+    words[i >> 2] |= j << ((3 - i) % 4) * 8;
+  }
+  words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+  words[words[lengthProperty]] = (asciiBitLength) | 0;
+  for (j = 0; j < words[lengthProperty];) {
+    const w = words.slice(j, j += 16);
+    const oldHash = hash;
+    const currentHash = hash.slice(0, 8);
+    for (i = 0; i < 64; i++) {
+      const w15 = w[i - 15], w2 = w[i - 2];
+      const a = currentHash[0], e = currentHash[4];
+      const temp1 = currentHash[7]
+        + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+        + ((e & currentHash[5]) ^ ((~e) & currentHash[6]))
+        + k[i]
+        + (w[i] = (i < 16) ? w[i] : (
+            w[i - 16]
+            + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+            + w[i - 7]
+            + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+          ) | 0
+        );
+      const temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+        + ((a & currentHash[1]) ^ (a & currentHash[2]) ^ (currentHash[1] & currentHash[2]));
+      currentHash.unshift((temp1 + temp2) | 0);
+      currentHash[4] = (currentHash[4] + temp1) | 0;
+    }
+    for (i = 0; i < 8; i++) { hash[i] = (currentHash[i] + oldHash[i]) | 0; }
+  }
+  for (i = 0; i < 8; i++) {
+    for (let i2 = 3; i2 >= 0; i2--) {
+      const b = (hash[i] >> (i2 * 8)) & 255;
+      result += ((b < 16) ? 0 : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+
+// 🛡️ Zero-Knowledge Irreversible Hashes for Unified Owner Vaults (Zero Plaintext in GitHub)
+const OWNER_EMAIL_HASHES = [
+  '2bf73073f0477bdf305748485fb73ecd9c3507a9ca40516800178e63c78e3b4a',
+  'c1666232b2a1c40fdb71142f7317feb3c56d05670c8b179d0f03a3a0cb801508'
+];
+
 // Dynamic User Profile Management & Multi-User Isolation (Zero Hardcoded PII)
 export function getCustomDisplayName(email = null) {
   if (typeof window !== 'undefined') {
@@ -38,13 +109,24 @@ export function isEmailWhitelisted(email) {
 
 export function getEffectiveUserId(user) {
   if (!user) return null;
-  // Dynamic user partition via Firebase UID (100% private, zero hardcoded emails)
+
+  // 1. Deterministic Multi-Device Owner Clustering via Zero-Knowledge SHA-256 Hashes
+  if (user.email) {
+    const emailHash = sha256Sync(user.email.toLowerCase().trim());
+    if (OWNER_EMAIL_HASHES.includes(emailHash)) {
+      return 'trinno_owner_vault';
+    }
+  }
+
+  // 2. Local custom cluster override if configured
   if (typeof window !== 'undefined') {
     const customVaultId = localStorage.getItem('custom_vault_cluster_id');
     if (customVaultId && customVaultId.trim()) {
       return `vault_${customVaultId.trim()}`;
     }
   }
+
+  // 3. Strict multi-user separation by Native Firebase UID (Brother, Friends, Public)
   return user.uid ? `user_${user.uid}` : 'guest';
 }
 
@@ -55,12 +137,20 @@ export function getUserDisplayName(email, fallbackName = null) {
   const customAlias = getCustomDisplayName(emailLower);
   if (customAlias) return customAlias;
 
-  // 2. Real Google OAuth Display Name from Google Account
+  // 2. Zero-Knowledge Owner Recognition
+  if (emailLower) {
+    const emailHash = sha256Sync(emailLower);
+    if (OWNER_EMAIL_HASHES.includes(emailHash)) {
+      return 'Trinno';
+    }
+  }
+
+  // 3. Real Google OAuth Display Name from Google Account
   if (fallbackName && fallbackName.trim()) {
     return fallbackName.trim();
   }
 
-  // 3. Fallback clean username from email
+  // 4. Fallback clean username from email
   if (email && email.includes('@')) {
     const username = email.split('@')[0];
     return username.charAt(0).toUpperCase() + username.slice(1);
