@@ -20,7 +20,8 @@ import { VaultLockGatekeeper, isVaultPinActive } from './components/VaultPinModa
 import { soundEngine } from './services/soundEngine';
 import { fetchDatabase, saveEntry, ratingMeta } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
-import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings } from './services/firebase';
+import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId } from './services/firebase';
+import { decryptVaultPin, hashPinWithSalt } from './services/cipherEngine';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
@@ -136,41 +137,9 @@ export default function App() {
   const d = String(now.getDate()).padStart(2, '0');
   const todayStr = `${y}-${m}-${d}`;
 
-  useEffect(() => {
-    scheduleLocalEveningReminder();
-    const unsubscribe = subscribeAuthState((u) => {
-      console.log('🛡️ [App Engine] Auth Hydration:', u ? `Logged in as ${u.displayName} (${u.email}) [UID: ${u.uid}]` : 'Local Mode');
-      setCurrentUser(u);
-      if (u?.uid) {
-        fetchCloudUserSettings(u.uid).then(cloudSettings => {
-          if (cloudSettings) {
-            console.log('☁️ [Cloud Settings] Loaded settings for user:', u.uid, cloudSettings);
-            if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
-              localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
-            }
-            if (cloudSettings.vaultPinCipher !== undefined || cloudSettings.vaultPinHash !== undefined || cloudSettings.vaultPin !== undefined) {
-              const activeCipher = cloudSettings.vaultPinCipher || cloudSettings.vaultPinHash || cloudSettings.vaultPin;
-              if (activeCipher) {
-                localStorage.setItem('daily_verdict_vault_pin_cipher', activeCipher);
-                setIsVaultLocked(true);
-              } else {
-                localStorage.removeItem('daily_verdict_vault_pin_cipher');
-                localStorage.removeItem('daily_verdict_vault_pin_hash');
-                localStorage.removeItem('daily_verdict_vault_pin');
-                setIsVaultLocked(false);
-              }
-            }
-            setSphereSettingsVer(v => v + 1);
-          }
-        }).catch((err) => console.warn('Cloud settings fetch error:', err));
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (userOverride = null) => {
     try {
-      const db = await fetchDatabase();
+      const db = await fetchDatabase(userOverride);
       if (db.startDate) setStartDate(db.startDate);
       if (db.entries) {
         setEntries(prev => ({
@@ -184,6 +153,48 @@ export default function App() {
       setIsInitialLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    scheduleLocalEveningReminder();
+    const unsubscribe = subscribeAuthState(async (u) => {
+      console.log('🛡️ [App Engine] Auth Hydration:', u ? `Logged in as ${u.displayName} (${u.email}) [UID: ${u.uid}]` : 'Local Mode');
+      setCurrentUser(u);
+      
+      // Re-fetch database entries immediately for the active user
+      loadData(u);
+
+      if (u) {
+        try {
+          const effectiveId = getEffectiveUserId(u);
+          const cloudSettings = await fetchCloudUserSettings(effectiveId);
+          if (cloudSettings) {
+            console.log('☁️ [Cloud Settings] Loaded settings for user:', effectiveId, cloudSettings);
+            if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
+              localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
+            }
+            if (cloudSettings.vaultPinEncrypted) {
+              const decrypted = decryptVaultPin(cloudSettings.vaultPinEncrypted);
+              if (decrypted) {
+                const salt = Math.floor(100000 + Math.random() * 900000).toString();
+                const hash = hashPinWithSalt(decrypted, salt);
+                localStorage.setItem('daily_verdict_vault_pin_hash', `TRINNO_SALTED_HASH:${salt}:${hash}`);
+                setIsVaultLocked(true);
+              }
+            } else if (cloudSettings.vaultSecurityActive === false) {
+              localStorage.removeItem('daily_verdict_vault_pin_hash');
+              localStorage.removeItem('daily_verdict_vault_pin_cipher');
+              localStorage.removeItem('daily_verdict_vault_pin');
+              setIsVaultLocked(false);
+            }
+            setSphereSettingsVer(v => v + 1);
+          }
+        } catch (err) {
+          console.warn('Cloud settings fetch error:', err);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [loadData]);
 
   useEffect(() => {
     loadData();

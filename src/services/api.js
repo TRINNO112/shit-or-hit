@@ -159,8 +159,8 @@ export function getDbStorageKey(userId) {
   return `goodness_db_${userId}`;
 }
 
-export async function fetchDatabase() {
-  const currentUser = getCurrentUser();
+export async function fetchDatabase(userOverride = null) {
+  const currentUser = userOverride || getCurrentUser();
   const effectiveId = getEffectiveUserId(currentUser);
   const storageKey = getDbStorageKey(effectiveId);
 
@@ -197,6 +197,7 @@ export async function fetchDatabase() {
     try {
       const cloudEntries = await fetchCloudEntries(effectiveId);
       const cloudCount = Object.keys(cloudEntries).length;
+      const localCount = Object.keys(localData.entries || {}).length;
 
       // If Firestore has data, merge and use Firestore for this specific user
       if (cloudCount > 0) {
@@ -205,6 +206,10 @@ export async function fetchDatabase() {
         const startDate = dates[0] || localData.startDate;
         localStorage.setItem(storageKey, JSON.stringify({ startDate, entries: mergedEntries }));
         return { startDate, entries: mergedEntries };
+      } else if (localCount > 0) {
+        // Cloud is empty but local has data: auto-populate cloud from local so entries are preserved
+        console.log(`📡 [Firestore] Cloud is empty for ${effectiveId}. Uploading ${localCount} local entries to cloud...`);
+        batchSaveCloudEntries(effectiveId, localData.entries).catch(e => console.warn('Cloud initial upload note:', e));
       }
     } catch (err) {
       console.warn('Firestore sync failed, using local database:', err);
@@ -379,8 +384,8 @@ Return ONLY the complete polished diary entry text without quotes or preamble.`;
 
 export async function getSavedMonthlyReport(year, month) {
   const currentUser = getCurrentUser();
-  const userPrefix = currentUser?.uid ? `user_${currentUser.uid}` : 'guest';
-  const reportKey = `report_${userPrefix}_${year}_${String(month).padStart(2, '0')}`;
+  const effectiveId = getEffectiveUserId(currentUser) || 'guest';
+  const reportKey = `report_${effectiveId}_${year}_${String(month).padStart(2, '0')}`;
 
   if (!isStaticHost) {
     try {
@@ -410,9 +415,9 @@ export async function getSavedMonthlyReport(year, month) {
 
 export async function fetchMonthlyReport(year, month, customEntries = null, archetypeId = null, forceReevaluate = false) {
   const currentUser = getCurrentUser();
-  const userPrefix = currentUser?.uid ? `user_${currentUser.uid}` : 'guest';
+  const effectiveId = getEffectiveUserId(currentUser) || 'guest';
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
-  const reportKey = `report_${userPrefix}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
+  const reportKey = `report_${effectiveId}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
 
   // Check cached report if not forcing reevaluation
   if (!forceReevaluate) {
@@ -463,7 +468,8 @@ async function generateClientMonthlyReport(year, month, customEntries = null, pr
     }
   } else {
     const currentUser = getCurrentUser();
-    const storageKey = getDbStorageKey(currentUser?.uid);
+    const effectiveId = getEffectiveUserId(currentUser);
+    const storageKey = getDbStorageKey(effectiveId);
     const cached = localStorage.getItem(storageKey);
     allEntries = cached ? JSON.parse(cached).entries || {} : {};
   }

@@ -94,7 +94,7 @@ export default function Header({
               SHIT OR HIT
             </h1>
             <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
-              {isWhitelisted ? `☁️ Cloud Sync (${user.displayName || 'Trinno'})` : 'Daily Verdict OS'}
+              {isWhitelisted ? `☁️ Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Daily Verdict OS'}
             </span>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function Header({
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse shrink-0" />
-              <span className="max-w-20 truncate">{user.displayName || 'Trinno'}</span>
+              <span className="max-w-20 truncate">{getUserDisplayName(user.email, user.displayName) || 'Trinno'}</span>
             </button>
           ) : (
             <button
@@ -228,8 +228,7 @@ export default function Header({
               )}
             </div>
           );
-        })()
-        ) : (
+        })() : (
           <button
             onClick={handleGoogleLogin}
             disabled={authLoading}

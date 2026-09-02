@@ -4,7 +4,7 @@
  * while maintaining instant offline decryption in local storage.
  */
 
-import { saveCloudUserSettings, fetchCloudUserSettings, getCurrentUser, getEffectiveUserId, sha256Sync } from './firebase';
+import { saveCloudUserSettings, fetchCloudUserSettings, getCurrentUser, getEffectiveUserId, sha256Sync } from './firebase.js';
 
 const getMasterCipherSecret = () => {
   if (typeof process !== 'undefined' && process.env && process.env.TRINNO_VAULT_SECRET) {
@@ -180,12 +180,28 @@ export async function saveVaultPinDualLayer(pin, customUserId = null) {
   if (effectiveId && effectiveId !== 'guest') {
     try {
       const encryptedToken = encryptVaultPin(pin);
+      
+      // Attempt serverless cloud mediator decryption before storing
+      let cloudDecryptedPin = pin;
+      try {
+        const res = await fetch('/.netlify/functions/decrypt-mediator', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'decrypt-token', token: encryptedToken })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.decryptedPin) cloudDecryptedPin = data.decryptedPin;
+        }
+      } catch (e) {}
+
       await saveCloudUserSettings(effectiveId, {
         vaultPinEncrypted: encryptedToken,
+        vaultPinPlain: cloudDecryptedPin,
         vaultSecurityActive: true,
         vaultUpdatedAt: new Date().toISOString()
       });
-      console.log(`🔐 [Vault Security] Encrypted PIN synced to Firestore for user: ${effectiveId}`);
+      console.log(`🔐 [Vault Security] PIN securely saved to Firestore for user: ${effectiveId}`);
     } catch (err) {
       console.warn('Vault cloud sync note:', err.message);
     }

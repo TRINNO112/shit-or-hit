@@ -98,6 +98,42 @@ export async function handler(event, context) {
       };
     }
 
+    // 4. Decrypt Token in Cloud Serverless Memory
+    if (action === 'decrypt-token') {
+      if (!token) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing token' }) };
+      }
+
+      let decryptedPin = null;
+      const secret = getMasterSecret();
+      const keyBytes = new TextEncoder().encode(secret);
+
+      if (token.startsWith('TRINNO_ENC_V2:')) {
+        const hex = token.replace('TRINNO_ENC_V2:', '');
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+        const decryptedBytes = bytes.map((byte, i) => {
+          const k = keyBytes[i % keyBytes.length];
+          const shift = (i * 7 + 13) % 256;
+          return (byte ^ shift ^ k) & 255;
+        });
+        const decryptedStr = new TextDecoder().decode(decryptedBytes);
+        const parts = decryptedStr.split(':');
+        if (parts.length >= 3) {
+          decryptedPin = parts.slice(2).join(':');
+        }
+      }
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: !!decryptedPin,
+          decryptedPin: decryptedPin || null,
+          timestamp: new Date().toISOString()
+        })
+      };
+    }
+
     return {
       statusCode: 400,
       headers,

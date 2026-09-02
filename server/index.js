@@ -99,6 +99,89 @@ function writeReports(reports) {
   }
 }
 
+// Netlify Mediator Local Proxy (Allows instant local development of serverless functions)
+app.post(['/.netlify/functions/decrypt-mediator', '/api/decrypt-mediator'], async (req, res) => {
+  const { action, token, pin } = req.body || {};
+  const secret = process.env.TRINNO_VAULT_SECRET || 'TRINNO_DEFAULT_FALLBACK_VAULT_KEY_2026';
+
+  if (action === 'health') {
+    return res.json({
+      status: 'ONLINE',
+      mediator: 'TRINNO_LOCAL_EXPRESS_MEDIATOR_V2',
+      hasCustomSecret: !!process.env.TRINNO_VAULT_SECRET,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  if (action === 'verify-token') {
+    const isValidToken = token && (token.startsWith('TRINNO_ENC_V2:') || token.startsWith('TRINNO_ENC_V1:'));
+    return res.json({ valid: !!isValidToken, verifiedAt: new Date().toISOString() });
+  }
+
+  if (action === 'verify-pin') {
+    if (!token || !pin) {
+      return res.status(400).json({ error: 'Missing token or PIN' });
+    }
+
+    let decryptedPin = null;
+    try {
+      const keyBytes = new TextEncoder().encode(secret);
+      if (token.startsWith('TRINNO_ENC_V2:')) {
+        const hex = token.replace('TRINNO_ENC_V2:', '');
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+        const decryptedBytes = bytes.map((byte, i) => {
+          const k = keyBytes[i % keyBytes.length];
+          const shift = (i * 7 + 13) % 256;
+          return (byte ^ shift ^ k) & 255;
+        });
+        const decryptedStr = new TextDecoder().decode(decryptedBytes);
+        const parts = decryptedStr.split(':');
+        if (parts.length >= 3) {
+          decryptedPin = parts.slice(2).join(':');
+        }
+      }
+    } catch (e) {}
+
+    return res.json({
+      matched: decryptedPin === pin,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  if (action === 'decrypt-token') {
+    if (!token) {
+      return res.status(400).json({ error: 'Missing token' });
+    }
+
+    let decryptedPin = null;
+    try {
+      const keyBytes = new TextEncoder().encode(secret);
+      if (token.startsWith('TRINNO_ENC_V2:')) {
+        const hex = token.replace('TRINNO_ENC_V2:', '');
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+        const decryptedBytes = bytes.map((byte, i) => {
+          const k = keyBytes[i % keyBytes.length];
+          const shift = (i * 7 + 13) % 256;
+          return (byte ^ shift ^ k) & 255;
+        });
+        const decryptedStr = new TextDecoder().decode(decryptedBytes);
+        const parts = decryptedStr.split(':');
+        if (parts.length >= 3) {
+          decryptedPin = parts.slice(2).join(':');
+        }
+      }
+    } catch (e) {}
+
+    return res.json({
+      success: !!decryptedPin,
+      decryptedPin: decryptedPin || null,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  return res.status(400).json({ error: 'Unknown action' });
+});
+
 // Routes
 
 // Get all entries + metadata

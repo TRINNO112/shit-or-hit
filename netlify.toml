@@ -7,7 +7,7 @@
   node_bundler = "esbuild"
 
 [dev]
-  command = "npm run dev"
+  command = "npm run dev:frontend"
   port = 8888
   targetPort = 5173
   publish = "dist"
