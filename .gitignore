@@ -9,6 +9,9 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
 *.log
+*-firebase-adminsdk-*.json
+serviceAccountKey*.json
+ChatGPT Image*
 
 # PRIVATE DATA (Never commit your personal logs)
 data/

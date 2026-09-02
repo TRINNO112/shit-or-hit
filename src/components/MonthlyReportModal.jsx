@@ -29,6 +29,7 @@ import {
   MessageSquareQuote
 } from 'lucide-react';
 import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
+import { soundEngine } from '../services/soundEngine';
 import confetti from 'canvas-confetti';
 
 export default function MonthlyReportModal({ 
@@ -82,12 +83,15 @@ export default function MonthlyReportModal({
       const data = await fetchMonthlyReport(currentYear, currentMonth, null, null, forceReevaluate);
       setReport(data);
       if (data?.hitRate >= 75) {
+        soundEngine.playMilestoneArpeggio();
         confetti({
           particleCount: 40,
           spread: 60,
           origin: { y: 0.5 },
           colors: ['#FDC800', '#00E599', '#000000']
         });
+      } else {
+        soundEngine.playSuccessChime();
       }
     } catch (err) {
       console.error('Failed to load monthly report:', err);

@@ -36,6 +36,7 @@ import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
 import NonNegotiableCard from './NonNegotiableCard';
 import { soundEngine } from '../services/soundEngine';
+import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
 
 const IconMap = {
   AlertCircle,
@@ -109,14 +110,35 @@ export default function TodayHero({
     });
     setSpheresData(initialSpheres);
 
+    const draftKey = `daily_verdict_draft_notes_${todayStr}`;
+    const savedDraft = typeof window !== 'undefined' ? sessionStorage.getItem(draftKey) : null;
+
     if (activeEntry?.notes !== undefined) {
-      setNoteText(activeEntry.notes);
-      setOriginalDraft(activeEntry.notes);
-      setHistoryStack([activeEntry.notes]);
+      const initialText = activeEntry.notes || savedDraft || '';
+      setNoteText(initialText);
+      setOriginalDraft(initialText);
+      setHistoryStack([initialText]);
       setHistoryIdx(0);
-      if (activeEntry.notes) setShowNote(true);
+      if (initialText) setShowNote(true);
+    } else if (savedDraft) {
+      setNoteText(savedDraft);
+      setShowNote(true);
     }
-  }, [activeEntry, sphereSettingsVer]);
+  }, [activeEntry, sphereSettingsVer, todayStr]);
+
+  // Auto-debounce note draft into sessionStorage to protect thoughts from accidental tab closes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const draftKey = `daily_verdict_draft_notes_${todayStr}`;
+    const timeout = setTimeout(() => {
+      if (noteText && (!activeEntry?.notes || noteText !== activeEntry.notes)) {
+        sessionStorage.setItem(draftKey, noteText);
+      } else if (!noteText) {
+        sessionStorage.removeItem(draftKey);
+      }
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [noteText, todayStr, activeEntry]);
 
   const selectedRating = activeEntry?.rating || null;
   const activeRatingForVisual = selectedRating || 3;
@@ -312,20 +334,17 @@ export default function TodayHero({
     setNoteText(newVal);
   };
 
-  const [aiCustomPrompt, setAiCustomPrompt] = useState('');
-  const [showCustomPromptInput, setShowCustomPromptInput] = useState(false);
-  const [activeDirective, setActiveDirective] = useState('auto'); // 'auto' | 'root_causes' | 'stoic' | 'bullets' | 'custom'
-
-  const handleAIEnhance = async (overridePrompt = null, directiveId = null) => {
+  const handleAIEnhance = async (overridePrompt = null) => {
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
     if ((!noteText || noteText.trim() === '') && !hasSphereNotes) return;
     
-    if (directiveId) {
-      setActiveDirective(directiveId);
-    }
+    // Pull active preferences directly from SettingsModal / localStorage
+    const savedDirective = localStorage.getItem('daily_verdict_default_directive') || 'auto';
+    const savedCustomPrompt = localStorage.getItem('daily_verdict_custom_prompt') || '';
     
     const currentVal = noteText;
-    const activePrompt = overridePrompt || (directiveId === 'custom' || showCustomPromptInput ? aiCustomPrompt : null);
+    const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
+    const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
     setIsEnhancing(true);
     try {
       const enhanced = await enhanceReflectionWithAI(
@@ -342,8 +361,10 @@ export default function TodayHero({
       setHistoryIdx(newStack.length - 1);
       setNoteText(enhanced);
       setShowNote(true);
+      soundEngine.playSuccessChime();
     } catch (err) {
       console.error('AI Enhance error:', err);
+      soundEngine.playRoughTone();
     } finally {
       setIsEnhancing(false);
     }
@@ -770,12 +791,12 @@ export default function TodayHero({
                   )}
                 </div>
 
-                {/* AI Polish Button */}
+                {/* AI Polish Button (Directly powered by Settings preferences) */}
                 <button
                   type="button"
-                  onClick={handleAIEnhance}
+                  onClick={() => handleAIEnhance()}
                   disabled={isEnhancing || (!noteText.trim() && !Object.values(spheresData).some(s => s?.notes && s.notes.trim()))}
-                  title="Synthesize sphere reflections and polish your diary with Gemini AI (maintains 1st person)"
+                  title="Polish and organize your diary entry with Gemini AI using your Settings directive (maintains 1st person)"
                   className="px-3.5 py-1.5 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000000]"
                 >
                   {isEnhancing ? (
@@ -786,9 +807,7 @@ export default function TodayHero({
                   <span>
                     {isEnhancing 
                       ? 'SYNTHESIZING...' 
-                      : (sphereModeActive && !noteText.trim() && Object.values(spheresData).some(s => s?.notes && s.notes.trim()))
-                        ? 'AI SYNTHESIZE SPHERES'
-                        : 'AI POLISH DIARY'
+                      : 'AI POLISH'
                     }
                   </span>
                 </button>
@@ -800,129 +819,6 @@ export default function TodayHero({
                   <X className="w-3.5 h-3.5 stroke-[2.5]" />
                 </button>
               </div>
-            </div>
-
-            {/* 🤖 Tactical AI Ghostwriter Commands Suite */}
-            <div className="bg-[#FAF8ED] p-3 rounded-2xl border-2 border-black space-y-2.5 shadow-[2px_2px_0px_#000000]">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="px-2.5 py-1 bg-black text-[#FDC800] rounded-xl font-mono text-[10px] font-black uppercase flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#FDC800]">
-                  <Sparkles className="w-3.5 h-3.5 text-[#FDC800] fill-[#FDC800]" />
-                  <span>AI DIRECTIVES</span>
-                </div>
-
-                {/* Quick Directive Chips with Visual Active Indicator */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow', 'auto')}
-                    disabled={isEnhancing}
-                    title="Auto Polish: Flawless grammar & natural 1st-person storytelling (Default)"
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
-                      activeDirective === 'auto'
-                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
-                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
-                    }`}
-                  >
-                    <Zap className="w-3.5 h-3.5 text-black fill-black" />
-                    <span>Auto Polish</span>
-                    {activeDirective === 'auto' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Analyze and highlight the root causes of friction or success today, extracting key behavioral takeaways', 'root_causes')}
-                    disabled={isEnhancing}
-                    title="Root Causes: Dissect core factors behind friction or peak flow"
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
-                      activeDirective === 'root_causes'
-                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
-                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
-                    }`}
-                  >
-                    <Target className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                    <span>Root Causes</span>
-                    {activeDirective === 'root_causes' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Write through a stoic, resilient lens emphasizing emotional mastery, calm discipline, and tactical battlefield focus', 'stoic')}
-                    disabled={isEnhancing}
-                    title="Stoic Grit: Reframes experiences with calm discipline and resilience"
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
-                      activeDirective === 'stoic'
-                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
-                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
-                    }`}
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                    <span>Stoic Grit</span>
-                    {activeDirective === 'stoic' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways', 'bullets')}
-                    disabled={isEnhancing}
-                    title="Action Bullets: Concise chronological bullets & action items"
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 border-2 border-black active:scale-95 ${
-                      activeDirective === 'bullets'
-                        ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
-                        : 'bg-white hover:bg-neutral-100 text-neutral-800 shadow-[1px_1px_0px_#000000]'
-                    }`}
-                  >
-                    <ListOrdered className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                    <span>Action Bullets</span>
-                    {activeDirective === 'bullets' && <span className="text-[9px] bg-black text-[#FDC800] px-1 rounded ml-0.5">ON</span>}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCustomPromptInput(!showCustomPromptInput);
-                      if (!showCustomPromptInput) setActiveDirective('custom');
-                    }}
-                    className={`px-3 py-1.5 border-2 border-black rounded-xl text-xs font-mono font-black cursor-pointer transition-all flex items-center gap-1.5 active:scale-95 ${
-                      showCustomPromptInput || activeDirective === 'custom'
-                        ? 'bg-black text-white shadow-[2px_2px_0px_#000000]'
-                        : 'bg-white hover:bg-neutral-200 text-black shadow-[1px_1px_0px_#000000]'
-                    }`}
-                  >
-                    <Terminal className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Custom {showCustomPromptInput ? '▲' : '▼'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Custom Command Input Drawer ONLY */}
-              {showCustomPromptInput && (
-                <div className="pt-2 border-t-2 border-black/15 flex items-center gap-2">
-                  <div className="flex-1 relative flex items-center">
-                    <Terminal className="w-4 h-4 text-black absolute left-3 pointer-events-none stroke-[2.5]" />
-                    <input
-                      type="text"
-                      placeholder="Type custom command (e.g. 'Focus on workout & study', 'Rewrite in 3 punchy lines')"
-                      value={aiCustomPrompt}
-                      onChange={(e) => setAiCustomPrompt(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && aiCustomPrompt.trim()) {
-                          handleAIEnhance(aiCustomPrompt, 'custom');
-                        }
-                      }}
-                      className="w-full pl-9 pr-3 py-2 bg-white border-2 border-black rounded-xl text-xs font-mono font-bold text-black focus:outline-none placeholder:text-neutral-400 shadow-[2px_2px_0px_#000000]"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance(aiCustomPrompt, 'custom')}
-                    disabled={isEnhancing || !aiCustomPrompt.trim()}
-                    className="px-4 py-2 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-50 border-2 border-black rounded-xl text-xs font-display font-black text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all shrink-0 flex items-center gap-1.5"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>RUN DIRECTIVE</span>
-                  </button>
-                </div>
-              )}
             </div>
 
             <textarea
@@ -951,7 +847,6 @@ export default function TodayHero({
           </motion.div>
         )}
       </AnimatePresence>
-
     </motion.div>
   );
 }

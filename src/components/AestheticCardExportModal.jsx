@@ -93,6 +93,7 @@ export default function AestheticCardExportModal({
   const [customMascotImg, setCustomMascotImg] = useState(null);
   const [loadedMascotImg, setLoadedMascotImg] = useState(null);
   const [downloading, setDownloading] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [showStickerVault, setShowStickerVault] = useState(false);
   const canvasRef = useRef(null);
@@ -759,6 +760,7 @@ export default function AestheticCardExportModal({
   const handleDownload = () => {
     if (!canvasRef.current) return;
     setDownloading(true);
+    soundEngine.playCameraShutter();
     try {
       const link = document.createElement('a');
       link.download = `daily_verdict_${activeTheme}_${format}_${selectedDateStr || 'card'}.png`;
@@ -768,6 +770,37 @@ export default function AestheticCardExportModal({
       console.error('Download error:', err);
     } finally {
       setTimeout(() => setDownloading(false), 1000);
+    }
+  };
+
+  const handleWebShare = async () => {
+    if (!canvasRef.current) return;
+    setSharing(true);
+    soundEngine.playCameraShutter();
+    try {
+      canvasRef.current.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `daily_verdict_${selectedDateStr || 'card'}.png`, { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Daily Verdict Story',
+            text: `My Daily Verdict for ${formattedDate} • ${verdict}`,
+            files: [file]
+          });
+        } else if (navigator.share) {
+          await navigator.share({
+            title: 'Daily Verdict Story',
+            text: `My Daily Verdict for ${formattedDate} • ${verdict}`
+          });
+        } else {
+          // Fallback to clipboard
+          handleDownload();
+        }
+      }, 'image/png');
+    } catch (err) {
+      if (err.name !== 'AbortError') console.warn('Share note:', err);
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -998,6 +1031,20 @@ export default function AestheticCardExportModal({
             >
               CLOSE
             </button>
+
+            {/* Native Web Share Button (Stories / WhatsApp) */}
+            {typeof navigator !== 'undefined' && navigator.share && (
+              <button
+                type="button"
+                onClick={handleWebShare}
+                disabled={sharing || !previewUrl}
+                className="py-2.5 sm:py-3 px-3.5 sm:px-4 bg-[#FDC800] hover:bg-amber-400 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0 flex items-center gap-1.5"
+                title="Share directly to Instagram Stories, WhatsApp, or Contacts"
+              >
+                <Share2 className="w-4 h-4 stroke-3 shrink-0" />
+                <span className="hidden sm:inline">{sharing ? 'SHARING...' : 'SHARE STORY'}</span>
+              </button>
+            )}
 
             <button
               type="button"

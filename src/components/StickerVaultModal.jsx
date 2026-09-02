@@ -148,7 +148,7 @@ export default function StickerVaultModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-90 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs select-none"
+        className="fixed inset-0 z-90 flex items-center justify-center p-2 sm:p-6 bg-black/70 backdrop-blur-xs select-none"
         onClick={onClose}
       >
         <motion.div
@@ -156,7 +156,7 @@ export default function StickerVaultModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.93, y: 20 }}
           transition={{ type: 'spring', stiffness: 360, damping: 26 }}
-          className="w-full max-w-5xl min-h-145 sm:min-h-135 max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-6 sm:p-8"
+          className="w-full max-w-4xl max-h-[90vh] h-auto flex flex-col bg-white border-3 border-black rounded-3xl shadow-[6px_6px_0px_#000000] sm:shadow-[10px_10px_0px_#000000] overflow-hidden p-4 sm:p-7"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}

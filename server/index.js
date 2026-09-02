@@ -232,7 +232,7 @@ app.post('/api/entries', (req, res) => {
 
 // AI Enhancement Endpoint for Daily Reflection
 app.post('/api/ai/enhance', async (req, res) => {
-  const { notes, rating, date, preferredLanguage = 'auto', spheres } = req.body;
+  const { notes, rating, date, preferredLanguage = 'auto', spheres, customInstruction } = req.body;
 
   if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) {
     return res.status(400).json({ success: false, error: 'Notes text or sphere entries are required for AI enhancement' });
@@ -264,12 +264,18 @@ app.post('/api/ai/enhance', async (req, res) => {
     }
   }
 
+  const directiveSection = customInstruction && customInstruction.trim()
+    ? `\n\n🎯 USER'S DIRECT CUSTOM DIRECTIVE / COMMAND TO YOU:
+"${customInstruction.trim()}"
+You MUST strictly prioritize and execute this specific custom command while maintaining the 1st-person diary structure.`
+    : '';
+
   const prompt = `You are a personal diary ghostwriter.
 The user logged their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
 ${spheres ? 'The user logged segmented life domains (e.g. Work/School, Home, Social).' : ''}
 
 User's raw journal inputs and domain ratings:
-"${journalInput}"
+"${journalInput}"${directiveSection}
 
 CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShieldVoltIcon from './ShieldVoltIcon';
+import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
 import { 
   Zap, 
   Flame, 
@@ -140,10 +141,30 @@ export default function MobileAppView({
 
   const [user, setUser] = useState(null);
   const [showNoteDrawer, setShowNoteDrawer] = useState(false);
-  const [noteText, setNoteText] = useState(entries?.[todayStr]?.notes || '');
+  const [noteText, setNoteText] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const draft = sessionStorage.getItem(`daily_verdict_draft_notes_${todayStr}`);
+      if (draft) return draft;
+    }
+    return entries?.[todayStr]?.notes || '';
+  });
   const [savedFlash, setSavedFlash] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
+
+  // Auto-debounce draft notes in sessionStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const draftKey = `daily_verdict_draft_notes_${todayStr}`;
+    const t = setTimeout(() => {
+      if (noteText && (!entries?.[todayStr]?.notes || noteText !== entries[todayStr].notes)) {
+        sessionStorage.setItem(draftKey, noteText);
+      } else if (!noteText) {
+        sessionStorage.removeItem(draftKey);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [noteText, todayStr, entries]);
 
   // AI Polish State & History Stack
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -152,6 +173,7 @@ export default function MobileAppView({
   const [originalDraft, setOriginalDraft] = useState('');
   const [mobileCustomPrompt, setMobileCustomPrompt] = useState('');
   const [showMobileCustomPrompt, setShowMobileCustomPrompt] = useState(false);
+  const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const [activeDirective, setActiveDirective] = useState('auto');
   const [selectedTags, setSelectedTags] = useState([]);
 
@@ -291,18 +313,19 @@ export default function MobileAppView({
     });
   };
 
-  const handleAIEnhance = async (overridePrompt = null, directiveId = null) => {
+  const handleAIEnhance = async (overridePrompt = null) => {
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
     if ((!noteText || noteText.trim() === '') && !hasSphereNotes) return;
     
-    if (directiveId) {
-      setActiveDirective(directiveId);
-    }
+    // Pull active preferences directly from SettingsModal / localStorage
+    const savedDirective = localStorage.getItem('daily_verdict_default_directive') || 'auto';
+    const savedCustomPrompt = localStorage.getItem('daily_verdict_custom_prompt') || '';
     
     triggerHaptic('medium');
     soundFx.playClick();
     const currentVal = noteText;
-    const activePrompt = overridePrompt || (directiveId === 'custom' || showMobileCustomPrompt ? mobileCustomPrompt : null);
+    const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
+    const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
     setIsEnhancing(true);
     try {
       const comp = calculateCompositeScore(spheresData);
@@ -1591,127 +1614,22 @@ export default function MobileAppView({
                   className="flex-1 w-full p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto"
                 />
 
-                {/* 🤖 Mobile AI Directives Bar with Active Highlighting */}
-                <div className="space-y-1.5 shrink-0">
-                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0">
-                    <span className="text-[9px] font-mono font-black uppercase text-neutral-600 shrink-0 flex items-center gap-0.5">
-                      <Sparkles className="w-2.5 h-2.5 text-[#FDC800] fill-[#FDC800]" />
-                      <span>AI:</span>
-                    </span>
+                {/* AI Directives Modal Trigger & Polish Toolbar */}
+                <div className="flex items-center justify-between gap-2 pt-0.5 shrink-0">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => handleAIEnhance('Standard full vivid diary polish with flawless flow', 'auto')}
-                      disabled={isEnhancing}
-                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
-                        activeDirective === 'auto'
-                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
-                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
-                      }`}
+                      onClick={() => handleAIEnhance()}
+                      disabled={isEnhancing || !noteText || !noteText.trim()}
+                      className={`px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
+                        isEnhancing ? 'bg-amber-100 opacity-70 animate-pulse' : 'bg-[#FDC800] hover:bg-amber-400'
+                      } disabled:opacity-40 disabled:cursor-not-allowed`}
+                      title="Polish and organize your diary entry with Gemini AI using your Settings directive (maintains 1st person)"
                     >
-                      <Zap className="w-2.5 h-2.5 fill-black" />
-                      <span>Auto Polish</span>
-                      {activeDirective === 'auto' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAIEnhance('Analyze and highlight root causes of friction or success today, extracting key takeaways', 'root_causes')}
-                      disabled={isEnhancing}
-                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
-                        activeDirective === 'root_causes'
-                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
-                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
-                      }`}
-                    >
-                      <Target className="w-2.5 h-2.5 stroke-[2.5]" />
-                      <span>Root Causes</span>
-                      {activeDirective === 'root_causes' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAIEnhance('Write through a stoic lens emphasizing emotional mastery and calm discipline', 'stoic')}
-                      disabled={isEnhancing}
-                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
-                        activeDirective === 'stoic'
-                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
-                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
-                      }`}
-                    >
-                      <ShieldCheck className="w-2.5 h-2.5 stroke-[2.5]" />
-                      <span>Stoic Grit</span>
-                      {activeDirective === 'stoic' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAIEnhance('Format into concise, chronological bullet points with actionable takeaways', 'bullets')}
-                      disabled={isEnhancing}
-                      className={`px-2.5 py-1 rounded-xl text-[9px] font-mono font-black text-black shrink-0 border-2 border-black active:scale-95 flex items-center gap-1 ${
-                        activeDirective === 'bullets'
-                          ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000] ring-1 ring-black'
-                          : 'bg-white hover:bg-neutral-100 shadow-[1px_1px_0px_#000000]'
-                      }`}
-                    >
-                      <ListOrdered className="w-2.5 h-2.5 stroke-[2.5]" />
-                      <span>Bullets</span>
-                      {activeDirective === 'bullets' && <span className="text-[8px] bg-black text-[#FDC800] px-0.5 rounded">ON</span>}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMobileCustomPrompt(prev => !prev);
-                        if (!showMobileCustomPrompt) setActiveDirective('custom');
-                      }}
-                      className={`px-2.5 py-1 border-2 border-black rounded-xl text-[9px] font-mono font-black shrink-0 shadow-[1px_1px_0px_#000000] active:scale-95 flex items-center gap-1 ${
-                        showMobileCustomPrompt || activeDirective === 'custom' ? 'bg-black text-white' : 'bg-white text-black'
-                      }`}
-                    >
-                      <Terminal className="w-2.5 h-2.5 stroke-[2.5]" />
-                      <span>Custom {showMobileCustomPrompt ? '▲' : '▼'}</span>
+                      <Wand2 className={`w-3.5 h-3.5 ${isEnhancing ? 'animate-spin' : ''}`} />
+                      <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH DIARY'}</span>
                     </button>
                   </div>
-
-                  {/* Mobile Custom Command Input Drawer */}
-                  {showMobileCustomPrompt && (
-                    <div className="p-2 bg-neutral-100 rounded-xl border border-black space-y-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="text"
-                          placeholder="Type directive (e.g. 'Focus on workout', '3 lines')"
-                          value={mobileCustomPrompt}
-                          onChange={(e) => setMobileCustomPrompt(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && mobileCustomPrompt.trim()) {
-                              handleAIEnhance(mobileCustomPrompt);
-                            }
-                          }}
-                          className="flex-1 px-2.5 py-1 bg-white border border-black rounded-lg text-[11px] font-mono font-bold text-black focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleAIEnhance(mobileCustomPrompt)}
-                          disabled={isEnhancing || !mobileCustomPrompt.trim()}
-                          className="px-2.5 py-1 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-50 border border-black rounded-lg text-[10px] font-display font-black text-black uppercase cursor-pointer active:scale-95 shrink-0"
-                        >
-                          RUN
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* AI Polish Toolbar & History Controls */}
-                <div className="flex items-center justify-between gap-2 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleAIEnhance()}
-                    disabled={isEnhancing || !noteText || !noteText.trim()}
-                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
-                      isEnhancing ? 'bg-amber-100 opacity-70 animate-pulse' : 'bg-[#FDC800] hover:bg-amber-400'
-                    } disabled:opacity-40 disabled:cursor-not-allowed`}
-                    title="Polish and organize your diary entry with Gemini AI (maintains 1st person)"
-                  >
-                    <Wand2 className={`w-3.5 h-3.5 ${isEnhancing ? 'animate-spin' : ''}`} />
-                    <span>{isEnhancing ? 'POLISHING...' : '✨ AI POLISH DIARY'}</span>
-                  </button>
 
                   {/* History controls (Undo, Redo, Revert) */}
                   {historyStack.length > 1 && (
@@ -1841,7 +1759,11 @@ export default function MobileAppView({
         
         {/* Tab 1: Log Today */}
         <button
-          onClick={() => setActiveTab('log')}
+          onClick={() => {
+            soundEngine.playClick();
+            triggerHaptic('light');
+            setActiveTab('log');
+          }}
           className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'log' 
               ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]' 
@@ -1854,7 +1776,11 @@ export default function MobileAppView({
 
         {/* Tab 2: Calendar & Timeline History */}
         <button
-          onClick={() => setActiveTab('history')}
+          onClick={() => {
+            soundEngine.playClick();
+            triggerHaptic('light');
+            setActiveTab('history');
+          }}
           className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'history' 
               ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]' 
@@ -1867,7 +1793,11 @@ export default function MobileAppView({
 
         {/* Tab 3: Monthly Dossier */}
         <button
-          onClick={() => setActiveTab('dossier')}
+          onClick={() => {
+            soundEngine.playClick();
+            triggerHaptic('medium');
+            setActiveTab('dossier');
+          }}
           className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'dossier' 
               ? 'bg-[#00E599] text-black border-2 border-black shadow-[2px_2px_0px_#000000]' 
@@ -1880,7 +1810,12 @@ export default function MobileAppView({
 
         {/* Tab 4: Stats */}
         <button
-          onClick={() => setActiveTab('stats')}
+          type="button"
+          onClick={() => {
+            soundEngine.playClick();
+            triggerHaptic('light');
+            setActiveTab('stats');
+          }}
           className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'stats' 
               ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]' 
@@ -1890,9 +1825,7 @@ export default function MobileAppView({
           <BarChart2 className="w-5 h-5 stroke-[2.5]" />
           <span className="font-mono font-black text-[11px] uppercase mt-0.5">Stats</span>
         </button>
-
       </nav>
-
     </div>
   );
 }

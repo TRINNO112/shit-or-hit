@@ -200,7 +200,7 @@ export default function App() {
           const effectiveId = getEffectiveUserId(u);
           const cloudSettings = await fetchCloudUserSettings(effectiveId);
           if (cloudSettings) {
-            console.log('☁️ [Cloud Settings] Loaded settings for user:', effectiveId, cloudSettings);
+            console.log('☁️ [Cloud Settings] Loaded preferences for user:', effectiveId);
             if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
               localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
             }

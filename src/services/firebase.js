@@ -294,6 +294,28 @@ export async function logoutUser() {
   }
 }
 
+// 🧹 Firestore Payload Sanitizer: Recursively removes all `undefined` values that Firestore rejects
+export function cleanFirestorePayload(obj) {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanFirestorePayload(item)).filter(item => item !== undefined);
+  }
+  if (typeof obj === 'object') {
+    const cleaned = {};
+    Object.keys(obj).forEach(key => {
+      const val = obj[key];
+      if (val !== undefined) {
+        const processed = cleanFirestorePayload(val);
+        if (processed !== undefined) {
+          cleaned[key] = processed;
+        }
+      }
+    });
+    return cleaned;
+  }
+  return obj;
+}
+
 export async function saveCloudEntry(userId, entry) {
   if (!userId || !entry?.date) return;
   const fb = await getFirebase();
@@ -301,10 +323,11 @@ export async function saveCloudEntry(userId, entry) {
   try {
     console.log(`📡 [Firestore] Saving entry (${entry.date}) for user: ${userId}...`);
     const entryRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'entries', entry.date);
-    await fb.firestoreMod.setDoc(entryRef, {
+    const sanitized = cleanFirestorePayload({
       ...entry,
       updatedAt: new Date().toISOString()
-    }, { merge: true });
+    });
+    await fb.firestoreMod.setDoc(entryRef, sanitized, { merge: true });
     console.log(`✅ [Firestore] Successfully saved entry (${entry.date}) to Firebase Cloud!`);
   } catch (err) {
     console.error(`❌ [Firestore Save Error]:`, err.code || err.name, err.message);
@@ -320,11 +343,12 @@ export async function batchSaveCloudEntries(userId, entriesMap) {
     console.log(`📡 [Firestore] Uploading batch of ${entriesList.length} entries to Firebase Cloud for user: ${userId}...`);
     const promises = entriesList.map(([dateStr, entry]) => {
       const entryRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'entries', dateStr);
-      return fb.firestoreMod.setDoc(entryRef, {
+      const sanitized = cleanFirestorePayload({
         ...entry,
         date: dateStr,
         updatedAt: new Date().toISOString()
-      }, { merge: true });
+      });
+      return fb.firestoreMod.setDoc(entryRef, sanitized, { merge: true });
     });
     await Promise.all(promises);
     console.log(`🎉 [Firestore] SUCCESS! All ${promises.length} entries are now stored in your Firebase Cloud database!`);
@@ -412,10 +436,11 @@ export async function saveCloudUserSettings(userId, settingsData) {
   if (!fb || !fb.db) return;
   try {
     const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
-    await fb.firestoreMod.setDoc(settingsRef, {
+    const sanitized = cleanFirestorePayload({
       ...settingsData,
       updatedAt: new Date().toISOString()
-    }, { merge: true });
+    });
+    await fb.firestoreMod.setDoc(settingsRef, sanitized, { merge: true });
     console.log(`✅ [Firestore] User preferences & sphere configs saved to cloud!`);
   } catch (err) {
     console.warn(`Firestore user settings save note:`, err.message);

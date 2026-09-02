@@ -168,6 +168,7 @@ const soundEngineCode = readSrc('services/soundEngine.js');
 const soundFxCode = readSrc('services/soundEffects.js');
 
 assert(soundEngineCode.includes('playSuccessChime') && soundEngineCode.includes('playRoughTone'), 'soundEngine.js: Procedural mechanical click & chime oscillators active');
+assert(soundEngineCode.includes('playCameraShutter') && soundEngineCode.includes('triggerHaptic'), 'soundEngine.js: Camera shutter synthesizer & haptic vibration triggers active');
 assert(soundFxCode.includes('playPeak') && soundFxCode.includes('playMood'), 'soundEffects.js: 5-level mood sound synthesis active');
 
 // ----------------------------------------------------------------------
@@ -179,6 +180,7 @@ const firebaseCode = readSrc('services/firebase.js');
 assert(apiCode.includes('export const isStaticHost ='), 'api.js: isStaticHost detection prevents 405 errors on GitHub Pages');
 assert(apiCode.includes('export function getDbStorageKey(userId)'), 'api.js: getDbStorageKey provides user-partitioned local storage');
 assert(firebaseCode.includes('getEffectiveUserId'), 'firebase.js: getEffectiveUserId clusters owner accounts & isolates guests/friends');
+assert(firebaseCode.includes('cleanFirestorePayload'), 'firebase.js: cleanFirestorePayload sanitizes entries & blocks invalid undefined fields');
 assert(!firebaseCode.includes('batchSaveCloudEntries(user.uid, parsed.entries)'), 'firebase.js: Removed unsafe cross-user cache auto-upload');
 assert(firebaseCode.includes('window.location.reload()'), 'firebase.js: logoutUser triggers browser reload to purge telemetry/cache memory');
 

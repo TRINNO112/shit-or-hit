@@ -199,9 +199,22 @@ export async function fetchDatabase(userOverride = null) {
       const cloudCount = Object.keys(cloudEntries).length;
       const localCount = Object.keys(localData.entries || {}).length;
 
-      // If Firestore has data, merge and use Firestore for this specific user
+      // If Firestore has data, merge entries using timestamp-aware resolution (newest edit wins)
       if (cloudCount > 0) {
-        const mergedEntries = { ...localData.entries, ...cloudEntries };
+        const mergedEntries = { ...localData.entries };
+
+        Object.entries(cloudEntries).forEach(([dateKey, cloudItem]) => {
+          const localItem = mergedEntries[dateKey];
+          if (!localItem) {
+            mergedEntries[dateKey] = cloudItem;
+          } else {
+            const localTime = new Date(localItem.updatedAt || localItem.createdAt || 0).getTime();
+            const cloudTime = new Date(cloudItem.updatedAt || cloudItem.createdAt || 0).getTime();
+            // Whichever has higher timestamp wins
+            mergedEntries[dateKey] = cloudTime >= localTime ? cloudItem : localItem;
+          }
+        });
+
         const dates = Object.keys(mergedEntries).sort();
         const startDate = dates[0] || localData.startDate;
         localStorage.setItem(storageKey, JSON.stringify({ startDate, entries: mergedEntries }));

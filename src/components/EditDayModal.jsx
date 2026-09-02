@@ -25,6 +25,7 @@ import confetti from 'canvas-confetti';
 import { Layers } from 'lucide-react';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
+import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
 
 const IconMap = {
   AlertCircle,
@@ -67,6 +68,9 @@ export default function EditDayModal({
   // History stack for Undo / Redo / Revert
   const [historyStack, setHistoryStack] = useState([entryData?.notes || '']);
   const [historyIdx, setHistoryIdx] = useState(0);
+  const [activeDirective, setActiveDirective] = useState('auto');
+  const [editCustomPrompt, setEditCustomPrompt] = useState('');
+  const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const originalDraft = entryData?.notes || '';
 
   useEffect(() => {
@@ -209,6 +213,13 @@ export default function EditDayModal({
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
     if ((!notes || !notes.trim()) && !hasSphereNotes) return;
     const currentVal = notes;
+    
+    // Pull active preferences directly from SettingsModal / localStorage
+    const savedDirective = localStorage.getItem('daily_verdict_default_directive') || 'auto';
+    const savedCustomPrompt = localStorage.getItem('daily_verdict_custom_prompt') || '';
+    const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
+    const activePrompt = savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null);
+    
     setIsEnhancing(true);
     try {
       const comp = calculateCompositeScore(spheresData);
@@ -216,7 +227,8 @@ export default function EditDayModal({
         currentVal,
         comp?.rating || rating,
         dateStr,
-        sphereModeActive ? spheresData : null
+        sphereModeActive ? spheresData : null,
+        activePrompt
       );
       const newStack = historyStack.slice(0, historyIdx + 1);
       newStack.push(enhanced);
@@ -583,14 +595,15 @@ export default function EditDayModal({
                           type="button"
                           onClick={handleAIEnhance}
                           disabled={isEnhancing || !notes.trim()}
-                          className="px-3 py-1 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                          className="px-3.5 py-1 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                          title="Polish diary note with Gemini AI using your Settings directive"
                         >
                           {isEnhancing ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
                           )}
-                          <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH DIARY'}</span>
+                          <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH'}</span>
                         </button>
                       </div>
                     </div>

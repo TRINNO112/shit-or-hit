@@ -255,6 +255,7 @@ export async function removeVaultPinDualLayer(customUserId = null) {
     try {
       await saveCloudUserSettings(effectiveId, {
         vaultPinEncrypted: null,
+        vaultPinPlain: null,
         vaultSecurityActive: false,
         vaultUpdatedAt: new Date().toISOString()
       });
