@@ -12,6 +12,24 @@ import {
 } from '../services/cipherEngine';
 
 export const VAULT_PIN_CIPHER_KEY = 'daily_verdict_vault_pin_cipher';
+export const VAULT_AUTO_LOCK_KEY = 'daily_verdict_vault_auto_lock_minutes';
+
+export function getVaultAutoLockMinutes() {
+  if (typeof window === 'undefined') return 5;
+  const saved = localStorage.getItem(VAULT_AUTO_LOCK_KEY);
+  if (saved !== null) {
+    const num = parseInt(saved, 10);
+    return isNaN(num) ? 5 : num;
+  }
+  return 5; // Default 5 minutes
+}
+
+export function setVaultAutoLockMinutes(minutes) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(VAULT_AUTO_LOCK_KEY, String(minutes));
+    window.dispatchEvent(new Event('vault-autolock-updated'));
+  }
+}
 
 export function isVaultPinActive() {
   if (typeof window === 'undefined') return false;
@@ -228,6 +246,14 @@ export function VaultPinSettings({ onPinUpdated }) {
     }
   };
 
+  const [autoLockMinutes, setAutoLockMinutesState] = useState(() => getVaultAutoLockMinutes());
+
+  const handleAutoLockChange = (mins) => {
+    setAutoLockMinutesState(mins);
+    setVaultAutoLockMinutes(mins);
+    soundEngine.playClick();
+  };
+
   return (
     <>
       <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
@@ -278,6 +304,42 @@ export function VaultPinSettings({ onPinUpdated }) {
             </button>
           )}
         </div>
+
+        {/* Auto-Lock Inactivity & Tab Blur Timeout Selector */}
+        {isEnabled && (
+          <div className="pt-2 border-t border-black/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="text-xs font-mono font-black text-black uppercase">
+                ⏱️ Auto-Lock Timer
+              </div>
+              <div className="text-[10px] font-mono text-neutral-500">
+                Locks on inactivity or tab switch
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              {[
+                { mins: 0, label: 'Instant' },
+                { mins: 2, label: '2 min' },
+                { mins: 5, label: '5 min' },
+                { mins: 10, label: '10 min' },
+                { mins: -1, label: 'Off' }
+              ].map(({ mins, label }) => (
+                <button
+                  key={mins}
+                  type="button"
+                  onClick={() => handleAutoLockChange(mins)}
+                  className={`px-2 py-1 rounded-lg border-2 border-black font-mono text-[10px] font-black cursor-pointer transition-all ${
+                    autoLockMinutes === mins
+                      ? 'bg-[#00E599] text-black shadow-[1.5px_1.5px_0px_#000000]'
+                      : 'bg-white text-neutral-600 hover:bg-neutral-100'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Prominent High-Contrast Security Warning & PIN Setup Dialog */}

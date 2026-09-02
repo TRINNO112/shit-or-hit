@@ -64,28 +64,60 @@ export default function App() {
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
 
-  // 🔐 Auto-Lock Gatekeeper whenever user switches browser tabs, minimizes, or leaves window
+  // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
-    const handleLock = () => {
+    let inactivityTimer = null;
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      if (!isVaultPinActive()) return;
+
+      // Import timeout minutes from localStorage
+      const savedMinutes = parseInt(localStorage.getItem('daily_verdict_vault_auto_lock_minutes') ?? '5', 10);
+      if (savedMinutes === -1) return; // 'Off'
+
+      const ms = savedMinutes === 0 ? 30000 : savedMinutes * 60 * 1000;
+      inactivityTimer = setTimeout(() => {
+        if (isVaultPinActive()) {
+          setIsVaultLocked(true);
+        }
+      }, ms);
+    };
+
+    const handleBlurOrVisibility = () => {
+      if (!isVaultPinActive()) return;
+      const savedMinutes = parseInt(localStorage.getItem('daily_verdict_vault_auto_lock_minutes') ?? '5', 10);
+      if (savedMinutes === -1) return; // 'Off'
+
+      // Instant lock on blur if configured as Instant (0 mins) or if tab switched
+      if (savedMinutes === 0 || document.hidden) {
+        setIsVaultLocked(true);
+      }
+    };
+
+    const handlePinUpdated = () => {
       if (isVaultPinActive()) {
         setIsVaultLocked(true);
       }
     };
 
-    const handleVisibility = () => {
-      if (document.hidden && isVaultPinActive()) {
-        setIsVaultLocked(true);
-      }
-    };
+    // User interaction events to keep active session alive
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach(evt => window.addEventListener(evt, resetInactivityTimer, { passive: true }));
+    window.addEventListener('blur', handleBlurOrVisibility);
+    document.addEventListener('visibilitychange', handleBlurOrVisibility);
+    window.addEventListener('vault-pin-updated', handlePinUpdated);
+    window.addEventListener('vault-autolock-updated', resetInactivityTimer);
 
-    window.addEventListener('blur', handleLock);
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('vault-pin-updated', handleLock);
+    resetInactivityTimer();
 
     return () => {
-      window.removeEventListener('blur', handleLock);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('vault-pin-updated', handleLock);
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      activityEvents.forEach(evt => window.removeEventListener(evt, resetInactivityTimer));
+      window.removeEventListener('blur', handleBlurOrVisibility);
+      document.removeEventListener('visibilitychange', handleBlurOrVisibility);
+      window.removeEventListener('vault-pin-updated', handlePinUpdated);
+      window.removeEventListener('vault-autolock-updated', resetInactivityTimer);
     };
   }, []);
 
