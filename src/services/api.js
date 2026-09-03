@@ -182,7 +182,17 @@ export async function fetchDatabase(userOverride = null) {
     }
   }
 
-  const cached = localStorage.getItem(storageKey);
+  let cached = localStorage.getItem(storageKey);
+  // Also check legacy raw UID key in localStorage if user_UID has no cached entries
+  if (!cached && effectiveId && effectiveId.startsWith('user_')) {
+    const legacyRawKey = `goodness_db_${effectiveId.slice(5)}`;
+    const legacyCached = localStorage.getItem(legacyRawKey);
+    if (legacyCached) {
+      cached = legacyCached;
+      localStorage.setItem(storageKey, legacyCached);
+    }
+  }
+
   if (cached) {
     try { 
       const parsed = JSON.parse(cached);

@@ -369,7 +369,35 @@ export async function fetchCloudEntries(userId) {
     snapshot.forEach(docSnap => {
       entries[docSnap.id] = docSnap.data();
     });
-    const count = Object.keys(entries).length;
+    let count = Object.keys(entries).length;
+
+    // 🔄 AUTOMATIC SEAMLESS LEGACY MIGRATION:
+    // If user has 'user_<rawUid>' but 0 entries, check if their old raw '<rawUid>' document has entries.
+    if (count === 0 && userId.startsWith('user_')) {
+      const legacyRawUid = userId.slice(5); // e.g. 'tJv49tPfn5VSylvy1KAHEzPL3582'
+      try {
+        console.log(`🔍 [Firestore Migration] Checking legacy raw UID collection for '${legacyRawUid}'...`);
+        const legacyColRef = fb.firestoreMod.collection(fb.db, 'users', legacyRawUid, 'entries');
+        const legacySnapshot = await fb.firestoreMod.getDocs(legacyColRef);
+        
+        if (!legacySnapshot.empty) {
+          console.log(`📦 [Firestore Migration] Found ${legacySnapshot.size} legacy entries! Auto-migrating to '${userId}'...`);
+          const migrationPromises = [];
+          legacySnapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            entries[docSnap.id] = data;
+            const newDocRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'entries', docSnap.id);
+            migrationPromises.push(fb.firestoreMod.setDoc(newDocRef, cleanFirestorePayload(data), { merge: true }));
+          });
+          await Promise.all(migrationPromises);
+          count = Object.keys(entries).length;
+          console.log(`🎉 [Firestore Migration SUCCESS] Seamlessly migrated ${count} entries into '${userId}'!`);
+        }
+      } catch (migErr) {
+        console.warn(`[Firestore Migration Note]:`, migErr.message);
+      }
+    }
+
     console.log(`✅ [Firestore] Loaded ${count} entries from Firebase Cloud.`);
     return entries;
   } catch (err) {
@@ -406,6 +434,19 @@ export async function fetchCloudReport(userId, reportKey) {
       console.log(`✅ [Firestore] Found cached dossier in Firebase Cloud (${reportKey}).`);
       return snap.data();
     }
+
+    // Fallback to legacy raw UID if not found in user_UID
+    if (userId.startsWith('user_')) {
+      const legacyRawUid = userId.slice(5);
+      const legacyRef = fb.firestoreMod.doc(fb.db, 'users', legacyRawUid, 'reports', reportKey);
+      const legSnap = await fb.firestoreMod.getDoc(legacyRef);
+      if (legSnap.exists()) {
+        const legData = legSnap.data();
+        await fb.firestoreMod.setDoc(reportRef, legData, { merge: true }).catch(() => {});
+        return legData;
+      }
+    }
+
     return null;
   } catch (err) {
     console.error(`❌ [Firestore Dossier Fetch Error]:`, err.code || err.name, err.message);
@@ -457,6 +498,19 @@ export async function fetchCloudUserSettings(userId) {
     if (snap.exists()) {
       return snap.data();
     }
+
+    // Fallback to legacy raw UID if not found in user_UID
+    if (userId.startsWith('user_')) {
+      const legacyRawUid = userId.slice(5);
+      const legacyRef = fb.firestoreMod.doc(fb.db, 'users', legacyRawUid, 'settings', 'config');
+      const legSnap = await fb.firestoreMod.getDoc(legacyRef);
+      if (legSnap.exists()) {
+        const legData = legSnap.data();
+        await fb.firestoreMod.setDoc(settingsRef, cleanFirestorePayload(legData), { merge: true }).catch(() => {});
+        return legData;
+      }
+    }
+
     return null;
   } catch (err) {
     console.warn(`Firestore user settings fetch note:`, err.message);
