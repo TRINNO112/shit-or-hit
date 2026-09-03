@@ -211,10 +211,10 @@ const ICON_PRESETS = [
 import AestheticCardExportModal from './AestheticCardExportModal';
 import AestheticCardVariantDeepseek from './AestheticCardVariantDeepseek';
 import YearInPixelsWallpaperEngine from './YearInPixelsWallpaperEngine';
-import MoodReactionBanner, { BANNER_DESIGN_VARIANTS, getActiveBannerDesign, setActiveBannerDesign } from './MoodReactionBanner';
+import MoodReactionBanner from './MoodReactionBanner';
 
 export default function IconLab({ onBack }) {
-  const [activeLabTab, setActiveLabTab] = useState('banner_arena'); // Default to banner arena for instant testing
+  const [activeLabTab, setActiveLabTab] = useState('banner_arena');
   const [selectedStudioDesign, setSelectedStudioDesign] = useState('darkroom'); // 'darkroom' | 'deepseek'
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState('shield_volt');
@@ -225,9 +225,7 @@ export default function IconLab({ onBack }) {
   const [copied, setCopied] = useState(false);
 
   // Banner Lab Testing States
-  const [labBannerDesign, setLabBannerDesign] = useState(() => getActiveBannerDesign());
   const [labRating, setLabRating] = useState(3);
-  const [bannerSavedSuccess, setBannerSavedSuccess] = useState(false);
 
   const selectedPreset = ICON_PRESETS.find(i => i.id === selectedIconId) || ICON_PRESETS[0];
   const IconComponent = selectedPreset.icon;
@@ -316,7 +314,7 @@ export default function IconLab({ onBack }) {
           </div>
         </div>
 
-        {/* TAB 0: BANNER DESIGN ARENA (A/B TESTING & APPROVAL) */}
+        {/* TAB 0: VERDICT BANNER SHOWCASE */}
         {activeLabTab === 'banner_arena' && (
           <div className="space-y-6">
             
@@ -324,39 +322,42 @@ export default function IconLab({ onBack }) {
             <div className="bg-white border-3 border-black rounded-3xl p-6 shadow-[6px_6px_0px_#000000] space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-black/10 pb-4">
                 <div>
-                  <span className="px-2.5 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[9px] font-black uppercase">
-                    LABORATORY ARENA
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#241F1A] text-[#F5EFE0] border border-black font-mono text-[9px] font-black uppercase">
+                    ARCHIVAL LETTERPRESS SYSTEM
                   </span>
                   <h3 className="font-display font-black text-xl uppercase tracking-tight text-black mt-1">
-                    Mood Reaction Banner Background Tester
+                    Editorial Verdict Banner
                   </h3>
                   <p className="text-xs font-mono text-neutral-600">
-                    Preview all 6 background designs across different ratings. Click <strong>"APPROVE THIS DESIGN"</strong> to instantly make it the default across the whole app.
+                    Hand-pressed deckle-edge cotton rag paper, Fraunces serif typography, and vintage wax-seal rating stamps.
                   </p>
                 </div>
 
                 {/* Rating Mood Switcher */}
-                <div className="flex items-center gap-1 bg-neutral-100 p-1.5 rounded-2xl border-2 border-black shrink-0">
+                <div className="flex items-center gap-1 bg-neutral-100 p-1.5 rounded-2xl border-2 border-black shrink-0 flex-wrap">
                   <span className="text-[10px] font-mono font-black uppercase px-2 text-neutral-600">
-                    TEST MOOD:
+                    INSPECT MOOD:
                   </span>
                   {[
-                    { r: 1, label: '1★ Rough', color: '#FF4D4D' },
-                    { r: 2, label: '2★ Down', color: '#FF8A00' },
-                    { r: 3, label: '3★ Okay', color: '#CBD5E1' },
-                    { r: 4, label: '4★ Good', color: '#00E599' },
-                    { r: 5, label: '5★ Peak', color: '#FDC800' }
+                    { r: 1, label: '1★ Rough', color: '#8C3B2E', textColor: '#FFF' },
+                    { r: 2, label: '2★ Down', color: '#C25E00', textColor: '#FFF' },
+                    { r: 3, label: '3★ Okay', color: '#6E5E4E', textColor: '#FFF' },
+                    { r: 4, label: '4★ Good', color: '#1E7B54', textColor: '#FFF' },
+                    { r: 5, label: '5★ Peak', color: '#B07D08', textColor: '#FFF' }
                   ].map((m) => (
                     <button
                       key={m.r}
                       type="button"
                       onClick={() => setLabRating(m.r)}
-                      className={`px-2.5 py-1 rounded-xl font-mono text-xs font-black border-2 border-black transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl font-mono text-xs font-black border-2 border-black transition-all cursor-pointer ${
                         labRating === m.r
-                          ? 'shadow-[1.5px_1.5px_0px_#000000] scale-105'
-                          : 'opacity-50 hover:opacity-100 bg-white'
+                          ? 'shadow-[2px_2px_0px_#000000] scale-105'
+                          : 'opacity-60 hover:opacity-100 bg-white text-black'
                       }`}
-                      style={{ backgroundColor: labRating === m.r ? m.color : undefined }}
+                      style={{ 
+                        backgroundColor: labRating === m.r ? m.color : undefined,
+                        color: labRating === m.r ? m.textColor : undefined
+                      }}
                     >
                       {m.label}
                     </button>
@@ -366,106 +367,7 @@ export default function IconLab({ onBack }) {
 
               {/* LIVE ACTIVE PREVIEW BANNER */}
               <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-black uppercase text-black">
-                      CURRENTLY PREVIEWING:
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md bg-black text-[#FDC800] font-mono text-xs font-black uppercase">
-                      {BANNER_DESIGN_VARIANTS.find(v => v.id === labBannerDesign)?.name || labBannerDesign}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveBannerDesign(labBannerDesign);
-                      setBannerSavedSuccess(true);
-                      setTimeout(() => setBannerSavedSuccess(false), 2500);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-[#00E599] hover:bg-emerald-400 border-2 border-black font-display font-black text-xs uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer active:scale-95 transition-all flex items-center gap-1.5"
-                  >
-                    <Check className="w-4 h-4 stroke-3" />
-                    <span>{bannerSavedSuccess ? 'APPROVED & APPLIED!' : 'APPROVE THIS DESIGN FOR APP'}</span>
-                  </button>
-                </div>
-
-                {/* Render Selected MoodReactionBanner with designOverride */}
-                <MoodReactionBanner rating={labRating} designOverride={labBannerDesign} />
-              </div>
-            </div>
-
-            {/* DESIGN SELECTION MATRIX (All 6 Options Side-by-Side) */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-display font-black text-lg uppercase">
-                  Select A Background Style To Inspect ({BANNER_DESIGN_VARIANTS.length} Designs)
-                </h4>
-                <span className="text-xs font-mono text-neutral-500">
-                  Click any card to load into live preview above
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {BANNER_DESIGN_VARIANTS.map((design) => {
-                  const isSelected = labBannerDesign === design.id;
-                  const isCurrentDefault = getActiveBannerDesign() === design.id;
-
-                  return (
-                    <div
-                      key={design.id}
-                      onClick={() => setLabBannerDesign(design.id)}
-                      className={`bg-white border-3 border-black rounded-2xl p-4 shadow-[4px_4px_0px_#000000] cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
-                        isSelected 
-                          ? 'ring-4 ring-[#FF4D4D] scale-[1.02] shadow-[6px_6px_0px_#000000]' 
-                          : 'hover:bg-neutral-50'
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 bg-black text-white font-mono text-[9px] font-black rounded-md">
-                            {design.badge}
-                          </span>
-                          {isCurrentDefault && (
-                            <span className="px-2 py-0.5 bg-[#00E599] text-black border border-black font-mono text-[9px] font-black rounded-md">
-                              ★ ACTIVE DEFAULT
-                            </span>
-                          )}
-                        </div>
-
-                        <h5 className="font-display font-black text-base uppercase text-black">
-                          {design.name}
-                        </h5>
-                        <p className="text-[11px] font-mono text-neutral-600 leading-snug">
-                          {design.desc}
-                        </p>
-                      </div>
-
-                      {/* Mini Scaled Preview Container */}
-                      <div className="rounded-xl overflow-hidden border-2 border-black pointer-events-none transform scale-95 origin-center">
-                        <MoodReactionBanner rating={labRating} designOverride={design.id} />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLabBannerDesign(design.id);
-                          setActiveBannerDesign(design.id);
-                          setBannerSavedSuccess(true);
-                          setTimeout(() => setBannerSavedSuccess(false), 2500);
-                        }}
-                        className={`w-full py-2 rounded-xl border-2 border-black font-mono text-xs font-black uppercase text-center cursor-pointer transition-all ${
-                          isCurrentDefault
-                            ? 'bg-neutral-200 text-neutral-800'
-                            : 'bg-[#FDC800] hover:bg-amber-400 text-black shadow-[1.5px_1.5px_0px_#000000]'
-                        }`}
-                      >
-                        {isCurrentDefault ? '✓ Current App Default' : 'Approve & Use Design'}
-                      </button>
-                    </div>
-                  );
-                })}
+                <MoodReactionBanner rating={labRating} />
               </div>
             </div>
 
