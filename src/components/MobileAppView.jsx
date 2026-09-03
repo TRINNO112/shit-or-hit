@@ -58,7 +58,7 @@ import JourneyTimeline from './JourneyTimeline';
 import StatsWidget from './StatsWidget';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
-import NonNegotiableCard from './NonNegotiableCard';
+import NonNegotiableCard, { isNonNegotiablesActive, getNonNegotiablesMode } from './NonNegotiableCard';
 import { soundEngine } from '../services/soundEngine';
 
 const IconMap = {
@@ -392,7 +392,19 @@ export default function MobileAppView({
     }
   };
 
+  const isAnchorsActiveMobile = typeof window !== 'undefined' && isNonNegotiablesActive();
+  const anchorsModeMobile = typeof window !== 'undefined' ? getNonNegotiablesMode() : 'checklist';
+  const isDeterministicLockedMobile = isAnchorsActiveMobile && anchorsModeMobile === 'deterministic_100';
+
   const handleRate = async (val) => {
+    // 🛡️ Enforce Deterministic 100% Task Engine Lock on Mobile
+    if (isDeterministicLockedMobile) {
+      triggerHaptic('medium');
+      soundEngine.playRoughTone();
+      alert("🔒 Deterministic 100% Mode Active: Your day rating is automatically governed by your completed habit tasks below. Check off your tasks to update your rating!");
+      return;
+    }
+
     triggerHaptic(val >= 4 ? 'success' : 'medium');
     if (val >= 4) {
       soundEngine.playSuccessChime();
@@ -779,6 +791,12 @@ export default function MobileAppView({
           ) : (
             /* Single-Verdict Standard 5 Tactile Cards */
             <div className="space-y-2.5">
+              {isDeterministicLockedMobile && (
+                <div className="p-2.5 bg-amber-50 border-2 border-black rounded-xl text-[11px] font-mono font-bold text-amber-950 flex items-center gap-2 shadow-[2px_2px_0px_#000000]">
+                  <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>Deterministic 100% Mode: Day score is locked to completed tasks below.</span>
+                </div>
+              )}
               {[5, 4, 3, 2, 1].map((val) => {
                 const m = ratingMeta[val];
                 const SvgIcon = IconMap[m.icon];
@@ -788,9 +806,11 @@ export default function MobileAppView({
                   <motion.button
                     key={val}
                     type="button"
-                    whileTap={{ scale: 0.97 }}
+                    whileTap={!isDeterministicLockedMobile ? { scale: 0.97 } : {}}
                     onClick={() => handleRate(val)}
-                    className={`w-full p-3.5 rounded-2xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] cursor-pointer transition-all ${
+                    className={`w-full p-3.5 rounded-2xl border-2 border-black flex items-center justify-between shadow-[3px_3px_0px_#000000] transition-all ${
+                      isDeterministicLockedMobile ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'
+                    } ${
                       isSelected ? 'ring-3 ring-black scale-[1.01]' : 'hover:bg-neutral-50'
                     }`}
                     style={{ 

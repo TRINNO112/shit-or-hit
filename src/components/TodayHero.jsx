@@ -34,7 +34,7 @@ import confetti from 'canvas-confetti';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
-import NonNegotiableCard from './NonNegotiableCard';
+import NonNegotiableCard, { isNonNegotiablesActive, getNonNegotiablesMode } from './NonNegotiableCard';
 import { soundEngine } from '../services/soundEngine';
 import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
 
@@ -187,7 +187,18 @@ export default function TodayHero({
     }
   };
 
+  const isAnchorsActive = typeof window !== 'undefined' && isNonNegotiablesActive();
+  const anchorsMode = typeof window !== 'undefined' ? getNonNegotiablesMode() : 'checklist';
+  const isDeterministicTaskLocked = isAnchorsActive && anchorsMode === 'deterministic_100';
+
   const handleRate = async (val, e) => {
+    // 🛡️ Enforce Deterministic 100% Task Engine Lock:
+    if (isDeterministicTaskLocked) {
+      soundEngine.playRoughTone();
+      alert("🔒 Deterministic 100% Mode Active: Your day rating is automatically governed by your completed habit tasks below. Check off your tasks to update your rating!");
+      return;
+    }
+
     triggerRatingExpression(val, 0.6);
 
     setSyncedBadge(true);
@@ -450,7 +461,9 @@ export default function TodayHero({
                 {fullDate}
               </p>
               <p className="text-xs font-mono text-neutral-500 mt-1 font-semibold">
-                Hover & punch an icon to log your verdict.
+                {isDeterministicTaskLocked 
+                  ? '🔒 Rating governed 100% by your Non-Negotiable Tasks below.' 
+                  : 'Hover & punch an icon to log your verdict.'}
               </p>
             </div>
           </div>
@@ -467,22 +480,23 @@ export default function TodayHero({
                   <motion.button
                     key={val}
                     type="button"
-                    whileHover={{ 
+                    whileHover={!isDeterministicTaskLocked ? { 
                       scale: 1.06, 
                       y: -4, 
-                      boxShadow: '4px 4px 0px #000000'
-                    }}
-                    whileTap={{ 
+                      boxShadow: '4px 4px 0px #000000' 
+                    } : {}}
+                    whileTap={!isDeterministicTaskLocked ? { 
                       scale: 0.88, 
                       rotate: (val - 3) * -2.5 
-                    }}
+                    } : {}}
                     transition={{ type: 'spring', stiffness: 450, damping: 16 }}
                     onClick={(e) => handleRate(val, e)}
-                    className="neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative cursor-pointer"
+                    className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
                     style={{ 
                       minHeight: '82px',
                       backgroundColor: isSelected ? m.bg : '#FFFFFF'
                     }}
+                    title={isDeterministicTaskLocked ? 'Locked by 100% Task Engine' : `Log ${m.title} (${val}/5)`}
                   >
                     {/* Seamless Active Selection Highlight */}
                     {isSelected && (

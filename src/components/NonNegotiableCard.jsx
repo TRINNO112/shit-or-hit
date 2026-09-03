@@ -77,6 +77,19 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
   const mode = getNonNegotiablesMode();
   const storageKey = `daily_verdict_anchors_${dateStr}`;
 
+  const dayAnchorsKey = `daily_verdict_day_anchors_${dateStr}`;
+  const [daySpecificAnchors, setDaySpecificAnchors] = useState(() => {
+    try {
+      const saved = localStorage.getItem(dayAnchorsKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showAddDayAnchor, setShowAddDayAnchor] = useState(false);
+  const [newDayAnchorTitle, setNewDayAnchorTitle] = useState('');
+  const [newDayAnchorUtils, setNewDayAnchorUtils] = useState(1.5);
+
   // Load custom anchor templates
   const [anchors, setAnchors] = useState(() => {
     try {
@@ -110,25 +123,35 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
     try {
       const saved = localStorage.getItem(storageKey);
       setCheckedState(saved ? JSON.parse(saved) : {});
+      const savedDayAnchors = localStorage.getItem(dayAnchorsKey);
+      setDaySpecificAnchors(savedDayAnchors ? JSON.parse(savedDayAnchors) : []);
     } catch {
       setCheckedState({});
+      setDaySpecificAnchors([]);
     }
-  }, [dateStr, storageKey]);
+    setShowAddDayAnchor(false);
+    setNewDayAnchorTitle('');
+  }, [dateStr, storageKey, dayAnchorsKey]);
+
+  // Combined active anchor list (Global Template Anchors + Day-Specific Outlier Anchors)
+  const combinedAnchors = useMemo(() => {
+    return [...anchors, ...daySpecificAnchors];
+  }, [anchors, daySpecificAnchors]);
 
   // Calculate total possible utils and achieved utils
   const { totalUtils, achievedUtils, completedCount, isAllCompleted } = useMemo(() => {
-    const total = anchors.reduce((acc, curr) => acc + (Number(curr.utils) || 0), 0);
-    const achieved = anchors.reduce((acc, curr) => {
+    const total = combinedAnchors.reduce((acc, curr) => acc + (Number(curr.utils) || 0), 0);
+    const achieved = combinedAnchors.reduce((acc, curr) => {
       return acc + (checkedState[curr.id] ? (Number(curr.utils) || 0) : 0);
     }, 0);
-    const count = anchors.filter(a => checkedState[a.id]).length;
+    const count = combinedAnchors.filter(a => checkedState[a.id]).length;
     return {
       totalUtils: Number(total.toFixed(2)),
       achievedUtils: Number(achieved.toFixed(2)),
       completedCount: count,
-      isAllCompleted: anchors.length > 0 && count === anchors.length
+      isAllCompleted: combinedAnchors.length > 0 && count === combinedAnchors.length
     };
-  }, [anchors, checkedState]);
+  }, [combinedAnchors, checkedState]);
 
   // Compute calculated star rating (0.0 to 5.0)
   const calculatedRating = useMemo(() => {
@@ -142,6 +165,69 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
     return null;
   }
 
+  const handleAddDaySpecificTask = (e) => {
+    e?.preventDefault();
+    if (!newDayAnchorTitle.trim()) return;
+    soundEngine.playClick();
+    const newId = `day_anchor_${Date.now()}`;
+    const newAnchor = {
+      id: newId,
+      title: newDayAnchorTitle.trim(),
+      iconId: 'zap',
+      color: '#FF8008',
+      utils: Number(newDayAnchorUtils) || 1.5,
+      isDaySpecific: true
+    };
+    const updated = [...daySpecificAnchors, newAnchor];
+    setDaySpecificAnchors(updated);
+    localStorage.setItem(dayAnchorsKey, JSON.stringify(updated));
+    setNewDayAnchorTitle('');
+    setShowAddDayAnchor(false);
+
+    // Recompute and trigger score update immediately
+    const nextCombined = [...anchors, ...updated];
+    const nextTotal = nextCombined.reduce((acc, curr) => acc + (Number(curr.utils) || 0), 0);
+    const nextAchieved = nextCombined.reduce((acc, curr) => {
+      return acc + (checkedState[curr.id] ? (Number(curr.utils) || 0) : 0);
+    }, 0);
+    const nextRating = nextTotal > 0 ? Number(((nextAchieved / nextTotal) * 5.0).toFixed(1)) : 0;
+    if (onScoreUpdate) {
+      onScoreUpdate({
+        mode,
+        completedCount,
+        totalCount: nextCombined.length,
+        achievedUtils: Number(nextAchieved.toFixed(2)),
+        totalUtils: Number(nextTotal.toFixed(2)),
+        calculatedRating: nextRating
+      });
+    }
+  };
+
+  const handleDeleteDaySpecificTask = (taskToDeleteId, e) => {
+    e?.stopPropagation();
+    soundEngine.playClick();
+    const updated = daySpecificAnchors.filter(a => a.id !== taskToDeleteId);
+    setDaySpecificAnchors(updated);
+    localStorage.setItem(dayAnchorsKey, JSON.stringify(updated));
+
+    const nextCombined = [...anchors, ...updated];
+    const nextTotal = nextCombined.reduce((acc, curr) => acc + (Number(curr.utils) || 0), 0);
+    const nextAchieved = nextCombined.reduce((acc, curr) => {
+      return acc + (checkedState[curr.id] ? (Number(curr.utils) || 0) : 0);
+    }, 0);
+    const nextRating = nextTotal > 0 ? Number(((nextAchieved / nextTotal) * 5.0).toFixed(1)) : 0;
+    if (onScoreUpdate) {
+      onScoreUpdate({
+        mode,
+        completedCount: nextCombined.filter(a => checkedState[a.id]).length,
+        totalCount: nextCombined.length,
+        achievedUtils: Number(nextAchieved.toFixed(2)),
+        totalUtils: Number(nextTotal.toFixed(2)),
+        calculatedRating: nextRating
+      });
+    }
+  };
+
   const toggleAnchor = (id) => {
     soundEngine.playClick();
     const updated = {
@@ -151,13 +237,13 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
     setCheckedState(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
 
-    const newCompletedCount = anchors.filter(a => updated[a.id]).length;
-    if (newCompletedCount === anchors.length && anchors.length > 0) {
+    const newCompletedCount = combinedAnchors.filter(a => updated[a.id]).length;
+    if (newCompletedCount === combinedAnchors.length && combinedAnchors.length > 0) {
       soundEngine.playMilestoneArpeggio();
     }
 
     if (onScoreUpdate) {
-      const newAchieved = anchors.reduce((acc, curr) => {
+      const newAchieved = combinedAnchors.reduce((acc, curr) => {
         return acc + (updated[curr.id] ? (Number(curr.utils) || 0) : 0);
       }, 0);
       const newRating = totalUtils > 0 ? Number(((newAchieved / totalUtils) * 5.0).toFixed(1)) : 0;
@@ -165,7 +251,7 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
       onScoreUpdate({
         mode,
         completedCount: newCompletedCount,
-        totalCount: anchors.length,
+        totalCount: combinedAnchors.length,
         achievedUtils: Number(newAchieved.toFixed(2)),
         totalUtils,
         calculatedRating: newRating
@@ -192,8 +278,8 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
                 mode === 'hybrid_50_50' ? 'bg-[#FDC800] text-black' :
                 'bg-neutral-100 text-neutral-800'
               }`}>
-                {mode === 'deterministic_100' ? '100% Task-Driven' :
-                 mode === 'hybrid_50_50' ? '50/50 Hybrid' : 'Checklist'}
+                {mode === 'deterministic_100' ? '🔒 100% Task Engine' :
+                 mode === 'hybrid_50_50' ? '⚖️ 50/50 Hybrid' : '📋 Checklist'}
               </span>
             </div>
             <p className="text-[11px] font-mono text-neutral-600 truncate">
@@ -207,7 +293,7 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
           <div className={`px-3 py-1 rounded-xl border-2 border-black font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] ${
             isAllCompleted ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-700'
           }`}>
-            {completedCount}/{anchors.length} LOCKED ({isAllCompleted ? '100%' : `${Math.round((completedCount / Math.max(anchors.length, 1)) * 100)}%`})
+            {completedCount}/{combinedAnchors.length} LOCKED ({isAllCompleted ? '100%' : `${Math.round((completedCount / Math.max(combinedAnchors.length, 1)) * 100)}%`})
           </div>
         </div>
       </div>
@@ -220,16 +306,15 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
         />
       </div>
 
-      {/* Task List (100% Focused on Interactive Checkboxes) */}
+      {/* Task List (Interactive Checkboxes with Day-Specific Task Badges) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-        {anchors.map((item) => {
+        {combinedAnchors.map((item) => {
           const isChecked = !!checkedState[item.id];
           return (
-            <button
+            <div
               key={item.id}
-              type="button"
               onClick={() => toggleAnchor(item.id)}
-              className={`p-3 rounded-2xl border-2 border-black flex items-center justify-between gap-2.5 text-left cursor-pointer transition-all active:scale-98 shadow-[2px_2px_0px_#000000] ${
+              className={`p-3 rounded-2xl border-2 border-black flex items-center justify-between gap-2.5 text-left cursor-pointer transition-all active:scale-98 shadow-[2px_2px_0px_#000000] relative ${
                 isChecked 
                   ? 'bg-[#EBFBF5] text-black border-black ring-1 ring-black' 
                   : 'bg-white hover:bg-neutral-50 text-neutral-900'
@@ -243,11 +328,24 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
                   {renderAnchorIcon(item.iconId, "w-4 h-4 text-black stroke-[2.5]")}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className={`text-xs font-mono font-black truncate leading-tight ${isChecked ? 'line-through opacity-70' : ''}`}>
-                    {item.title}
+                  <div className={`text-xs font-mono font-black truncate leading-tight flex items-center gap-1 ${isChecked ? 'line-through opacity-70' : ''}`}>
+                    <span>{item.title}</span>
+                    {item.isDaySpecific && (
+                      <span className="px-1 py-0.2 bg-[#FF8008] text-white text-[8px] font-black rounded uppercase">TODAY</span>
+                    )}
                   </div>
-                  <div className="text-[10px] font-mono text-neutral-500 font-bold mt-0.5">
-                    +{item.utils} Utils
+                  <div className="text-[10px] font-mono text-neutral-500 font-bold mt-0.5 flex items-center justify-between">
+                    <span>+{item.utils} Utils</span>
+                    {item.isDaySpecific && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteDaySpecificTask(item.id, e)}
+                        className="text-neutral-400 hover:text-red-500 cursor-pointer ml-2"
+                        title="Remove today-only task"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -259,9 +357,69 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
                   <Square className="w-5 h-5 text-neutral-400" />
                 )}
               </div>
-            </button>
+            </div>
           );
         })}
+      </div>
+
+      {/* 🌟 Day-Specific Outlier Anchor Adder (e.g. Essay, Exam, Doctor Appointment for TODAY only) */}
+      <div className="pt-1 border-t border-neutral-200">
+        {!showAddDayAnchor ? (
+          <button
+            type="button"
+            onClick={() => setShowAddDayAnchor(true)}
+            className="w-full py-2 px-3 bg-neutral-50 hover:bg-neutral-100 border-2 border-dashed border-black/40 hover:border-black rounded-xl font-mono text-[11px] font-black text-neutral-800 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98 shadow-[1px_1px_0px_#000000]"
+          >
+            <Plus className="w-3.5 h-3.5 text-black" />
+            <span>+ ADD SPECIAL ONE-OFF TASK FOR TODAY (e.g. Essay Writing, Project, Medical)</span>
+          </button>
+        ) : (
+          <form onSubmit={handleAddDaySpecificTask} className="p-3 bg-[#FFFDF5] border-2 border-black rounded-2xl space-y-2.5 shadow-[2px_2px_0px_#000000]">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] font-black text-black uppercase flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#FF8008]" />
+                <span>Special Task For Today Only:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowAddDayAnchor(false)}
+                className="p-1 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-black cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <input
+                type="text"
+                placeholder="e.g. 1500-word Essay, Presentation, Car Repair..."
+                value={newDayAnchorTitle}
+                onChange={(e) => setNewDayAnchorTitle(e.target.value)}
+                className="w-full sm:flex-1 p-2 bg-white border-2 border-black rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-black"
+                autoFocus
+              />
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  value={newDayAnchorUtils}
+                  onChange={(e) => setNewDayAnchorUtils(Number(e.target.value))}
+                  className="p-2 bg-white border-2 border-black rounded-xl font-mono text-xs font-bold"
+                >
+                  <option value={1.0}>1.0 Util</option>
+                  <option value={1.5}>1.5 Utils</option>
+                  <option value={2.0}>2.0 Utils</option>
+                  <option value={2.5}>2.5 Utils</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={!newDayAnchorTitle.trim()}
+                  className="px-4 py-2 bg-[#00E599] disabled:opacity-40 hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer whitespace-nowrap"
+                >
+                  + ADD TO TODAY
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
