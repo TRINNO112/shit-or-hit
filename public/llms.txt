@@ -1,0 +1,24 @@
+# SHIT OR HIT — Daily Verdict OS
+
+> An unfiltered daily life verdict OS, multi-sphere performance matrix, and behavioral intelligence engine.
+
+## Overview
+SHIT OR HIT (also known as Trinno Daily Verdict) is a local-first web application and PWA designed to log, reflect on, and forensically analyze daily life performance in under 5 seconds.
+
+## Key Capabilities
+- **5-Star Unfiltered Verdict Loop**: Rate your day from 1★ (Rough), 2★ (Down), 3★ (Okay), 4★ (Good), to 5★ (Peak).
+- **Segmented Multi-Sphere Matrix**: Score individual spheres of life (e.g. Work/School, Home Sanctuary, Social Events, Fitness).
+- **Daily Non-Negotiable Anchors**: 3 operating modes for discipline:
+  1. *Standalone Checklist* (0% rating impact)
+  2. *50/50 Hybrid Blend* (50% feeling + 50% habit completion)
+  3. *100% Task-Driven Engine* (strict mathematical lock from completed tasks)
+- **Zero-Knowledge Privacy**: Client-side AES/PIN encrypted reflections before cloud storage.
+- **Executive Monthly Dossier**: Gemini-powered behavioral reports with homie-tone analysis and next-month directives.
+- **Creative Studio**: 4K Year-in-Pixels wallpaper export and deep aesthetic social summary cards.
+
+## Technical Architecture
+- **Framework**: Vite + React 18
+- **Styling**: TailwindCSS with Neo-Brutalist design tokens (chunky borders, rich contrast, fluid micro-interactions)
+- **Audio Synthesis**: Web Audio API oscillator synthesizers (mechanical clicks, mood chimes, shutter clicks)
+- **Persistence**: Hybrid multi-user Firebase Firestore + LocalStorage fallback
+- **Offline First**: Full Progressive Web App (PWA) with ServiceWorker caching
