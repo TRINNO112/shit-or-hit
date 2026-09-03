@@ -156,7 +156,7 @@ export default function MoodReactionBanner({ rating }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-          className="relative w-full my-1 select-none"
+          className="relative w-full my-1 select-none hidden sm:block"
         >
           {/* 1. Deep Inked Solid Drop-Shadow Under Deckle Paper */}
           <div
@@ -252,7 +252,7 @@ export default function MoodReactionBanner({ rating }) {
                 whileTap={{ scale: 0.96 }}
                 transition={{ type: 'spring', stiffness: 450, damping: 20 }}
                 onClick={() => setIsZoomed(true)}
-                className="shrink-0 flex flex-col items-center justify-center relative cursor-pointer self-center sm:self-start group pt-3 sm:pt-0"
+                className="shrink-0 flex flex-col items-center justify-center relative cursor-pointer self-center sm:self-start group pt-3 sm:pt-0 pr-2"
                 title="Click to inspect original artwork"
               >
                 {/* Image Mat-Board Frame with Relative Anchor */}
@@ -268,9 +268,9 @@ export default function MoodReactionBanner({ rating }) {
                     />
                   </div>
 
-                  {/* 3. Floating Vintage Wax Stamp Rating Seal (Absolute Top-Right of Mascot Frame) */}
+                  {/* 3. Floating Vintage Wax Stamp Rating Seal (Outside Top-Right of Mascot Frame) */}
                   <div
-                    className="absolute -top-3.5 -right-3.5 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center text-center shadow-[3px_3px_0px_#1E1B17] z-20 pointer-events-none transform rotate-3"
+                    className="absolute -top-5 -right-5 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center text-center shadow-[3px_3px_0px_#1E1B17] z-20 pointer-events-none transform rotate-6"
                     style={{
                       backgroundColor: ink,
                       border: `2px solid ${PAPER}`,
