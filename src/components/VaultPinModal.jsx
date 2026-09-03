@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Unlock, KeyRound, ShieldAlert, Fingerprint, Delete, Check, X, ShieldCheck, Cloud, RefreshCcw } from 'lucide-react';
+import { Lock, Unlock, KeyRound, ShieldAlert, Fingerprint, Delete, Check, X, ShieldCheck, Cloud, RefreshCcw, AlertTriangle, ArrowRight } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { getCurrentUser } from '../services/firebase';
 import { 
@@ -190,20 +190,14 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
           </button>
         </div>
 
-        <div className="space-y-2 pt-1">
-          <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-neutral-500">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Salted SHA-256 Cryptographic Hash Active</span>
+        <div className="space-y-2 pt-2">
+          <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono font-bold text-neutral-600">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+            <span>Zero-Knowledge SHA-256 Vault Encryption</span>
           </div>
-
-          <button
-            type="button"
-            onClick={handleEmergencyReset}
-            disabled={isResetting}
-            className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer block mx-auto"
-          >
-            Reset / Remove Vault PIN
-          </button>
+          <p className="text-[10px] font-mono text-neutral-400">
+            Permanent cryptographic lock • No recovery bypass
+          </p>
         </div>
       </div>
     </div>
@@ -214,25 +208,64 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
 export function VaultPinSettings({ onPinUpdated }) {
   const isEnabled = isVaultPinActive();
   const [showSetupModal, setShowSetupModal] = useState(false);
+  const [setupStep, setSetupStep] = useState(1); // 1 = Warning & Ack, 2 = Enter PIN, 3 = Re-enter PIN to Confirm
+  const [hasAcknowledged, setHasAcknowledged] = useState(false);
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState('');
 
-  const handleSavePin = async (e) => {
-    e.preventDefault();
-    if (newPin.length !== 4) {
-      setError('PIN must be exactly 4 digits');
-      return;
-    }
-    if (newPin !== confirmPin) {
-      setError('PINs do not match. Please re-enter.');
-      return;
-    }
-    await setVaultPin(newPin);
+  const openSetup = () => {
+    setError('');
+    setNewPin('');
+    setConfirmPin('');
+    setHasAcknowledged(false);
+    setSetupStep(1);
+    setShowSetupModal(true);
+    soundEngine.playClick();
+  };
+
+  const closeSetup = () => {
     setShowSetupModal(false);
+    setSetupStep(1);
     setNewPin('');
     setConfirmPin('');
     setError('');
+  };
+
+  const handleNextToPinEntry = () => {
+    if (!hasAcknowledged) {
+      setError('You must check the confirmation box acknowledging there is no recovery.');
+      return;
+    }
+    setError('');
+    setSetupStep(2);
+    soundEngine.playClick();
+  };
+
+  const handleNextToConfirm = (e) => {
+    e.preventDefault();
+    if (newPin.length !== 4) {
+      setError('PIN must be exactly 4 digits.');
+      return;
+    }
+    setError('');
+    setSetupStep(3);
+    soundEngine.playClick();
+  };
+
+  const handleFinalSavePin = async (e) => {
+    e.preventDefault();
+    if (confirmPin.length !== 4) {
+      setError('Confirmation PIN must be exactly 4 digits.');
+      return;
+    }
+    if (newPin !== confirmPin) {
+      setError('PINs do not match! Please re-enter.');
+      soundEngine.playRoughTone();
+      return;
+    }
+    await setVaultPin(newPin);
+    closeSetup();
     soundEngine.playSuccessChime();
     if (onPinUpdated) onPinUpdated();
   };
@@ -240,7 +273,7 @@ export function VaultPinSettings({ onPinUpdated }) {
   const handleDisablePin = async () => {
     if (window.confirm('Are you sure you want to disable your vault PIN? Your reflections will no longer be locked.')) {
       await setVaultPin(null);
-      setShowSetupModal(false);
+      closeSetup();
       soundEngine.playClick();
       if (onPinUpdated) onPinUpdated();
     }
@@ -257,34 +290,34 @@ export function VaultPinSettings({ onPinUpdated }) {
   return (
     <>
       <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-        <div className="flex items-start justify-between gap-2.5">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
             <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
               <KeyRound className="w-4 h-4 text-black stroke-[2.5]" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="font-display font-black text-sm uppercase truncate">
+              <h4 className="font-display font-black text-sm uppercase text-black">
                 Private 4-Digit Vault PIN
               </h4>
-              <p className="text-[11px] font-mono text-neutral-600 truncate">
-                {isEnabled ? 'Vault locked with SHA-256 cryptographic protection' : 'Set a private PIN to lock your reflections'}
+              <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                {isEnabled ? 'Vault locked with SHA-256 cryptographic protection' : 'Strict Zero-Knowledge lock for your reflections'}
               </p>
             </div>
           </div>
 
           {isEnabled ? (
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
               <button
                 type="button"
-                onClick={() => setShowSetupModal(true)}
-                className="px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black bg-[#FDC800] text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:scale-95 transition-all"
+                onClick={openSetup}
+                className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border-2 border-black font-mono text-xs font-black bg-[#FDC800] text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:scale-95 transition-all text-center"
               >
                 CHANGE
               </button>
               <button
                 type="button"
                 onClick={handleDisablePin}
-                className="px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black bg-neutral-200 text-neutral-800 hover:bg-red-100 hover:text-red-700 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:scale-95 transition-all"
+                className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border-2 border-black font-mono text-xs font-black bg-neutral-200 text-neutral-800 hover:bg-red-100 hover:text-red-700 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:scale-95 transition-all text-center"
               >
                 DISABLE
               </button>
@@ -292,13 +325,8 @@ export function VaultPinSettings({ onPinUpdated }) {
           ) : (
             <button
               type="button"
-              onClick={() => {
-                setError('');
-                setNewPin('');
-                setConfirmPin('');
-                setShowSetupModal(true);
-              }}
-              className="px-3 py-1.5 rounded-xl border-2 border-black font-display font-black text-xs uppercase bg-[#00E599] text-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0 active:scale-95 transition-all"
+              onClick={openSetup}
+              className="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-display font-black text-xs uppercase bg-[#00E599] text-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0 active:scale-95 transition-all text-center"
             >
               SETUP PIN
             </button>
@@ -342,7 +370,7 @@ export function VaultPinSettings({ onPinUpdated }) {
         )}
       </div>
 
-      {/* Prominent High-Contrast Security Warning & PIN Setup Dialog */}
+      {/* Prominent High-Contrast Security Warning & Strict Step-by-Step PIN Setup Dialog */}
       {showSetupModal && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="bg-[#FFFDF5] border-3 border-black rounded-3xl p-5 sm:p-7 max-w-md w-full shadow-[8px_8px_0px_#000000] relative space-y-4">
@@ -350,47 +378,101 @@ export function VaultPinSettings({ onPinUpdated }) {
             {/* Close Button */}
             <button
               type="button"
-              onClick={() => setShowSetupModal(false)}
+              onClick={closeSetup}
               className="absolute top-4 right-4 p-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border-2 border-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95"
             >
               <X className="w-4 h-4" />
             </button>
 
-            {/* Header */}
+            {/* Header with Step indicator */}
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
                 <ShieldAlert className="w-6 h-6 text-white stroke-[2.5]" />
               </div>
               <div>
-                <span className="px-2 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[9px] font-black uppercase">
-                  SECURITY NOTICE
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[9px] font-black uppercase">
+                    STRICT SECURITY
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-black border border-black font-mono text-[9px] font-black uppercase">
+                    STEP {setupStep} OF 3
+                  </span>
+                </div>
                 <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-black mt-0.5">
                   Vault PIN Gatekeeper
                 </h3>
               </div>
             </div>
 
-            {/* BOLD CRITICAL WARNING BANNER */}
-            <div className="p-4 bg-red-50 border-3 border-red-600 rounded-2xl space-y-2 text-red-950">
-              <div className="flex items-center gap-2 font-display font-black text-sm uppercase text-red-700">
-                <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 stroke-3" />
-                <span>IMPORTANT: READ CAREFULLY</span>
-              </div>
-              <p className="font-mono font-black text-xs leading-relaxed uppercase">
-                ⚠️ IF YOU FORGET THIS PIN, YOUR VAULT IS PERMANENTLY LOCKED. THERE IS NO "FORGOT PIN" RECOVERY.
-              </p>
-              <p className="font-mono text-[11px] text-neutral-700 leading-tight">
-                Your PIN is hashed with <strong>SHA-256 + Salt</strong>. Nobody (not even administrators) can decrypt or recover your PIN. Write it down in a safe location.
-              </p>
-            </div>
+            {/* STEP 1: MANDATORY ZERO-RECOVERY WARNING & ACKNOWLEDGEMENT */}
+            {setupStep === 1 && (
+              <div className="space-y-4 pt-1">
+                <div className="p-4 bg-red-50 border-3 border-red-600 rounded-2xl space-y-2.5 text-red-950">
+                  <div className="flex items-center gap-2 font-display font-black text-sm uppercase text-red-700">
+                    <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 stroke-[2.5]" />
+                    <span>ZERO-RECOVERY POLICY</span>
+                  </div>
+                  <p className="font-mono font-black text-xs leading-relaxed uppercase">
+                    ⚠️ IF YOU FORGET THIS PIN, YOUR VAULT CAN NEVER BE RECOVERED. NOT EVEN VIA FIREBASE OR DEVELOPERS.
+                  </p>
+                  <p className="font-mono text-[11px] text-neutral-800 leading-relaxed">
+                    We do not store your raw PIN on any server. It is protected by salted <strong>SHA-256 cryptographic hashing</strong> directly on your client. There are zero backdoors, zero password-resets, and zero bypass links.
+                  </p>
+                </div>
 
-            {/* PIN Entry Form */}
-            <form onSubmit={handleSavePin} className="space-y-3 pt-1">
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-[11px] font-mono font-black uppercase text-black mb-1">
-                    1. Enter 4-Digit PIN
+                {/* Explicit Mandatory Acknowledgement Checkbox */}
+                <label className="flex items-start gap-3 p-3 bg-white border-2 border-black rounded-xl cursor-pointer hover:bg-neutral-50 transition-all select-none shadow-[1.5px_1.5px_0px_#000000]">
+                  <input
+                    type="checkbox"
+                    checked={hasAcknowledged}
+                    onChange={(e) => {
+                      setHasAcknowledged(e.target.checked);
+                      if (error) setError('');
+                    }}
+                    className="w-5 h-5 mt-0.5 rounded border-2 border-black accent-black cursor-pointer shrink-0"
+                  />
+                  <span className="text-xs font-mono font-bold text-black leading-snug">
+                    I understand that my PIN cannot be recovered by anyone if I forget it, and I will remember it or store it safely.
+                  </span>
+                </label>
+
+                {error && (
+                  <div className="p-2.5 bg-red-100 border-2 border-red-500 rounded-xl text-red-800 text-xs font-mono font-black text-center">
+                    {error}
+                  </div>
+                )}
+
+                <div className="pt-2 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={closeSetup}
+                    className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-bold text-black cursor-pointer"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextToPinEntry}
+                    disabled={!hasAcknowledged}
+                    className="px-5 py-2.5 bg-[#FDC800] hover:bg-amber-400 disabled:opacity-40 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer active:scale-95 flex items-center gap-1.5"
+                  >
+                    <span>NEXT: ENTER PIN</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: FIRST PIN ENTRY */}
+            {setupStep === 2 && (
+              <form onSubmit={handleNextToConfirm} className="space-y-4 pt-1">
+                <div className="p-3 bg-neutral-100 border-2 border-black rounded-xl text-xs font-mono text-neutral-700">
+                  Step 1/2: Choose your secret 4-digit code.
+                </div>
+
+                <div className="space-y-1.5 text-center">
+                  <label className="block text-xs font-mono font-black uppercase text-black">
+                    Enter New 4-Digit PIN
                   </label>
                   <input
                     type="password"
@@ -398,15 +480,57 @@ export function VaultPinSettings({ onPinUpdated }) {
                     maxLength={4}
                     placeholder="••••"
                     value={newPin}
-                    onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-2.5 text-center text-lg font-mono font-black tracking-widest border-2 border-black rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black shadow-[2px_2px_0px_#000000]"
+                    onChange={(e) => {
+                      setNewPin(e.target.value.replace(/\D/g, ''));
+                      if (error) setError('');
+                    }}
+                    className="w-44 mx-auto px-4 py-3 text-center text-2xl font-mono font-black tracking-[0.4em] border-3 border-black rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-black shadow-[3px_3px_0px_#000000]"
                     autoFocus
                   />
+                  <p className="text-[10px] font-mono text-neutral-500 pt-1">
+                    {newPin.length} / 4 digits entered
+                  </p>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono font-black uppercase text-black mb-1">
-                    2. Re-Confirm 4-Digit PIN
+                {error && (
+                  <div className="p-2.5 bg-red-100 border-2 border-red-500 rounded-xl text-red-800 text-xs font-mono font-black text-center">
+                    {error}
+                  </div>
+                )}
+
+                <div className="pt-2 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError('');
+                      setSetupStep(1);
+                    }}
+                    className="px-3.5 py-2.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-bold text-black cursor-pointer"
+                  >
+                    BACK
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={newPin.length !== 4}
+                    className="px-5 py-2.5 bg-[#FDC800] hover:bg-amber-400 disabled:opacity-40 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer active:scale-95 flex items-center gap-1.5"
+                  >
+                    <span>NEXT: RE-ENTER TO CONFIRM</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* STEP 3: STRICT RE-ENTER CONFIRMATION */}
+            {setupStep === 3 && (
+              <form onSubmit={handleFinalSavePin} className="space-y-4 pt-1">
+                <div className="p-3 bg-amber-50 border-2 border-black rounded-xl text-xs font-mono text-amber-900 font-bold">
+                  Step 2/2: Confirm your code. You must type the identical 4 digits to activate.
+                </div>
+
+                <div className="space-y-1.5 text-center">
+                  <label className="block text-xs font-mono font-black uppercase text-black">
+                    Re-Enter 4-Digit PIN
                   </label>
                   <input
                     type="password"
@@ -414,36 +538,47 @@ export function VaultPinSettings({ onPinUpdated }) {
                     maxLength={4}
                     placeholder="••••"
                     value={confirmPin}
-                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-2.5 text-center text-lg font-mono font-black tracking-widest border-2 border-black rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black shadow-[2px_2px_0px_#000000]"
+                    onChange={(e) => {
+                      setConfirmPin(e.target.value.replace(/\D/g, ''));
+                      if (error) setError('');
+                    }}
+                    className="w-44 mx-auto px-4 py-3 text-center text-2xl font-mono font-black tracking-[0.4em] border-3 border-black rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-black shadow-[3px_3px_0px_#000000]"
+                    autoFocus
                   />
+                  <p className="text-[10px] font-mono text-neutral-500 pt-1">
+                    {confirmPin.length} / 4 digits entered
+                  </p>
                 </div>
-              </div>
 
-              {error && (
-                <div className="p-2.5 bg-red-100 border-2 border-red-500 rounded-xl text-red-800 text-xs font-mono font-black text-center">
-                  {error}
+                {error && (
+                  <div className="p-2.5 bg-red-100 border-2 border-red-500 rounded-xl text-red-800 text-xs font-mono font-black text-center">
+                    {error}
+                  </div>
+                )}
+
+                <div className="pt-2 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError('');
+                      setConfirmPin('');
+                      setSetupStep(2);
+                    }}
+                    className="px-3.5 py-2.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-bold text-black cursor-pointer"
+                  >
+                    BACK
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={confirmPin.length !== 4}
+                    className="px-5 py-2.5 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-40 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black shadow-[2.5px_2.5px_0px_#000000] cursor-pointer active:scale-95 flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4 stroke-3" />
+                    <span>CONFIRM & LOCK VAULT</span>
+                  </button>
                 </div>
-              )}
-
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSetupModal(false)}
-                  className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-bold text-black cursor-pointer"
-                >
-                  CANCEL
-                </button>
-                <button
-                  type="submit"
-                  disabled={newPin.length !== 4 || confirmPin.length !== 4}
-                  className="px-5 py-2.5 bg-[#00E599] hover:bg-emerald-400 disabled:opacity-40 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black shadow-[2.5px_2.5px_0px_#000000] cursor-pointer active:scale-95 flex items-center gap-1.5"
-                >
-                  <Check className="w-4 h-4 stroke-3" />
-                  <span>ACTIVATE VAULT PIN</span>
-                </button>
-              </div>
-            </form>
+              </form>
+            )}
 
           </div>
         </div>

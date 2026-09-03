@@ -26,7 +26,11 @@ import {
   BookOpen,
   Volume2,
   VolumeX,
-  KeyRound
+  KeyRound,
+  Tag,
+  Languages,
+  Bot,
+  Sliders
 } from 'lucide-react';
 import { 
   isNotificationSupported, 
@@ -282,7 +286,7 @@ export default function SettingsModal({
             initial={{ scale: 0.94, y: 15 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.94, y: 15 }}
-            className="w-full max-w-2xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-6 shadow-[8px_8px_0px_#000000] space-y-3.5 h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col"
+            className="w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-7 shadow-[8px_8px_0px_#000000] space-y-4 h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pinned Header with High-Contrast Desktop & Mobile Close ✕ Button */}
@@ -311,24 +315,22 @@ export default function SettingsModal({
             </div>
 
             {/* Scrollable Settings Body */}
-            <div className="space-y-3.5 overflow-y-auto overflow-x-hidden flex-1 pr-1">
-              
-              {/* 1. Daily Reminder & Radial Clock Setting */}
-              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+            <div className="space-y-3.5 overflow-y-auto overflow-x-hidden flex-1 pr-1">              {/* 1. Notifications & Reminder Time */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                       {notificationsOn ? (
-                        <Bell className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+                        <Bell className="w-4 h-4 text-black stroke-[2.5]" />
                       ) : (
-                        <BellOff className="w-4 h-4 text-neutral-500" />
+                        <BellOff className="w-4 h-4 text-neutral-500 stroke-[2.5]" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-display font-black text-sm uppercase truncate">
+                      <h4 className="font-display font-black text-sm uppercase text-black">
                         Daily Streak Reminder
                       </h4>
-                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                      <p className="text-[11px] font-mono text-neutral-600 leading-snug">
                         Evening alert if today's log is empty
                       </p>
                     </div>
@@ -337,13 +339,13 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleNotifications}
-                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 ${
+                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
                       notificationsOn 
                         ? 'bg-[#00E599] text-black' 
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
                     }`}
                   >
-                    {notificationsOn ? 'ACTIVE' : 'OFF'}
+                    {notificationsOn ? 'ACTIVE (ON)' : 'MUTED (OFF)'}
                   </button>
                 </div>
 
@@ -388,8 +390,8 @@ export default function SettingsModal({
 
               {/* 2. Tactile Procedural Sound FX Synthesizer (Default OFF) */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-                <div className="flex items-start justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                     <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                       {soundFxOn ? (
                         <Volume2 className="w-4 h-4 text-black stroke-[2.5]" />
@@ -398,10 +400,10 @@ export default function SettingsModal({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-display font-black text-sm uppercase truncate">
+                      <h4 className="font-display font-black text-sm uppercase text-black">
                         Tactile Web Audio Sound FX
                       </h4>
-                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                      <p className="text-[11px] font-mono text-neutral-600 leading-snug">
                         Procedural mechanical clicks & rating chimes
                       </p>
                     </div>
@@ -414,7 +416,7 @@ export default function SettingsModal({
                       setSoundFxOn(next);
                       soundEngine.setSoundEnabled(next);
                     }}
-                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 ${
+                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
                       soundFxOn 
                         ? 'bg-[#00E599] text-black' 
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
@@ -430,14 +432,14 @@ export default function SettingsModal({
 
               {/* 4. Daily Non-Negotiables Studio */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-                <div className="flex items-start justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                     <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
                       <ShieldCheck className="w-4 h-4 text-black stroke-[2.5]" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-display font-black text-sm uppercase truncate">
+                        <h4 className="font-display font-black text-sm uppercase text-black">
                           Daily Non-Negotiables Studio
                         </h4>
                         <span className={`px-2 py-0.5 rounded-lg border border-black text-[9px] font-mono font-black uppercase ${
@@ -446,7 +448,7 @@ export default function SettingsModal({
                           {isNonNegotiablesActive() ? 'ACTIVE' : 'OFF'}
                         </span>
                       </div>
-                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                      <p className="text-[11px] font-mono text-neutral-600 leading-snug">
                         Configure 3 rating modes, habit templates, and economic utils points
                       </p>
                     </div>
@@ -458,18 +460,18 @@ export default function SettingsModal({
                       soundEngine.playClick();
                       setIsStudioOpen(true);
                     }}
-                    className="px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black bg-[#FDC800] text-black hover:bg-[#ffe169] shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 active:scale-95 transition-all flex items-center gap-1.5"
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black bg-[#FDC800] text-black hover:bg-[#ffe169] shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 active:scale-95 transition-all flex items-center justify-center gap-1.5 text-center"
                   >
                     <span>CONFIGURE ➔</span>
                   </button>
                 </div>
-              </div>
+              </div>              
 
               {/* 5. AI Ghostwriter Preferred Language */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
-                    <Sparkles className="w-4 h-4 text-purple-600 stroke-[2.5]" />
+                  <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-purple-50 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                    <Languages className="w-4 h-4 text-purple-700 stroke-[2.5]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="font-display font-black text-sm uppercase truncate">
@@ -481,18 +483,18 @@ export default function SettingsModal({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-1.5 pt-1">
+                <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: 'auto', label: '⚡ Auto-Match', desc: 'Mirror Input' },
-                    { id: 'english', label: '🇬🇧 English', desc: 'Strict English' },
-                    { id: 'hinglish', label: '🇮🇳 Hinglish', desc: 'Hindi+English' }
+                    { id: 'auto', label: '🌐 Auto-Detect', desc: 'Preserves your language' },
+                    { id: 'english', label: '🇬🇧 English Only', desc: 'Forces clean UK/US English' },
+                    { id: 'hinglish', label: '🇮🇳 Hinglish', desc: 'Preserves Hindi/English blend' }
                   ].map((lang) => (
                     <button
                       key={lang.id}
                       type="button"
                       onClick={() => handleAiLanguageChange(lang.id)}
-                      className={`py-2 px-1 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${
-                        aiLanguage === lang.id
+                      className={`py-2 px-1.5 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${
+                        (aiLanguage === lang.id || (lang.id === 'english' && aiLanguage === 'en'))
                           ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                           : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
                       }`}
@@ -507,8 +509,8 @@ export default function SettingsModal({
               {/* 📖 Tactical AI Directives & Style Configuration Card */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-11 h-11 shrink-0 aspect-square rounded-xl bg-[#FAF8ED] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
-                    <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
+                  <div className="w-11 h-11 shrink-0 aspect-square rounded-xl bg-amber-50 border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                    <Bot className="w-5 h-5 text-black stroke-[2.5]" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -533,7 +535,7 @@ export default function SettingsModal({
                   }}
                   className="px-4 py-2 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0"
                 >
-                  <Sparkles className="w-3.5 h-3.5 fill-black" />
+                  <Sliders className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>CONFIGURE AI DIRECTIVES</span>
                 </button>
               </div>
@@ -542,8 +544,8 @@ export default function SettingsModal({
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
                 <div className="flex items-start justify-between gap-2.5">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
-                      <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-emerald-50 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <Tag className="w-4 h-4 text-emerald-700 stroke-[2.5]" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="font-display font-black text-sm uppercase truncate">

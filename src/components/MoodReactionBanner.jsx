@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   AlertCircle, 
@@ -88,8 +88,72 @@ const MOOD_CONFIG = {
   }
 };
 
-export default function MoodReactionBanner({ rating }) {
+export const BANNER_BACKGROUND_KEY = 'daily_verdict_banner_design';
+
+export const BANNER_DESIGN_VARIANTS = [
+  {
+    id: 'ambient_mesh',
+    name: 'Dynamic Ambient Aura',
+    badge: 'LUXURY NEOMORPH',
+    desc: 'Soft layered organic light orbs, ultra-smooth gradient diffusion, minimal tech markers'
+  },
+  {
+    id: 'minimal_dots',
+    name: 'Precision Stipple Matrix',
+    badge: 'MINIMAL SWISS',
+    desc: 'Clean geometric Swiss dot-matrix pattern with subtle corner crosshairs'
+  },
+  {
+    id: 'topographic',
+    name: 'Contour Topo Grid',
+    badge: 'EXPEDITION TECH',
+    desc: 'Topographic elevation contour lines with vector survey elevation marks'
+  },
+  {
+    id: 'brutalist_stripes',
+    name: 'Diagonal Hazard Stripes',
+    badge: 'STREET BRUTALISM',
+    desc: 'High-contrast angled diagonal strike-lines with bold tactical industrial stencil'
+  },
+  {
+    id: 'blueprint_graph',
+    name: 'Blueprint Millimeter Grid',
+    badge: 'ARCHITECTURAL',
+    desc: 'Classic drafting blueprint grid with clean millimeter sub-divisions'
+  },
+  {
+    id: 'cyber_telemetry',
+    name: 'Cybernetic Telemetry',
+    badge: 'RADAR HUD',
+    desc: 'Tactical isometric grid with targeting radar reticles and telemetry coordinates'
+  }
+];
+
+export function getActiveBannerDesign() {
+  if (typeof window === 'undefined') return 'ambient_mesh';
+  return localStorage.getItem(BANNER_BACKGROUND_KEY) || 'ambient_mesh';
+}
+
+export function setActiveBannerDesign(designId) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(BANNER_BACKGROUND_KEY, designId);
+    window.dispatchEvent(new Event('banner_design_changed'));
+  }
+}
+
+export default function MoodReactionBanner({ rating, designOverride = null }) {
   const [isZoomed, setIsZoomed] = useState(false);
+  const [activeDesign, setActiveDesign] = useState(() => designOverride || getActiveBannerDesign());
+
+  useEffect(() => {
+    if (designOverride) {
+      setActiveDesign(designOverride);
+      return;
+    }
+    const handleUpdate = () => setActiveDesign(getActiveBannerDesign());
+    window.addEventListener('banner_design_changed', handleUpdate);
+    return () => window.removeEventListener('banner_design_changed', handleUpdate);
+  }, [designOverride]);
 
   if (!rating || !MOOD_CONFIG[rating]) return null;
 
@@ -101,34 +165,150 @@ export default function MoodReactionBanner({ rating }) {
     <>
       <AnimatePresence mode="wait">
         <motion.div
-          key={rating}
+          key={`${rating}_${activeDesign}`}
           initial={{ opacity: 0, y: 10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -6, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 450, damping: 28 }}
           className={`w-full rounded-3xl border-3 border-black ${config.gradientClass} ${config.textColor} p-5 sm:p-6 shadow-[5px_5px_0px_#000000] relative overflow-hidden`}
         >
-          {/* Subtle Ambient Glow */}
-          <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-white/20 blur-3xl pointer-events-none" />
+          {/* ========================================================= */}
+          {/* DESIGN 1: DYNAMIC AMBIENT AURA (ORGANIC LUXURY) */}
+          {/* ========================================================= */}
+          {activeDesign === 'ambient_mesh' && (
+            <>
+              <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-white/40 blur-3xl pointer-events-none" />
+              <div className="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-black/15 blur-3xl pointer-events-none" />
+              <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-48 h-48 rounded-full bg-white/20 blur-2xl pointer-events-none" />
+              <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-45 select-none tracking-widest flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-current opacity-80" />
+                <span>VERDICT CORE // AURA</span>
+              </div>
+            </>
+          )}
 
-          {/* Neobrutalist Architectural Blueprint Grid & Cross-Hatch Pattern */}
-          <div className="absolute inset-0 pointer-events-none opacity-15 overflow-hidden">
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="neoTechGrid" width="28" height="28" patternUnits="userSpaceOnUse">
-                  <path d="M 28 0 L 0 0 0 28" fill="none" stroke="currentColor" strokeWidth="0.9" />
-                  <path d="M 0 28 L 28 0" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="3 3" />
-                  <circle cx="0" cy="0" r="1.5" fill="currentColor" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#neoTechGrid)" />
-            </svg>
-          </div>
+          {/* ========================================================= */}
+          {/* DESIGN 2: PRECISION STIPPLE MATRIX (MINIMAL SWISS) */}
+          {/* ========================================================= */}
+          {activeDesign === 'minimal_dots' && (
+            <>
+              <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-white/25 blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 pointer-events-none opacity-25 overflow-hidden">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="stippleDots" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <circle cx="10" cy="10" r="1.5" fill="currentColor" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#stippleDots)" />
+                </svg>
+              </div>
+              <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-40 select-none tracking-widest">
+                [ + + SWISS MATRIX + + ]
+              </div>
+            </>
+          )}
 
-          {/* Technical Corner Crosshairs */}
-          <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-35 select-none tracking-widest">
-            + + [ VERDICT OS // SPEC ]
-          </div>
+          {/* ========================================================= */}
+          {/* DESIGN 3: CONTOUR TOPO GRID (TOPOGRAPHIC EXPEDITION) */}
+          {/* ========================================================= */}
+          {activeDesign === 'topographic' && (
+            <>
+              <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                  <defs>
+                    <pattern id="topoLines" width="100" height="100" patternUnits="userSpaceOnUse">
+                      <path d="M 0 20 Q 25 35 50 20 T 100 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                      <path d="M 0 40 Q 25 15 50 40 T 100 40" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
+                      <path d="M 0 60 Q 25 75 50 60 T 100 60" fill="none" stroke="currentColor" strokeWidth="1" />
+                      <path d="M 0 80 Q 25 65 50 80 T 100 80" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="5 3" />
+                      <circle cx="50" cy="50" r="1" fill="currentColor" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#topoLines)" />
+                </svg>
+              </div>
+              <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-45 select-none tracking-widest">
+                CONTOUR // 840M // ELEV
+              </div>
+            </>
+          )}
+
+          {/* ========================================================= */}
+          {/* DESIGN 4: DIAGONAL HAZARD STRIPES (STREET BRUTALISM) */}
+          {/* ========================================================= */}
+          {activeDesign === 'brutalist_stripes' && (
+            <>
+              <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 pointer-events-none opacity-15 overflow-hidden">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="brutalistStripes" width="32" height="32" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                      <line x1="0" y1="0" x2="0" y2="32" stroke="currentColor" strokeWidth="10" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#brutalistStripes)" />
+                </svg>
+              </div>
+              <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-45 select-none tracking-widest">
+                /// HAZARD STRIPE ///
+              </div>
+            </>
+          )}
+
+          {/* ========================================================= */}
+          {/* DESIGN 5: BLUEPRINT MILLIMETER GRAPH (ARCHITECTURAL) */}
+          {/* ========================================================= */}
+          {activeDesign === 'blueprint_graph' && (
+            <>
+              <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+                    </pattern>
+                    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                      <rect width="50" height="50" fill="url(#smallGrid)" />
+                      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grid)" />
+                </svg>
+              </div>
+              <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-45 select-none tracking-widest">
+                SCALE: 1:1 // MM_GRID
+              </div>
+            </>
+          )}
+
+          {/* ========================================================= */}
+          {/* DESIGN 6: CYBERNETIC TELEMETRY (RADAR HUD) */}
+          {/* ========================================================= */}
+          {activeDesign === 'cyber_telemetry' && (
+            <>
+              <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+              <div className="absolute -left-20 -bottom-20 w-64 h-64 rounded-full bg-black/10 blur-2xl pointer-events-none" />
+              <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="neoTechTelemetry" width="56" height="56" patternUnits="userSpaceOnUse">
+                      <path d="M 56 0 L 0 0 0 56" fill="none" stroke="currentColor" strokeWidth="0.75" />
+                      <path d="M 0 0 L 56 56" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 4" opacity="0.6" />
+                      <circle cx="28" cy="28" r="2.5" fill="none" stroke="currentColor" strokeWidth="1" />
+                      <circle cx="28" cy="28" r="0.75" fill="currentColor" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#neoTechTelemetry)" />
+                </svg>
+              </div>
+              <div className="absolute top-3 right-3 text-[9px] font-mono font-black opacity-45 select-none tracking-widest flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                <span>SYS.VERDICT // CORE-OS // {rating}★</span>
+              </div>
+            </>
+          )}
 
           {/* Top-Aligned Content Row with Generous Spacing */}
           <div className="flex flex-col sm:flex-row items-start justify-between gap-6 sm:gap-8 relative z-10">
