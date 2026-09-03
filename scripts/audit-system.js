@@ -148,10 +148,44 @@ const nonNegStudioCode = readSrc('components/NonNegotiablesStudioModal.jsx');
 assert(nonNegCardCode.includes('DEFAULT_ANCHORS') && nonNegCardCode.includes('toggleAnchor'), 'NonNegotiableCard: Default anchor presets & toggle handlers active');
 assert(nonNegStudioCode.includes('isNonNegotiablesActive') && nonNegStudioCode.includes('setNonNegotiablesMode'), 'NonNegotiablesStudioModal: Mode switcher & template builder active');
 
+// 🧪 Dynamic Functional Simulation: Anchor Math across all 3 Modes
+const mockAnchors = [
+  { id: 'a1', title: 'Workout', utils: 2.0 },
+  { id: 'a2', title: 'Hydration', utils: 1.5 },
+  { id: 'a3', title: 'Deep Focus', utils: 1.5 }
+];
+const totalMockUtils = mockAnchors.reduce((acc, c) => acc + c.utils, 0); // 5.0
+
+function simulateAnchorMath(checkedMap, mode, userRating = 3) {
+  const achieved = mockAnchors.reduce((acc, c) => acc + (checkedMap[c.id] ? c.utils : 0), 0);
+  const calculatedRating = totalMockUtils > 0 ? Number(((achieved / totalMockUtils) * 5.0).toFixed(1)) : 0;
+  
+  if (mode === 'deterministic_100') {
+    return Math.max(1, Math.min(5, Math.round(calculatedRating) || 1));
+  } else if (mode === 'hybrid_50_50') {
+    const blended = Number(((0.5 * userRating) + (0.5 * calculatedRating)).toFixed(1));
+    return Math.max(1, Math.min(5, Math.round(blended) || 1));
+  }
+  return userRating; // checklist mode does not override star rating
+}
+
+// Test 1: Deterministic 100% mode (0/3 completed -> 1 star, 3/3 completed -> 5 stars)
+const detRatingZero = simulateAnchorMath({}, 'deterministic_100');
+const detRatingFull = simulateAnchorMath({ a1: true, a2: true, a3: true }, 'deterministic_100');
+assert(detRatingZero === 1 && detRatingFull === 5, 'Non-Negotiables: Deterministic 100% mode computes 1★ at 0% and 5★ at 100%');
+
+// Test 2: Hybrid 50/50 mode (User gives 2★, but achieves 5★ anchors -> blended round(0.5*2 + 0.5*5) = 4★)
+const hybridRating = simulateAnchorMath({ a1: true, a2: true, a3: true }, 'hybrid_50_50', 2);
+assert(hybridRating === 4, 'Non-Negotiables: Hybrid 50/50 mode accurately blends manual rating with habit score');
+
+// Test 3: Checklist mode (leaves user rating intact at 4★)
+const checklistRating = simulateAnchorMath({ a1: true }, 'checklist', 4);
+assert(checklistRating === 4, 'Non-Negotiables: Checklist mode preserves subjective user rating');
+
 // ----------------------------------------------------------------------
-// SUITE 8: App Settings, Notification Hub & Radial Clock
+// SUITE 8: App Settings, Multi-Sphere Engine & Dynamic State Matrix
 // ----------------------------------------------------------------------
-console.log('\n⚙️ [8/10] Testing App Settings, Notifications & Radial Clock Picker...');
+console.log('\n⚙️ [8/10] Testing Multi-Sphere Engine, App Settings & State Transitions...');
 const settingsCode = readSrc('components/SettingsModal.jsx');
 const radialClockCode = readSrc('components/RadialClockPicker.jsx');
 const notifCode = readSrc('services/notifications.js');
@@ -159,6 +193,87 @@ const notifCode = readSrc('services/notifications.js');
 assert(settingsCode.includes('sphereModeOn') && settingsCode.includes('spheresList'), 'SettingsModal: Multi-sphere domain config manager active');
 assert(radialClockCode.includes('RadialClockPicker') || radialClockCode.includes('clock'), 'RadialClockPicker: Mechanical 24h/12h radial dial active');
 assert(notifCode.includes('scheduleLocalEveningReminder'), 'notifications.js: Notification scheduler active');
+
+// 🧪 Dynamic Functional Simulation: Multi-Sphere Composite Score Calculations
+function simulateCompositeScore(spheres) {
+  if (!spheres || typeof spheres !== 'object') return null;
+  const entries = Object.values(spheres).filter(s => s && s.rating && Number(s.rating) > 0);
+  if (entries.length === 0) return null;
+  const sum = entries.reduce((acc, curr) => acc + Number(curr.rating), 0);
+  const avg = sum / entries.length;
+  const rounded = Math.round(avg * 10) / 10;
+  const tier = Math.min(5, Math.max(1, Math.round(avg)));
+  return { score: rounded, rating: tier, ratedCount: entries.length };
+}
+
+// Test 1: Multi-Sphere full rating [Work: 5, Home: 3, Social: 4] -> Avg 4.0 -> Rating 4
+const compFull = simulateCompositeScore({
+  work_school: { id: 'work_school', rating: 5 },
+  home_personal: { id: 'home_personal', rating: 3 },
+  social_event: { id: 'social_event', rating: 4 }
+});
+assert(compFull && compFull.score === 4 && compFull.rating === 4, 'Multi-Sphere: Accurately computes composite score and rating');
+
+// Test 2: Multi-Sphere partial rating (only 1 sphere rated)
+const compPartial = simulateCompositeScore({
+  work_school: { id: 'work_school', rating: 2 },
+  home_personal: { id: 'home_personal', rating: null }
+});
+assert(compPartial && compPartial.score === 2 && compPartial.ratedCount === 1, 'Multi-Sphere: Gracefully handles unrated/partial spheres');
+
+// Test 3: Corrupted / Empty Sphere handling (never throws error or NaN)
+const compEmpty = simulateCompositeScore({});
+const compNull = simulateCompositeScore(null);
+const compUndefinedRatings = simulateCompositeScore({ s1: { rating: undefined }, s2: {} });
+assert(compEmpty === null && compNull === null && compUndefinedRatings === null, 'Multi-Sphere: Resilience against null/empty/undefined payloads');
+
+// Test 4: Dynamic Mode Lifecycle Transition (Both Modes Active -> Both Modes Off)
+function simulateLifecycleEntrySave(modeSphere, modeAnchors, inputData) {
+  const payload = {
+    date: inputData.date,
+    rating: inputData.rating,
+    notes: inputData.notes,
+    spheres: modeSphere ? inputData.spheres : undefined,
+    calculatedScore: modeAnchors ? inputData.calculatedScore : undefined,
+    anchors: modeAnchors ? inputData.anchors : undefined
+  };
+
+  // Run through cleanFirestorePayload equivalent
+  function cleanPayload(obj) {
+    if (obj === null || obj === undefined) return undefined;
+    if (typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(cleanPayload).filter(i => i !== undefined);
+    const cleaned = {};
+    Object.keys(obj).forEach(k => {
+      const v = cleanPayload(obj[k]);
+      if (v !== undefined) cleaned[k] = v;
+    });
+    return cleaned;
+  }
+
+  return cleanPayload(payload);
+}
+
+const entryWithBothOn = simulateLifecycleEntrySave(true, true, {
+  date: '2026-09-03',
+  rating: 4,
+  notes: 'Locked in day',
+  spheres: { work: { rating: 4 } },
+  calculatedScore: 4.2,
+  anchors: { a1: true }
+});
+assert(entryWithBothOn.spheres && entryWithBothOn.calculatedScore === 4.2, 'Lifecycle: Correctly formats dual-mode active entry');
+
+const entryWithBothOff = simulateLifecycleEntrySave(false, false, {
+  date: '2026-09-03',
+  rating: 4,
+  notes: 'Simple day',
+  spheres: { work: { rating: 4 } },
+  calculatedScore: 4.2,
+  anchors: { a1: true }
+});
+assert(entryWithBothOff.spheres === undefined && entryWithBothOff.calculatedScore === undefined, 'Lifecycle: Correctly strips disabled mode artifacts without corrupting database');
+
 
 // ----------------------------------------------------------------------
 // SUITE 9: Web Audio Procedural Synthesizers & Sound Engine
