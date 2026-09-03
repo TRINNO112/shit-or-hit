@@ -123,10 +123,32 @@ function StarScore({ score, size = 15, color = "currentColor" }) {
   );
 }
 
-export default function MoodReactionBanner({ rating }) {
-  const [isZoomed, setIsZoomed] = useState(false);
+export const BANNER_ENABLED_KEY = 'daily_verdict_banner_enabled';
 
-  if (!rating || !MOOD_CONFIG[rating]) return null;
+export function isBannerEnabled() {
+  if (typeof window === 'undefined') return true;
+  const stored = localStorage.getItem(BANNER_ENABLED_KEY);
+  return stored === null ? true : stored === 'true';
+}
+
+export function setBannerEnabled(enabled) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(BANNER_ENABLED_KEY, enabled ? 'true' : 'false');
+    window.dispatchEvent(new Event('banner_enabled_changed'));
+  }
+}
+
+export default function MoodReactionBanner({ rating, forceShow = false }) {
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(() => isBannerEnabled());
+
+  useEffect(() => {
+    const handleUpdate = () => setIsEnabled(isBannerEnabled());
+    window.addEventListener('banner_enabled_changed', handleUpdate);
+    return () => window.removeEventListener('banner_enabled_changed', handleUpdate);
+  }, []);
+
+  if ((!forceShow && !isEnabled) || !rating || !MOOD_CONFIG[rating]) return null;
 
   const config = MOOD_CONFIG[rating];
   const pressTheme = THEME_LETTERPRESS[rating] || THEME_LETTERPRESS[3];

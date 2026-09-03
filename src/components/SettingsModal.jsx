@@ -44,6 +44,7 @@ import {
 import { soundEngine } from '../services/soundEngine';
 import { VaultPinSettings } from './VaultPinModal';
 import { isNonNegotiablesActive } from './NonNegotiableCard';
+import { isBannerEnabled, setBannerEnabled } from './MoodReactionBanner';
 import NonNegotiablesStudioModal from './NonNegotiablesStudioModal';
 import AIDirectivesModal from './AIDirectivesModal';
 import {
@@ -112,6 +113,9 @@ export default function SettingsModal({
     ];
   };
 
+  // Letterpress Verdict Banner Toggle
+  const [bannerEnabled, setBannerState] = useState(true);
+
   useEffect(() => {
     if (isOpen) {
       setNotificationsOn(isNotificationEnabled());
@@ -121,6 +125,7 @@ export default function SettingsModal({
       setSpheresList(getSphereConfig());
       setTagsList(getSavedTags());
       setSoundFxOn(soundEngine.isSoundEnabled());
+      setBannerState(isBannerEnabled());
       setNotificationMsg('');
       setIsAddingSphere(false);
       setEditingSphereId(null);
@@ -427,7 +432,42 @@ export default function SettingsModal({
                 </div>
               </div>
 
-              {/* 3. Private 4-Digit Vault PIN Gatekeeper */}
+              {/* 3. Letterpress Editorial Verdict Banner (PC Screens - Default ON) */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square min-w-10 min-h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-display font-black text-sm uppercase text-black">
+                        Letterpress Verdict Banner (PC)
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                        Display deckle-edge editorial mood card and wax seal rating on desktop
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !bannerEnabled;
+                      setBannerState(next);
+                      setBannerEnabled(next);
+                    }}
+                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
+                      bannerEnabled 
+                        ? 'bg-[#FDC800] text-black' 
+                        : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                    }`}
+                  >
+                    {bannerEnabled ? 'ENABLED (ON)' : 'DISABLED (OFF)'}
+                  </button>
+                </div>
+              </div>
+
+              {/* 4. Private 4-Digit Vault PIN Gatekeeper */}
               <VaultPinSettings />
 
               {/* 4. Daily Non-Negotiables Studio */}
