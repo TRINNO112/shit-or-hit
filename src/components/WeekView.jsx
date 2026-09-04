@@ -69,21 +69,21 @@ export default function WeekView({
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevWeek}
-            className="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/[0.06]"
+            className="w-8 h-8 rounded-lg bg-white/3 hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/6"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           
           <button
             onClick={() => onDateChange(new Date())}
-            className="px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/10 text-xs font-mono text-[#8e95a5] hover:text-white border border-white/[0.06]"
+            className="px-2.5 py-1 rounded-lg bg-white/3 hover:bg-white/10 text-xs font-mono text-[#8e95a5] hover:text-white border border-white/6"
           >
             Today
           </button>
 
           <button
             onClick={handleNextWeek}
-            className="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/[0.06]"
+            className="w-8 h-8 rounded-lg bg-white/3 hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/6"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -104,8 +104,8 @@ export default function WeekView({
           return (
             <div
               key={dateStr}
-              className={`minimal-card p-4 flex flex-col justify-between min-h-[220px] transition-all ${
-                isToday ? 'border-amber-400/40 bg-white/[0.03]' : ''
+              className={`minimal-card p-4 flex flex-col justify-between min-h-55 transition-all ${
+                isToday ? 'border-amber-400/40 bg-white/3' : ''
               }`}
             >
               <div>
@@ -128,7 +128,7 @@ export default function WeekView({
                 {entry ? (
                   <div 
                     onClick={() => onOpenDetail(dateStr)}
-                    className="cursor-pointer p-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-center my-2 hover:bg-white/[0.05] transition-all"
+                    className="cursor-pointer p-3 rounded-xl border border-white/8 bg-white/2 text-center my-2 hover:bg-white/5 transition-all"
                   >
                     {IconComp && (
                       <div className="flex justify-center mb-1" style={{ color: meta.color }}>
@@ -173,7 +173,7 @@ export default function WeekView({
               </div>
 
               {/* Bottom Action */}
-              <div className="pt-2 border-t border-white/[0.04] mt-2 text-right">
+              <div className="pt-2 border-t border-white/4 mt-2 text-right">
                 <button
                   onClick={() => onOpenDetail(dateStr)}
                   className="text-[11px] font-mono text-[#8e95a5] hover:text-white"

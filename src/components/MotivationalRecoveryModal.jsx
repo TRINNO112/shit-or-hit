@@ -21,7 +21,7 @@ export default function MotivationalRecoveryModal({ isOpen, onClose }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-          className="bg-[#FFFDF9] border-3 border-black rounded-3xl p-5 sm:p-6 max-w-sm sm:max-w-md w-full max-h-[100vh] overflow-y-auto shadow-[8px_8px_0px_#000000] relative flex flex-col items-center text-center"
+          className="bg-[#FFFDF9] border-3 border-black rounded-3xl p-5 sm:p-6 max-w-sm sm:max-w-md w-full max-h-screen overflow-y-auto shadow-[8px_8px_0px_#000000] relative flex flex-col items-center text-center"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Subtle Top Close Button */}

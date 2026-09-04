@@ -288,7 +288,7 @@ export default function EditDayModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs"
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs"
           onClick={onClose}
         >
           <motion.div
@@ -296,7 +296,7 @@ export default function EditDayModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`w-full ${sphereModeActive ? 'max-w-6xl' : 'max-w-3xl'} min-h-[500px] sm:min-h-[560px] max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-5 sm:p-7`}
+            className={`w-full ${sphereModeActive ? 'max-w-6xl' : 'max-w-3xl'} min-h-125 sm:min-h-140 max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-5 sm:p-7`}
             onClick={(e) => e.stopPropagation()}
           >
 
@@ -323,7 +323,7 @@ export default function EditDayModal({
                   className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all"
                   title="Close modal"
                 >
-                  <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-3" />
                 </button>
               </div>
             </div>
@@ -496,7 +496,8 @@ export default function EditDayModal({
                             onChange={(e) => setCustomEventName(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddCustomEventSphere()}
                             placeholder="Or type custom event (e.g. Wedding, Concert, Hackathon)..."
-                            className="flex-1 px-3 py-1.5 bg-white border-2 border-black rounded-xl font-mono text-xs text-black placeholder:text-neutral-400 focus:outline-none"
+                            className="flex-1 px-3 py-1.5 bg-white border-2 border-black rounded-xl font-mono text-xs placeholder-neutral-400 focus:outline-none"
+                            style={{ color: '#000000' }}
                           />
                           <button
                             type="button"
@@ -563,7 +564,7 @@ export default function EditDayModal({
                             onClick={handleUndo}
                             disabled={historyIdx <= 0}
                             title="Undo last change"
-                            className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
+                            className={`p-1 rounded hover:bg-white text-black ${historyIdx <= 0 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
                           >
                             <Undo2 className="w-3 h-3 stroke-[2.5]" />
                           </button>
@@ -573,7 +574,7 @@ export default function EditDayModal({
                             onClick={handleRedo}
                             disabled={historyIdx >= historyStack.length - 1}
                             title="Redo change"
-                            className="p-1 rounded hover:bg-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed text-black"
+                            className={`p-1 rounded hover:bg-white text-black ${historyIdx >= historyStack.length - 1 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
                           >
                             <Redo2 className="w-3 h-3 stroke-[2.5]" />
                           </button>
@@ -612,7 +613,8 @@ export default function EditDayModal({
                       placeholder="Type your reflection, thoughts, or wins for this day..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full flex-1 min-h-[200px] sm:min-h-[260px] p-4 text-xs sm:text-sm font-mono bg-white border-2 border-black rounded-2xl text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed shadow-[2px_2px_0px_#000000] resize-none"
+                      className="w-full flex-1 min-h-50 sm:min-h-65 p-4 text-xs sm:text-sm font-mono bg-white border-2 border-black rounded-2xl placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed shadow-[2px_2px_0px_#000000] resize-none"
+                      style={{ color: '#000000' }}
                     />
                   </div>
                 </div>
@@ -651,7 +653,7 @@ export default function EditDayModal({
                   disabled={isSaving}
                   className="px-5 py-2 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:scale-95"
                 >
-                  <Check className="w-4 h-4 stroke-[3]" />
+                  <Check className="w-4 h-4 stroke-3" />
                   <span>{isSaving ? 'SAVING...' : 'SAVE CHANGES'}</span>
                 </button>
               </div>

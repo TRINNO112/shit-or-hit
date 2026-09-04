@@ -184,7 +184,7 @@ export default function RadialClockPicker({
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.94, y: 12 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-[340px] bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-3.5 shadow-[6px_6px_0px_#000000] space-y-3 text-center select-none my-auto"
+          className="w-full max-w-85 bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-3.5 shadow-[6px_6px_0px_#000000] space-y-3 text-center select-none my-auto"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-black/10 pb-2.5">
@@ -285,11 +285,12 @@ export default function RadialClockPicker({
           </div>
 
           {/* SVG Radial Drag Dial (Compact & Precise) */}
-          <div className="relative w-full max-w-[245px] mx-auto touch-none select-none py-1">
+          <div className="relative w-full max-w-61.25 mx-auto touch-none select-none py-1">
             <svg
               ref={svgRef}
               viewBox={`0 0 ${SIZE} ${SIZE}`}
-              className="w-full block cursor-grab active:cursor-grabbing"
+              className="w-full block"
+              style={{ cursor: 'grab' }}
               onPointerDown={handleDown}
             >
               {/* Background Dial Base */}
@@ -439,7 +440,7 @@ export default function RadialClockPicker({
               onClick={handleConfirm}
               className="flex-1 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-xl border-3 border-black shadow-[2px_2px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <Check className="w-4 h-4 stroke-[3]" />
+              <Check className="w-4 h-4 stroke-3" />
               <span>SET TIME</span>
             </button>
           </div>

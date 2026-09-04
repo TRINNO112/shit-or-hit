@@ -1030,9 +1030,13 @@ export default function MobileAppView({
                         triggerHaptic('light');
                         onEditDay({ dateStr, dayIndex, entry });
                       }}
-                      className={`aspect-square rounded-xl border-2 border-black flex flex-col items-center justify-center p-1 relative transition-all cursor-pointer shadow-[2px_2px_0px_#000000] disabled:opacity-20 disabled:shadow-none ${
-                        isToday ? 'ring-2.5 ring-black font-black' : ''
-                      } ${isDimmed ? 'opacity-25 grayscale' : ''}`}
+                      className={`aspect-square rounded-xl border-2 border-black flex flex-col items-center justify-center p-1 relative transition-all ${
+                        isFuture || isBeforeStart
+                          ? 'opacity-20 shadow-none'
+                          : 'cursor-pointer shadow-[2px_2px_0px_#000000]'
+                      } ${isToday ? 'ring-2.5 ring-black font-black' : ''} ${
+                        isDimmed ? 'opacity-25 grayscale' : ''
+                      }`}
                       style={{
                         backgroundColor: m ? m.bg : '#F8FAFC'
                       }}

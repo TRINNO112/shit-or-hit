@@ -628,7 +628,8 @@ export default function SettingsModal({
                     placeholder="New tag (e.g. Gym Beast)"
                     value={newTagInput}
                     onChange={(e) => setNewTagInput(e.target.value)}
-                    className="flex-1 min-w-0 px-2.5 py-1.5 bg-neutral-50 border-2 border-black rounded-xl text-xs font-mono font-bold text-black focus:outline-none placeholder:text-neutral-400 shadow-[1px_1px_0px_#000000]"
+                    className="flex-1 min-w-0 px-2.5 py-1.5 bg-neutral-50 border-2 border-black rounded-xl text-xs font-mono font-bold focus:outline-none placeholder-neutral-400 shadow-[1px_1px_0px_#000000]"
+                    style={{ color: '#000000' }}
                   />
                   <button
                     type="submit"
