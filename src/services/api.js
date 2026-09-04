@@ -408,29 +408,55 @@ Return ONLY the complete polished diary entry text without quotes or preamble.`;
 export async function getSavedMonthlyReport(year, month) {
   const currentUser = getCurrentUser();
   const effectiveId = getEffectiveUserId(currentUser) || 'guest';
-  const reportKey = `report_${effectiveId}_${year}_${String(month).padStart(2, '0')}`;
+  const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+  const monthStr = String(month).padStart(2, '0');
+  const baseKey = `report_${effectiveId}_${year}_${monthStr}`;
+  const langKey = `${baseKey}_${preferredLanguage}`;
+  const cloudKey = `${year}_${monthStr}`;
 
+  // 1. Try local dev backend if running (and not on static host)
   if (!isStaticHost) {
     try {
-      const res = await fetch(`${API_BASE}/monthly-report?year=${year}&month=${month}`);
+      const res = await fetch(`${API_BASE}/monthly-report?year=${year}&month=${month}&preferredLanguage=${preferredLanguage}&effectiveId=${effectiveId}`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
-          localStorage.setItem(reportKey, JSON.stringify(json.data));
+          try {
+            localStorage.setItem(baseKey, JSON.stringify(json.data));
+            localStorage.setItem(langKey, JSON.stringify(json.data));
+          } catch (e) {}
           return json.data;
         }
       }
     } catch (err) {
-      console.warn('Backend GET /api/monthly-report unavailable, checking local storage:', err);
+      console.warn('Backend GET /api/monthly-report unavailable, checking local/cloud storage:', err);
     }
   }
 
-  // Check local cache
+  // 2. Check local cache (check langKey, then baseKey)
   try {
-    const cached = localStorage.getItem(reportKey);
-    if (cached) return JSON.parse(cached);
-  } catch (e) {
-    // ignore
+    const cached = localStorage.getItem(langKey) || localStorage.getItem(baseKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.executiveSummary) return parsed;
+    }
+  } catch (e) {}
+
+  // 3. Check Firestore Cloud if authenticated
+  if (effectiveId && effectiveId !== 'guest') {
+    try {
+      const cloudReport = await fetchCloudReport(effectiveId, `${cloudKey}_${preferredLanguage}`) || 
+                          await fetchCloudReport(effectiveId, cloudKey);
+      if (cloudReport && cloudReport.executiveSummary) {
+        try {
+          localStorage.setItem(baseKey, JSON.stringify(cloudReport));
+          localStorage.setItem(langKey, JSON.stringify(cloudReport));
+        } catch (e) {}
+        return cloudReport;
+      }
+    } catch (err) {
+      console.warn('Firestore cloud report fetch error:', err);
+    }
   }
 
   return null;
@@ -440,15 +466,49 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
   const currentUser = getCurrentUser();
   const effectiveId = getEffectiveUserId(currentUser) || 'guest';
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
-  const reportKey = `report_${effectiveId}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
+  const monthStr = String(month).padStart(2, '0');
+  const baseKey = `report_${effectiveId}_${year}_${monthStr}`;
+  const langKey = `${baseKey}_${preferredLanguage}`;
+  const cloudKey = `${year}_${monthStr}`;
 
   // Check cached report if not forcing reevaluation
   if (!forceReevaluate) {
     try {
-      const cached = localStorage.getItem(reportKey);
-      if (cached) return JSON.parse(cached);
+      const cached = localStorage.getItem(langKey) || localStorage.getItem(baseKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.executiveSummary) return parsed;
+      }
+    } catch (e) {}
+
+    if (effectiveId && effectiveId !== 'guest') {
+      try {
+        const cloudReport = await fetchCloudReport(effectiveId, `${cloudKey}_${preferredLanguage}`) || 
+                            await fetchCloudReport(effectiveId, cloudKey);
+        if (cloudReport && cloudReport.executiveSummary) {
+          try {
+            localStorage.setItem(baseKey, JSON.stringify(cloudReport));
+            localStorage.setItem(langKey, JSON.stringify(cloudReport));
+          } catch (e) {}
+          return cloudReport;
+        }
+      } catch (e) {}
+    }
+  }
+
+  // Ensure entries are properly supplied for this user
+  let entriesPayload = customEntries;
+  if (!entriesPayload) {
+    try {
+      const storageKey = getDbStorageKey(effectiveId);
+      const cachedDb = localStorage.getItem(storageKey);
+      if (cachedDb) {
+        entriesPayload = JSON.parse(cachedDb).entries || {};
+      }
     } catch (e) {}
   }
+
+  let finalReport = null;
 
   // 1. Try local dev backend if running (and not on static host)
   if (!isStaticHost) {
@@ -456,26 +516,50 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
       const res = await fetch(`${API_BASE}/monthly-report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ year, month, customEntries, forceReevaluate, preferredLanguage })
+        body: JSON.stringify({ 
+          year, 
+          month, 
+          customEntries: entriesPayload, 
+          archetypeId, 
+          forceReevaluate, 
+          preferredLanguage 
+        })
       });
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
-          localStorage.setItem(reportKey, JSON.stringify(json.data));
-          return json.data;
+          finalReport = json.data;
         }
       }
     } catch (err) {
-      // Backend offline (e.g. static site or mobile device)
+      console.warn('Backend POST /api/monthly-report unavailable, falling back to client generation:', err);
     }
   }
 
-  // 2. Direct client-side forensic synthesis with live Gemini AI fallback
-  const fallback = await generateClientMonthlyReport(year, month, customEntries, preferredLanguage);
+  // 2. Direct client-side forensic synthesis with live Gemini AI fallback if backend didn't return report
+  if (!finalReport) {
+    finalReport = await generateClientMonthlyReport(year, month, entriesPayload, preferredLanguage);
+  }
+
+  // 3. Save locally in localStorage under both baseKey and langKey
   try {
-    localStorage.setItem(reportKey, JSON.stringify(fallback));
+    localStorage.setItem(baseKey, JSON.stringify(finalReport));
+    localStorage.setItem(langKey, JSON.stringify(finalReport));
   } catch (e) {}
-  return fallback;
+
+  // 4. Save to Cloud Firestore
+  try {
+    if (effectiveId && effectiveId !== 'guest') {
+      await saveCloudReport(effectiveId, cloudKey, finalReport);
+      if (preferredLanguage && preferredLanguage !== 'auto') {
+        await saveCloudReport(effectiveId, `${cloudKey}_${preferredLanguage}`, finalReport);
+      }
+    }
+  } catch (cloudErr) {
+    console.warn('Failed to sync dossier to Firebase Cloud:', cloudErr);
+  }
+
+  return finalReport;
 }
 
 async function generateClientMonthlyReport(year, month, customEntries = null, preferredLanguage = 'auto') {

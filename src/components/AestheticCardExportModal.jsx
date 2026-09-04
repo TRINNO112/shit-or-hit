@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight, Layers, RotateCcw } from 'lucide-react';
 import { ratingMeta, getStickerVault, getActiveStickerId } from '../services/api';
+import { soundEngine } from '../services/soundEngine';
 import StickerVaultModal from './StickerVaultModal';
 
 // Direct ES6 Module Imports for 100% Guaranteed Asset Resolution

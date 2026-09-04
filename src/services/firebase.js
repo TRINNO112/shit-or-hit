@@ -413,10 +413,11 @@ export async function saveCloudReport(userId, reportKey, reportData) {
   try {
     console.log(`📡 [Firestore] Saving monthly dossier (${reportKey}) for user: ${userId}...`);
     const reportRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'reports', reportKey);
-    await fb.firestoreMod.setDoc(reportRef, {
+    const sanitized = cleanFirestorePayload({
       ...reportData,
       savedAt: new Date().toISOString()
-    }, { merge: true });
+    });
+    await fb.firestoreMod.setDoc(reportRef, sanitized, { merge: true });
     console.log(`✅ [Firestore] Monthly dossier saved to Firebase Cloud!`);
   } catch (err) {
     console.error(`❌ [Firestore Dossier Save Error]:`, err.code || err.name, err.message);

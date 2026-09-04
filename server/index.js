@@ -364,16 +364,26 @@ function sharpenReflectionLocally(text, rating) {
 
 // Monthly AI Performance Dossier Report Route (GET saved report)
 app.get('/api/monthly-report', (req, res) => {
-  const { year, month, archetypeId } = req.query;
+  const { year, month, archetypeId, preferredLanguage = 'auto' } = req.query;
   const targetDataset = archetypeId || 'real';
-  const reportKey = `${targetDataset}_${year}_${String(month).padStart(2, '0')}`;
+  const monthStr = String(month).padStart(2, '0');
+  const baseKey = `${targetDataset}_${year}_${monthStr}`;
+  const langKey = `${baseKey}_${preferredLanguage}`;
   const reportsMap = readReports();
 
-  if (reportsMap[reportKey]) {
+  let matchedReport = reportsMap[langKey] || reportsMap[baseKey];
+  if (!matchedReport) {
+    const candidateKey = Object.keys(reportsMap).find(k => k.startsWith(baseKey));
+    if (candidateKey) {
+      matchedReport = reportsMap[candidateKey];
+    }
+  }
+
+  if (matchedReport) {
     return res.json({
       success: true,
       isSaved: true,
-      data: reportsMap[reportKey]
+      data: matchedReport
     });
   }
 
@@ -388,16 +398,21 @@ app.get('/api/monthly-report', (req, res) => {
 app.post('/api/monthly-report', async (req, res) => {
   const { year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage = 'auto' } = req.body;
   const targetDataset = archetypeId || 'real';
-  const reportKey = `${targetDataset}_${year}_${String(month).padStart(2, '0')}_${preferredLanguage}`;
+  const monthStr = String(month).padStart(2, '0');
+  const baseKey = `${targetDataset}_${year}_${monthStr}`;
+  const reportKey = `${baseKey}_${preferredLanguage}`;
   const reportsMap = readReports();
 
   // If already evaluated and user did not request force re-evaluation, return saved report instantly!
-  if (!forceReevaluate && reportsMap[reportKey]) {
-    return res.json({
-      success: true,
-      isSaved: true,
-      data: reportsMap[reportKey]
-    });
+  if (!forceReevaluate) {
+    const existing = reportsMap[reportKey] || reportsMap[baseKey];
+    if (existing) {
+      return res.json({
+        success: true,
+        isSaved: true,
+        data: existing
+      });
+    }
   }
 
   const db = readDatabase();
@@ -713,6 +728,7 @@ Return ONLY a valid JSON object matching this exact schema:
   };
 
   reportsMap[reportKey] = finalReport;
+  reportsMap[baseKey] = finalReport;
   writeReports(reportsMap);
 
   res.json({

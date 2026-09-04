@@ -264,7 +264,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
               {/* Action Buttons */}
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
-                  onClick={() => loadReportData(selectedArchetype, year, month, true)}
+                  onClick={() => loadReportData(year, month, true)}
                   disabled={isLoading}
                   title={report ? "Re-evaluate Gemini AI with latest data" : "Run Gemini AI Performance Evaluation"}
                   className={`h-8 sm:h-9 neo-btn px-2.5 sm:px-4 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0 ${
