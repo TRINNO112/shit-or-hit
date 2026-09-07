@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X, Heart } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
-import capyMascot from '../assets/mascots/recovery_capybara.png';
+import capyMascot from '../assets/mascots/recovery_capybara.webp';
 
 export default function MotivationalRecoveryModal({ isOpen, onClose }) {
   if (!isOpen) return null;

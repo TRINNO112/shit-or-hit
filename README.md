@@ -1,7 +1,7 @@
 # 💩 SHIT OR HIT — Daily Verdict & Behavioral Intelligence Engine
 
 > **The Neobrutalist Daily Life Logger, Habit Tracker & AI Performance Forensic Hub.**  
-> Built with 100% data sovereignty, offline-first PWA architecture, an interactive SVG radial dial clock, and high-resolution streetwear poster exports.
+> Built on the principle of **Brutal Daily Accountability in 1 Second**, with 100% data sovereignty, offline-first PWA architecture, an interactive SVG radial dial clock, and high-resolution streetwear poster exports.
 
 ---
 
@@ -49,6 +49,7 @@ flowchart TD
     class L6 l6
     class L7 l7
     class L8 l8
+    classDef ai fill:#D1C4E9,stroke:#5E35B1,color:#311B92,stroke-dasharray: 5 5;
 ```
 
 <details>
@@ -108,13 +109,17 @@ flowchart TD
     GeminiGhostwriter["🤖 AI Diary Ghostwriter<br/>(gemini-3.5-flash-lite / Language Mirror)"]
     ReactionBanner["🎭 MoodReactionBanner.jsx<br/>(Mascot & Live Quotes)"]
     RecoveryModal["🚨 MotivationalRecoveryModal.jsx<br/>(2-Day Slump Interceptor & Stoic Protocol)"]
+    CompositeMathLayer2[("🧮 Composite Math Synthesizer<br/>(from Layer 2)")]
 
     AutoTextarea --> GeminiGhostwriter
+    CompositeMathLayer2 -->|Triggers| ReactionBanner
+    CompositeMathLayer2 -->|Triggers| RecoveryModal
     ReactionBanner
     RecoveryModal
 
     classDef l3 fill:#F3E5F5,stroke:#8E24AA,color:#4A148C
-    class AutoTextarea,GeminiGhostwriter,ReactionBanner,RecoveryModal l3
+    class AutoTextarea,ReactionBanner,RecoveryModal l3
+    class GeminiGhostwriter ai
 ```
 
 **Receives from:** Layer 2 — Composite Math Synthesizer drives `ReactionBanner` directly, and triggers `RecoveryModal` after 2 consecutive Rough days. **Feeds into:** Layer 5 (diary/reflection → storage write).
@@ -161,7 +166,7 @@ flowchart TD
     StorageKeyGen -->|Unauthenticated| GuestStorage
     StorageKeyGen -->|Authenticated| UserStorage
     StorageKeyGen -->|Cloud Sync| FirestoreSync
-    VaultSecurity
+    VaultSecurity -->|Encrypts/Protects| UserStorage
 
     classDef l5 fill:#FCE4EC,stroke:#D81B60,color:#880E4F
     class StorageKeyGen,GuestStorage,UserStorage,FirestoreSync,VaultSecurity l5
@@ -187,7 +192,8 @@ flowchart TD
     MonthlyDossierModal
 
     classDef l6 fill:#E0F7FA,stroke:#00838F,color:#006064
-    class StatsWidget,ForensicModal,AnalyticsPanel,MonthlyDossierModal l6
+    class StatsWidget,ForensicModal,AnalyticsPanel l6
+    class MonthlyDossierModal ai
 ```
 
 **Receives from:** Layer 1 (Header nav shortcuts), Layer 5 (stored data).
@@ -246,19 +252,19 @@ flowchart TD
 
 ## 📖 Table of Contents
 
-1. [🏛️ System Architecture](#️-system-architecture)
-2. [⚡ Core Philosophy & Behavioral Science](#-core-philosophy--behavioral-science)
-3. [🎭 The 5 Verdict Tiers & Mascot Lore](#-the-5-verdict-tiers--mascot-lore)
-4. [🕒 The Interactive Radial Dial Clock (Master Guide)](#-the-interactive-radial-dial-clock-master-guide)
-5. [🌐 Segmented Day Matrix & Multi-Sphere Classification](#-segmented-day-matrix--multi-sphere-classification)
-6. [🖼️ Wallpaper Studio & Streetwear Poster Engine](#️-wallpaper-studio--streetwear-poster-engine)
-7. [🤖 AI Diary Ghostwriter & Language Isolation](#-ai-diary-ghostwriter--language-isolation)
-8. [📊 Monthly AI Performance Forensic Dossier](#-monthly-ai-performance-forensic-dossier)
-9. [🛡️ Offline-First Architecture & Cloud Sync](#️-offline-first-architecture--cloud-sync)
-10. [🤖 Master Automated System Audit Suite](#-master-automated-system-audit-suite)
-11. [📱 Installing as a Native Mobile App (PWA)](#-installing-as-a-native-mobile-app-pwa)
-12. [⌨️ Developer CLI Tooling](#️-developer-cli-tooling)
-13. [🛠️ Tech Stack & Local Setup](#️-tech-stack--local-setup)
+1. [🏛️ System Architecture](#system-architecture)
+2. [⚡ Core Philosophy & Behavioral Science](#core-philosophy--behavioral-science)
+3. [🎭 The 5 Verdict Tiers & Mascot Lore](#the-5-verdict-tiers--mascot-lore)
+4. [🕒 The Interactive Radial Dial Clock (Master Guide)](#the-interactive-radial-dial-clock-master-guide)
+5. [🌐 Segmented Day Matrix & Multi-Sphere Classification](#segmented-day-matrix--multi-sphere-classification)
+6. [🖼️ Wallpaper Studio & Streetwear Poster Engine](#wallpaper-studio--streetwear-poster-engine)
+7. [🤖 AI Diary Ghostwriter & Language Isolation](#ai-diary-ghostwriter--language-isolation)
+8. [📊 Monthly AI Performance Forensic Dossier](#monthly-ai-performance-forensic-dossier)
+9. [🛡️ Offline-First Architecture & Cloud Sync](#offline-first-architecture--cloud-sync)
+10. [🤖 Master Automated System Audit Suite](#master-automated-system-audit-suite)
+11. [📱 Installing as a Native Mobile App (PWA)](#installing-as-a-native-mobile-app-pwa)
+12. [⌨️ Developer CLI Tooling](#developer-cli-tooling)
+13. [🚀 Quick Start & Tech Stack](#quick-start--tech-stack)
 
 ---
 
@@ -521,7 +527,9 @@ node bin/verdict.js list
 
 ---
 
-## 🛠️ Tech Stack & Local Setup
+## 🚀 Quick Start & Tech Stack
+
+Get the SHIT OR HIT app up and running on your local machine.
 
 ### Core Technologies
 

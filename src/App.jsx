@@ -1,27 +1,58 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense, startTransition } from 'react';
 import { Zap, Calendar } from 'lucide-react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
 import StatsWidget from './components/StatsWidget';
-import CalendarModal from './components/CalendarModal';
-import EditDayModal from './components/EditDayModal';
-import MonthlyReportModal from './components/MonthlyReportModal';
 import MobileAppView from './components/MobileAppView';
-import AestheticCardExportModal from './components/AestheticCardExportModal';
-import ForensicStatsModal from './components/ForensicStatsModal';
 import PWAInstallBanner from './components/PWAInstallBanner';
-import SettingsModal from './components/SettingsModal';
-import IconLab from './components/IconLab';
-import StickerVaultModal from './components/StickerVaultModal';
 import SkeletonLoader from './components/SkeletonLoader';
-import MotivationalRecoveryModal from './components/MotivationalRecoveryModal';
 import { VaultLockGatekeeper, isVaultPinActive } from './components/VaultPinModal';
+
+// ⚡ React.lazy Code Splitting for Heavy Modals & Sub-Views
+const CalendarModal = lazy(() => import('./components/CalendarModal'));
+const EditDayModal = lazy(() => import('./components/EditDayModal'));
+const MonthlyReportModal = lazy(() => import('./components/MonthlyReportModal'));
+const AestheticCardExportModal = lazy(() => import('./components/AestheticCardExportModal'));
+const ForensicStatsModal = lazy(() => import('./components/ForensicStatsModal'));
+const SettingsModal = lazy(() => import('./components/SettingsModal'));
+const IconLab = lazy(() => import('./components/IconLab'));
+const StickerVaultModal = lazy(() => import('./components/StickerVaultModal'));
+const MotivationalRecoveryModal = lazy(() => import('./components/MotivationalRecoveryModal'));
 import { soundEngine } from './services/soundEngine';
-import { fetchDatabase, saveEntry, ratingMeta } from './services/api';
+import { fetchDatabase, saveEntry, ratingMeta, getDbStorageKey } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
-import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId } from './services/firebase';
+import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser } from './services/firebase';
 import { decryptVaultPin, hashPinWithSalt } from './services/cipherEngine';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.warn('ErrorBoundary captured non-fatal view load notice:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] text-center my-4 font-mono">
+          <p className="text-xs font-bold text-neutral-600 mb-2">Notice: View is refreshing...</p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="px-3 py-1 bg-[#FDC800] text-black font-black text-xs rounded-lg border-2 border-black cursor-pointer shadow-[2px_2px_0px_#000000]"
+          >
+            Retry View
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
@@ -43,8 +74,34 @@ export default function App() {
     if (typeof window === 'undefined') return false;
     return window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton');
   });
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
-  const [entries, setEntries] = useState({});
+
+  // ⚡ INSTANT FRAME-0 STATE INITIALIZATION (Sub-1ms Synchronous Cache Hydration)
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+  const [startDate, setStartDate] = useState(() => {
+    try {
+      const u = getCurrentUser();
+      const storageKey = getDbStorageKey(u);
+      const cached = localStorage.getItem(storageKey) || localStorage.getItem('goodness_db');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.startDate) return parsed.startDate;
+      }
+    } catch (e) {}
+    return new Date().toISOString().slice(0, 10);
+  });
+  const [entries, setEntries] = useState(() => {
+    try {
+      const u = getCurrentUser();
+      const storageKey = getDbStorageKey(u);
+      const cached = localStorage.getItem(storageKey) || localStorage.getItem('goodness_db');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.entries && typeof parsed.entries === 'object') return parsed.entries;
+      }
+    } catch (e) {}
+    return {};
+  });
+
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isMonthlyReportOpen, setIsMonthlyReportOpen] = useState(false);
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
@@ -52,14 +109,13 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1
   });
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
@@ -188,6 +244,9 @@ export default function App() {
 
   useEffect(() => {
     scheduleLocalEveningReminder();
+    // ⚡ Instant local hydration: sync local storage/server immediately on mount
+    loadData();
+
     const unsubscribe = subscribeAuthState(async (u) => {
       console.log('🛡️ [App Engine] Auth Hydration:', u ? `Logged in as ${u.displayName} (${u.email}) [UID: ${u.uid}]` : 'Local Mode');
       setCurrentUser(u);
@@ -291,23 +350,27 @@ export default function App() {
   };
 
   const handleOpenMonthlyReport = (target) => {
-    if (target) {
-      setReportTargetMonth(target);
-    } else {
-      setReportTargetMonth({
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1
-      });
-    }
-    setIsMonthlyReportOpen(true);
+    startTransition(() => {
+      if (target) {
+        setReportTargetMonth(target);
+      } else {
+        setReportTargetMonth({
+          year: new Date().getFullYear(),
+          month: new Date().getMonth() + 1
+        });
+      }
+      setIsMonthlyReportOpen(true);
+    });
   };
 
   const handleOpenWallpaper = (entry = null, date = null) => {
-    setWallpaperTarget({
-      entry: entry || entries[date || todayStr] || null,
-      dateStr: date || todayStr
+    startTransition(() => {
+      setWallpaperTarget({
+        entry: entry || entries[date || todayStr] || null,
+        dateStr: date || todayStr
+      });
+      setIsWallpaperModalOpen(true);
     });
-    setIsWallpaperModalOpen(true);
   };
 
   const safeStartDate = startDate || todayStr;
@@ -319,12 +382,16 @@ export default function App() {
 
   if (showIconLab) {
     return (
-      <IconLab
-        onBack={() => {
-          setShowIconLab(false);
-          window.history.replaceState(null, '', window.location.pathname);
-        }}
-      />
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[#FFFDF5] flex items-center justify-center font-mono text-sm font-black">LOADING ICON STUDIO...</div>}>
+          <IconLab
+            onBack={() => {
+              setShowIconLab(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+          />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 
@@ -354,7 +421,9 @@ export default function App() {
   }
 
   const handleDesktopTabChange = (tabId) => {
-    setActiveDesktopTab(tabId);
+    startTransition(() => {
+      setActiveDesktopTab(tabId);
+    });
   };
 
   return (
@@ -425,15 +494,17 @@ export default function App() {
             {activeDesktopTab === 'timeline' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div className="lg:col-span-7">
-                  <CalendarModal
-                    isOpen={true}
-                    isEmbedded={true}
-                    entries={entries}
-                    startDate={startDate}
-                    todayStr={todayStr}
-                    onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-                    onOpenMonthlyReport={handleOpenMonthlyReport}
-                  />
+                  <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center font-mono text-sm font-black">LOADING CALENDAR MATRIX...</div>}>
+                    <CalendarModal
+                      isOpen={true}
+                      isEmbedded={true}
+                      entries={entries}
+                      startDate={startDate}
+                      todayStr={todayStr}
+                      onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                      onOpenMonthlyReport={handleOpenMonthlyReport}
+                    />
+                  </Suspense>
                 </div>
 
                 <div className="lg:col-span-5 space-y-6">
@@ -451,28 +522,32 @@ export default function App() {
             {/* VIEW 3: FULL IN-PAGE MONTHLY DOSSIER */}
             {activeDesktopTab === 'dossier' && (
               <div className="w-full">
-                <MonthlyReportModal
-                  isOpen={true}
-                  isEmbedded={true}
-                  initialYear={reportTargetMonth.year}
-                  initialMonth={reportTargetMonth.month}
-                />
+                <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center font-mono text-sm font-black">LOADING MONTHLY DOSSIER...</div>}>
+                  <MonthlyReportModal
+                    isOpen={true}
+                    isEmbedded={true}
+                    initialYear={reportTargetMonth.year}
+                    initialMonth={reportTargetMonth.month}
+                  />
+                </Suspense>
               </div>
             )}
 
             {/* VIEW 4: FULL IN-PAGE CREATIVE STUDIO */}
             {activeDesktopTab === 'studio' && (
               <div className="w-full">
-                <AestheticCardExportModal
-                  isOpen={true}
-                  isEmbedded={true}
-                  entry={entries[todayStr] || null}
-                  dateStr={todayStr}
-                  dayCount={dayCount}
-                  startDate={startDate}
-                  entries={entries}
-                  displayName={userDisplayName}
-                />
+                <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center font-mono text-sm font-black">LOADING STUDIO...</div>}>
+                  <AestheticCardExportModal
+                    isOpen={true}
+                    isEmbedded={true}
+                    entry={entries[todayStr] || null}
+                    dateStr={todayStr}
+                    dayCount={dayCount}
+                    startDate={startDate}
+                    entries={entries}
+                    displayName={userDisplayName}
+                  />
+                </Suspense>
               </div>
             )}
           </main>
@@ -488,75 +563,95 @@ export default function App() {
         </div>
       )}
 
-      {/* Shared Modals */}
-      <CalendarModal
-        isOpen={isCalendarOpen}
-        onClose={() => setIsCalendarOpen(false)}
-        entries={entries}
-        startDate={startDate}
-        todayStr={todayStr}
-        onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-        onOpenMonthlyReport={(target) => handleOpenMonthlyReport(target)}
-      />
+      {/* Shared Modals with Suspense Code Splitting */}
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          {isCalendarOpen && (
+            <CalendarModal
+              isOpen={isCalendarOpen}
+              onClose={() => setIsCalendarOpen(false)}
+              entries={entries}
+              startDate={startDate}
+              todayStr={todayStr}
+              onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+              onOpenMonthlyReport={(target) => handleOpenMonthlyReport(target)}
+            />
+          )}
 
-      <EditDayModal
-        isOpen={Boolean(editingDay)}
-        onClose={() => setEditingDay(null)}
-        entryData={editingDay?.entry || entries[editingDay?.dateStr] || null}
-        dateStr={editingDay?.dateStr}
-        dayIndex={editingDay?.dayIndex || 1}
-        onSave={handleSaveEntry}
-        onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
-        sphereSettingsVer={sphereSettingsVer}
-      />
+          {Boolean(editingDay) && (
+            <EditDayModal
+              isOpen={Boolean(editingDay)}
+              onClose={() => setEditingDay(null)}
+              entryData={editingDay?.entry || entries[editingDay?.dateStr] || null}
+              dateStr={editingDay?.dateStr}
+              dayIndex={editingDay?.dayIndex || 1}
+              onSave={handleSaveEntry}
+              onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+              sphereSettingsVer={sphereSettingsVer}
+            />
+          )}
 
-      <MonthlyReportModal
-        isOpen={isMonthlyReportOpen}
-        onClose={() => setIsMonthlyReportOpen(false)}
-        initialYear={reportTargetMonth.year}
-        initialMonth={reportTargetMonth.month}
-      />
+          {isMonthlyReportOpen && (
+            <MonthlyReportModal
+              isOpen={isMonthlyReportOpen}
+              onClose={() => setIsMonthlyReportOpen(false)}
+              initialYear={reportTargetMonth.year}
+              initialMonth={reportTargetMonth.month}
+            />
+          )}
 
-      {/* 🖼️ Aesthetic Wallpaper & Social Card Export Modal */}
-      <AestheticCardExportModal
-        isOpen={isWallpaperModalOpen}
-        onClose={() => setIsWallpaperModalOpen(false)}
-        entry={wallpaperTarget?.entry || entries[todayStr] || null}
-        dateStr={wallpaperTarget?.dateStr || todayStr}
-        dayCount={dayCount}
-        entries={entries}
-        startDate={startDate}
-        displayName={userDisplayName}
-      />
+          {/* 🖼️ Aesthetic Wallpaper & Social Card Export Modal */}
+          {isWallpaperModalOpen && (
+            <AestheticCardExportModal
+              isOpen={isWallpaperModalOpen}
+              onClose={() => setIsWallpaperModalOpen(false)}
+              entry={wallpaperTarget?.entry || entries[todayStr] || null}
+              dateStr={wallpaperTarget?.dateStr || todayStr}
+              dayCount={dayCount}
+              entries={entries}
+              startDate={startDate}
+              displayName={userDisplayName}
+            />
+          )}
 
-      {/* ⚡ Forensic Telemetry & Analytics Modal */}
-      <ForensicStatsModal
-        isOpen={isTelemetryOpen}
-        onClose={() => setIsTelemetryOpen(false)}
-        entries={entries}
-        startDate={startDate}
-        todayStr={todayStr}
-      />
+          {/* ⚡ Forensic Telemetry & Analytics Modal */}
+          {isTelemetryOpen && (
+            <ForensicStatsModal
+              isOpen={isTelemetryOpen}
+              onClose={() => setIsTelemetryOpen(false)}
+              entries={entries}
+              startDate={startDate}
+              todayStr={todayStr}
+            />
+          )}
 
-      {/* ⚙️ App Settings & Notification Hub Modal */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        user={currentUser}
-        onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
-      />
+          {/* ⚙️ App Settings & Notification Hub Modal */}
+          {isSettingsOpen && (
+            <SettingsModal
+              isOpen={isSettingsOpen}
+              onClose={() => setIsSettingsOpen(false)}
+              user={currentUser}
+              onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
+            />
+          )}
 
-      {/* 🎭 Sticker & Mascot Vault Modal */}
-      <StickerVaultModal
-        isOpen={isStickerVaultOpen}
-        onClose={() => setIsStickerVaultOpen(false)}
-      />
+          {/* 🎭 Sticker & Mascot Vault Modal */}
+          {isStickerVaultOpen && (
+            <StickerVaultModal
+              isOpen={isStickerVaultOpen}
+              onClose={() => setIsStickerVaultOpen(false)}
+            />
+          )}
 
-      {/* 🛡️ 2-Consecutive Rough Days Motivational Recovery Modal */}
-      <MotivationalRecoveryModal
-        isOpen={isMotivationalOpen}
-        onClose={() => setIsMotivationalOpen(false)}
-      />
+          {/* 🛡️ 2-Consecutive Rough Days Motivational Recovery Modal */}
+          {isMotivationalOpen && (
+            <MotivationalRecoveryModal
+              isOpen={isMotivationalOpen}
+              onClose={() => setIsMotivationalOpen(false)}
+            />
+          )}
+        </Suspense>
+      </ErrorBoundary>
 
       {/* 🔐 Private 4-Digit Vault PIN Gatekeeper */}
       <VaultLockGatekeeper

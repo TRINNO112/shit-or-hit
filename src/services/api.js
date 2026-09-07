@@ -169,7 +169,10 @@ export async function fetchDatabase(userOverride = null) {
 
   if (!isStaticHost) {
     try {
-      const res = await fetch(`${API_BASE}/entries`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 600);
+      const res = await fetch(`${API_BASE}/entries`, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const json = await res.json();
         localData = {
@@ -178,7 +181,7 @@ export async function fetchDatabase(userOverride = null) {
         };
       }
     } catch (e) {
-      // Local server not running
+      // Local server not running or timed out
     }
   }
 

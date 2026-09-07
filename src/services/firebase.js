@@ -189,9 +189,9 @@ async function getFirebase() {
   }
 
   try {
-    const { initializeApp } = await import(/* @vite-ignore */ 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
-    authModule = await import(/* @vite-ignore */ 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
-    firestoreModule = await import(/* @vite-ignore */ 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+    const { initializeApp } = await import('firebase/app');
+    authModule = await import('firebase/auth');
+    firestoreModule = await import('firebase/firestore');
 
     const app = initializeApp(firebaseConfig);
     authInstance = authModule.getAuth(app);
@@ -364,7 +364,9 @@ export async function fetchCloudEntries(userId) {
   try {
     console.log(`📡 [Firestore] Fetching cloud entries for user: ${userId}...`);
     const colRef = fb.firestoreMod.collection(fb.db, 'users', userId, 'entries');
-    const snapshot = await fb.firestoreMod.getDocs(colRef);
+    const fetchPromise = fb.firestoreMod.getDocs(colRef);
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore fetch timeout')), 2000));
+    const snapshot = await Promise.race([fetchPromise, timeoutPromise]);
     const entries = {};
     snapshot.forEach(docSnap => {
       entries[docSnap.id] = docSnap.data();

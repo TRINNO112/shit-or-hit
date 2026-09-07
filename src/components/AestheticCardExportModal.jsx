@@ -6,11 +6,11 @@ import { soundEngine } from '../services/soundEngine';
 import StickerVaultModal from './StickerVaultModal';
 
 // Direct ES6 Module Imports for 100% Guaranteed Asset Resolution
-import mascot1 from '../assets/mascots/mascot_1_rough.png';
-import mascot2 from '../assets/mascots/mascot_2_down.png';
-import mascot3 from '../assets/mascots/mascot_3_okay.png';
-import mascot4 from '../assets/mascots/mascot_4_good.png';
-import mascot5 from '../assets/mascots/mascot_5_peak.png';
+import mascot1 from '../assets/mascots/mascot_1_rough.webp';
+import mascot2 from '../assets/mascots/mascot_2_down.webp';
+import mascot3 from '../assets/mascots/mascot_3_okay.webp';
+import mascot4 from '../assets/mascots/mascot_4_good.webp';
+import mascot5 from '../assets/mascots/mascot_5_peak.webp';
 
 const THEMES = [
   {
