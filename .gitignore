@@ -34,4 +34,7 @@ Thumbs.db
 # Local Netlify folder
 .netlify
 
-
+# Secrets & Credentials (NEVER commit tokens)
+.credentials*
+*token*
+.git_backup*
