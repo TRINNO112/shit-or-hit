@@ -19,6 +19,7 @@ const SettingsModal = lazy(() => import('./components/SettingsModal'));
 const IconLab = lazy(() => import('./components/IconLab'));
 const StickerVaultModal = lazy(() => import('./components/StickerVaultModal'));
 const MotivationalRecoveryModal = lazy(() => import('./components/MotivationalRecoveryModal'));
+const NotFound404 = lazy(() => import('./components/NotFound404'));
 import { soundEngine } from './services/soundEngine';
 import { fetchDatabase, saveEntry, ratingMeta, getDbStorageKey } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
@@ -73,6 +74,12 @@ export default function App() {
   const [showSkeletonPreview, setShowSkeletonPreview] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton');
+  });
+  const [showNotFound, setShowNotFound] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname;
+    const isInvalidPath = path !== '/' && path !== '' && !path.endsWith('/index.html');
+    return isInvalidPath || window.location.search.includes('view=404') || window.location.hash.includes('404');
   });
 
   // ⚡ INSTANT FRAME-0 STATE INITIALIZATION (Sub-1ms Synchronous Cache Hydration)
@@ -196,6 +203,9 @@ export default function App() {
       } else if (keyBuffer.endsWith('recovery')) {
         setIsMotivationalOpen(prev => !prev);
         keyBuffer = '';
+      } else if (keyBuffer.endsWith('404')) {
+        setShowNotFound(prev => !prev);
+        keyBuffer = '';
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -209,6 +219,9 @@ export default function App() {
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
       }
+      const path = window.location.pathname;
+      const isInvalidPath = path !== '/' && path !== '' && !path.endsWith('/index.html');
+      setShowNotFound(isInvalidPath || window.location.search.includes('view=404') || window.location.hash.includes('404'));
     };
     checkHash();
     window.addEventListener('popstate', checkHash);
@@ -413,6 +426,31 @@ export default function App() {
         </div>
         <SkeletonLoader isMobile={isMobile} />
       </div>
+    );
+  }
+
+  if (showNotFound) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<SkeletonLoader isMobile={isMobile} />}>
+          <NotFound404
+            onGoHome={() => {
+              window.history.replaceState(null, '', '/');
+              setShowNotFound(false);
+              startTransition(() => {
+                setActiveDesktopTab('today');
+              });
+            }}
+            onGoTimeline={() => {
+              window.history.replaceState(null, '', '/');
+              setShowNotFound(false);
+              startTransition(() => {
+                setActiveDesktopTab('timeline');
+              });
+            }}
+          />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 
