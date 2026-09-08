@@ -4,11 +4,56 @@ import Blob3DCanvas from './Blob3DCanvas';
 import { soundEngine } from '../services/soundEngine';
 
 const BLOB_THEMES = [
-  { id: 'cyan', name: 'Electric Cyan ("SY-an")', base: '#00FFFF', highlight: '#E0FFFF', shadow: '#005F73' },
-  { id: 'violet', name: 'Void Violet', base: '#8B5CF6', highlight: '#C084FC', shadow: '#4C1D95' },
-  { id: 'emerald', name: 'Emerald Hit', base: '#00E599', highlight: '#6EE7B7', shadow: '#065F46' },
-  { id: 'gold', name: 'Solar Gold', base: '#FDC800', highlight: '#FDE047', shadow: '#B45309' },
-  { id: 'coral', name: 'Neon Coral', base: '#FF4D4D', highlight: '#FCA5A5', shadow: '#991B1B' },
+  {
+    id: 'cyan',
+    name: 'Electric Cyan ("SY-an")',
+    base: '#00FFFF',
+    highlight: '#E0FFFF',
+    shadow: '#008B8B',
+    deepShadow: '#003B46',
+    glow: 'rgba(0, 255, 255, 0.28)',
+    blush: 'rgba(0, 255, 255, 0.45)',
+  },
+  {
+    id: 'violet',
+    name: 'Void Violet',
+    base: '#8B5CF6',
+    highlight: '#DDD6FE',
+    shadow: '#6D28D9',
+    deepShadow: '#2E1065',
+    glow: 'rgba(139, 92, 246, 0.28)',
+    blush: 'rgba(196, 181, 253, 0.45)',
+  },
+  {
+    id: 'emerald',
+    name: 'Emerald Hit',
+    base: '#00E599',
+    highlight: '#A7F3D0',
+    shadow: '#059669',
+    deepShadow: '#064E3B',
+    glow: 'rgba(0, 229, 153, 0.28)',
+    blush: 'rgba(110, 231, 183, 0.45)',
+  },
+  {
+    id: 'gold',
+    name: 'Solar Gold',
+    base: '#FDC800',
+    highlight: '#FEF08A',
+    shadow: '#D97706',
+    deepShadow: '#78350F',
+    glow: 'rgba(253, 200, 0, 0.28)',
+    blush: 'rgba(253, 224, 71, 0.45)',
+  },
+  {
+    id: 'coral',
+    name: 'Neon Coral',
+    base: '#FF4D4D',
+    highlight: '#FECACA',
+    shadow: '#DC2626',
+    deepShadow: '#7F1D1D',
+    glow: 'rgba(255, 77, 77, 0.28)',
+    blush: 'rgba(248, 113, 113, 0.45)',
+  },
 ];
 
 const TRICKY_QUIPS = [
@@ -93,7 +138,9 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
             baseColor={activeTheme.base}
             highlightColor={activeTheme.highlight}
             shadowColor={activeTheme.shadow}
-            glowColor={activeTheme.base}
+            deepShadowColor={activeTheme.deepShadow}
+            glowColor={activeTheme.glow}
+            blushColor={activeTheme.blush}
             onPoke={handlePoke}
           />
 
