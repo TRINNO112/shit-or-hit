@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Home, Calendar, RefreshCw, Sparkles, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Home, Calendar, Sparkles, ArrowLeft } from 'lucide-react';
 import Blob3DCanvas from './Blob3DCanvas';
 import { soundEngine } from '../services/soundEngine';
 
@@ -68,10 +68,12 @@ const TRICKY_QUIPS = [
 ];
 
 export default function NotFound404({ onGoHome, onGoTimeline }) {
-  const [activeTheme, setActiveTheme] = useState(BLOB_THEMES[0]); // Default: Cyber Cyan
+  const [activeTheme, setActiveTheme] = useState(BLOB_THEMES[0]);
   const [pokeCount, setPokeCount] = useState(0);
+  const [confetti, setConfetti] = useState([]);
 
   const currentQuip = TRICKY_QUIPS[Math.min(pokeCount, TRICKY_QUIPS.length - 1)];
+  const reachedSecret = pokeCount >= TRICKY_QUIPS.length - 1;
 
   const handlePoke = () => {
     setPokeCount((prev) => prev + 1);
@@ -83,12 +85,81 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
     soundEngine.playClick();
   };
 
+  // Small confetti burst the moment the person unlocks the last quip.
+  useEffect(() => {
+    if (pokeCount === TRICKY_QUIPS.length - 1) {
+      const pieces = Array.from({ length: 26 }, (_, i) => ({
+        id: `${Date.now()}-${i}`,
+        left: Math.random() * 100,
+        color: BLOB_THEMES[Math.floor(Math.random() * BLOB_THEMES.length)].base,
+        delay: Math.random() * 300,
+        duration: 1400 + Math.random() * 900,
+      }));
+      setConfetti(pieces);
+      const timer = setTimeout(() => setConfetti([]), 2600);
+      return () => clearTimeout(timer);
+    }
+  }, [pokeCount]);
+
   return (
-    <div className="min-h-screen bg-[#FFFDF5] text-black font-sans flex flex-col justify-between p-4 md:p-8">
+    <div className="relative min-h-screen bg-[#FFFDF5] text-black font-sans flex flex-col justify-between p-4 md:p-8 overflow-hidden">
+      {/* Local keyframes for the quip transition, confetti fall, and nudge cue */}
+      <style>{`
+        @keyframes quipIn {
+          0% { opacity: 0; transform: translateY(4px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .quip-enter { animation: quipIn 260ms ease-out; }
+
+        @keyframes confettiFall {
+          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(540deg); opacity: 0; }
+        }
+        .confetti-piece {
+          animation-name: confettiFall;
+          animation-timing-function: ease-in;
+          animation-fill-mode: forwards;
+        }
+
+        @keyframes nudgeCue {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        .nudge-cue { animation: nudgeCue 1.6s ease-in-out infinite; }
+      `}</style>
+
+      {/* Faint dot-grid texture, purely decorative */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 opacity-[0.35]"
+        style={{ backgroundImage: 'radial-gradient(circle, #00000022 1px, transparent 1px)', backgroundSize: '22px 22px' }}
+        aria-hidden="true"
+      />
+
+      {/* Confetti overlay, fires once when the last quip unlocks */}
+      {confetti.length > 0 && (
+        <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true">
+          {confetti.map((c) => (
+            <span
+              key={c.id}
+              className="absolute top-[-10px] w-2.5 h-2.5 rounded-sm border border-black confetti-piece"
+              style={{
+                left: `${c.left}%`,
+                backgroundColor: c.color,
+                animationDelay: `${c.delay}ms`,
+                animationDuration: `${c.duration}ms`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Top Header Bar */}
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-2 border-b-2 border-black pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#00D8F6] border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] flex items-center justify-center font-black text-xl">
+          <div
+            className="w-10 h-10 border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] flex items-center justify-center font-black text-xl transition-colors duration-500"
+            style={{ backgroundColor: activeTheme.base }}
+          >
             ⚡
           </div>
           <div>
@@ -156,6 +227,7 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
                   key={theme.id}
                   onClick={() => handleSelectTheme(theme)}
                   title={theme.name}
+                  aria-label={`Switch blob theme to ${theme.name}`}
                   style={{ backgroundColor: theme.base }}
                   className={`w-7 h-7 rounded-full border-2 border-black cursor-pointer transition-transform ${
                     activeTheme.id === theme.id
@@ -168,10 +240,10 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
           </div>
         </div>
 
-        {/* Interactive Tricky Quip Bubble */}
-        <div className="w-full max-w-md my-4 p-3 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] flex items-center gap-3 transition-all">
+        {/* Interactive Tricky Quip Bubble — re-animates in on every new quip */}
+        <div className="w-full max-w-md my-4 p-3 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] flex items-center gap-3">
           <span className="text-xl select-none">💬</span>
-          <p className="text-xs font-mono font-bold text-neutral-800 text-left leading-relaxed">
+          <p key={pokeCount} className="quip-enter text-xs font-mono font-bold text-neutral-800 text-left leading-relaxed">
             {currentQuip}
           </p>
         </div>
@@ -180,7 +252,9 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
         <div className="flex flex-wrap items-center justify-center gap-4 w-full max-w-md">
           <button
             onClick={onGoHome}
-            className="flex-1 min-w-[200px] flex items-center justify-center gap-2 px-6 py-3.5 bg-[#FDC800] border-2 border-black rounded-2xl shadow-[4px_4px_0px_#000000] hover:shadow-[6px_6px_0px_#000000] hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] font-black uppercase text-sm tracking-wide cursor-pointer transition-all"
+            className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 px-6 py-3.5 bg-[#FDC800] border-2 border-black rounded-2xl shadow-[4px_4px_0px_#000000] hover:shadow-[6px_6px_0px_#000000] hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] font-black uppercase text-sm tracking-wide cursor-pointer transition-all ${
+              pokeCount >= 6 && !reachedSecret ? 'nudge-cue' : ''
+            }`}
           >
             <Home size={18} />
             <span>Return to Today</span>
