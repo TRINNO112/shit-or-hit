@@ -26,7 +26,10 @@ import {
   Smartphone,
   BookOpen,
   Users,
-  MessageSquareQuote
+  MessageSquareQuote,
+  BookMarked,
+  ScrollText,
+  Trophy
 } from 'lucide-react';
 import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
@@ -47,6 +50,7 @@ export default function MonthlyReportModal({
   const [scrollProgress, setScrollProgress] = useState(0);
   const [copied, setCopied] = useState(false);
   const [activeDayNote, setActiveDayNote] = useState(null);
+  const [activeStoryChapter, setActiveStoryChapter] = useState('all');
 
   const scrollContainerRef = useRef(null);
 
@@ -126,6 +130,7 @@ export default function MonthlyReportModal({
     setYear(newYear);
     setMonth(newMonth);
     setReport(null);
+    setActiveStoryChapter('all');
   };
 
   const handleNextMonth = () => {
@@ -134,10 +139,26 @@ export default function MonthlyReportModal({
     setYear(newYear);
     setMonth(newMonth);
     setReport(null);
+    setActiveStoryChapter('all');
   };
 
   const handleCopyMarkdown = () => {
     if (!report) return;
+
+    let storylineText = '';
+    if (report.storylineChronicle?.chapters?.length > 0) {
+      storylineText = `\n## 📖 Chronological Storyline Chronicle\n*Theme: ${report.storylineChronicle.overarchingTheme || 'Monthly Journey'}*\n\n` +
+        report.storylineChronicle.chapters.map(c => 
+          `### ${c.act || 'Chapter'}: ${c.phaseTitle} (${c.timeSpan}) - Mood: ${c.mood || 'N/A'}\n${c.narrative}\n\n**⚡ Turning Point:** ${c.turningPoint || 'N/A'}\n**🎯 Takeaway:** ${c.tacticalTakeaway || 'N/A'}\n`
+        ).join('\n');
+    }
+
+    let achievementsText = '';
+    if (report.achievementsAndClutches?.length > 0) {
+      achievementsText = `\n## 🏆 Verified Monthly Achievements & Trophies\n` +
+        report.achievementsAndClutches.map(a => `- **[${a.category || 'Victory'}] ${a.title}**: ${a.description}`).join('\n') + '\n';
+    }
+
     const text = `# 📊 MONTHLY PERFORMANCE INTELLIGENCE DOSSIER: ${report.monthName}
 **Persona Archetype:** ${report.personaTitle}
 **Hit Rate:** ${report.hitRate}% | **Average Quality:** ${report.avgScore}/5.0 (${report.totalLogged} days logged)
@@ -145,8 +166,8 @@ export default function MonthlyReportModal({
 
 ## 📌 Executive Summary
 ${report.executiveSummary}
-
-## 💬 Real Talk From Your Bro (Deep Dive)
+${achievementsText}${storylineText}
+## 💬 The Chronicler's Address (Homie Letter)
 ${report.homieLetter?.map(p => `${p}\n\n`).join('') || ''}
 
 ## 🔍 Hidden Behavioral Patterns & Facts
@@ -441,24 +462,231 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
                 </div>
 
+                {/* 🏆 VERIFIED MONTHLY ACHIEVEMENTS & CLUTCH TROPHIES */}
+                {report.achievementsAndClutches && report.achievementsAndClutches.length > 0 && (
+                  <div className="p-4 sm:p-5 rounded-2xl border-3 border-black bg-[#FFFDF5] shadow-[4px_4px_0px_#000000] space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b-2 border-black/10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                          <Trophy className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                        </div>
+                        <h4 className="font-display font-black text-xs sm:text-sm uppercase text-black">
+                          VERIFIED MONTHLY ACHIEVEMENTS & CLUTCH TROPHIES
+                        </h4>
+                      </div>
+                      <span className="px-2 py-0.5 rounded bg-black text-[#00E599] font-mono text-[9px] font-black uppercase">
+                        {report.achievementsAndClutches.length} VERIFIED WINS
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                      {report.achievementsAndClutches.map((ach, aIdx) => (
+                        <div 
+                          key={aIdx} 
+                          className="p-3 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <span className="text-[8px] font-mono font-black px-1.5 py-0.5 rounded bg-neutral-100 border border-black/20 uppercase text-neutral-700">
+                                {ach.category || 'Triumph'}
+                              </span>
+                              <Award className="w-3.5 h-3.5 text-[#FDC800] stroke-[2.5]" />
+                            </div>
+                            <h6 className="font-display font-black text-xs text-black uppercase leading-tight">
+                              {ach.title}
+                            </h6>
+                            <p className="text-[10px] font-mono font-bold text-neutral-600 mt-1 leading-snug">
+                              {ach.description}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 text-[9px] font-mono font-black text-[#00A86B]">
+                            <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
+                            <span>RECORDED VICTORY</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 📖 CHRONOLOGICAL STORYLINE CHRONICLE */}
+                {report.storylineChronicle && (
+                  <div className="p-4 sm:p-6 rounded-2xl border-3 border-black bg-white shadow-[4px_4px_0px_#000000] space-y-4">
+                    {/* Story Header */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-black/10">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-black text-[#FDC800] flex items-center justify-center border-2 border-black shadow-[2px_2px_0px_#FDC800]">
+                          <BookMarked className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-display font-black text-sm sm:text-base uppercase text-black">
+                              CHRONOLOGICAL STORYLINE CHRONICLE
+                            </h4>
+                            <span className="px-2 py-0.5 rounded bg-[#FDC800] text-black font-mono text-[9px] font-black uppercase border border-black">
+                              MONTHLY ARC
+                            </span>
+                          </div>
+                          <p className="text-[10px] sm:text-[11px] font-mono font-bold text-neutral-600 mt-0.5">
+                            Tracing how your month opened, mid-month trials fought, turning points, and final standing.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Chapter Navigation Pills */}
+                      {report.storylineChronicle.chapters && report.storylineChronicle.chapters.length > 1 && (
+                        <div className="flex flex-wrap gap-1.5 items-center">
+                          <button
+                            type="button"
+                            onClick={() => setActiveStoryChapter('all')}
+                            className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[10px] font-black uppercase transition-all cursor-pointer ${
+                              activeStoryChapter === 'all'
+                                ? 'bg-black text-[#FDC800] shadow-[2px_2px_0px_#000000]'
+                                : 'bg-neutral-100 text-black hover:bg-neutral-200'
+                            }`}
+                          >
+                            All Acts ({report.storylineChronicle.chapters.length})
+                          </button>
+                          {report.storylineChronicle.chapters.map((ch, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setActiveStoryChapter(idx)}
+                              className={`px-2.5 py-1 rounded-lg border-2 border-black font-mono text-[10px] font-black uppercase transition-all cursor-pointer ${
+                                activeStoryChapter === idx
+                                  ? 'bg-black text-[#FDC800] shadow-[2px_2px_0px_#000000]'
+                                  : 'bg-neutral-100 text-black hover:bg-neutral-200'
+                              }`}
+                            >
+                              {ch.act || `Act ${idx + 1}`}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Overarching Theme Box */}
+                    {report.storylineChronicle.overarchingTheme && (
+                      <div className="p-3 sm:p-3.5 rounded-xl border-2 border-black bg-[#18181B] text-white shadow-[2px_2px_0px_#FDC800] flex items-center gap-3">
+                        <ScrollText className="w-4 h-4 text-[#FDC800] shrink-0" />
+                        <div className="min-w-0">
+                          <span className="block text-[9px] font-mono font-black text-[#FDC800] uppercase tracking-wider">
+                            MONTHLY HERO ARC THESIS
+                          </span>
+                          <p className="text-xs font-mono font-semibold text-neutral-200 leading-snug mt-0.5">
+                            "{report.storylineChronicle.overarchingTheme}"
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Chapters List */}
+                    <div className="space-y-4">
+                      {report.storylineChronicle.chapters && (
+                        (activeStoryChapter === 'all' 
+                          ? report.storylineChronicle.chapters 
+                          : [report.storylineChronicle.chapters[activeStoryChapter]].filter(Boolean)
+                        ).map((chapter, cIdx) => {
+                          const moodBg = 
+                            chapter.mood === 'Peak' ? 'bg-[#FDC800] text-black' :
+                            chapter.mood === 'Good' ? 'bg-[#00E599] text-black' :
+                            chapter.mood === 'Okay' ? 'bg-neutral-200 text-black' :
+                            chapter.mood === 'Down' ? 'bg-[#FF8A00] text-black' : 'bg-[#FF4D4D] text-white';
+
+                          return (
+                            <motion.div
+                              key={cIdx}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="rounded-xl border-2 border-black bg-[#FFFDF8] overflow-hidden shadow-[3px_3px_0px_#000000]"
+                            >
+                              {/* Chapter Card Header */}
+                              <div className="p-3 sm:p-3.5 bg-neutral-100 border-b-2 border-black flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded bg-black text-[#FDC800] font-mono font-black text-[10px] uppercase tracking-wide">
+                                    {chapter.act || `ACT ${cIdx + 1}`}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded border border-black/30 bg-white font-mono font-bold text-[10px] text-neutral-800">
+                                    {chapter.timeSpan}
+                                  </span>
+                                  {chapter.mood && (
+                                    <span className={`px-2 py-0.5 rounded border border-black font-mono font-black text-[9px] uppercase ${moodBg}`}>
+                                      {chapter.mood}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black tracking-tight">
+                                  {chapter.phaseTitle}
+                                </h5>
+                              </div>
+
+                              {/* Chapter Narrative Body */}
+                              <div className="p-3.5 sm:p-5 space-y-3.5">
+                                <p className="text-xs sm:text-[13px] font-mono text-neutral-900 leading-relaxed font-semibold whitespace-pre-line">
+                                  {chapter.narrative}
+                                </p>
+
+                                {/* Turning Point & Tactical Takeaway Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+                                  {chapter.turningPoint && (
+                                    <div className="p-2.5 sm:p-3 rounded-lg border-2 border-black bg-amber-50 shadow-[1px_1px_0px_#000000] flex items-start gap-2">
+                                      <Zap className="w-3.5 h-3.5 text-[#FF8A00] shrink-0 mt-0.5 fill-[#FF8A00]" />
+                                      <div className="min-w-0">
+                                        <span className="block text-[9px] font-mono font-black uppercase text-amber-900">
+                                          TURNING POINT & TACTICAL PIVOT
+                                        </span>
+                                        <p className="text-[11px] font-mono font-bold text-neutral-800 leading-snug mt-0.5">
+                                          {chapter.turningPoint}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {chapter.tacticalTakeaway && (
+                                    <div className="p-2.5 sm:p-3 rounded-lg border-2 border-black bg-emerald-50 shadow-[1px_1px_0px_#000000] flex items-start gap-2">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-[#00E599] shrink-0 mt-0.5" />
+                                      <div className="min-w-0">
+                                        <span className="block text-[9px] font-mono font-black uppercase text-emerald-900">
+                                          STRATEGIC TAKEAWAY
+                                        </span>
+                                        <p className="text-[11px] font-mono font-bold text-neutral-800 leading-snug mt-0.5">
+                                          {chapter.tacticalTakeaway}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* 💬 REAL TALK FROM YOUR BRO: DEEP-DIVE PARAGRAPHS */}
                 {report.homieLetter && report.homieLetter.length > 0 && (
-                  <div className="p-5 sm:p-6 rounded-2xl border-2 border-black bg-[#FFFBEA] shadow-[3px_3px_0px_#000000] space-y-3">
-                    <div className="flex items-center gap-2 pb-2 border-b border-black/10">
+                  <div className="p-5 sm:p-6 rounded-2xl border-3 border-black bg-[#FFFBEA] shadow-[4px_4px_0px_#000000] space-y-3">
+                    <div className="flex items-center gap-2 pb-2 border-b-2 border-black/10">
                       <span className="text-xl">💬</span>
                       <h4 className="font-display font-black text-sm uppercase text-black flex items-center gap-2">
-                        <span>REAL TALK FROM YOUR BRO: THE UNFILTERED DEEP DIVE</span>
+                        <span>THE CHRONICLER'S ADDRESS: DEEP DIVE & UNFILTERED HYPE</span>
                         <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase">
-                          LISTENING TO YOU
+                          MENTOR TALK
                         </span>
                       </h4>
                     </div>
 
                     <div className="space-y-3">
                       {report.homieLetter.map((paragraph, pIdx) => (
-                        <p key={pIdx} className="text-xs sm:text-[13px] font-mono text-neutral-900 leading-relaxed font-semibold">
-                          {paragraph}
-                        </p>
+                        <div key={pIdx} className="p-3.5 rounded-xl border border-black/15 bg-white/70 shadow-[1px_1px_0px_#000000]">
+                          <p className="text-xs sm:text-[13px] font-mono text-neutral-900 leading-relaxed font-semibold">
+                            {paragraph}
+                          </p>
+                        </div>
                       ))}
                     </div>
                   </div>

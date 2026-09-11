@@ -596,80 +596,114 @@ app.post('/api/monthly-report', async (req, res) => {
       languageRule = 'LANGUAGE MIRRORING MANDATE: Automatically detect the language of the diary entries. If the notes are written in English, write the entire dossier 100% in pure English (ZERO Hinglish/Hindi words). If written in Hinglish, write in natural Hinglish.';
     }
 
-    const prompt = `You are the user's brutally honest, hilarious, deeply caring bro/best-friend and forensic habit analyst evaluating their daily life log for ${monthName}.
+    const prompt = `You are a perceptive, master biographical chronicler, forensic behavioral analyst, and loyal brotherly mentor evaluating the user's daily life journal for ${monthName}.
 
 DATA SUMMARY:
 - Total Logged Days: ${loggedCount} / ${totalDaysInMonth}
 - Hit Rate: ${hitRate}% (Days with rating >= 3)
 - Average Quality Score: ${avgScore} / 5.0
 - Longest Slump: ${longestSlump} consecutive rough/down days
+- Longest Winning Streak: ${longestStreak} consecutive solid days
 - Rating Breakdown: Peak(5)=${ratingCounts[5]}, Good(4)=${ratingCounts[4]}, Okay(3)=${ratingCounts[3]}, Down(2)=${ratingCounts[2]}, Rough(1)=${ratingCounts[1]}
 - Weekday Averages: ${JSON.stringify(weekdayAverages)}
 - Weekly Phase Progressions: ${JSON.stringify(weeklyAnalytics)}
-- Friction Leak Factors: Screen/Doomscrolling=${frictionBreakdown.screenDoomscrollPct}%, Academic=${frictionBreakdown.academicStressPct}%, Family/Social=${frictionBreakdown.householdSocialPct}%
-- Detailed Log Entries with Notes:
+- Friction Breakdown: Screen/Doomscrolling=${frictionBreakdown.screenDoomscrollPct}%, Academic=${frictionBreakdown.academicStressPct}%, Family/Social=${frictionBreakdown.householdSocialPct}%
+- Detailed Chronological Entries with Notes:
 ${JSON.stringify(entriesSummary.slice(0, 31), null, 2)}
 
-CORE HOMIE INSTRUCTIONS:
-1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE every single time based on specific events.
-2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly with real validation, playful roasting, resilience celebration, and a brotherly game plan.
-3. PROVIDE 5 TO 6 HILARIOUS & SHARP HIDDEN FACTS referencing exact diary events.
-4. ${languageRule}
+CORE STORYLINE & CHRONICLER INSTRUCTIONS:
+1. TREAT THE MONTH AS AN UNFOLDING BIOGRAPHICAL STORYLINE CHRONICLE (NOT a generic flat summary, and NEVER a random soup/pasta of events).
+   - Trace how the month started, the early friction/deployments, the mid-month crucibles, the solutions discovered, and how things concluded.
+   - Divide the logged timeline chronologically into sequential Chapters/Acts (e.g., Act I: Opening Deployment & Early Turbulence, Act II: Mid-Month Friction & Tests, Act III: Tactical Breakthroughs & Exam Summits, Act IV: The Veteran's Ledger & The Road Ahead).
+   - For each chapter provide:
+     - act: (e.g. "Act I", "Act II", "Act III", "Act IV")
+     - phaseTitle: (An evocative, cinematic title like "The Morning Reveille & Early Clashes" or "Corridors, Airplanes & Rejection")
+     - timeSpan: (e.g. "Days 1–3", "Days 4–7", etc.)
+     - mood: ("Peak", "Good", "Okay", "Down", or "Rough")
+     - narrative: (A rich, detailed, captivating chronological narrative explaining what happened, the thoughts, conflicts, and steps taken)
+     - turningPoint: (The tactical pivot or realization that shifted the momentum)
+     - tacticalTakeaway: (The core philosophical or strategic lesson learned)
+2. ZERO FORCED DEPRESSION. NEVER make the dossier sound uniformly depressed, helpless, or cynical! Even on hard days, analyze the user's emotional courage, stoic self-reflection, and how they held the line. Celebrate every single achievement: academic marks (e.g. 25/25 in PE, topping Economics with 22, English exams), creative & technical efforts (web platform blueprints, anti-gravity systems), domestic discipline (brewing tea, cleaning car, washing dishes, supporting brother), and physical reveille.
+3. EXTRACT 3 TO 6 EXPLICIT "achievementsAndClutches": Highlight verified triumphs from the diary notes with specific details and numbers.
+4. WRITE AN EXPANSIVE 4-TO-5 PARAGRAPH "HOMIE LETTER": A deeply authentic, witty, high-impact mentor address that weaves together the month's narrative arc, forensic habits, fierce hype for their grit, and a focused game plan.
+5. PROVIDE 5 TO 6 SHARP "hiddenFacts": Nuanced correlations and observations referencing specific diary events.
+6. ${languageRule}
 
 Return ONLY a valid JSON object matching this exact schema:
 {
-  "personaTitle": "A unique, creative, hilarious bro title matching their specific diary moments",
-  "executiveSummary": "A 2-3 sentence brutally honest bro breakdown of their month with natural humor and real talk.",
+  "personaTitle": "A unique, cinematic persona title fitting their specific story arc this month",
+  "executiveSummary": "A 2-4 sentence profound, panoramic breakdown of how the month started, the battles fought, and the ground gained.",
+  "storylineChronicle": {
+    "overarchingTheme": "A 1-2 sentence dramatic thesis defining this month's personal journey",
+    "chapters": [
+      {
+        "act": "Act I",
+        "phaseTitle": "Chapter title",
+        "timeSpan": "Days X–Y",
+        "mood": "Okay",
+        "narrative": "Detailed, rich chronological narrative explaining what happened in this phase...",
+        "turningPoint": "What specific action or shift occurred...",
+        "tacticalTakeaway": "Core lesson learned..."
+      }
+    ]
+  },
+  "achievementsAndClutches": [
+    {
+      "title": "Title of victory",
+      "description": "Specific context from notes",
+      "category": "Academic"
+    }
+  ],
   "homieLetter": [
-    "Paragraph 1: Heartfelt validation of what they suffered through this month...",
-    "Paragraph 2: Unfiltered roasting of their 3 AM phone habits and avoidance loops...",
-    "Paragraph 3: Fierce brotherly hype celebrating their stubborn resilience and Day 31 clutch win...",
-    "Paragraph 4: Practical game plan and encouragement for next month..."
+    "Paragraph 1: The Month's Story Arc & Ground Gained...",
+    "Paragraph 2: Forensic breakdown of behavioral traps & avoidance without despair...",
+    "Paragraph 3: Fierce celebration of specific triumphs, grit, and clutch moments...",
+    "Paragraph 4: Strategic vision and brotherly hype for the next campaign..."
   ],
   "hiddenFacts": [
-    "Observation 1 (Calling out cursed weekdays with stats)",
-    "Observation 2 (Calling out 3:45 AM screen traps)",
-    "Observation 3 (Calling out specific tragic comedies like chai spills or hallway freezes)",
-    "Observation 4 (Calling out accounts balance sheet PTSD)",
-    "Observation 5 (Calling out logging discipline)",
-    "Observation 6 (Calling out the Day 31 clutch arc)"
+    "Observation 1 (Calling out specific weekday patterns with stats)",
+    "Observation 2 (Calling out avoidance or screen traps)",
+    "Observation 3 (Calling out specific tragic comedies or unique diary moments)",
+    "Observation 4 (Calling out academic test outcomes)",
+    "Observation 5 (Calling out logging consistency and self-honesty)",
+    "Observation 6 (Calling out an unexpected victory or relationship dynamic)"
   ],
-  "frictionAnalysis": "A 2-sentence breakdown of what actually destroyed their momentum (doomscrolling, avoidance, overthinking).",
-  "goldenHabits": "A 2-sentence breakdown of what actually worked when they pulled off their wins.",
+  "frictionAnalysis": "A deep analysis of what actually created drag (overthinking, perfectionism, avoidance).",
+  "goldenHabits": "A deep breakdown of the exact conditions when peak flow and clutch execution happened.",
   "nextMonthDirectives": [
-    "Directive 1: A blunt, high-impact homie directive",
-    "Directive 2: A blunt, high-impact homie directive",
-    "Directive 3: A blunt, high-impact homie directive"
+    "Directive 1: High-impact directive",
+    "Directive 2: High-impact directive",
+    "Directive 3: High-impact directive"
   ]
 }`;
 
     try {
-      const primaryModel = 'gemini-3.5-flash-lite';
-      let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${primaryModel}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
-        })
-      });
+      const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+      for (const model of candidateModels) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.78, maxOutputTokens: 6000, responseMimeType: 'application/json' }
+            })
+          });
 
-      if (!response.ok) {
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.88, maxOutputTokens: 2500, responseMimeType: 'application/json' }
-          })
-        });
-      }
-
-      if (response.ok) {
-        const data = await response.json();
-        const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        if (jsonText) {
-          aiReport = JSON.parse(jsonText);
+          if (response.ok) {
+            const data = await response.json();
+            const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            if (jsonText) {
+              aiReport = JSON.parse(jsonText);
+              console.log(`Successfully generated monthly report using model: ${model}`);
+              break;
+            }
+          } else {
+            const errText = await response.text().catch(() => '');
+            console.warn(`Model ${model} returned HTTP ${response.status}: ${errText.slice(0, 120)}`);
+          }
+        } catch (fetchErr) {
+          console.warn(`Fetch error on model ${model}:`, fetchErr.message);
         }
       }
     } catch (err) {
@@ -677,32 +711,101 @@ Return ONLY a valid JSON object matching this exact schema:
     }
   }
 
-  // Fallback if AI offline
+  // Dynamic Chronological Fallback if AI offline
   if (!aiReport) {
     const worstWeekday = Object.entries(weekdayAverages).sort((a, b) => a[1] - b[1])[0]?.[0] || 'Thu';
+    const bestWeekday = Object.entries(weekdayAverages).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Fri';
+
+    // Segment logged entries chronologically into acts
+    const totalEntries = entriesSummary.length;
+    const numChapters = totalEntries <= 3 ? Math.max(1, totalEntries) : totalEntries <= 9 ? 3 : 4;
+    const chunkSize = Math.ceil(totalEntries / numChapters);
+    const romanActs = ['Act I', 'Act II', 'Act III', 'Act IV'];
+
+    const chapters = [];
+    for (let c = 0; c < numChapters; c++) {
+      const slice = entriesSummary.slice(c * chunkSize, (c + 1) * chunkSize);
+      if (slice.length === 0) continue;
+      const startDay = parseInt(slice[0].date.split('-')[2], 10);
+      const endDay = parseInt(slice[slice.length - 1].date.split('-')[2], 10);
+      const spanStr = startDay === endDay ? `Day ${startDay}` : `Days ${startDay}–${endDay}`;
+      const sliceAvg = (slice.reduce((acc, curr) => acc + curr.rating, 0) / slice.length).toFixed(1);
+      const mood = sliceAvg >= 4 ? 'Good' : sliceAvg >= 3 ? 'Okay' : 'Rough';
+
+      const keyNotes = slice.map(s => s.notes).filter(Boolean);
+      const excerpt = keyNotes.length > 0 
+        ? keyNotes.map(n => n.split('\n')[0].replace(/^[0-9.\-|\s]+/g, '').trim()).filter(Boolean).slice(0, 2).join('. ') 
+        : 'Holding routine and maintaining logging discipline.';
+
+      chapters.push({
+        act: romanActs[c] || `Act ${c + 1}`,
+        phaseTitle: c === 0 
+          ? 'The Opening Deployment & Baseline Friction' 
+          : c === numChapters - 1 
+          ? 'The Final Stand & Veteran Ledger' 
+          : `Tactical Crucible & Mid-Month Maneuvers (Part ${c})`,
+        timeSpan: spanStr,
+        mood,
+        narrative: `During ${spanStr} (average quality: ${sliceAvg}/5.0), you engaged directly with the daily friction of the academic and personal calendar. ${excerpt} Across these ${slice.length} logged days, you held the line against inertia and refused to abandon your self-accountability.`,
+        turningPoint: `Confronting the daily challenges head-on and recording honest observations without sugarcoating reality.`,
+        tacticalTakeaway: `Consistency in tracking reality is the first requirement of mastering it.`
+      });
+    }
+
+    // Extract real achievements from entries
+    const detectedWins = [];
+    entriesSummary.forEach(e => {
+      const note = e.notes || '';
+      if (/25\s*\/\s*25|perfect/i.test(note)) {
+        detectedWins.push({ title: 'Perfect 25/25 Exam Score', description: 'Secured flawless top marks in exam papers.', category: 'Academic' });
+      }
+      if (/22|highest|topped/i.test(note)) {
+        detectedWins.push({ title: 'Class Summit in Economics', description: 'Emerged as the class topper after the fog of grading cleared.', category: 'Academic' });
+      }
+      if (/blueprint|anti-gravity|code|website|page/i.test(note)) {
+        detectedWins.push({ title: 'Technical System Architecture', description: 'Engineered web blueprints and iterated system design.', category: 'Technical' });
+      }
+      if (/car|tea|brother|puja|iron/i.test(note)) {
+        detectedWins.push({ title: 'Domestic Discipline & Family Support', description: 'Maintained domestic duties, brewed tea, and supported family logistics.', category: 'Domestic' });
+      }
+      if (e.rating >= 4) {
+        detectedWins.push({ title: `High-Performance Flow on ${e.date}`, description: `Secured a solid ${e.rating}/5.0 rating through calculated focus.`, category: 'Discipline' });
+      }
+    });
+
+    const uniqueWins = detectedWins.filter((w, idx, self) => self.findIndex(t => t.title === w.title) === idx).slice(0, 4);
+    if (uniqueWins.length === 0) {
+      uniqueWins.push({ title: 'Unbroken Logging Discipline', description: 'Consistently logged daily entries and maintained self-awareness.', category: 'Discipline' });
+    }
+
     aiReport = {
-      personaTitle: hitRate < 50 ? 'The 3:45 AM Dopamine Goblin 👺' : 'The Relentless Flow Demon ⚡',
-      executiveSummary: `Bro... look at this chart. Your month was cooked as shit. Genuinely raw-dogging the trenches with ${ratingCounts[1]} Rough days, ${ratingCounts[2]} Down days, and only 1 win—but you logged every single day and clutched up on Day 31.`,
+      personaTitle: hitRate >= 50 ? 'The Stoic Strategist & Relentless Resilient Flow Demon ⚡' : 'The Battle-Tested Tactical Chronicler 🛡️',
+      executiveSummary: `Through ${monthName}, you navigated ${loggedCount} days of genuine academic, social, and personal friction with an average score of ${avgScore}/5.0. Rather than surrendering to exhaustion, your logs reveal a stubborn resilience—holding reveille at dawn, clearing exam summits, and enforcing discipline across every campaign.`,
+      storylineChronicle: {
+        overarchingTheme: `A month of relentless tactical resistance, proving that discipline holds ground even when the terrain is hostile.`,
+        chapters
+      },
+      achievementsAndClutches: uniqueWins,
       homieLetter: [
-        `Listen to me bro: this month was an absolute blender. You had failed Accounts papers, public teacher callouts, morning stomach cramps in class, family tension over gas cylinders, and sitting in the canteen watching your friends flex their dating life while you felt completely invisible. I hear you, and that shit genuinely hurts.`,
-        `Now let's talk about the self-inflicted damage: you kept treating 3:45 AM Reels doomscrolling like a coping mechanism, when in reality it was frying your dopamine receptors and guaranteeing next-day morning migraines. Spilling chai all over 15 completed project pages was peak tragic comedy, but the endless phone avoidance was the real bottleneck.`,
-        `Here is why you're built different though: despite 30 consecutive days of pure hell and feeling like a clown on the terrace, you never stopped logging. You didn't delete the database, you didn't give up, and when the big 50-mark Accounts unit test landed on Day 31, you dropped a massive 78% (39/50) clutch win and earned your dad's proud nod at dinner.`,
-        `For next month, we take that exact bulldog resilience and apply it daily. Put your phone in another room at 11 PM, stop letting one awkward hallway moment ruin your week, and lock in on your revision. You proved you have the horsepower—now let's make it consistent.`
+        `Looking across the entire story of ${monthName}, one truth stands out above everything else: you are not a passive spectator in your own life. You opened the month facing real friction—existential questions, heavy academic deadlines, and uncomfortable social moments—yet you consistently refused to look away. You showed up, deployed your focus, and logged the raw truth every single day.`,
+        `Let's look at the friction points honestly: when pressure mounted, procrastination and overthinking crept in, turning straightforward projects into grueling multi-hour sieges. Late-night work and screen traps created avoidable morning fatigue. But recognizing these avoidance loops as tactical errors—rather than character flaws—is the exact superpower that allows you to recalibrate.`,
+        `What makes this month powerful, though, are the moments where your grit converted into undeniable victories. From topping your class with a 22 in economics and securing a flawless 25/25 in physical education, to taking charge of domestic tasks like brewing tea and cleaning the car, you proved that action immediately dispels paralysis. When you lock in, your execution is lethal.`,
+        `For the upcoming campaign, carry this hard-earned momentum forward. Protect your evening shutdown so you aren't writing projects past midnight, trust your preparation without fearing the 'evil eye', and remember: your standards and consistency are building something real. Let's make the next month a masterpiece.`
       ],
       hiddenFacts: [
-        `Bro, start believing in superstitions because your ${worstWeekday}s are statistically cursed as fuck with an automatic L.`,
-        `3:45 AM Doomscroll Trap: Late-night phone binges were your personal final boss—they wiped out your attention span and caused morning brain fog.`,
-        `Spilled Chai & Tragic Comedy: Spilling hot chai all over completed BST project pages is proof the universe had personal beef with you on Day 20.`,
-        `Accounts PTSD: You spent 30 days fighting for your life against partnership balance sheets, only to drop a massive 78% redemption arc on Day 31.`,
-        `Iron Will Consistency: You logged 100% of your days across all 31 days even when your life felt like a dumpster fire. That's real mental toughness.`,
-        `The Day 31 Clutch: After a whole month in the mud, you proved that action creates confidence and earned genuine respect at home.`
+        `Discipline Under Fire: Maintained logging discipline across ${loggedCount} entries, turning your diary into a profound tactical record.`,
+        `Academic Summit: Proved your academic horsepower by securing peak marks in economics and physical education.`,
+        `Domestic Baseline: Restored focus repeatedly through physical routines—brewing tea, cleaning, and holding morning reveille.`,
+        `Weekday Rhythm: Your ${bestWeekday}s provided strong momentum, while ${worstWeekday}s required extra defense against procrastination.`,
+        `Resilience Against Friction: Refused to break even during social missteps and awkward classroom aerodynamics.`,
+        `Tactical Pivot Speed: Consistently rebounded from rough days into solid 3/5 and 4/5 hold positions.`
       ],
-      frictionAnalysis: `Heavy friction was driven by exam panic, feeling behind compared to your friends, and escaping into endless Reels instead of facing the balance sheet.`,
-      goldenHabits: `Your only massive win happened when you put the phone in another room, stopped negotiating with your brain, and locked in on one single task.`,
+      frictionAnalysis: `Momentum drag primarily came from late-night avoidance loops, perfectionism on school assignments, and over-analyzing social friction.`,
+      goldenHabits: `Peak execution emerged whenever you anchored the day with physical action: early wake-ups, hands-on tasks, and single-task exam focus.`,
       nextMonthDirectives: [
-        `Directive 1: Put your fucking phone in another room after 11 PM or you're cooked. No excuses, bro.`,
-        `Directive 2: Cleanse your ${worstWeekday} bad karma with an evening power walk and zero social media.`,
-        `Directive 3: Remember that 1 clutch win on Day 31 proved you're capable—now let's turn 1 win into 15 wins next month.`
+        `Directive 1: Enforce a strict 11:30 PM device curfew to protect your morning reveille and cognitive sharpness.`,
+        `Directive 2: Space out long-term academic projects into 45-minute daily sprints instead of late-night single-session marathons.`,
+        `Directive 3: Own your victories with pride without bracing for impending bad luck—confidence is earned ground.`
       ]
     };
   }
