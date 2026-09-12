@@ -12,6 +12,7 @@ import {
   aiEnhanceSchema,
   bulkEntriesSchema
 } from './schemas/apiSchemas.js';
+import { logger, requestLogger } from './logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(requestLogger);
 
 // OpenAPI / Swagger Documentation
 const openApiPath = path.join(__dirname, 'openapi.json');
@@ -905,5 +907,5 @@ function getVerdictFromRating(rating) {
 }
 
 app.listen(PORT, () => {
-  console.log(`⚡ Daily Goodness Server running on http://localhost:${PORT}`);
+  logger.info(`⚡ Daily Goodness Server running on http://localhost:${PORT}`);
 });
