@@ -2,7 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { initWebVitals } from './services/vitals.js';
 import './index.css';
+
+initWebVitals();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
