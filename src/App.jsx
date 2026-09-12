@@ -704,25 +704,6 @@ export default function App() {
         onUnlock={() => setIsVaultLocked(false)}
       />
 
-      {/* 🧪 Sentry Onboarding Verification Trigger */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          id="sentry-test-button"
-          onClick={() => {
-            const err = new Error('This is your first error!');
-            try {
-              Sentry.captureException(err);
-            } catch (e) {}
-            throw err;
-          }}
-          className="px-3.5 py-2 bg-[#FF4D4D] text-white font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 transition-transform"
-          title="Click to trigger Sentry verification error"
-        >
-          <span>💥</span>
-          <span>Break the world</span>
-        </button>
-      </div>
-
     </div>
   );
 }
