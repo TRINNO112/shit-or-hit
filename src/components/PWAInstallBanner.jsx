@@ -65,6 +65,11 @@ export default function PWAInstallBanner() {
       setDeferredPrompt(null);
     } catch (err) {
       console.error('Install prompt error:', err);
+      try {
+        if (window.Sentry?.captureException) {
+          window.Sentry.captureException(err, { extra: { context: 'PWAInstallBanner.handleInstallClick' } });
+        }
+      } catch (e) {}
     }
   };
 
