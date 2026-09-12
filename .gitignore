@@ -41,3 +41,7 @@ Thumbs.db
 .credentials*
 *token*
 .git_backup*
+
+# AI Agent Local Context
+AGENTS.md
+CLAUDE.md
