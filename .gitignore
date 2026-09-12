@@ -10,6 +10,8 @@ yarn-error.log*
 firebase-debug.log*
 *.log
 logs/
+playwright-report/
+test-results/
 *-firebase-adminsdk-*.json
 serviceAccountKey*.json
 ChatGPT Image*
