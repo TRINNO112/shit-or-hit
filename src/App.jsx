@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense, startTransition } from 'react';
+import * as Sentry from '@sentry/react';
 import { Zap, Calendar } from 'lucide-react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
@@ -36,7 +37,13 @@ class ErrorBoundary extends React.Component {
   }
   componentDidCatch(error, info) {
     console.warn('ErrorBoundary captured non-fatal view load notice:', error, info);
+    try {
+      if (Sentry?.captureException) {
+        Sentry.captureException(error, { extra: info });
+      }
+    } catch (e) {}
   }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -696,6 +703,25 @@ export default function App() {
         isLocked={isVaultLocked}
         onUnlock={() => setIsVaultLocked(false)}
       />
+
+      {/* 🧪 Sentry Onboarding Verification Trigger */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          id="sentry-test-button"
+          onClick={() => {
+            const err = new Error('This is your first error!');
+            try {
+              Sentry.captureException(err);
+            } catch (e) {}
+            throw err;
+          }}
+          className="px-3.5 py-2 bg-[#FF4D4D] text-white font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 transition-transform"
+          title="Click to trigger Sentry verification error"
+        >
+          <span>💥</span>
+          <span>Break the world</span>
+        </button>
+      </div>
 
     </div>
   );
