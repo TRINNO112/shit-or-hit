@@ -1,4 +1,5 @@
 import React from 'react';
+import * as Sentry from '@sentry/react';
 import { AlertTriangle, RotateCcw, Copy, Check, ChevronDown, ChevronUp, ShieldCheck, Terminal } from 'lucide-react';
 
 /**
@@ -26,11 +27,10 @@ export class ErrorBoundary extends React.Component {
     this.setState({ errorInfo });
     console.error('🛡️ [ErrorBoundary Caught Exception]:', error, errorInfo);
 
-    // Optional Sentry telemetry hook if DSN is configured
+    // Sentry telemetry hook
     try {
-      const sentryDsn = import.meta.env?.VITE_SENTRY_DSN;
-      if (sentryDsn && typeof window !== 'undefined' && window.Sentry?.captureException) {
-        window.Sentry.captureException(error, {
+      if (Sentry?.captureException) {
+        Sentry.captureException(error, {
           extra: {
             componentStack: errorInfo?.componentStack,
             url: window.location.href,
@@ -42,6 +42,7 @@ export class ErrorBoundary extends React.Component {
       // Sentry hook failure should never break UI containment
     }
   }
+
 
   handleReload = () => {
     window.location.reload();
