@@ -3,6 +3,15 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import { validateBody, validateQuery } from './middleware/validate.js';
+import {
+  entrySchema,
+  monthlyReportQuerySchema,
+  monthlyReportBodySchema,
+  aiEnhanceSchema,
+  bulkEntriesSchema
+} from './schemas/apiSchemas.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +35,22 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// OpenAPI / Swagger Documentation
+const openApiPath = path.join(__dirname, 'openapi.json');
+let openApiSpec = {};
+if (fs.existsSync(openApiPath)) {
+  try {
+    openApiSpec = JSON.parse(fs.readFileSync(openApiPath, 'utf-8'));
+  } catch (err) {
+    console.error('Failed to parse openapi.json:', err);
+  }
+}
+app.get('/api/docs/spec.json', (req, res) => res.json(openApiSpec));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec, {
+  customSiteTitle: 'SHIT OR HIT — API Documentation'
+}));
+
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const DATA_FILE = path.join(DATA_DIR, 'entries.json');
@@ -197,7 +222,7 @@ app.get('/api/entries', (req, res) => {
 });
 
 // Save or edit entry for any date
-app.post('/api/entries', (req, res) => {
+app.post('/api/entries', validateBody(entrySchema), (req, res) => {
   const { date, rating, verdict, notes, spheres, calculatedScore } = req.body;
 
   if (!date || rating === undefined) {
@@ -231,7 +256,7 @@ app.post('/api/entries', (req, res) => {
 });
 
 // AI Enhancement Endpoint for Daily Reflection
-app.post('/api/ai/enhance', async (req, res) => {
+app.post('/api/ai/enhance', validateBody(aiEnhanceSchema), async (req, res) => {
   const { notes, rating, date, preferredLanguage = 'auto', spheres, customInstruction } = req.body;
 
   if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) {
@@ -363,7 +388,7 @@ function sharpenReflectionLocally(text, rating) {
 }
 
 // Monthly AI Performance Dossier Report Route (GET saved report)
-app.get('/api/monthly-report', (req, res) => {
+app.get('/api/monthly-report', validateQuery(monthlyReportQuerySchema), (req, res) => {
   const { year, month, archetypeId, preferredLanguage = 'auto' } = req.query;
   const targetDataset = archetypeId || 'real';
   const monthStr = String(month).padStart(2, '0');
@@ -395,7 +420,7 @@ app.get('/api/monthly-report', (req, res) => {
 });
 
 // Monthly AI Performance Dossier Report Route (POST generate / re-evaluate)
-app.post('/api/monthly-report', async (req, res) => {
+app.post('/api/monthly-report', validateBody(monthlyReportBodySchema), async (req, res) => {
   const { year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage = 'auto' } = req.body;
   const targetDataset = archetypeId || 'real';
   const monthStr = String(month).padStart(2, '0');
@@ -842,7 +867,7 @@ Return ONLY a valid JSON object matching this exact schema:
 });
 
 // Bulk import / restore
-app.post('/api/entries/bulk', (req, res) => {
+app.post('/api/entries/bulk', validateBody(bulkEntriesSchema), (req, res) => {
   const { entries, startDate } = req.body;
   if (!entries || typeof entries !== 'object') {
     return res.status(400).json({ success: false, error: 'Invalid entries payload' });

@@ -1,0 +1,321 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SHIT OR HIT Core Diary & Analytics API",
+    "description": "Production REST API for SHIT OR HIT: Daily verdicts, multi-sphere reflection analytics, AI ghostwriter enhancement, and monthly intelligence dossiers.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Trinno Engineering"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5001",
+      "description": "Local Development Server"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health Check & Storage Status",
+        "description": "Verifies that the Node.js Express server is running and local filesystem database paths are accessible.",
+        "responses": {
+          "200": {
+            "description": "Server is operational",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "online" },
+                    "filePath": { "type": "string" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/entries": {
+      "get": {
+        "summary": "Retrieve All Diary Entries",
+        "description": "Returns all saved diary records, chronological start date, and record counts.",
+        "responses": {
+          "200": {
+            "description": "Entries map retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "startDate": { "type": "string", "example": "2026-09-01" },
+                    "data": { "type": "object" },
+                    "lastUpdated": { "type": "string", "format": "date-time" },
+                    "total": { "type": "integer", "example": 31 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create or Edit Daily Entry",
+        "description": "Logs or updates a daily verdict rating (1-5), optional reflection notes, multi-sphere breakdown, and habit anchor scores.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["date", "rating"],
+                "properties": {
+                  "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "example": "2026-09-12" },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5, "example": 4 },
+                  "verdict": { "type": "string", "example": "Good" },
+                  "notes": { "type": "string", "example": "Shipped new OpenAPI features and held steady discipline." },
+                  "spheres": { "type": "object" },
+                  "calculatedScore": { "type": "number", "example": 4.2 },
+                  "anchors": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entry successfully saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "entry": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid date or rating outside 1-5)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/entries/bulk": {
+      "post": {
+        "summary": "Bulk Import Diary Entries",
+        "description": "Imports or restores a dictionary of diary entries.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["entries"],
+                "properties": {
+                  "entries": { "type": "object" },
+                  "startDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk import completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "total": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload format"
+          }
+        }
+      }
+    },
+    "/api/ai/enhance": {
+      "post": {
+        "summary": "AI Reflection Ghostwriter",
+        "description": "Enhances daily notes and multi-sphere inputs into a vivid, 1st-person diary reflection using Gemini API with local fallback.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": { "type": "string" },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+                  "date": { "type": "string" },
+                  "preferredLanguage": { "type": "string", "enum": ["auto", "english", "hinglish"], "default": "auto" },
+                  "spheres": { "type": "object" },
+                  "customInstruction": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enhanced reflection text returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "enhancedText": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (no notes or spheres provided)"
+          }
+        }
+      }
+    },
+    "/api/monthly-report": {
+      "get": {
+        "summary": "Retrieve Cached Monthly Intelligence Dossier",
+        "description": "Fetches a previously calculated monthly intelligence dossier report for a given year and month.",
+        "parameters": [
+          { "name": "year", "in": "query", "required": true, "schema": { "type": "integer", "minimum": 2000, "maximum": 2100 } },
+          { "name": "month", "in": "query", "required": true, "schema": { "type": "integer", "minimum": 1, "maximum": 12 } },
+          { "name": "archetypeId", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "preferredLanguage", "in": "query", "required": false, "schema": { "type": "string", "enum": ["auto", "english", "hinglish"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report status returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "isSaved": { "type": "boolean" },
+                    "data": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      },
+      "post": {
+        "summary": "Generate or Re-Evaluate Monthly Intelligence Dossier",
+        "description": "Executes deep behavioral forensic analysis, multi-chapter narrative chronicle extraction, and homie letter generation.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["year", "month"],
+                "properties": {
+                  "year": { "type": "integer", "minimum": 2000, "maximum": 2100, "example": 2026 },
+                  "month": { "type": "integer", "minimum": 1, "maximum": 12, "example": 9 },
+                  "customEntries": { "type": "object" },
+                  "archetypeId": { "type": "string" },
+                  "forceReevaluate": { "type": "boolean", "example": false },
+                  "preferredLanguage": { "type": "string", "enum": ["auto", "english", "hinglish"], "default": "auto" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Monthly dossier chronicle successfully generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "isSaved": { "type": "boolean", "example": true },
+                    "data": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid year/month parameters)"
+          }
+        }
+      }
+    },
+    "/api/decrypt-mediator": {
+      "post": {
+        "summary": "Security Vault Mediator",
+        "description": "Verifies PIN security hashes and decrypts client tokens.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": { "type": "string", "enum": ["health", "verify-token", "verify-pin", "decrypt-token"] },
+                  "token": { "type": "string" },
+                  "pin": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Mediator operation executed" },
+          "400": { "description": "Invalid action or parameters" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": { "type": "string", "example": "Rating must be an integer between 1 and 5" },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" },
+                "path": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
