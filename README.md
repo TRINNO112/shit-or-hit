@@ -558,13 +558,13 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 npm run dev
 ```
 
-- **Frontend App**: `http://localhost:5173`
+- **Frontend App**: `http://localhost:5888`
 - **Backend API**: `http://localhost:5001`
 
 ### Available NPM Scripts
 
 - `npm run dev` — Starts both Vite frontend and Express backend concurrently.
-- `npm run dev:frontend` — Starts Vite dev server on port 5173.
+- `npm run dev:frontend` — Starts Vite dev server on port 5888.
 - `npm run dev:backend` — Starts Express backend on port 5001 with `--watch` auto-reload.
 - `npm run build` — Bundles production frontend in `/dist`.
 - `npm run preview` — Previews the production build locally.

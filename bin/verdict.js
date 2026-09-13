@@ -159,7 +159,7 @@ function openBrowser(url) {
 
 // Main Launcher
 async function launchApp() {
-  const APP_PORT = 5173;
+  const APP_PORT = 5888;
   const BACKEND_PORT = 5001;
   const APP_URL = `http://localhost:${APP_PORT}`;
 

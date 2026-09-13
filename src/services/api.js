@@ -1127,10 +1127,10 @@ export function setAutopsyChamberEnabled(enabled) {
   } catch (e) {}
 }
 
-// 3. Receipt of Truth Preferences
+// 3. Receipt of Truth Preferences (Off by default, locked/opt-in via Settings)
 export function isReceiptOfTruthEnabled() {
-  if (typeof window === 'undefined') return true;
-  return localStorage.getItem(RECEIPT_OF_TRUTH_ENABLED_KEY) !== 'false';
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(RECEIPT_OF_TRUTH_ENABLED_KEY) === 'true';
 }
 
 export function setReceiptOfTruthEnabled(enabled) {
