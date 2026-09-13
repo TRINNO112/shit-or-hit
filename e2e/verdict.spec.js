@@ -1,6 +1,28 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
+
+const DATA_FILE = path.join(process.cwd(), 'data', 'entries.json');
 
 test.describe('Daily Verdict & Reflection E2E Flow', () => {
+  let originalDbBackup = null;
+
+  test.beforeAll(() => {
+    try {
+      if (fs.existsSync(DATA_FILE)) {
+        originalDbBackup = fs.readFileSync(DATA_FILE, 'utf-8');
+      }
+    } catch (e) {}
+  });
+
+  test.afterAll(() => {
+    try {
+      if (originalDbBackup && fs.existsSync(DATA_FILE)) {
+        fs.writeFileSync(DATA_FILE, originalDbBackup, 'utf-8');
+      }
+    } catch (e) {}
+  });
+
   test.beforeEach(async ({ page }) => {
     // Sandbox Data Isolation: Inject isolated test data before load
     await page.addInitScript(() => {

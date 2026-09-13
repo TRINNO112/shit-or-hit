@@ -433,7 +433,7 @@ export default function MobileAppView({
       date: todayStr,
       rating: val,
       verdict: ratingMeta[val]?.title || 'Verdict',
-      notes: noteText,
+      notes: noteText || entries?.[todayStr]?.notes || '',
       spheres: spheresData,
       autopsy: entries?.[todayStr]?.autopsy
     });

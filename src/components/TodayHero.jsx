@@ -220,7 +220,7 @@ export default function TodayHero({
         date: todayStr,
         rating: val,
         verdict: ratingMeta[val]?.title || 'Verdict',
-        notes: noteText,
+        notes: noteText || activeEntry?.notes || '',
         spheres: sphereModeActive ? spheresData : undefined,
         calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : undefined,
         autopsy: activeEntry?.autopsy

@@ -1129,8 +1129,8 @@ export function setAutopsyChamberEnabled(enabled) {
 
 // 3. Receipt of Truth Preferences
 export function isReceiptOfTruthEnabled() {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem(RECEIPT_OF_TRUTH_ENABLED_KEY) === 'true';
+  if (typeof window === 'undefined') return true;
+  return localStorage.getItem(RECEIPT_OF_TRUTH_ENABLED_KEY) !== 'false';
 }
 
 export function setReceiptOfTruthEnabled(enabled) {
