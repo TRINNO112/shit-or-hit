@@ -16,7 +16,7 @@ export default defineConfig({
   workers: 1, // Sequential execution for stable mock localStorage isolation
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:5178',
     trace: 'on-first-retry',
     headless: true,
     viewport: { width: 1600, height: 900 }
@@ -35,10 +35,10 @@ export default defineConfig({
       reuseExistingServer: true
     },
     {
-      command: 'npx vite --port 5173 --strictPort',
-      port: 5173,
+      command: 'npx vite --port 5178 --strictPort',
+      port: 5178,
       timeout: 30000,
-      reuseExistingServer: true
+      reuseExistingServer: false
     }
   ]
 });

@@ -21,10 +21,12 @@ const IconLab = lazy(() => import('./components/IconLab'));
 const StickerVaultModal = lazy(() => import('./components/StickerVaultModal'));
 const MotivationalRecoveryModal = lazy(() => import('./components/MotivationalRecoveryModal'));
 const NotFound404 = lazy(() => import('./components/NotFound404'));
+const GuestDisclaimerModal = lazy(() => import('./components/GuestDisclaimerModal'));
+import { isGuestDisclaimerDismissed } from './components/GuestDisclaimerModal';
 import { soundEngine } from './services/soundEngine';
 import { fetchDatabase, saveEntry, ratingMeta, getDbStorageKey } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
-import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser } from './services/firebase';
+import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser, loginWithGoogle } from './services/firebase';
 import { decryptVaultPin, hashPinWithSalt } from './services/cipherEngine';
 
 class ErrorBoundary extends React.Component {
@@ -133,6 +135,11 @@ export default function App() {
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
+  const [isGuestDisclaimerOpen, setIsGuestDisclaimerOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const u = getCurrentUser();
+    return !u && !isGuestDisclaimerDismissed();
+  });
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
@@ -195,6 +202,7 @@ export default function App() {
   useEffect(() => {
     // Expose global developer testing helper in console
     window.__testRecoveryModal = () => setIsMotivationalOpen(true);
+    window.__testGuestDisclaimer = () => setIsGuestDisclaimerOpen(true);
 
     let keyBuffer = '';
     const handleKeyDown = (e) => {
@@ -209,6 +217,9 @@ export default function App() {
         keyBuffer = '';
       } else if (keyBuffer.endsWith('recovery')) {
         setIsMotivationalOpen(prev => !prev);
+        keyBuffer = '';
+      } else if (keyBuffer.endsWith('disclaimer') || keyBuffer.endsWith('guest')) {
+        setIsGuestDisclaimerOpen(prev => !prev);
         keyBuffer = '';
       } else if (keyBuffer.endsWith('404')) {
         setShowNotFound(prev => !prev);
@@ -225,6 +236,9 @@ export default function App() {
       setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
+      }
+      if (window.location.search.includes('view=guest') || window.location.search.includes('view=disclaimer')) {
+        setIsGuestDisclaimerOpen(true);
       }
       const path = window.location.pathname;
       const isInvalidPath = path !== '/' && path !== '' && !path.endsWith('/index.html');
@@ -270,6 +284,9 @@ export default function App() {
     const unsubscribe = subscribeAuthState(async (u) => {
       console.log('🛡️ [App Engine] Auth Hydration:', u ? `Logged in as ${u.displayName} (${u.email}) [UID: ${u.uid}]` : 'Local Mode');
       setCurrentUser(u);
+      if (u) {
+        setIsGuestDisclaimerOpen(false);
+      }
       
       // Re-fetch database entries immediately for the active user
       loadData(u);
@@ -327,6 +344,20 @@ export default function App() {
       setTimeout(() => {
         setIsMotivationalOpen(true);
       }, 5000);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    try {
+      const userObj = await loginWithGoogle();
+      if (userObj) {
+        setIsGuestDisclaimerOpen(false);
+        loadData(userObj);
+      }
+      return userObj;
+    } catch (err) {
+      console.error('Failed to log in from guest disclaimer:', err);
+      throw err;
     }
   };
 
@@ -693,6 +724,15 @@ export default function App() {
             <MotivationalRecoveryModal
               isOpen={isMotivationalOpen}
               onClose={() => setIsMotivationalOpen(false)}
+            />
+          )}
+
+          {/* ⚠️ Neobrutalist Guest Mode & Two-Tier Safety Disclaimer */}
+          {isGuestDisclaimerOpen && (
+            <GuestDisclaimerModal
+              isOpen={isGuestDisclaimerOpen}
+              onClose={() => setIsGuestDisclaimerOpen(false)}
+              onLogin={handleGuestLogin}
             />
           )}
         </Suspense>

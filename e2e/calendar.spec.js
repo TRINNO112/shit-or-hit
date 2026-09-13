@@ -14,6 +14,7 @@ test.describe('Calendar Matrix & Timeline Navigation Flow', () => {
       }));
       window.localStorage.setItem('shit_or_hit_entries_v2_local', JSON.stringify(sandboxEntries));
       window.localStorage.setItem('daily_verdict_vault_auto_lock_minutes', '-1');
+      window.localStorage.setItem('daily_verdict_guest_disclaimer_dismissed', 'true');
     });
   });
 
