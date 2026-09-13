@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette } from 'lucide-react';
-import { exportDatabaseBackup } from '../services/api';
+import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer } from 'lucide-react';
+import { exportDatabaseBackup, isReceiptOfTruthEnabled } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
 import { soundEngine } from '../services/soundEngine';
 import MagneticButton from './MagneticButton';
@@ -16,6 +16,7 @@ export default function Header({
   activeTab = 'log',
   onTabChange,
   onOpenSettings,
+  onOpenReceipt,
   onSyncRefresh
 }) {
   const [user, setUser] = useState(null);
@@ -124,6 +125,20 @@ export default function Header({
               className="px-2.5 py-1.5 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all"
             >
               LOGIN
+            </button>
+          )}
+
+          {/* Receipt of Truth (Tablet) */}
+          {isReceiptOfTruthEnabled() && onOpenReceipt && (
+            <button
+              onClick={() => {
+                soundEngine.playClick();
+                onOpenReceipt();
+              }}
+              title="Receipt of Truth"
+              className="p-1.5 bg-white hover:bg-[#00E599] border-2 border-black rounded-xl cursor-pointer shadow-[1.5px_1.5px_0px_#000000]"
+            >
+              <Printer className="w-4 h-4 text-black stroke-[2.5]" />
             </button>
           )}
 
@@ -248,6 +263,20 @@ export default function Header({
         >
           <Download className="w-4 h-4 stroke-[2.5]" />
         </button>
+
+        {/* Receipt of Truth (Desktop) */}
+        {isReceiptOfTruthEnabled() && onOpenReceipt && (
+          <button
+            onClick={() => {
+              soundEngine.playClick();
+              onOpenReceipt();
+            }}
+            title="Receipt of Truth (Thermal Slip)"
+            className="p-2 rounded-xl bg-white hover:bg-[#00E599] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0"
+          >
+            <Printer className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        )}
 
         {/* Settings Button */}
         {onOpenSettings && (

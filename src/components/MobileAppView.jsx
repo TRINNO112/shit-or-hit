@@ -38,7 +38,9 @@ import {
   Target,
   ShieldCheck,
   ListOrdered,
-  Terminal
+  Terminal,
+  Printer,
+  AlertOctagon
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -48,7 +50,10 @@ import {
   enhanceReflectionWithAI,
   isSphereModeEnabled,
   getSphereConfig,
-  calculateCompositeScore
+  calculateCompositeScore,
+  isRansomCapsuleEnabled,
+  isAutopsyChamberEnabled,
+  isReceiptOfTruthEnabled
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import { soundFx } from '../services/soundEffects';
@@ -58,6 +63,9 @@ import JourneyTimeline from './JourneyTimeline';
 import StatsWidget from './StatsWidget';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
+import RansomCapsuleModal from './RansomCapsuleModal';
+import AutopsyChamberModal, { AutopsyBadge } from './AutopsyChamberModal';
+import ReceiptOfTruthModal from './ReceiptOfTruthModal';
 import NonNegotiableCard, { isNonNegotiablesActive, getNonNegotiablesMode } from './NonNegotiableCard';
 import { soundEngine } from '../services/soundEngine';
 
@@ -151,6 +159,11 @@ export default function MobileAppView({
   const [savedFlash, setSavedFlash] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
+
+  // Behavioral Trilogy Modal States for Mobile
+  const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(false);
+  const [isAutopsyModalOpen, setIsAutopsyModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
   // Auto-debounce draft notes in sessionStorage
   useEffect(() => {
@@ -421,9 +434,34 @@ export default function MobileAppView({
       rating: val,
       verdict: ratingMeta[val]?.title || 'Verdict',
       notes: noteText,
-      spheres: spheresData
+      spheres: spheresData,
+      autopsy: entries?.[todayStr]?.autopsy
     });
     setTimeout(() => setSavedFlash(false), 2000);
+
+    // 🩸 Down-Bad Ransom Capsule Trigger (5★ Peak)
+    if (val === 5 && isRansomCapsuleEnabled()) {
+      setTimeout(() => {
+        setIsCapsuleModalOpen(true);
+      }, 700);
+    }
+    // 📉 The Autopsy Chamber Trigger (1★ or 2★)
+    else if (val <= 2 && isAutopsyChamberEnabled()) {
+      setTimeout(() => {
+        setIsAutopsyModalOpen(true);
+      }, 700);
+    }
+  };
+
+  const handleSaveAutopsyMobile = async (autopsyData) => {
+    await onSaveToday({
+      date: todayStr,
+      rating: selectedRating || entries?.[todayStr]?.rating || 1,
+      verdict: entries?.[todayStr]?.verdict || ratingMeta[selectedRating || 1]?.title || 'Verdict',
+      notes: noteText,
+      spheres: spheresData,
+      autopsy: autopsyData
+    });
   };
 
   const handleRateSphereMobile = async (sphereId, val) => {
@@ -893,8 +931,18 @@ export default function MobileAppView({
               );
             })()}
 
-            {/* Action Row: Reflection Drawer Trigger (Single Mode only) & Wallpaper Export */}
-            <div className={`grid ${sphereModeActive ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            {/* Forensic Crime Scene Diagnosis Badge (When Present) */}
+            {entries?.[todayStr]?.autopsy && (
+              <div className="flex justify-center pt-1">
+                <AutopsyBadge
+                  autopsy={entries[todayStr].autopsy}
+                  onClick={() => setIsAutopsyModalOpen(true)}
+                />
+              </div>
+            )}
+
+            {/* Action Row: Reflection Drawer Trigger, Receipt & Wallpaper Export */}
+            <div className={`grid ${isReceiptOfTruthEnabled() ? 'grid-cols-3' : sphereModeActive ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
               {!sphereModeActive && (
                 <button
                   type="button"
@@ -905,7 +953,23 @@ export default function MobileAppView({
                   className="py-3 px-2 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
                 >
                   <PenLine className="w-4 h-4" />
-                  <span className="truncate">{entries[todayStr]?.notes ? '✏️ MASTER DIARY' : '+ MASTER DIARY'}</span>
+                  <span className="truncate">{entries[todayStr]?.notes ? '✏️ DIARY' : '+ DIARY'}</span>
+                </button>
+              )}
+
+              {isReceiptOfTruthEnabled() && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    soundEngine.playClick();
+                    setIsReceiptModalOpen(true);
+                  }}
+                  className="py-3 px-2 rounded-xl border-2 border-black bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
+                  title="Receipt of Truth"
+                >
+                  <Printer className="w-4 h-4 text-black stroke-[2.5]" />
+                  <span className="truncate">RECEIPT</span>
                 </button>
               )}
 
@@ -918,7 +982,7 @@ export default function MobileAppView({
                 className="py-3 px-2 rounded-xl border-2 border-black bg-[#FDC800] hover:bg-amber-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-black" />
-                <span>EXPORT WALLPAPER</span>
+                <span className="truncate">POSTER</span>
               </button>
             </div>
           </div>
@@ -1850,6 +1914,42 @@ export default function MobileAppView({
           <span className="font-mono font-black text-[11px] uppercase mt-0.5">Stats</span>
         </button>
       </nav>
+
+      {/* 🩸 Down-Bad Ransom Capsule Capture Modal */}
+      {isCapsuleModalOpen && (
+        <RansomCapsuleModal
+          isOpen={isCapsuleModalOpen}
+          onClose={() => setIsCapsuleModalOpen(false)}
+          mode="capture"
+          activeDate={todayStr}
+          activeStreak={dayCount}
+          onCapsuleSaved={() => soundEngine.playSuccessChime()}
+        />
+      )}
+
+      {/* 📉 The Autopsy Chamber Interrogator Modal */}
+      {isAutopsyModalOpen && (
+        <AutopsyChamberModal
+          isOpen={isAutopsyModalOpen}
+          onClose={() => setIsAutopsyModalOpen(false)}
+          entryDate={todayStr}
+          rating={selectedRating || entries?.[todayStr]?.rating || 1}
+          existingAutopsy={entries?.[todayStr]?.autopsy || null}
+          onSaveAutopsy={handleSaveAutopsyMobile}
+        />
+      )}
+
+      {/* 🧾 The Receipt of Truth Thermal Slip Modal */}
+      {isReceiptModalOpen && (
+        <ReceiptOfTruthModal
+          isOpen={isReceiptModalOpen}
+          onClose={() => setIsReceiptModalOpen(false)}
+          entry={entries?.[todayStr] || null}
+          dateStr={todayStr}
+          dayCount={dayCount}
+          entries={entries}
+        />
+      )}
     </div>
   );
 }

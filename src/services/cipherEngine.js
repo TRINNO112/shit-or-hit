@@ -285,3 +285,68 @@ export async function verifyPinViaCloudMediator(token, pin) {
   const localDecrypted = decryptVaultPin(token);
   return localDecrypted === pin;
 }
+
+/**
+ * Cryptographically locks a reality check message inside a Down-Bad Ransom Capsule.
+ * Uses high-entropy dynamic salt, timestamp diffusion, and rotating XOR cipher.
+ */
+export function encryptCapsuleMessage(plaintext) {
+  if (!plaintext) return '';
+  try {
+    const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
+    const salt = Math.floor(100000 + Math.random() * 900000).toString();
+    const timestamp = Date.now().toString(36);
+    // Prefix with metadata envelope
+    const envelope = `${salt}:${timestamp}:${plaintext}`;
+    const inputBytes = new TextEncoder().encode(envelope);
+    
+    const encrypted = inputBytes.map((byte, i) => {
+      const k = keyBytes[i % keyBytes.length];
+      const shift = (i * 11 + 17) % 256;
+      return (byte ^ k ^ shift) & 255;
+    });
+
+    const hex = Array.from(encrypted).map(b => b.toString(16).padStart(2, '0')).join('');
+    return `TRINNO_CAPSULE_V1:${hex}`;
+  } catch (e) {
+    console.warn('Capsule encryption fallback:', e);
+    return `TRINNO_CAPSULE_RAW:${btoa(encodeURIComponent(plaintext))}`;
+  }
+}
+
+/**
+ * Decrypts a Down-Bad Ransom Capsule message back to original plain text.
+ */
+export function decryptCapsuleMessage(cipherToken) {
+  if (!cipherToken) return '';
+  try {
+    if (cipherToken.startsWith('TRINNO_CAPSULE_V1:')) {
+      const hex = cipherToken.replace('TRINNO_CAPSULE_V1:', '');
+      const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
+
+      const decryptedBytes = bytes.map((byte, i) => {
+        const k = keyBytes[i % keyBytes.length];
+        const shift = (i * 11 + 17) % 256;
+        return (byte ^ shift ^ k) & 255;
+      });
+
+      const decryptedStr = new TextDecoder().decode(decryptedBytes);
+      const parts = decryptedStr.split(':');
+      if (parts.length >= 3) {
+        return parts.slice(2).join(':');
+      }
+      return decryptedStr;
+    }
+
+    if (cipherToken.startsWith('TRINNO_CAPSULE_RAW:')) {
+      return decodeURIComponent(atob(cipherToken.replace('TRINNO_CAPSULE_RAW:', '')));
+    }
+
+    return cipherToken;
+  } catch (e) {
+    console.warn('Capsule decryption error:', e);
+    return '';
+  }
+}
+

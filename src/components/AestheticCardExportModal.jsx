@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight, Layers, RotateCcw } from 'lucide-react';
-import { ratingMeta, getStickerVault, getActiveStickerId } from '../services/api';
+import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight, Layers, RotateCcw, Printer } from 'lucide-react';
+import { ratingMeta, getStickerVault, getActiveStickerId, isReceiptOfTruthEnabled } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 import StickerVaultModal from './StickerVaultModal';
+import ReceiptOfTruthModal from './ReceiptOfTruthModal';
 
 // Direct ES6 Module Imports for 100% Guaranteed Asset Resolution
 import mascot1 from '../assets/mascots/mascot_1_rough.webp';
@@ -97,6 +98,7 @@ export default function AestheticCardExportModal({
   const [sharing, setSharing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [showStickerVault, setShowStickerVault] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -910,6 +912,36 @@ export default function AestheticCardExportModal({
                   </button>
                 </div>
 
+                {/* Receipt of Truth Launcher Card (When Enabled) */}
+                {isReceiptOfTruthEnabled() && (
+                  <div className="bg-[#FFFDF0] border-2 border-black p-3 rounded-2xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                        <Printer className="w-4 h-4 text-black stroke-[2.5]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-display font-black text-xs uppercase text-black truncate">
+                          Receipt of Truth Thermal Slip
+                        </div>
+                        <div className="text-[10px] font-mono text-neutral-600 truncate">
+                          Printable Japanese streetwear receipt
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEngine.playClick();
+                        setShowReceiptModal(true);
+                      }}
+                      className="px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all shrink-0"
+                    >
+                      PRINT SLIP ➔
+                    </button>
+                  </div>
+                )}
+
                 {/* 3 Themes - Seamless Segmented Control */}
                 <div className="grid grid-cols-3 bg-neutral-100 rounded-2xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000]">
                   {THEMES.map((t, idx) => (
@@ -1100,6 +1132,19 @@ export default function AestheticCardExportModal({
             }
             setShowStickerVault(false);
           }}
+        />
+      )}
+
+      {/* Embedded Receipt of Truth Modal */}
+      {showReceiptModal && (
+        <ReceiptOfTruthModal
+          isOpen={showReceiptModal}
+          onClose={() => setShowReceiptModal(false)}
+          entry={entry || entries[selectedDateStr] || null}
+          dateStr={selectedDateStr}
+          dayCount={activeDayCount}
+          entries={entries}
+          displayName={displayName}
         />
       )}
     </>

@@ -22,9 +22,20 @@ const StickerVaultModal = lazy(() => import('./components/StickerVaultModal'));
 const MotivationalRecoveryModal = lazy(() => import('./components/MotivationalRecoveryModal'));
 const NotFound404 = lazy(() => import('./components/NotFound404'));
 const GuestDisclaimerModal = lazy(() => import('./components/GuestDisclaimerModal'));
+const RansomCapsuleModal = lazy(() => import('./components/RansomCapsuleModal'));
+const ReceiptOfTruthModal = lazy(() => import('./components/ReceiptOfTruthModal'));
 import { isGuestDisclaimerDismissed } from './components/GuestDisclaimerModal';
 import { soundEngine } from './services/soundEngine';
-import { fetchDatabase, saveEntry, ratingMeta, getDbStorageKey } from './services/api';
+import { 
+  fetchDatabase, 
+  saveEntry, 
+  ratingMeta, 
+  getDbStorageKey,
+  isRansomCapsuleEnabled,
+  getRansomCapsuleSensitivity,
+  getActiveSealedCapsule,
+  isReceiptOfTruthEnabled
+} from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser, loginWithGoogle } from './services/firebase';
 import { decryptVaultPin, hashPinWithSalt } from './services/cipherEngine';
@@ -140,6 +151,11 @@ export default function App() {
     const u = getCurrentUser();
     return !u && !isGuestDisclaimerDismissed();
   });
+  
+  // Behavioral Trilogy Modal States
+  const [isCapsuleReleaseOpen, setIsCapsuleReleaseOpen] = useState(false);
+  const [releasedCapsule, setReleasedCapsule] = useState(null);
+  const [isGlobalReceiptOpen, setIsGlobalReceiptOpen] = useState(false);
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
@@ -347,6 +363,36 @@ export default function App() {
     }
   };
 
+  const checkRansomCapsuleReleaseTrigger = (allEntries) => {
+    if (!allEntries || !isRansomCapsuleEnabled()) return;
+    const activeCapsule = getActiveSealedCapsule();
+    if (!activeCapsule) return;
+
+    const sensitivity = getRansomCapsuleSensitivity(); // 2 or 3 days
+    let consecutiveRough = 0;
+    let checkDate = new Date(`${todayStr}T00:00:00`);
+
+    for (let i = 0; i < sensitivity; i++) {
+      const dStr = checkDate.toISOString().slice(0, 10);
+      const r = Number(allEntries[dStr]?.rating);
+      if (r === 1) {
+        consecutiveRough++;
+      } else {
+        break;
+      }
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    const alreadyReleased = sessionStorage.getItem(`daily_verdict_capsule_released_${activeCapsule.id}`) === todayStr;
+    if (!alreadyReleased && consecutiveRough >= sensitivity) {
+      sessionStorage.setItem(`daily_verdict_capsule_released_${activeCapsule.id}`, todayStr);
+      setTimeout(() => {
+        setReleasedCapsule(activeCapsule);
+        setIsCapsuleReleaseOpen(true);
+      }, 2000);
+    }
+  };
+
   const handleGuestLogin = async () => {
     try {
       const userObj = await loginWithGoogle();
@@ -386,8 +432,9 @@ export default function App() {
         }));
       } catch (e) {}
 
-      // Check consecutive rough days trigger
+      // Check consecutive rough days triggers
       checkConsecutiveRoughDays(next);
+      checkRansomCapsuleReleaseTrigger(next);
 
       return next;
     });
@@ -535,6 +582,7 @@ export default function App() {
                 activeTab={activeDesktopTab}
                 onTabChange={handleDesktopTabChange}
                 onOpenSettings={() => setIsSettingsOpen(true)}
+                onOpenReceipt={() => setIsGlobalReceiptOpen(true)}
                 onSyncRefresh={loadData}
               />
             </div>
@@ -733,6 +781,30 @@ export default function App() {
               isOpen={isGuestDisclaimerOpen}
               onClose={() => setIsGuestDisclaimerOpen(false)}
               onLogin={handleGuestLogin}
+            />
+          )}
+
+          {/* 🩸 Emergency Down-Bad Ransom Capsule Breach Modal */}
+          {isCapsuleReleaseOpen && (
+            <RansomCapsuleModal
+              isOpen={isCapsuleReleaseOpen}
+              onClose={() => setIsCapsuleReleaseOpen(false)}
+              mode="release"
+              targetCapsule={releasedCapsule}
+              onCapsuleDismissed={() => setIsCapsuleReleaseOpen(false)}
+            />
+          )}
+
+          {/* 🧾 Global Receipt of Truth Thermal Slip Modal */}
+          {isGlobalReceiptOpen && (
+            <ReceiptOfTruthModal
+              isOpen={isGlobalReceiptOpen}
+              onClose={() => setIsGlobalReceiptOpen(false)}
+              entry={entries[todayStr] || null}
+              dateStr={todayStr}
+              dayCount={dayCount}
+              entries={entries}
+              displayName={userDisplayName}
             />
           )}
         </Suspense>

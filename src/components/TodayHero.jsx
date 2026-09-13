@@ -19,14 +19,19 @@ import {
   ListOrdered,
   Terminal,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  Printer,
+  AlertOctagon
 } from 'lucide-react';
 import { 
   ratingMeta, 
   enhanceReflectionWithAI,
   isSphereModeEnabled,
   getSphereConfig,
-  calculateCompositeScore
+  calculateCompositeScore,
+  isRansomCapsuleEnabled,
+  isAutopsyChamberEnabled,
+  isReceiptOfTruthEnabled
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
@@ -37,6 +42,9 @@ import AutoExpandTextarea from './AutoExpandTextarea';
 import NonNegotiableCard, { isNonNegotiablesActive, getNonNegotiablesMode } from './NonNegotiableCard';
 import { soundEngine } from '../services/soundEngine';
 import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
+import RansomCapsuleModal from './RansomCapsuleModal';
+import AutopsyChamberModal, { AutopsyBadge } from './AutopsyChamberModal';
+import ReceiptOfTruthModal from './ReceiptOfTruthModal';
 
 const IconMap = {
   AlertCircle,
@@ -83,6 +91,11 @@ export default function TodayHero({
   const [syncedBadge, setSyncedBadge] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [sadSettle, setSadSettle] = useState(false);
+  
+  // Behavioral Trilogy Modal States
+  const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(false);
+  const [isAutopsyModalOpen, setIsAutopsyModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   
   // History stack for Undo / Redo / Revert to Original
   const [historyStack, setHistoryStack] = useState([]);
@@ -209,10 +222,38 @@ export default function TodayHero({
         verdict: ratingMeta[val]?.title || 'Verdict',
         notes: noteText,
         spheres: sphereModeActive ? spheresData : undefined,
-        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : undefined
+        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : undefined,
+        autopsy: activeEntry?.autopsy
       });
     }
     setTimeout(() => setSyncedBadge(false), 2500);
+
+    // 🩸 Down-Bad Ransom Capsule Trigger (5★ Peak)
+    if (val === 5 && isRansomCapsuleEnabled()) {
+      setTimeout(() => {
+        setIsCapsuleModalOpen(true);
+      }, 700);
+    } 
+    // 📉 The Autopsy Chamber Trigger (1★ or 2★)
+    else if (val <= 2 && isAutopsyChamberEnabled()) {
+      setTimeout(() => {
+        setIsAutopsyModalOpen(true);
+      }, 700);
+    }
+  };
+
+  const handleSaveAutopsy = async (autopsyData) => {
+    if (saveHandler) {
+      await saveHandler({
+        date: todayStr,
+        rating: selectedRating || activeEntry?.rating || 1,
+        verdict: activeEntry?.verdict || ratingMeta[selectedRating || 1]?.title || 'Verdict',
+        notes: noteText,
+        spheres: sphereModeActive ? spheresData : undefined,
+        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : undefined,
+        autopsy: autopsyData
+      });
+    }
   };
 
   const handleAnchorScoreUpdate = async (scoreInfo) => {
@@ -741,16 +782,43 @@ export default function TodayHero({
           </span>
         )}
 
-        {/* Note Toggle Button with Magnetic Cursor Attraction */}
-        {!showNote && (
-          <MagneticButton
-            onClick={() => setShowNote(true)}
-            className="text-xs font-mono font-bold text-black bg-white hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer"
-          >
-            <PenLine className="w-3.5 h-3.5" />
-            <span>{currentEntry?.notes ? 'Edit Master Reflection' : '+ Unified Day Journal'}</span>
-          </MagneticButton>
-        )}
+        {/* Autopsy & Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto justify-end">
+          {/* Forensic Crime Scene Badge if autopsy exists */}
+          {activeEntry?.autopsy && (
+            <AutopsyBadge
+              autopsy={activeEntry.autopsy}
+              onClick={() => setIsAutopsyModalOpen(true)}
+            />
+          )}
+
+          {/* 1-Tap Receipt of Truth Generator Button (When Enabled) */}
+          {isReceiptOfTruthEnabled() && (
+            <button
+              type="button"
+              onClick={() => {
+                soundEngine.playClick();
+                setIsReceiptModalOpen(true);
+              }}
+              className="text-xs font-mono font-bold text-black bg-white hover:bg-[#00E599] border-2 border-black px-3.5 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+              title="Generate Streetwear Thermal Receipt Slip"
+            >
+              <Printer className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+              <span>RECEIPT</span>
+            </button>
+          )}
+
+          {/* Note Toggle Button with Magnetic Cursor Attraction */}
+          {!showNote && (
+            <MagneticButton
+              onClick={() => setShowNote(true)}
+              className="text-xs font-mono font-bold text-black bg-white hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer"
+            >
+              <PenLine className="w-3.5 h-3.5" />
+              <span>{currentEntry?.notes ? 'Edit Master Reflection' : '+ Unified Day Journal'}</span>
+            </MagneticButton>
+          )}
+        </div>
 
       </div>
 
@@ -861,6 +929,43 @@ export default function TodayHero({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 🩸 Down-Bad Ransom Capsule Capture Modal */}
+      {isCapsuleModalOpen && (
+        <RansomCapsuleModal
+          isOpen={isCapsuleModalOpen}
+          onClose={() => setIsCapsuleModalOpen(false)}
+          mode="capture"
+          activeDate={todayStr}
+          activeStreak={dayCount}
+          onCapsuleSaved={() => {
+            soundEngine.playSuccessChime();
+          }}
+        />
+      )}
+
+      {/* 📉 The Autopsy Chamber Interrogator Modal */}
+      {isAutopsyModalOpen && (
+        <AutopsyChamberModal
+          isOpen={isAutopsyModalOpen}
+          onClose={() => setIsAutopsyModalOpen(false)}
+          entryDate={todayStr}
+          rating={selectedRating || activeEntry?.rating || 1}
+          existingAutopsy={activeEntry?.autopsy || null}
+          onSaveAutopsy={handleSaveAutopsy}
+        />
+      )}
+
+      {/* 🧾 The Receipt of Truth Thermal Generator Modal */}
+      {isReceiptModalOpen && (
+        <ReceiptOfTruthModal
+          isOpen={isReceiptModalOpen}
+          onClose={() => setIsReceiptModalOpen(false)}
+          entry={activeEntry}
+          dateStr={todayStr}
+          dayCount={dayCount}
+        />
+      )}
     </motion.div>
   );
 }

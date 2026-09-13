@@ -9,6 +9,7 @@ import {
   fetchCloudReport, 
   isEmailWhitelisted 
 } from './firebase';
+import { encryptCapsuleMessage, decryptCapsuleMessage } from './cipherEngine';
 
 const API_BASE = '/api';
 
@@ -984,6 +985,162 @@ export function getActiveStickerId() {
 export function setActiveStickerId(stickerId) {
   try {
     localStorage.setItem(ACTIVE_STICKER_KEY, stickerId || 'auto');
+  } catch (e) {}
+}
+
+// ============================================================================
+// 🏛️ BEHAVIORAL TRILOGY ARCHITECTURAL ENGINE (OFF BY DEFAULT)
+// ============================================================================
+
+const RANSOM_CAPSULES_STORAGE_KEY = 'daily_verdict_ransom_capsules';
+const RANSOM_CAPSULE_ENABLED_KEY = 'daily_verdict_ransom_capsule_enabled';
+const RANSOM_CAPSULE_SENSITIVITY_KEY = 'daily_verdict_ransom_capsule_sensitivity';
+const AUTOPSY_CHAMBER_ENABLED_KEY = 'daily_verdict_autopsy_chamber_enabled';
+const RECEIPT_OF_TRUTH_ENABLED_KEY = 'daily_verdict_receipt_of_truth_enabled';
+
+// 1. Down-Bad Ransom Capsule Preferences & Storage
+export function isRansomCapsuleEnabled() {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(RANSOM_CAPSULE_ENABLED_KEY) === 'true';
+}
+
+export function setRansomCapsuleEnabled(enabled) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(RANSOM_CAPSULE_ENABLED_KEY, enabled ? 'true' : 'false');
+  try {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      saveCloudUserSettings(user.uid, { enableRansomCapsule: enabled });
+    }
+  } catch (e) {}
+}
+
+export function getRansomCapsuleSensitivity() {
+  if (typeof window === 'undefined') return 2;
+  const val = parseInt(localStorage.getItem(RANSOM_CAPSULE_SENSITIVITY_KEY) || '2', 10);
+  return val === 3 ? 3 : 2;
+}
+
+export function setRansomCapsuleSensitivity(days) {
+  if (typeof window === 'undefined') return;
+  const cleanDays = days === 3 ? 3 : 2;
+  localStorage.setItem(RANSOM_CAPSULE_SENSITIVITY_KEY, cleanDays.toString());
+  try {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      saveCloudUserSettings(user.uid, { ransomCapsuleSensitivity: cleanDays });
+    }
+  } catch (e) {}
+}
+
+export function getRansomCapsules() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(RANSOM_CAPSULES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error('Failed to parse ransom capsules:', e);
+    return [];
+  }
+}
+
+export function saveRansomCapsule({ message, date, streak = 0 }) {
+  if (!message || !message.trim()) return null;
+  try {
+    const current = getRansomCapsules();
+    const encrypted = encryptCapsuleMessage(message.trim());
+    const newCapsule = {
+      id: 'capsule_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      createdAt: new Date().toISOString(),
+      createdDate: date || new Date().toISOString().slice(0, 10),
+      cipher: encrypted,
+      status: 'sealed', // 'sealed' | 'unlocked'
+      streakAtCapture: streak,
+      peakRating: 5
+    };
+    const updated = [newCapsule, ...current];
+    localStorage.setItem(RANSOM_CAPSULES_STORAGE_KEY, JSON.stringify(updated));
+    return newCapsule;
+  } catch (e) {
+    console.error('Failed to save ransom capsule:', e);
+    throw e;
+  }
+}
+
+export function getActiveSealedCapsule() {
+  const capsules = getRansomCapsules();
+  return capsules.find(c => c && c.status === 'sealed') || null;
+}
+
+export function unlockRansomCapsule(capsuleId) {
+  try {
+    const current = getRansomCapsules();
+    let unlockedCapsule = null;
+    const updated = current.map(c => {
+      if (c.id === capsuleId) {
+        unlockedCapsule = {
+          ...c,
+          status: 'unlocked',
+          unlockedAt: new Date().toISOString(),
+          decryptedMessage: decryptCapsuleMessage(c.cipher)
+        };
+        return unlockedCapsule;
+      }
+      return c;
+    });
+    localStorage.setItem(RANSOM_CAPSULES_STORAGE_KEY, JSON.stringify(updated));
+    return unlockedCapsule;
+  } catch (e) {
+    console.error('Failed to unlock capsule:', e);
+    return null;
+  }
+}
+
+export function deleteRansomCapsule(capsuleId) {
+  try {
+    const current = getRansomCapsules();
+    const updated = current.filter(c => c.id !== capsuleId);
+    localStorage.setItem(RANSOM_CAPSULES_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (e) {
+    console.error('Failed to delete capsule:', e);
+    return [];
+  }
+}
+
+// 2. Autopsy Chamber Interrogator Preferences
+export function isAutopsyChamberEnabled() {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(AUTOPSY_CHAMBER_ENABLED_KEY) === 'true';
+}
+
+export function setAutopsyChamberEnabled(enabled) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(AUTOPSY_CHAMBER_ENABLED_KEY, enabled ? 'true' : 'false');
+  try {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      saveCloudUserSettings(user.uid, { enableAutopsyChamber: enabled });
+    }
+  } catch (e) {}
+}
+
+// 3. Receipt of Truth Preferences
+export function isReceiptOfTruthEnabled() {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(RECEIPT_OF_TRUTH_ENABLED_KEY) === 'true';
+}
+
+export function setReceiptOfTruthEnabled(enabled) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(RECEIPT_OF_TRUTH_ENABLED_KEY, enabled ? 'true' : 'false');
+  try {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      saveCloudUserSettings(user.uid, { enableReceiptOfTruth: enabled });
+    }
   } catch (e) {}
 }
 

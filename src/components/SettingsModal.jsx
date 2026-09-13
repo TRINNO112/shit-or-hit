@@ -30,7 +30,10 @@ import {
   Tag,
   Languages,
   Bot,
-  Sliders
+  Sliders,
+  AlertOctagon,
+  Printer,
+  FileText
 } from 'lucide-react';
 import { 
   isNotificationSupported, 
@@ -47,6 +50,7 @@ import { isNonNegotiablesActive } from './NonNegotiableCard';
 import { isBannerEnabled, setBannerEnabled } from './MoodReactionBanner';
 import NonNegotiablesStudioModal from './NonNegotiablesStudioModal';
 import AIDirectivesModal from './AIDirectivesModal';
+import RansomCapsuleModal from './RansomCapsuleModal';
 import {
   isSphereModeEnabled,
   setSphereModeEnabled,
@@ -54,7 +58,16 @@ import {
   saveSphereConfig,
   DEFAULT_SPHERES,
   getStickerVault,
-  getActiveStickerId
+  getActiveStickerId,
+  isRansomCapsuleEnabled,
+  setRansomCapsuleEnabled,
+  getRansomCapsuleSensitivity,
+  setRansomCapsuleSensitivity,
+  isAutopsyChamberEnabled,
+  setAutopsyChamberEnabled,
+  isReceiptOfTruthEnabled,
+  setReceiptOfTruthEnabled,
+  getRansomCapsules
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
@@ -76,6 +89,13 @@ export default function SettingsModal({
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
   const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const [aiLanguage, setAiLanguage] = useState('auto');
+  
+  // Behavioral Trilogy Preferences (Off by Default)
+  const [ransomCapsuleOn, setRansomCapsuleOn] = useState(false);
+  const [ransomSensitivity, setRansomSensitivity] = useState(2);
+  const [autopsyChamberOn, setAutopsyChamberOn] = useState(false);
+  const [receiptOfTruthOn, setReceiptOfTruthOn] = useState(false);
+  const [isCapsuleVaultOpen, setIsCapsuleVaultOpen] = useState(false);
   
   // Segmented Multi-Sphere Matrix Settings
   const [sphereModeOn, setSphereModeOn] = useState(false);
@@ -126,11 +146,46 @@ export default function SettingsModal({
       setTagsList(getSavedTags());
       setSoundFxOn(soundEngine.isSoundEnabled());
       setBannerState(isBannerEnabled());
+      setRansomCapsuleOn(isRansomCapsuleEnabled());
+      setRansomSensitivity(getRansomCapsuleSensitivity());
+      setAutopsyChamberOn(isAutopsyChamberEnabled());
+      setReceiptOfTruthOn(isReceiptOfTruthEnabled());
       setNotificationMsg('');
       setIsAddingSphere(false);
       setEditingSphereId(null);
     }
   }, [isOpen]);
+
+  const handleToggleRansomCapsule = () => {
+    soundEngine.playClick();
+    const next = !ransomCapsuleOn;
+    setRansomCapsuleOn(next);
+    setRansomCapsuleEnabled(next);
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleSensitivityChange = (days) => {
+    soundEngine.playClick();
+    setRansomSensitivity(days);
+    setRansomCapsuleSensitivity(days);
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleToggleAutopsyChamber = () => {
+    soundEngine.playClick();
+    const next = !autopsyChamberOn;
+    setAutopsyChamberOn(next);
+    setAutopsyChamberEnabled(next);
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleToggleReceiptOfTruth = () => {
+    soundEngine.playClick();
+    const next = !receiptOfTruthOn;
+    setReceiptOfTruthOn(next);
+    setReceiptOfTruthEnabled(next);
+    if (onSettingsChanged) onSettingsChanged();
+  };
 
   const handleAddTag = (e) => {
     e.preventDefault();
@@ -506,6 +561,164 @@ export default function SettingsModal({
                   </button>
                 </div>
               </div>              
+
+              {/* 🏛️ BEHAVIORAL TRILOGY MATRIX (OFF BY DEFAULT) */}
+              <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
+                <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🏛️</span>
+                    <h4 className="font-display font-black text-sm uppercase text-black">
+                      Behavioral Intelligence Trilogy
+                    </h4>
+                  </div>
+                  <span className="text-[9px] font-mono bg-black text-[#FDC800] px-2 py-0.5 rounded font-black uppercase">
+                    PRO ENGINES
+                  </span>
+                </div>
+
+                {/* 1. Down-Bad Ransom Capsule */}
+                <div className="bg-white border-2 border-black rounded-xl p-3.5 shadow-[1.5px_1.5px_0px_#000000] space-y-2.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                        <KeyRound className="w-4 h-4 text-black stroke-[2.5]" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-display font-black text-xs uppercase text-black">
+                            Down-Bad Ransom Capsule
+                          </h5>
+                          <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${
+                            ransomCapsuleOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                          }`}>
+                            {ransomCapsuleOn ? 'ON' : 'OFF'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                          Cryptographically locks 5★ God Mode reality checks. Unlocks only on consecutive 1★ days.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleToggleRansomCapsule}
+                      className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
+                        ransomCapsuleOn 
+                          ? 'bg-[#00E599] text-black' 
+                          : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                      }`}
+                    >
+                      {ransomCapsuleOn ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
+                    </button>
+                  </div>
+
+                  {ransomCapsuleOn && (
+                    <div className="pt-2 border-t border-black/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono font-bold text-neutral-600 uppercase">Trigger Sensitivity:</span>
+                        {[2, 3].map((days) => (
+                          <button
+                            key={days}
+                            type="button"
+                            onClick={() => handleSensitivityChange(days)}
+                            className={`px-2 py-0.5 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${
+                              ransomSensitivity === days 
+                                ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]' 
+                                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                            }`}
+                          >
+                            {days} ROUGH DAYS {days === 2 ? '(RECOMMENDED)' : ''}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          soundEngine.playClick();
+                          setIsCapsuleVaultOpen(true);
+                        }}
+                        className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-black rounded-lg font-mono text-[10px] font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] shrink-0"
+                      >
+                        VIEW CAPSULE VAULT ➔
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. The Autopsy Chamber Interrogator */}
+                <div className="bg-white border-2 border-black rounded-xl p-3.5 shadow-[1.5px_1.5px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <AlertOctagon className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h5 className="font-display font-black text-xs uppercase text-black">
+                          The Autopsy Chamber Interrogator
+                        </h5>
+                        <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${
+                          autopsyChamberOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                        }`}>
+                          {autopsyChamberOn ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                        Rapid 3-switch diagnostic interrogator to isolate root cause when 1★ or 2★ days occur.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleAutopsyChamber}
+                    className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
+                      autopsyChamberOn 
+                        ? 'bg-[#00E599] text-black' 
+                        : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                    }`}
+                  >
+                    {autopsyChamberOn ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
+                  </button>
+                </div>
+
+                {/* 3. The Receipt of Truth Generator */}
+                <div className="bg-white border-2 border-black rounded-xl p-3.5 shadow-[1.5px_1.5px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <Printer className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h5 className="font-display font-black text-xs uppercase text-black">
+                          Receipt of Truth Thermal Slip
+                        </h5>
+                        <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${
+                          receiptOfTruthOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                        }`}>
+                          {receiptOfTruthOn ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                        Japanese streetwear & supermarket thermal receipt generator with 1080p PNG export.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleReceiptOfTruth}
+                    className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
+                      receiptOfTruthOn 
+                        ? 'bg-[#00E599] text-black' 
+                        : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                    }`}
+                  >
+                    {receiptOfTruthOn ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
+                  </button>
+                </div>
+              </div>
 
               {/* 5. AI Ghostwriter Preferred Language */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
@@ -1071,6 +1284,15 @@ export default function SettingsModal({
           localStorage.setItem('daily_verdict_custom_prompt', val.trim());
         }}
       />
+
+      {/* Ransom Capsule Vault Management Modal */}
+      {isCapsuleVaultOpen && (
+        <RansomCapsuleModal
+          isOpen={isCapsuleVaultOpen}
+          onClose={() => setIsCapsuleVaultOpen(false)}
+          mode="manage"
+        />
+      )}
     </>
   );
 }
