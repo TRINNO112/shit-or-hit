@@ -1041,12 +1041,73 @@ export function getRansomCapsules() {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
-    console.error('Failed to parse ransom capsules:', e);
+    console.error('Failed to parse time capsules:', e);
     return [];
   }
 }
 
-export function saveRansomCapsule({ message, date, streak = 0 }) {
+export const getTimeCapsules = getRansomCapsules;
+
+// 🧮 Compute Current Unbroken Positive Habit Streak (>=3 Stars)
+export function calculateStreak(entries = {}) {
+  const dates = Object.keys(entries || {});
+  if (dates.length === 0) return 0;
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+
+  const yest = new Date(now);
+  yest.setDate(yest.getDate() - 1);
+  const yestStr = `${yest.getFullYear()}-${String(yest.getMonth() + 1).padStart(2, '0')}-${String(yest.getDate()).padStart(2, '0')}`;
+
+  if (!entries[todayStr]?.rating && !entries[yestStr]?.rating) {
+    return 0;
+  }
+
+  let streak = 0;
+  let curr = entries[todayStr]?.rating ? new Date(now) : yest;
+  while (true) {
+    const ds = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+    const entry = entries[ds];
+    if (entry && Number(entry.rating) >= 3) {
+      streak++;
+      curr.setDate(curr.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+// ☁️ Zero-Knowledge Encrypted Cloud Capsule Sync
+export function syncTimeCapsulesToCloud(capsules = []) {
+  try {
+    const user = getCurrentUser();
+    const effectiveId = getEffectiveUserId(user);
+    if (effectiveId && effectiveId !== 'guest') {
+      // Zero-knowledge: Send only encrypted ciphertext payloads to Firebase
+      saveCloudUserSettings(effectiveId, { encryptedCapsules: capsules });
+    }
+  } catch (e) {
+    console.warn('Capsule cloud sync note:', e);
+  }
+}
+
+export function saveRansomCapsule({ 
+  message, 
+  title = '', 
+  triggerType = 'date', // 'date' | 'slump' | 'streak'
+  targetDate = null,
+  roughDaysThreshold = 2,
+  streakThreshold = 7,
+  sealStyle = 'wax', // 'wax' | 'cyber' | 'top_secret' | 'biohazard'
+  category = 'motivation',
+  date = new Date().toISOString().slice(0, 10), 
+  streak = 0 
+}) {
   if (!message || !message.trim()) return null;
   try {
     const current = getRansomCapsules();
@@ -1055,6 +1116,13 @@ export function saveRansomCapsule({ message, date, streak = 0 }) {
       id: 'capsule_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
       createdAt: new Date().toISOString(),
       createdDate: date || new Date().toISOString().slice(0, 10),
+      title: title && title.trim() ? title.trim() : 'Confidential Capsule',
+      triggerType: triggerType || 'date',
+      targetDate: targetDate || null,
+      roughDaysThreshold: Number(roughDaysThreshold) || 2,
+      streakThreshold: Number(streakThreshold) || 7,
+      sealStyle: sealStyle || 'wax',
+      category: category || 'motivation',
       cipher: encrypted,
       status: 'sealed', // 'sealed' | 'unlocked'
       streakAtCapture: streak,
@@ -1062,16 +1130,60 @@ export function saveRansomCapsule({ message, date, streak = 0 }) {
     };
     const updated = [newCapsule, ...current];
     localStorage.setItem(RANSOM_CAPSULES_STORAGE_KEY, JSON.stringify(updated));
+    syncTimeCapsulesToCloud(updated);
     return newCapsule;
   } catch (e) {
-    console.error('Failed to save ransom capsule:', e);
+    console.error('Failed to save time capsule:', e);
     throw e;
   }
 }
 
+export const saveTimeCapsule = saveRansomCapsule;
+
 export function getActiveSealedCapsule() {
   const capsules = getRansomCapsules();
   return capsules.find(c => c && c.status === 'sealed') || null;
+}
+
+// Evaluates all sealed capsules against current date, streak, and recent consecutive rough days
+export function checkCapsuleUnlockConditions(entries = {}, currentStreak = 0) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const capsules = getRansomCapsules();
+  const readyToUnlock = [];
+
+  // Calculate consecutive rough days ending today or yesterday
+  const sortedDates = Object.keys(entries || {}).sort().reverse();
+  let consecutiveRough = 0;
+  for (const d of sortedDates) {
+    const entry = entries[d];
+    if (entry && (entry.rating === 1 || entry.rating === 2)) {
+      consecutiveRough++;
+    } else {
+      break;
+    }
+  }
+
+  capsules.forEach(cap => {
+    if (cap && cap.status === 'sealed') {
+      if (cap.triggerType === 'date' && cap.targetDate) {
+        if (todayStr >= cap.targetDate) {
+          readyToUnlock.push(cap);
+        }
+      } else if (cap.triggerType === 'slump') {
+        const threshold = Number(cap.roughDaysThreshold) || 2;
+        if (consecutiveRough >= threshold) {
+          readyToUnlock.push(cap);
+        }
+      } else if (cap.triggerType === 'streak') {
+        const threshold = Number(cap.streakThreshold) || 7;
+        if (currentStreak >= threshold) {
+          readyToUnlock.push(cap);
+        }
+      }
+    }
+  });
+
+  return readyToUnlock;
 }
 
 export function unlockRansomCapsule(capsuleId) {
@@ -1091,6 +1203,7 @@ export function unlockRansomCapsule(capsuleId) {
       return c;
     });
     localStorage.setItem(RANSOM_CAPSULES_STORAGE_KEY, JSON.stringify(updated));
+    syncTimeCapsulesToCloud(updated);
     return unlockedCapsule;
   } catch (e) {
     console.error('Failed to unlock capsule:', e);
@@ -1098,17 +1211,22 @@ export function unlockRansomCapsule(capsuleId) {
   }
 }
 
+export const unlockTimeCapsule = unlockRansomCapsule;
+
 export function deleteRansomCapsule(capsuleId) {
   try {
     const current = getRansomCapsules();
     const updated = current.filter(c => c.id !== capsuleId);
     localStorage.setItem(RANSOM_CAPSULES_STORAGE_KEY, JSON.stringify(updated));
+    syncTimeCapsulesToCloud(updated);
     return updated;
   } catch (e) {
     console.error('Failed to delete capsule:', e);
     return [];
   }
 }
+
+export const deleteTimeCapsule = deleteRansomCapsule;
 
 // 2. Autopsy Chamber Interrogator Preferences
 export function isAutopsyChamberEnabled() {

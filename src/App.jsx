@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense, startTransition } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, startTransition } from 'react';
 import * as Sentry from '@sentry/react';
 import { Zap, Calendar } from 'lucide-react';
 import Header from './components/Header';
@@ -34,7 +34,10 @@ import {
   isRansomCapsuleEnabled,
   getRansomCapsuleSensitivity,
   getActiveSealedCapsule,
-  isReceiptOfTruthEnabled
+  isReceiptOfTruthEnabled,
+  checkCapsuleUnlockConditions,
+  calculateStreak,
+  getRansomCapsules
 } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser, loginWithGoogle } from './services/firebase';
@@ -60,14 +63,22 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] text-center my-4 font-mono">
-          <p className="text-xs font-bold text-neutral-600 mb-2">Notice: View is refreshing...</p>
-          <button
-            onClick={() => this.setState({ hasError: false })}
-            className="px-3 py-1 bg-[#FDC800] text-black font-black text-xs rounded-lg border-2 border-black cursor-pointer shadow-[2px_2px_0px_#000000]"
-          >
-            Retry View
-          </button>
+        <div className="min-h-screen bg-[#FFFDF5] flex flex-col items-center justify-center p-4 text-center">
+          <div className="max-w-md w-full bg-white border-3 border-black p-6 rounded-2xl shadow-[6px_6px_0px_#000000] space-y-4">
+            <h2 className="font-display font-black text-xl uppercase text-red-600">
+              SOMETHING BROKE IN VIEW LAYER
+            </h2>
+            <p className="font-mono text-xs text-neutral-600">
+              A view component failed to render gracefully. Your local diary and vault data remain 100% safe.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="w-full py-3 bg-[#FDC800] border-2 border-black rounded-xl font-display font-black text-sm uppercase shadow-[3px_3px_0px_#000000] active:scale-95 cursor-pointer"
+            >
+              RELOAD WORKSPACE
+            </button>
+          </div>
         </div>
       );
     }
@@ -146,12 +157,20 @@ export default function App() {
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
-  const [isGuestDisclaimerOpen, setIsGuestDisclaimerOpen] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const u = getCurrentUser();
-    return !u && !isGuestDisclaimerDismissed();
-  });
   
+  // ⏱️ Guest Disclaimer evaluates with a 3-second grace buffer to allow Firebase Auth to initialize
+  const [isGuestDisclaimerOpen, setIsGuestDisclaimerOpen] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const u = getCurrentUser();
+      if (!u && !isGuestDisclaimerDismissed()) {
+        setIsGuestDisclaimerOpen(true);
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Behavioral Trilogy Modal States
   const [isCapsuleReleaseOpen, setIsCapsuleReleaseOpen] = useState(false);
   const [releasedCapsule, setReleasedCapsule] = useState(null);
@@ -316,6 +335,24 @@ export default function App() {
             if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
               localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
             }
+            // ☁️ Zero-knowledge cloud capsules hydration
+            if (cloudSettings.encryptedCapsules && Array.isArray(cloudSettings.encryptedCapsules)) {
+              const local = getRansomCapsules();
+              const mergedMap = new Map();
+              cloudSettings.encryptedCapsules.forEach(c => {
+                if (c?.id) mergedMap.set(c.id, c);
+              });
+              local.forEach(c => {
+                if (c?.id) {
+                  const existing = mergedMap.get(c.id);
+                  if (!existing || c.status === 'unlocked' || c.unlockedAt) {
+                    mergedMap.set(c.id, c);
+                  }
+                }
+              });
+              const merged = Array.from(mergedMap.values());
+              localStorage.setItem('daily_verdict_ransom_capsules', JSON.stringify(merged));
+            }
             if (cloudSettings.vaultPinEncrypted) {
               const decrypted = decryptVaultPin(cloudSettings.vaultPinEncrypted);
               if (decrypted) {
@@ -344,6 +381,32 @@ export default function App() {
     loadData();
   }, [loadData]);
 
+  const currentStreak = useMemo(() => calculateStreak(entries), [entries]);
+
+  // ⏳ Check and trigger ready Time & Mood Capsules automatically
+  const checkAndTriggerCapsules = useCallback((allEntries, streak = 0) => {
+    if (!allEntries || Object.keys(allEntries).length === 0) return;
+    try {
+      const readyCapsules = checkCapsuleUnlockConditions(allEntries, streak);
+      if (readyCapsules && readyCapsules.length > 0) {
+        // Find first ready capsule not already popped or dismissed in this session
+        const target = readyCapsules.find(c => {
+          const key = `capsule_triggered_${c.id}_${todayStr}`;
+          return !sessionStorage.getItem(key);
+        });
+        if (target) {
+          sessionStorage.setItem(`capsule_triggered_${target.id}_${todayStr}`, 'true');
+          setTimeout(() => {
+            setReleasedCapsule(target);
+            setIsCapsuleReleaseOpen(true);
+          }, 1500);
+        }
+      }
+    } catch (e) {
+      console.warn('Capsule trigger check warning:', e);
+    }
+  }, [todayStr]);
+
   const checkConsecutiveRoughDays = (allEntries) => {
     if (!allEntries) return;
     const todayRating = allEntries[todayStr]?.rating;
@@ -363,34 +426,12 @@ export default function App() {
     }
   };
 
-  const checkRansomCapsuleReleaseTrigger = (allEntries) => {
-    if (!allEntries || !isRansomCapsuleEnabled()) return;
-    const activeCapsule = getActiveSealedCapsule();
-    if (!activeCapsule) return;
-
-    const sensitivity = getRansomCapsuleSensitivity(); // 2 or 3 days
-    let consecutiveRough = 0;
-    let checkDate = new Date(`${todayStr}T00:00:00`);
-
-    for (let i = 0; i < sensitivity; i++) {
-      const dStr = checkDate.toISOString().slice(0, 10);
-      const r = Number(allEntries[dStr]?.rating);
-      if (r === 1) {
-        consecutiveRough++;
-      } else {
-        break;
-      }
-      checkDate.setDate(checkDate.getDate() - 1);
+  const handleCapsuleDismissed = () => {
+    if (releasedCapsule?.id) {
+      sessionStorage.setItem(`capsule_triggered_${releasedCapsule.id}_${todayStr}`, 'true');
     }
-
-    const alreadyReleased = sessionStorage.getItem(`daily_verdict_capsule_released_${activeCapsule.id}`) === todayStr;
-    if (!alreadyReleased && consecutiveRough >= sensitivity) {
-      sessionStorage.setItem(`daily_verdict_capsule_released_${activeCapsule.id}`, todayStr);
-      setTimeout(() => {
-        setReleasedCapsule(activeCapsule);
-        setIsCapsuleReleaseOpen(true);
-      }, 2000);
-    }
+    setIsCapsuleReleaseOpen(false);
+    setReleasedCapsule(null);
   };
 
   const handleGuestLogin = async () => {
@@ -432,9 +473,10 @@ export default function App() {
         }));
       } catch (e) {}
 
-      // Check consecutive rough days triggers
+      // Check consecutive rough days & time capsule auto-triggers
       checkConsecutiveRoughDays(next);
-      checkRansomCapsuleReleaseTrigger(next);
+      const s = calculateStreak(next);
+      checkAndTriggerCapsules(next, s);
 
       return next;
     });
@@ -788,10 +830,12 @@ export default function App() {
           {isCapsuleReleaseOpen && (
             <RansomCapsuleModal
               isOpen={isCapsuleReleaseOpen}
-              onClose={() => setIsCapsuleReleaseOpen(false)}
+              onClose={handleCapsuleDismissed}
               mode="release"
               targetCapsule={releasedCapsule}
-              onCapsuleDismissed={() => setIsCapsuleReleaseOpen(false)}
+              activeDate={todayStr}
+              activeStreak={currentStreak}
+              onCapsuleDismissed={handleCapsuleDismissed}
             />
           )}
 

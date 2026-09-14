@@ -10,7 +10,8 @@ import {
   monthlyReportQuerySchema,
   monthlyReportBodySchema,
   aiEnhanceSchema,
-  bulkEntriesSchema
+  bulkEntriesSchema,
+  aiAutopsySchema
 } from './schemas/apiSchemas.js';
 import { logger, requestLogger } from './logger.js';
 
@@ -388,6 +389,150 @@ function sharpenReflectionLocally(text, rating) {
     return `${clean} — Maintained steady baseline and discipline throughout the day.`;
   }
 }
+
+// 🩺 AI Forensic Autopsy Chamber Endpoint
+app.post('/api/ai/autopsy', validateBody(aiAutopsySchema), async (req, res) => {
+  const { date, rating, notes = '', spheres = {}, anchors = {}, recentHistory = [] } = req.body;
+  const apiKey = GEMINI_API_KEY;
+
+  const localFallback = generateLocalAutopsy(notes, rating, spheres, anchors);
+
+  if (!apiKey) {
+    return res.json({
+      success: true,
+      autopsy: localFallback
+    });
+  }
+
+  const prompt = `You are a Behavioral Forensic Detective and Tough-Love Accountability Coroner for the daily logging system "SHIT OR HIT".
+The user had a 1★ or 2★ rough day. Conduct an unfiltered, insightful, and constructive behavioral autopsy on what went wrong.
+Data provided:
+- Date of Crime: ${date}
+- Verdict Rating: ${rating}/5★
+- Diary Notes: "${notes || 'No specific notes logged'}"
+- Life Domain Spheres: ${JSON.stringify(spheres)}
+- Daily Non-Negotiables: ${JSON.stringify(anchors)}
+
+Your diagnosis MUST be structured as a valid JSON object with these exact keys:
+{
+  "causeOfDeath": "A sharp, highly specific 1-2 sentence behavioral diagnosis describing where momentum failed (e.g. 'Circadian Collapse & Screen Paralysis: 3:00 AM phone addiction sabotaged morning neurotransmitters, cascading into missed anchors.')",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Sharp detective question interrogating the root trigger of failure",
+      "options": ["Option A", "Option B", "Option C"]
+    },
+    {
+      "id": "q2",
+      "question": "Second sharp question about the discipline leak or dopamine trap",
+      "options": ["Option A", "Option B", "Option C"]
+    },
+    {
+      "id": "q3",
+      "question": "Third question about tomorrow's defensive protocol",
+      "options": ["Option A", "Option B", "Option C"]
+    }
+  ],
+  "recoveryAntidote": "A direct, non-negotiable 1-action recovery command for tomorrow morning (e.g. 'Leave phone outside the bedroom, drink 1L cold water upon waking, and execute your first non-negotiable before opening any browser.')"
+}
+
+Do NOT wrap in markdown backticks or preamble. Output raw JSON only.`;
+
+  try {
+    const primaryModel = 'gemini-3.5-flash-lite';
+    let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${primaryModel}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 1024,
+          responseMimeType: 'application/json'
+        }
+      })
+    });
+
+    if (!response.ok) {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.6,
+            maxOutputTokens: 1024,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+    }
+
+    if (response.ok) {
+      const data = await response.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        try {
+          const parsed = JSON.parse(rawText);
+          if (parsed && parsed.causeOfDeath && Array.isArray(parsed.questions)) {
+            return res.json({
+              success: true,
+              autopsy: parsed
+            });
+          }
+        } catch (parseErr) {
+          console.warn('Failed to parse Gemini autopsy JSON, falling back:', parseErr);
+        }
+      }
+    }
+
+    return res.json({
+      success: true,
+      autopsy: localFallback
+    });
+  } catch (err) {
+    console.error('Autopsy route exception:', err);
+    return res.json({
+      success: true,
+      autopsy: localFallback
+    });
+  }
+});
+
+function generateLocalAutopsy(notes = '', rating = 1, spheres = {}, anchors = {}) {
+  const textLower = (notes || '').toLowerCase();
+  const isDigital = textLower.includes('phone') || textLower.includes('scroll') || textLower.includes('screen') || textLower.includes('instagram') || textLower.includes('reel') || textLower.includes('youtube');
+  const isSleep = textLower.includes('sleep') || textLower.includes('tired') || textLower.includes('exhaust') || textLower.includes('insomnia') || textLower.includes('late');
+
+  const causeOfDeath = isDigital
+    ? 'Acute Digital Dopamine Sepsis: Frictionless screen loops breached focus perimeters, draining executive will and starving momentum.'
+    : isSleep
+    ? 'Circadian Collapse & Battery Drain: Late bedtime delayed neurochemical recovery, triggering morning brain fog and execution paralysis.'
+    : 'Executive Friction Fracture: Missing early habit anchor momentum allowed passive avoidance to dominate the day.';
+
+  return {
+    causeOfDeath,
+    questions: [
+      {
+        id: 'q1',
+        question: 'What was the exact zero-hour trigger that derailed your day?',
+        options: ['Late night doomscrolling / phone in bed', 'Procrastinated on primary work milestone', 'Emotional friction / mental overwhelm']
+      },
+      {
+        id: 'q2',
+        question: 'Did you execute your morning non-negotiables before screens?',
+        options: ['Skipped completely', 'Partial / delayed effort', 'Completed morning anchor, collapsed later']
+      },
+      {
+        id: 'q3',
+        question: 'What is your primary defensive measure for tomorrow morning?',
+        options: ['Strict 45-min phone quarantine upon waking', 'Immediate 100% focus on single hardest task', 'Early sleep reset: zero screens after 11:30 PM']
+      }
+    ],
+    recoveryAntidote: 'Protocol Reset: Drink 1L cold water upon waking, keep phone in another room for 60 minutes, and complete your first non-negotiable anchor before opening any browser.'
+  };
+}
+
 
 // Monthly AI Performance Dossier Report Route (GET saved report)
 app.get('/api/monthly-report', validateQuery(monthlyReportQuerySchema), (req, res) => {
