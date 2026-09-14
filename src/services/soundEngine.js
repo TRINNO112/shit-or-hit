@@ -281,6 +281,50 @@ class SoundEngine {
       osc.stop(now + 0.25);
     } catch (e) {}
   }
+
+  // 9. Heavy Vault Hydraulic Clamp & Wax Seal Lock Sound
+  playCapsuleSeal() {
+    this.triggerHaptic([30, 50, 80]);
+    if (!this.isSoundEnabled()) return;
+    try {
+      this.initContext();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+      // Mechanical latch lock followed by resonant deep metallic snap
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.22);
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.22);
+
+      // Higher metallic latch tick
+      const latch = this.ctx.createOscillator();
+      const latchGain = this.ctx.createGain();
+      latch.type = 'triangle';
+      latch.frequency.setValueAtTime(880, now);
+      latch.frequency.exponentialRampToValueAtTime(440, now + 0.05);
+
+      latchGain.gain.setValueAtTime(0.12, now);
+      latchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+      latch.connect(latchGain);
+      latchGain.connect(this.ctx.destination);
+
+      latch.start(now);
+      latch.stop(now + 0.05);
+    } catch (e) {}
+  }
 }
 
 export const soundEngine = new SoundEngine();

@@ -104,7 +104,7 @@ export default function RansomCapsuleModal({
   const triggerRelease = (cap) => {
     setCurrentTab('release');
     setActiveReleaseCapsule(cap);
-    soundEngine.playCapsuleUnlock();
+    soundEngine?.playCapsuleUnlock?.();
 
     const unlocked = unlockRansomCapsule(cap.id);
     const fullMessage = unlocked?.decryptedMessage || cap.decryptedMessage || cap.message || "Remember who you are and rebuild.";
@@ -116,13 +116,13 @@ export default function RansomCapsuleModal({
       if (charIndex < fullMessage.length) {
         setDisplayedText(fullMessage.slice(0, charIndex + 1));
         if (charIndex % 3 === 0) {
-          soundEngine.playTypewriterKey();
+          soundEngine?.playTypewriterKey?.();
         }
         charIndex++;
       } else {
         clearInterval(typingInterval);
         setIsTyping(false);
-        soundEngine.playSuccessChime();
+        soundEngine?.playSuccessChime?.();
         refreshCapsules();
       }
     }, 28);
@@ -136,7 +136,7 @@ export default function RansomCapsuleModal({
     }
 
     setIsSealing(true);
-    soundEngine.playClick();
+    soundEngine?.playClick?.();
 
     setTimeout(() => {
       try {
@@ -152,7 +152,7 @@ export default function RansomCapsuleModal({
           streak: activeStreak
         });
 
-        soundEngine.playCapsuleSeal();
+        soundEngine?.playCapsuleSeal?.();
         setIsSealing(false);
         setTitle('');
         setMessageText('');
@@ -165,7 +165,7 @@ export default function RansomCapsuleModal({
         setIsSealing(false);
         setFormError('Failed to encrypt capsule. Please try again.');
       }
-    }, 450);
+    }, 500);
   };
 
   const handleDeleteCapsule = (id, e) => {
