@@ -11,36 +11,19 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
+import { 
+  GUEST_DISCLAIMER_KEY, 
+  GUEST_DISCLAIMER_TTL_MS, 
+  isGuestDisclaimerDismissed, 
+  setGuestDisclaimerDismissed 
+} from '../services/api';
 
-export const GUEST_DISCLAIMER_KEY = 'daily_verdict_guest_disclaimer_dismissed';
-export const GUEST_DISCLAIMER_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-export function isGuestDisclaimerDismissed() {
-  if (typeof window === 'undefined') return false;
-  try {
-    const raw = localStorage.getItem(GUEST_DISCLAIMER_KEY);
-    if (!raw) return false;
-    const timestamp = parseInt(raw, 10);
-    if (!isNaN(timestamp)) {
-      const isStillValid = (Date.now() - timestamp) < GUEST_DISCLAIMER_TTL_MS;
-      if (!isStillValid) {
-        localStorage.removeItem(GUEST_DISCLAIMER_KEY);
-        return false;
-      }
-      return true;
-    }
-    return raw === 'true';
-  } catch (e) {
-    return false;
-  }
-}
-
-export function setGuestDisclaimerDismissed() {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(GUEST_DISCLAIMER_KEY, Date.now().toString());
-  } catch (e) {}
-}
+export { 
+  GUEST_DISCLAIMER_KEY, 
+  GUEST_DISCLAIMER_TTL_MS, 
+  isGuestDisclaimerDismissed, 
+  setGuestDisclaimerDismissed 
+};
 
 export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
   const [isLoggingIn, setIsLoggingIn] = useState(false);

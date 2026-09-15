@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShieldVoltIcon from './ShieldVoltIcon';
 import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
@@ -62,10 +62,11 @@ import confetti from 'canvas-confetti';
 import JourneyTimeline from './JourneyTimeline';
 import StatsWidget from './StatsWidget';
 import SphereIcon from './SphereIcon';
-import AutoExpandTextarea from './AutoExpandTextarea';
-import RansomCapsuleModal from './RansomCapsuleModal';
-import AutopsyChamberModal, { AutopsyBadge } from './AutopsyChamberModal';
-import ReceiptOfTruthModal from './ReceiptOfTruthModal';
+import { AutopsyBadge } from './AutopsyBadge';
+
+const RansomCapsuleModal = lazy(() => import('./RansomCapsuleModal'));
+const AutopsyChamberModal = lazy(() => import('./AutopsyChamberModal'));
+const ReceiptOfTruthModal = lazy(() => import('./ReceiptOfTruthModal'));
 import NonNegotiableCard, { isNonNegotiablesActive, getNonNegotiablesMode } from './NonNegotiableCard';
 import { soundEngine } from '../services/soundEngine';
 
@@ -1915,41 +1916,44 @@ export default function MobileAppView({
         </button>
       </nav>
 
-      {/* 🩸 Down-Bad Ransom Capsule Capture Modal */}
-      {isCapsuleModalOpen && (
-        <RansomCapsuleModal
-          isOpen={isCapsuleModalOpen}
-          onClose={() => setIsCapsuleModalOpen(false)}
-          mode="capture"
-          activeDate={todayStr}
-          activeStreak={dayCount}
-          onCapsuleSaved={() => soundEngine.playSuccessChime()}
-        />
-      )}
+      {/* Lazy-loaded Modals wrapped in Suspense */}
+      <Suspense fallback={null}>
+        {/* 🩸 Down-Bad Ransom Capsule Capture Modal */}
+        {isCapsuleModalOpen && (
+          <RansomCapsuleModal
+            isOpen={isCapsuleModalOpen}
+            onClose={() => setIsCapsuleModalOpen(false)}
+            mode="capture"
+            activeDate={todayStr}
+            activeStreak={dayCount}
+            onCapsuleSaved={() => soundEngine.playSuccessChime()}
+          />
+        )}
 
-      {/* 📉 The Autopsy Chamber Interrogator Modal */}
-      {isAutopsyModalOpen && (
-        <AutopsyChamberModal
-          isOpen={isAutopsyModalOpen}
-          onClose={() => setIsAutopsyModalOpen(false)}
-          entryDate={todayStr}
-          rating={selectedRating || entries?.[todayStr]?.rating || 1}
-          existingAutopsy={entries?.[todayStr]?.autopsy || null}
-          onSaveAutopsy={handleSaveAutopsyMobile}
-        />
-      )}
+        {/* 📉 The Autopsy Chamber Interrogator Modal */}
+        {isAutopsyModalOpen && (
+          <AutopsyChamberModal
+            isOpen={isAutopsyModalOpen}
+            onClose={() => setIsAutopsyModalOpen(false)}
+            entryDate={todayStr}
+            rating={selectedRating || entries?.[todayStr]?.rating || 1}
+            existingAutopsy={entries?.[todayStr]?.autopsy || null}
+            onSaveAutopsy={handleSaveAutopsyMobile}
+          />
+        )}
 
-      {/* 🧾 The Receipt of Truth Thermal Slip Modal */}
-      {isReceiptModalOpen && (
-        <ReceiptOfTruthModal
-          isOpen={isReceiptModalOpen}
-          onClose={() => setIsReceiptModalOpen(false)}
-          entry={entries?.[todayStr] || null}
-          dateStr={todayStr}
-          dayCount={dayCount}
-          entries={entries}
-        />
-      )}
+        {/* 🧾 The Receipt of Truth Thermal Slip Modal */}
+        {isReceiptModalOpen && (
+          <ReceiptOfTruthModal
+            isOpen={isReceiptModalOpen}
+            onClose={() => setIsReceiptModalOpen(false)}
+            entry={entries?.[todayStr] || null}
+            dateStr={todayStr}
+            dayCount={dayCount}
+            entries={entries}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

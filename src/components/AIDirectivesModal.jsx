@@ -13,16 +13,24 @@ export const DIRECTIVES = [
     color: '#FDC800'
   },
   {
+    id: 'stoic_dossier',
+    name: 'Tactical Stoic Dossier',
+    shortDesc: 'Articulate 1st-person stoic prose; converts friction & struggles into cold, powerful journal entries',
+    instruction: 'Paraphrase and elevate raw journal notes into deeply articulate, powerful 1st-person stoic prose. Strip away all conversational filler (like "you know", "basically", "what the fuck"). Maintain unfiltered honesty about struggles, operational bottlenecks, resource constraints, and domestic friction with brutal honesty and cold ownership without self-pity. Frame all challenges with stoic resolve and tactical clarity while preserving every single real-life fact, name, emotion, and event.',
+    icon: ShieldCheck,
+    color: '#00E599'
+  },
+  {
     id: 'root_causes',
     name: 'Root Causes',
     shortDesc: 'Dissect the core behavioral friction or peak flow catalysts behind your day',
     instruction: 'Analyze and highlight the root causes of friction or success today, extracting key behavioral takeaways',
     icon: Target,
-    color: '#00E599'
+    color: '#3B82F6'
   },
   {
     id: 'stoic',
-    name: 'Stoic Grit',
+    name: 'Battlefield Grit',
     shortDesc: 'Reframes your day through emotional calm, discipline, and battlefield grit',
     instruction: 'Write through a stoic, resilient lens emphasizing emotional mastery, calm discipline, and tactical battlefield focus',
     icon: ShieldCheck,

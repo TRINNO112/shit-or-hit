@@ -19,7 +19,10 @@ export default defineConfig({
     baseURL: 'http://localhost:5178',
     trace: 'on-first-retry',
     headless: true,
-    viewport: { width: 1600, height: 900 }
+    viewport: { width: 1600, height: 900 },
+    extraHTTPHeaders: {
+      'x-test-sandbox': 'true'
+    }
   },
   projects: [
     {
@@ -32,7 +35,11 @@ export default defineConfig({
       command: 'node server/index.js',
       port: 5001,
       timeout: 30000,
-      reuseExistingServer: true
+      reuseExistingServer: true,
+      env: {
+        NODE_ENV: 'test',
+        IS_PLAYWRIGHT: 'true'
+      }
     },
     {
       command: 'npx vite --port 5178 --strictPort',

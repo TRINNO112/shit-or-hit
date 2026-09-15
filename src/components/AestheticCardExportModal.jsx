@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Smartphone, Share2, Sparkles, X, Check, Image as ImageIcon, Flame, Zap, Palette, Upload, Calendar, ChevronLeft, ChevronRight, Layers, RotateCcw, Printer } from 'lucide-react';
 import { ratingMeta, getStickerVault, getActiveStickerId, isReceiptOfTruthEnabled } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
-import StickerVaultModal from './StickerVaultModal';
-import ReceiptOfTruthModal from './ReceiptOfTruthModal';
+
+const StickerVaultModal = lazy(() => import('./StickerVaultModal'));
+const ReceiptOfTruthModal = lazy(() => import('./ReceiptOfTruthModal'));
 
 // Direct ES6 Module Imports for 100% Guaranteed Asset Resolution
 import mascot1 from '../assets/mascots/mascot_1_rough.webp';
@@ -1117,36 +1118,37 @@ export default function AestheticCardExportModal({
         </AnimatePresence>
       )}
 
-      {/* Embedded Sticker Vault Modal */}
-      {showStickerVault && (
-        <StickerVaultModal
-          isOpen={showStickerVault}
-          onClose={() => setShowStickerVault(false)}
-          onSelectSticker={(stickerObj) => {
-            if (!stickerObj) {
-              setCustomMascotImg(null);
-            } else if (stickerObj.dataUrl || stickerObj.src) {
-              const img = new Image();
-              img.onload = () => setCustomMascotImg(img);
-              img.src = stickerObj.dataUrl || stickerObj.src;
-            }
-            setShowStickerVault(false);
-          }}
-        />
-      )}
+      <Suspense fallback={null}>
+        {/* Embedded Sticker Vault Modal */}
+        {showStickerVault && (
+          <StickerVaultModal
+            isOpen={showStickerVault}
+            onClose={() => setShowStickerVault(false)}
+            onSelectSticker={(stickerObj) => {
+              if (stickerObj) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => setCustomMascotImg(img);
+                img.src = stickerObj.dataUrl || stickerObj.src;
+              }
+              setShowStickerVault(false);
+            }}
+          />
+        )}
 
-      {/* Embedded Receipt of Truth Modal */}
-      {showReceiptModal && (
-        <ReceiptOfTruthModal
-          isOpen={showReceiptModal}
-          onClose={() => setShowReceiptModal(false)}
-          entry={entry || entries[selectedDateStr] || null}
-          dateStr={selectedDateStr}
-          dayCount={activeDayCount}
-          entries={entries}
-          displayName={displayName}
-        />
-      )}
+        {/* Embedded Receipt of Truth Modal */}
+        {showReceiptModal && (
+          <ReceiptOfTruthModal
+            isOpen={showReceiptModal}
+            onClose={() => setShowReceiptModal(false)}
+            entry={entry || entries[selectedDateStr] || null}
+            dateStr={selectedDateStr}
+            dayCount={activeDayCount}
+            entries={entries}
+            displayName={displayName}
+          />
+        )}
+      </Suspense>
     </>
   );
 }

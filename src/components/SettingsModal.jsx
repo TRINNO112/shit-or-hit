@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Settings, 
@@ -50,7 +50,7 @@ import { isNonNegotiablesActive } from './NonNegotiableCard';
 import { isBannerEnabled, setBannerEnabled } from './MoodReactionBanner';
 import NonNegotiablesStudioModal from './NonNegotiablesStudioModal';
 import AIDirectivesModal from './AIDirectivesModal';
-import RansomCapsuleModal from './RansomCapsuleModal';
+const RansomCapsuleModal = lazy(() => import('./RansomCapsuleModal'));
 import {
   isSphereModeEnabled,
   setSphereModeEnabled,
@@ -771,7 +771,7 @@ export default function SettingsModal({
                         AI Ghostwriter & Directives
                       </h4>
                       <span className="px-1.5 py-0.5 rounded border border-black bg-neutral-100 text-[9px] font-mono font-black uppercase">
-                        {localStorage.getItem('daily_verdict_default_directive') === 'root_causes' ? 'Root Causes' : localStorage.getItem('daily_verdict_default_directive') === 'stoic' ? 'Stoic Grit' : localStorage.getItem('daily_verdict_default_directive') === 'bullets' ? 'Action Bullets' : localStorage.getItem('daily_verdict_default_directive') === 'custom' ? 'Custom' : 'Auto Polish'}
+                        {localStorage.getItem('daily_verdict_default_directive') === 'stoic_dossier' ? 'Tactical Stoic' : localStorage.getItem('daily_verdict_default_directive') === 'root_causes' ? 'Root Causes' : localStorage.getItem('daily_verdict_default_directive') === 'stoic' ? 'Battlefield Grit' : localStorage.getItem('daily_verdict_default_directive') === 'bullets' ? 'Action Bullets' : localStorage.getItem('daily_verdict_default_directive') === 'custom' ? 'Custom' : 'Auto Polish'}
                       </span>
                     </div>
                     <p className="text-[11px] font-mono text-neutral-600 truncate">
@@ -1286,13 +1286,15 @@ export default function SettingsModal({
       />
 
       {/* Ransom Capsule Vault Management Modal */}
-      {isCapsuleVaultOpen && (
-        <RansomCapsuleModal
-          isOpen={isCapsuleVaultOpen}
-          onClose={() => setIsCapsuleVaultOpen(false)}
-          mode="manage"
-        />
-      )}
+      <Suspense fallback={null}>
+        {isCapsuleVaultOpen && (
+          <RansomCapsuleModal
+            isOpen={isCapsuleVaultOpen}
+            onClose={() => setIsCapsuleVaultOpen(false)}
+            mode="manage"
+          />
+        )}
+      </Suspense>
     </>
   );
 }

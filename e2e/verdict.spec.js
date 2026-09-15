@@ -1,30 +1,54 @@
 import { test, expect } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'entries.json');
 
 test.describe('Daily Verdict & Reflection E2E Flow', () => {
-  let originalDbBackup = null;
-
-  test.beforeAll(() => {
-    try {
-      if (fs.existsSync(DATA_FILE)) {
-        originalDbBackup = fs.readFileSync(DATA_FILE, 'utf-8');
-      }
-    } catch (e) {}
-  });
-
-  test.afterAll(() => {
-    try {
-      if (originalDbBackup && fs.existsSync(DATA_FILE)) {
-        fs.writeFileSync(DATA_FILE, originalDbBackup, 'utf-8');
-      }
-    } catch (e) {}
-  });
-
   test.beforeEach(async ({ page }) => {
-    // Sandbox Data Isolation: Inject isolated test data before load
+    // 🛡️ AIR-GAP BARRIER 1: Intercept all backend API calls in-memory so no disk writes can EVER occur
+    await page.route('**/api/entries', async (route) => {
+      if (route.request().method() === 'POST') {
+        const body = JSON.parse(route.request().postData() || '{}');
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            entry: {
+              ...body,
+              updatedAt: new Date().toISOString(),
+              createdAt: new Date().toISOString()
+            }
+          })
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            startDate: '2026-09-01',
+            data: {
+              '2026-09-01': { date: '2026-09-01', rating: 4, verdict: 'Good', notes: 'Sandbox test day' }
+            },
+            total: 1
+          })
+        });
+      }
+    });
+
+    await page.route('**/api/database', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          version: '1.0',
+          startDate: '2026-09-01',
+          entries: {
+            '2026-09-01': { date: '2026-09-01', rating: 4, verdict: 'Good', notes: 'Sandbox test day' }
+          }
+        })
+      });
+    });
+
+    // 🛡️ AIR-GAP BARRIER 2: Sandbox LocalStorage Isolation
     await page.addInitScript(() => {
       const sandboxEntries = {
         '2026-09-01': { date: '2026-09-01', rating: 4, verdict: 'Good', notes: 'Initial baseline day' }
@@ -35,13 +59,13 @@ test.describe('Daily Verdict & Reflection E2E Flow', () => {
         entries: sandboxEntries
       }));
       window.localStorage.setItem('shit_or_hit_entries_v2_local', JSON.stringify(sandboxEntries));
-      // Disable auto-lock during tests
+      // Disable auto-lock and disclaimers during tests
       window.localStorage.setItem('daily_verdict_vault_auto_lock_minutes', '-1');
       window.localStorage.setItem('daily_verdict_guest_disclaimer_dismissed', 'true');
     });
   });
 
-  test('submits daily 4-star verdict rating and saves journal reflection', async ({ page }) => {
+  test('submits daily 4-star verdict rating and saves journal reflection without touching real database', async ({ page }) => {
     await page.goto('/');
 
     // Wait for the app header to be visible

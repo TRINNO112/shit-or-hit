@@ -85,9 +85,46 @@ if (!fs.existsSync(REPORTS_FILE)) {
   fs.writeFileSync(REPORTS_FILE, JSON.stringify({}, null, 2), 'utf-8');
 }
 
-function readDatabase() {
+function isTestSandbox(req) {
+  return (
+    process.env.IS_PLAYWRIGHT === 'true' ||
+    process.env.NODE_ENV === 'test' ||
+    req?.headers?.['x-test-sandbox'] === 'true' ||
+    req?.headers?.['playwright'] === 'true'
+  );
+}
+
+function getDataFilePath(req) {
+  if (isTestSandbox(req)) {
+    const sandboxPath = path.join(DATA_DIR, 'test_sandbox_entries.json');
+    if (!fs.existsSync(sandboxPath)) {
+      fs.writeFileSync(sandboxPath, JSON.stringify({
+        version: '1.0',
+        startDate: getTodayString(),
+        lastUpdated: new Date().toISOString(),
+        entries: {}
+      }, null, 2), 'utf-8');
+    }
+    return sandboxPath;
+  }
+  return DATA_FILE;
+}
+
+function getReportsFilePath(req) {
+  if (isTestSandbox(req)) {
+    const sandboxPath = path.join(DATA_DIR, 'test_sandbox_reports.json');
+    if (!fs.existsSync(sandboxPath)) {
+      fs.writeFileSync(sandboxPath, JSON.stringify({}, null, 2), 'utf-8');
+    }
+    return sandboxPath;
+  }
+  return REPORTS_FILE;
+}
+
+function readDatabase(req) {
+  const targetFile = getDataFilePath(req);
   try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+    const raw = fs.readFileSync(targetFile, 'utf-8');
     const data = JSON.parse(raw);
     if (!data.startDate) {
       data.startDate = getTodayString();
@@ -99,17 +136,19 @@ function readDatabase() {
   }
 }
 
-function writeDatabase(data) {
+function writeDatabase(data, req) {
+  const targetFile = getDataFilePath(req);
   data.lastUpdated = new Date().toISOString();
-  const tempPath = `${DATA_FILE}.tmp`;
+  const tempPath = `${targetFile}.tmp`;
   fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
-  fs.renameSync(tempPath, DATA_FILE);
+  fs.renameSync(tempPath, targetFile);
 }
 
-function readReports() {
+function readReports(req) {
+  const targetFile = getReportsFilePath(req);
   try {
-    if (!fs.existsSync(REPORTS_FILE)) return {};
-    const raw = fs.readFileSync(REPORTS_FILE, 'utf-8');
+    if (!fs.existsSync(targetFile)) return {};
+    const raw = fs.readFileSync(targetFile, 'utf-8');
     return JSON.parse(raw);
   } catch (err) {
     console.error('Error reading reports file:', err);
@@ -117,11 +156,12 @@ function readReports() {
   }
 }
 
-function writeReports(reports) {
+function writeReports(reports, req) {
+  const targetFile = getReportsFilePath(req);
   try {
-    const tempPath = `${REPORTS_FILE}.tmp`;
+    const tempPath = `${targetFile}.tmp`;
     fs.writeFileSync(tempPath, JSON.stringify(reports, null, 2), 'utf-8');
-    fs.renameSync(tempPath, REPORTS_FILE);
+    fs.renameSync(tempPath, targetFile);
   } catch (err) {
     console.error('Error writing reports file:', err);
   }
@@ -214,7 +254,7 @@ app.post(['/.netlify/functions/decrypt-mediator', '/api/decrypt-mediator'], asyn
 
 // Get all entries + metadata
 app.get('/api/entries', (req, res) => {
-  const db = readDatabase();
+  const db = readDatabase(req);
   res.json({
     success: true,
     startDate: db.startDate || getTodayString(),
@@ -232,7 +272,7 @@ app.post('/api/entries', validateBody(entrySchema), (req, res) => {
     return res.status(400).json({ success: false, error: 'Date and rating are required' });
   }
 
-  const db = readDatabase();
+  const db = readDatabase(req);
   if (!db.entries) db.entries = {};
   if (!db.startDate) db.startDate = date;
 
@@ -250,7 +290,7 @@ app.post('/api/entries', validateBody(entrySchema), (req, res) => {
     createdAt: existing.createdAt || new Date().toISOString()
   };
 
-  writeDatabase(db);
+  writeDatabase(db, req);
 
   res.json({
     success: true,

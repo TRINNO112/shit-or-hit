@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   AlertCircle, 
@@ -21,7 +21,10 @@ import {
   HelpCircle,
   BookOpen,
   Printer,
-  AlertOctagon
+  AlertOctagon,
+  Layers,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -31,20 +34,24 @@ import {
   calculateCompositeScore,
   isRansomCapsuleEnabled,
   isAutopsyChamberEnabled,
-  isReceiptOfTruthEnabled
+  isReceiptOfTruthEnabled,
+  getActiveSealedCapsule,
+  checkCapsuleUnlockConditions,
+  calculateStreak
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
 import confetti from 'canvas-confetti';
-import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import SphereIcon from './SphereIcon';
 import AutoExpandTextarea from './AutoExpandTextarea';
 import NonNegotiableCard, { isNonNegotiablesActive, getNonNegotiablesMode } from './NonNegotiableCard';
 import { soundEngine } from '../services/soundEngine';
 import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
-import RansomCapsuleModal from './RansomCapsuleModal';
-import AutopsyChamberModal, { AutopsyBadge } from './AutopsyChamberModal';
-import ReceiptOfTruthModal from './ReceiptOfTruthModal';
+import { AutopsyBadge } from './AutopsyBadge';
+
+const RansomCapsuleModal = lazy(() => import('./RansomCapsuleModal'));
+const AutopsyChamberModal = lazy(() => import('./AutopsyChamberModal'));
+const ReceiptOfTruthModal = lazy(() => import('./ReceiptOfTruthModal'));
 
 const IconMap = {
   AlertCircle,
@@ -930,42 +937,45 @@ export default function TodayHero({
         )}
       </AnimatePresence>
 
-      {/* 🩸 Down-Bad Ransom Capsule Capture Modal */}
-      {isCapsuleModalOpen && (
-        <RansomCapsuleModal
-          isOpen={isCapsuleModalOpen}
-          onClose={() => setIsCapsuleModalOpen(false)}
-          mode="capture"
-          activeDate={todayStr}
-          activeStreak={dayCount}
-          onCapsuleSaved={() => {
-            soundEngine.playSuccessChime();
-          }}
-        />
-      )}
+      {/* Lazy Loaded Heavy Modals wrapped in Suspense */}
+      <Suspense fallback={null}>
+        {/* 🩸 Down-Bad Ransom Capsule Capture Modal */}
+        {isCapsuleModalOpen && (
+          <RansomCapsuleModal
+            isOpen={isCapsuleModalOpen}
+            onClose={() => setIsCapsuleModalOpen(false)}
+            mode="capture"
+            activeDate={todayStr}
+            activeStreak={dayCount}
+            onCapsuleSaved={() => {
+              soundEngine.playSuccessChime();
+            }}
+          />
+        )}
 
-      {/* 📉 The Autopsy Chamber Interrogator Modal */}
-      {isAutopsyModalOpen && (
-        <AutopsyChamberModal
-          isOpen={isAutopsyModalOpen}
-          onClose={() => setIsAutopsyModalOpen(false)}
-          entryDate={todayStr}
-          rating={selectedRating || activeEntry?.rating || 1}
-          existingAutopsy={activeEntry?.autopsy || null}
-          onSaveAutopsy={handleSaveAutopsy}
-        />
-      )}
+        {/* 📉 The Autopsy Chamber Interrogator Modal */}
+        {isAutopsyModalOpen && (
+          <AutopsyChamberModal
+            isOpen={isAutopsyModalOpen}
+            onClose={() => setIsAutopsyModalOpen(false)}
+            entryDate={todayStr}
+            rating={selectedRating || activeEntry?.rating || 1}
+            existingAutopsy={activeEntry?.autopsy || null}
+            onSaveAutopsy={handleSaveAutopsy}
+          />
+        )}
 
-      {/* 🧾 The Receipt of Truth Thermal Generator Modal */}
-      {isReceiptModalOpen && (
-        <ReceiptOfTruthModal
-          isOpen={isReceiptModalOpen}
-          onClose={() => setIsReceiptModalOpen(false)}
-          entry={activeEntry}
-          dateStr={todayStr}
-          dayCount={dayCount}
-        />
-      )}
+        {/* 🧾 The Receipt of Truth Thermal Generator Modal */}
+        {isReceiptModalOpen && (
+          <ReceiptOfTruthModal
+            isOpen={isReceiptModalOpen}
+            onClose={() => setIsReceiptModalOpen(false)}
+            entry={activeEntry}
+            dateStr={todayStr}
+            dayCount={dayCount}
+          />
+        )}
+      </Suspense>
     </motion.div>
   );
 }

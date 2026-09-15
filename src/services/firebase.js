@@ -520,3 +520,94 @@ export async function fetchCloudUserSettings(userId) {
     return null;
   }
 }
+
+/**
+ * ☁️ First-Class Time & Mood Capsule Cloud Persistence
+ * Persists encrypted capsules to Firebase Firestore with dual redundancy:
+ * in users/{userId}/capsules/all and users/{userId}/settings/config.
+ */
+export async function saveCloudCapsules(userId, capsules = []) {
+  if (!userId || !Array.isArray(capsules)) return;
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return;
+  try {
+    const sanitizedCapsules = capsules.map(cap => cleanFirestorePayload(cap));
+    const payload = {
+      capsules: sanitizedCapsules,
+      count: sanitizedCapsules.length,
+      updatedAt: new Date().toISOString()
+    };
+    
+    // 1. Dedicated capsules collection document
+    const capsuleDocRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'capsules', 'all');
+    await fb.firestoreMod.setDoc(capsuleDocRef, payload, { merge: true });
+
+    // 2. Settings mirror for backwards compatibility
+    const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
+    await fb.firestoreMod.setDoc(settingsRef, { encryptedCapsules: sanitizedCapsules, updatedAt: new Date().toISOString() }, { merge: true });
+    
+    console.log(`✅ [Firestore] ${capsules.length} time capsules persisted to cloud vault for ${userId}!`);
+  } catch (err) {
+    console.warn(`Firestore capsule cloud save warning:`, err.message);
+  }
+}
+
+/**
+ * ☁️ Fetch Time & Mood Capsules from Firebase Cloud
+ * Reads from users/{userId}/capsules/all, with fallback to settings/config and legacy raw UIDs.
+ */
+export async function fetchCloudCapsules(userId) {
+  if (!userId) return [];
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return [];
+  try {
+    // 1. Primary: dedicated collection
+    const capsuleDocRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'capsules', 'all');
+    const snap = await fb.firestoreMod.getDoc(capsuleDocRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      if (Array.isArray(data?.capsules) && data.capsules.length > 0) {
+        console.log(`✅ [Firestore] Loaded ${data.capsules.length} capsules from cloud vault.`);
+        return data.capsules;
+      }
+    }
+
+    // 2. Fallback: settings/config mirror
+    const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
+    const settingsSnap = await fb.firestoreMod.getDoc(settingsRef);
+    if (settingsSnap.exists()) {
+      const data = settingsSnap.data();
+      if (Array.isArray(data?.encryptedCapsules) && data.encryptedCapsules.length > 0) {
+        console.log(`✅ [Firestore] Loaded ${data.encryptedCapsules.length} capsules from cloud settings mirror.`);
+        return data.encryptedCapsules;
+      }
+    }
+
+    // 3. Fallback: legacy raw UID
+    if (userId.startsWith('user_')) {
+      const legacyRawUid = userId.slice(5);
+      const legacyDocRef = fb.firestoreMod.doc(fb.db, 'users', legacyRawUid, 'capsules', 'all');
+      const legSnap = await fb.firestoreMod.getDoc(legacyDocRef);
+      if (legSnap.exists()) {
+        const legData = legSnap.data();
+        if (Array.isArray(legData?.capsules)) {
+          return legData.capsules;
+        }
+      }
+      const legacySettingsRef = fb.firestoreMod.doc(fb.db, 'users', legacyRawUid, 'settings', 'config');
+      const legSetSnap = await fb.firestoreMod.getDoc(legacySettingsRef);
+      if (legSetSnap.exists()) {
+        const legData = legSetSnap.data();
+        if (Array.isArray(legData?.encryptedCapsules)) {
+          return legData.encryptedCapsules;
+        }
+      }
+    }
+
+    return [];
+  } catch (err) {
+    console.warn(`Firestore capsule fetch warning:`, err.message);
+    return [];
+  }
+}
+

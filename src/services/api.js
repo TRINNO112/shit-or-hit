@@ -7,7 +7,9 @@ import {
   batchSaveCloudEntries,
   saveCloudReport, 
   fetchCloudReport, 
-  isEmailWhitelisted 
+  isEmailWhitelisted,
+  saveCloudCapsules,
+  fetchCloudCapsules 
 } from './firebase';
 import { encryptCapsuleMessage, decryptCapsuleMessage } from './cipherEngine';
 
@@ -152,6 +154,61 @@ export const isStaticHost = typeof window !== 'undefined' && (
   window.location.protocol === 'file:'
 );
 
+/**
+ * 🛡️ RECONCILIATION ENGINE
+ * Resolves conflicts between two entry records with an absolute guarantee:
+ * An entry with reflection notes CAN NEVER be erased by an entry with blank notes,
+ * regardless of timestamps.
+ */
+function reconcileEntryItems(baseItem, candidateItem) {
+  if (!baseItem) return candidateItem;
+  if (!candidateItem) return baseItem;
+
+  const baseNotes = (baseItem.notes || '').trim();
+  const candNotes = (candidateItem.notes || '').trim();
+
+  // Rule 1: Base has rich notes, candidate has blank notes -> NEVER wipe base notes!
+  if (baseNotes && !candNotes) {
+    const baseRating = Number(baseItem.rating);
+    const candRating = Number(candidateItem.rating);
+    return {
+      ...candidateItem,
+      notes: baseItem.notes, // Absolute note protection
+      rating: (candRating === 3 && baseRating !== 3) ? baseRating : (candidateItem.rating ?? baseItem.rating),
+      verdict: (candRating === 3 && baseRating !== 3) ? baseItem.verdict : (candidateItem.verdict ?? baseItem.verdict),
+      spheres: candidateItem.spheres || baseItem.spheres
+    };
+  }
+
+  // Rule 2: Base has blank notes, candidate has rich notes -> candidate has authentic new notes
+  if (!baseNotes && candNotes) {
+    return candidateItem;
+  }
+
+  // Rule 3: Both have notes -> timestamp determines the winner (server data/entries.json is authoritative)
+  if (baseNotes && candNotes) {
+    const baseTime = new Date(baseItem.updatedAt || baseItem.createdAt || 0).getTime();
+    const candTime = new Date(candidateItem.updatedAt || candidateItem.createdAt || 0).getTime();
+    if (baseTime >= candTime) {
+      return baseItem;
+    }
+    return candidateItem;
+  }
+
+  // Rule 4: Neither has notes:
+  // If base has an explicit non-default rating (like Sep 13 with rating 4 Good),
+  // and candidate was demoted to rating 3 (default/unrated) -> keep base rating!
+  const baseRating = Number(baseItem.rating);
+  const candRating = Number(candidateItem.rating);
+  if (baseRating && baseRating !== 3 && candRating === 3) {
+    return baseItem;
+  }
+
+  const baseTime = new Date(baseItem.updatedAt || baseItem.createdAt || 0).getTime();
+  const candTime = new Date(candidateItem.updatedAt || candidateItem.createdAt || 0).getTime();
+  return candTime > baseTime ? candidateItem : baseItem;
+}
+
 export function getDbStorageKey(userId) {
   if (!userId) return 'goodness_db_guest';
   if (typeof userId === 'object') {
@@ -165,21 +222,24 @@ export async function fetchDatabase(userOverride = null) {
   const effectiveId = getEffectiveUserId(currentUser);
   const storageKey = getDbStorageKey(effectiveId);
 
-  // 1. First fetch local data from server API (if local dev) or user-scoped localStorage
+  // 1. First fetch authoritative data from server API (data/entries.json)
   let localData = { startDate: new Date().toISOString().slice(0, 10), entries: {} };
+  let serverData = null;
 
   if (!isStaticHost) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 600);
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
       const res = await fetch(`${API_BASE}/entries`, { signal: controller.signal });
       clearTimeout(timeoutId);
       if (res.ok) {
         const json = await res.json();
-        localData = {
-          startDate: json.startDate || new Date().toISOString().slice(0, 10),
-          entries: json.data || {}
-        };
+        if (json.data && Object.keys(json.data).length > 0) {
+          serverData = {
+            startDate: json.startDate || new Date().toISOString().slice(0, 10),
+            entries: json.data || {}
+          };
+        }
       }
     } catch (e) {
       // Local server not running or timed out
@@ -197,41 +257,73 @@ export async function fetchDatabase(userOverride = null) {
     }
   }
 
+  let cachedData = null;
   if (cached) {
     try { 
       const parsed = JSON.parse(cached);
       if (parsed && parsed.entries && Object.keys(parsed.entries).length > 0) {
-        localData = parsed;
+        cachedData = parsed;
       }
     } catch (err) {}
   }
 
-  // 2. If user is logged in with whitelisted Firebase account, sync with Firestore
+  // 🛡️ RECONCILIATION: Server data (data/entries.json) is the ground truth
+  if (serverData && serverData.entries) {
+    localData = { ...serverData };
+    // Merge client-side cached entries through content-protection shield
+    if (cachedData && cachedData.entries) {
+      Object.entries(cachedData.entries).forEach(([dKey, cItem]) => {
+        const sItem = localData.entries[dKey];
+        localData.entries[dKey] = reconcileEntryItems(sItem, cItem);
+      });
+    }
+  } else if (cachedData && cachedData.entries) {
+    localData = cachedData;
+  }
+
+  // Persist clean merged ground truth to user storageKey and mirror immediately
+  localStorage.setItem(storageKey, JSON.stringify(localData));
+  localStorage.setItem('goodness_db', JSON.stringify(localData));
+
+  // 2. If user is logged in with whitelisted Firebase account, sync bidirectionally with Firestore
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
       const cloudEntries = await fetchCloudEntries(effectiveId);
       const cloudCount = Object.keys(cloudEntries).length;
       const localCount = Object.keys(localData.entries || {}).length;
 
-      // If Firestore has data, merge entries using timestamp-aware resolution (newest edit wins)
       if (cloudCount > 0) {
         const mergedEntries = { ...localData.entries };
 
         Object.entries(cloudEntries).forEach(([dateKey, cloudItem]) => {
           const localItem = mergedEntries[dateKey];
-          if (!localItem) {
-            mergedEntries[dateKey] = cloudItem;
-          } else {
-            const localTime = new Date(localItem.updatedAt || localItem.createdAt || 0).getTime();
-            const cloudTime = new Date(cloudItem.updatedAt || cloudItem.createdAt || 0).getTime();
-            // Whichever has higher timestamp wins
-            mergedEntries[dateKey] = cloudTime >= localTime ? cloudItem : localItem;
-          }
+          mergedEntries[dateKey] = reconcileEntryItems(localItem, cloudItem);
         });
 
         const dates = Object.keys(mergedEntries).sort();
         const startDate = dates[0] || localData.startDate;
-        localStorage.setItem(storageKey, JSON.stringify({ startDate, entries: mergedEntries }));
+        const payload = JSON.stringify({ startDate, entries: mergedEntries });
+        localStorage.setItem(storageKey, payload);
+        localStorage.setItem('goodness_db', payload);
+        
+        // Push any healed local entries back to Firestore so cloud stays 100% clean
+        Object.entries(mergedEntries).forEach(([dKey, mItem]) => {
+          const cItem = cloudEntries[dKey];
+          const mNotes = (mItem.notes || '').trim();
+          const cNotes = (cItem?.notes || '').trim();
+          const mRating = Number(mItem.rating);
+          const cRating = Number(cItem?.rating);
+
+          const needsCloudPush = !cItem ||
+            (mNotes && !cNotes) ||
+            (mRating !== cRating && mRating !== 3 && cRating === 3) ||
+            (mItem.updatedAt && mItem.updatedAt > (cItem.updatedAt || ''));
+
+          if (needsCloudPush) {
+            saveCloudEntry(effectiveId, mItem).catch(() => {});
+          }
+        });
+
         return { startDate, entries: mergedEntries };
       } else if (localCount > 0) {
         // Cloud is empty but local has data: auto-populate cloud from local so entries are preserved
@@ -1039,7 +1131,18 @@ export function getRansomCapsules() {
     const raw = localStorage.getItem(RANSOM_CAPSULES_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    
+    // Auto-decrypt any unlocked capsule that lacks plaintext on this client
+    return parsed.map(c => {
+      if (c && c.status === 'unlocked' && !c.decryptedMessage && c.cipher) {
+        return {
+          ...c,
+          decryptedMessage: decryptCapsuleMessage(c.cipher)
+        };
+      }
+      return c;
+    });
   } catch (e) {
     console.error('Failed to parse time capsules:', e);
     return [];
@@ -1083,16 +1186,85 @@ export function calculateStreak(entries = {}) {
 }
 
 // ☁️ Zero-Knowledge Encrypted Cloud Capsule Sync
-export function syncTimeCapsulesToCloud(capsules = []) {
+export async function syncTimeCapsulesToCloud(capsules = []) {
   try {
     const user = getCurrentUser();
     const effectiveId = getEffectiveUserId(user);
     if (effectiveId && effectiveId !== 'guest') {
-      // Zero-knowledge: Send only encrypted ciphertext payloads to Firebase
-      saveCloudUserSettings(effectiveId, { encryptedCapsules: capsules });
+      // Zero-knowledge: Send ciphertext payload to Firebase with dual redundancy
+      await saveCloudCapsules(effectiveId, capsules);
     }
   } catch (e) {
     console.warn('Capsule cloud sync note:', e);
+  }
+}
+
+/**
+ * ☁️ Cross-Device Cloud Hydration & Zero-Knowledge Decryption Engine
+ * Merges capsules from Firebase Firestore into local storage when user logs in on a new device.
+ * Guarantees that any unlocked capsules are immediately readable.
+ */
+export async function hydrateTimeCapsulesFromCloud(user = null) {
+  try {
+    const activeUser = user || getCurrentUser();
+    const effectiveId = getEffectiveUserId(activeUser);
+    if (!effectiveId || effectiveId === 'guest') return getRansomCapsules();
+
+    console.log(`📡 [Cloud Capsules] Fetching cloud capsules for user: ${effectiveId}...`);
+    const cloudCapsules = await fetchCloudCapsules(effectiveId);
+    const localCapsules = getRansomCapsules();
+
+    if (!Array.isArray(cloudCapsules) || cloudCapsules.length === 0) {
+      if (localCapsules.length > 0) {
+        console.log(`📦 [Cloud Capsules] Syncing ${localCapsules.length} existing local capsules to Firebase...`);
+        await saveCloudCapsules(effectiveId, localCapsules);
+      }
+      return localCapsules;
+    }
+
+    const mergedMap = new Map();
+
+    // 1. Ingest cloud capsules and auto-decrypt unlocked ones
+    cloudCapsules.forEach(cap => {
+      if (cap?.id) {
+        let processed = { ...cap };
+        if (processed.status === 'unlocked' && !processed.decryptedMessage && processed.cipher) {
+          processed.decryptedMessage = decryptCapsuleMessage(processed.cipher);
+        }
+        mergedMap.set(cap.id, processed);
+      }
+    });
+
+    // 2. Merge local capsules (preserve any newly captured or locally unsealed letters)
+    localCapsules.forEach(cap => {
+      if (cap?.id) {
+        const existing = mergedMap.get(cap.id);
+        if (!existing) {
+          mergedMap.set(cap.id, cap);
+        } else if (cap.status === 'unlocked' && existing.status !== 'unlocked') {
+          mergedMap.set(cap.id, cap);
+        } else if (cap.status === 'unlocked' && !existing.decryptedMessage && (cap.decryptedMessage || cap.cipher)) {
+          mergedMap.set(cap.id, {
+            ...existing,
+            ...cap,
+            decryptedMessage: cap.decryptedMessage || decryptCapsuleMessage(cap.cipher)
+          });
+        }
+      }
+    });
+
+    const merged = Array.from(mergedMap.values());
+    merged.sort((a, b) => new Date(b.createdAt || b.createdDate || 0) - new Date(a.createdAt || a.createdDate || 0));
+
+    localStorage.setItem(RANSOM_CAPSULES_STORAGE_KEY, JSON.stringify(merged));
+    console.log(`🎉 [Cloud Capsules SUCCESS] Loaded and merged ${merged.length} capsules from cloud!`);
+
+    // Keep cloud updated with the complete union
+    await saveCloudCapsules(effectiveId, merged);
+    return merged;
+  } catch (err) {
+    console.warn('Capsule cloud hydration warning:', err);
+    return getRansomCapsules();
   }
 }
 
@@ -1259,6 +1431,37 @@ export function setReceiptOfTruthEnabled(enabled) {
     if (user?.uid) {
       saveCloudUserSettings(user.uid, { enableReceiptOfTruth: enabled });
     }
+  } catch (e) {}
+}
+
+// 4. Guest Disclaimer State
+export const GUEST_DISCLAIMER_KEY = 'daily_verdict_guest_disclaimer_dismissed';
+export const GUEST_DISCLAIMER_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+export function isGuestDisclaimerDismissed() {
+  if (typeof window === 'undefined') return false;
+  try {
+    const raw = localStorage.getItem(GUEST_DISCLAIMER_KEY);
+    if (!raw) return false;
+    const timestamp = parseInt(raw, 10);
+    if (!isNaN(timestamp)) {
+      const isStillValid = (Date.now() - timestamp) < GUEST_DISCLAIMER_TTL_MS;
+      if (!isStillValid) {
+        localStorage.removeItem(GUEST_DISCLAIMER_KEY);
+        return false;
+      }
+      return true;
+    }
+    return raw === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+export function setGuestDisclaimerDismissed() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(GUEST_DISCLAIMER_KEY, Date.now().toString());
   } catch (e) {}
 }
 

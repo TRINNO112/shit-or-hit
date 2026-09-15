@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, startTransition } from 'react';
 import * as Sentry from '@sentry/react';
-import { Zap, Calendar } from 'lucide-react';
+import { Zap, Calendar, FlaskConical } from 'lucide-react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
@@ -9,6 +9,7 @@ import MobileAppView from './components/MobileAppView';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import SkeletonLoader from './components/SkeletonLoader';
 import { VaultLockGatekeeper, isVaultPinActive } from './components/VaultPinModal';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // ⚡ React.lazy Code Splitting for Heavy Modals & Sub-Views
 const CalendarModal = lazy(() => import('./components/CalendarModal'));
@@ -24,12 +25,13 @@ const NotFound404 = lazy(() => import('./components/NotFound404'));
 const GuestDisclaimerModal = lazy(() => import('./components/GuestDisclaimerModal'));
 const RansomCapsuleModal = lazy(() => import('./components/RansomCapsuleModal'));
 const ReceiptOfTruthModal = lazy(() => import('./components/ReceiptOfTruthModal'));
-import { isGuestDisclaimerDismissed } from './components/GuestDisclaimerModal';
+const AutopsyChamberModal = lazy(() => import('./components/AutopsyChamberModal'));
+const BehavioralLabModal = lazy(() => import('./components/BehavioralLabModal'));
 import { soundEngine } from './services/soundEngine';
-import { 
-  fetchDatabase, 
-  saveEntry, 
-  ratingMeta, 
+import {
+  fetchDatabase,
+  saveEntry,
+  ratingMeta,
   getDbStorageKey,
   isRansomCapsuleEnabled,
   getRansomCapsuleSensitivity,
@@ -37,53 +39,20 @@ import {
   isReceiptOfTruthEnabled,
   checkCapsuleUnlockConditions,
   calculateStreak,
-  getRansomCapsules
+  getRansomCapsules,
+  hydrateTimeCapsulesFromCloud,
+  isGuestDisclaimerDismissed
 } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser, loginWithGoogle } from './services/firebase';
 import { decryptVaultPin, hashPinWithSalt } from './services/cipherEngine';
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
+// Simulated crash test harness for ErrorBoundary verification
+function SimulatedCrashTrigger({ shouldCrash }) {
+  if (shouldCrash) {
+    throw new Error("Simulated Reactor Core Trip: High-temperature entropy spike detected in V8 execution pipeline!");
   }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  componentDidCatch(error, info) {
-    console.warn('ErrorBoundary captured non-fatal view load notice:', error, info);
-    try {
-      if (Sentry?.captureException) {
-        Sentry.captureException(error, { extra: info });
-      }
-    } catch (e) {}
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen bg-[#FFFDF5] flex flex-col items-center justify-center p-4 text-center">
-          <div className="max-w-md w-full bg-white border-3 border-black p-6 rounded-2xl shadow-[6px_6px_0px_#000000] space-y-4">
-            <h2 className="font-display font-black text-xl uppercase text-red-600">
-              SOMETHING BROKE IN VIEW LAYER
-            </h2>
-            <p className="font-mono text-xs text-neutral-600">
-              A view component failed to render gracefully. Your local diary and vault data remain 100% safe.
-            </p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="w-full py-3 bg-[#FDC800] border-2 border-black rounded-xl font-display font-black text-sm uppercase shadow-[3px_3px_0px_#000000] active:scale-95 cursor-pointer"
-            >
-              RELOAD WORKSPACE
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
+  return null;
 }
 
 function useIsMobile() {
@@ -124,7 +93,7 @@ export default function App() {
         const parsed = JSON.parse(cached);
         if (parsed.startDate) return parsed.startDate;
       }
-    } catch (e) {}
+    } catch (e) { }
     return new Date().toISOString().slice(0, 10);
   });
   const [entries, setEntries] = useState(() => {
@@ -136,7 +105,7 @@ export default function App() {
         const parsed = JSON.parse(cached);
         if (parsed.entries && typeof parsed.entries === 'object') return parsed.entries;
       }
-    } catch (e) {}
+    } catch (e) { }
     return {};
   });
 
@@ -157,10 +126,10 @@ export default function App() {
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
-  
+
   // ⏱️ Guest Disclaimer evaluates with a 3-second grace buffer to allow Firebase Auth to initialize
   const [isGuestDisclaimerOpen, setIsGuestDisclaimerOpen] = useState(false);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const u = getCurrentUser();
@@ -171,10 +140,23 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Behavioral Trilogy Modal States
-  const [isCapsuleReleaseOpen, setIsCapsuleReleaseOpen] = useState(false);
-  const [releasedCapsule, setReleasedCapsule] = useState(null);
+  // Behavioral Trilogy Modal States & Dev Lab
+  const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(false);
+  const [capsuleModalMode, setCapsuleModalMode] = useState('vault'); // 'vault' | 'capture' | 'release'
+  const [capsuleTarget, setCapsuleTarget] = useState(null);
+  const isCapsuleReleaseOpen = isCapsuleModalOpen;
+  const releasedCapsule = capsuleTarget;
+  const setIsCapsuleReleaseOpen = setIsCapsuleModalOpen;
+  const setReleasedCapsule = setCapsuleTarget;
+
   const [isGlobalReceiptOpen, setIsGlobalReceiptOpen] = useState(false);
+  const [receiptPreviewEntries, setReceiptPreviewEntries] = useState(null);
+  const [isAutopsyOpen, setIsAutopsyOpen] = useState(false);
+  const [autopsyDate, setAutopsyDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [autopsyRating, setAutopsyRating] = useState(1);
+  const [autopsyExistingData, setAutopsyExistingData] = useState(null);
+  const [isBehavioralLabOpen, setIsBehavioralLabOpen] = useState(false);
+  const [simulatedCrash, setSimulatedCrash] = useState(false);
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
@@ -233,16 +215,24 @@ export default function App() {
     };
   }, []);
 
-  // Secret developer key sequence listener (type "iconlab", "skeleton", or "recovery" anywhere)
+  // Secret developer key sequence listener (type "lab", "iconlab", "skeleton", "recovery" anywhere)
   useEffect(() => {
-    // Expose global developer testing helper in console
+    // Expose global developer testing helpers in console
+    window.__openBehavioralLab = () => setIsBehavioralLabOpen(true);
+    window.__openReceiptOfTruth = () => setIsGlobalReceiptOpen(true);
+    window.__openTimeCapsule = () => {
+      setCapsuleModalMode('vault');
+      setIsCapsuleModalOpen(true);
+    };
+    window.__openAutopsyChamber = () => setIsAutopsyOpen(true);
+    window.__simulateCrash = () => setSimulatedCrash(true);
     window.__testRecoveryModal = () => setIsMotivationalOpen(true);
     window.__testGuestDisclaimer = () => setIsGuestDisclaimerOpen(true);
 
     let keyBuffer = '';
     const handleKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
-      
+
       keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-12);
       if (keyBuffer.endsWith('iconlab')) {
         setShowIconLab(prev => !prev);
@@ -259,6 +249,19 @@ export default function App() {
       } else if (keyBuffer.endsWith('404')) {
         setShowNotFound(prev => !prev);
         keyBuffer = '';
+      } else if (keyBuffer.endsWith('lab') || keyBuffer.endsWith('showcase') || keyBuffer.endsWith('trilogy')) {
+        setIsBehavioralLabOpen(prev => !prev);
+        keyBuffer = '';
+      } else if (keyBuffer.endsWith('receipt')) {
+        setIsGlobalReceiptOpen(prev => !prev);
+        keyBuffer = '';
+      } else if (keyBuffer.endsWith('capsule')) {
+        setCapsuleModalMode('vault');
+        setIsCapsuleModalOpen(prev => !prev);
+        keyBuffer = '';
+      } else if (keyBuffer.endsWith('autopsy')) {
+        setIsAutopsyOpen(prev => !prev);
+        keyBuffer = '';
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -274,6 +277,19 @@ export default function App() {
       }
       if (window.location.search.includes('view=guest') || window.location.search.includes('view=disclaimer')) {
         setIsGuestDisclaimerOpen(true);
+      }
+      if (window.location.search.includes('view=lab') || window.location.search.includes('view=showcase') || window.location.hash.includes('lab')) {
+        setIsBehavioralLabOpen(true);
+      }
+      if (window.location.search.includes('view=receipt') || window.location.hash.includes('receipt')) {
+        setIsGlobalReceiptOpen(true);
+      }
+      if (window.location.search.includes('view=capsule') || window.location.hash.includes('capsule')) {
+        setCapsuleModalMode('vault');
+        setIsCapsuleModalOpen(true);
+      }
+      if (window.location.search.includes('view=autopsy') || window.location.hash.includes('autopsy')) {
+        setIsAutopsyOpen(true);
       }
       const path = window.location.pathname;
       const isInvalidPath = path !== '/' && path !== '' && !path.endsWith('/index.html');
@@ -299,10 +315,9 @@ export default function App() {
       const db = await fetchDatabase(userOverride);
       if (db.startDate) setStartDate(db.startDate);
       if (db.entries) {
-        setEntries(prev => ({
-          ...db.entries,
-          ...(prev || {}) // Preserve latest in-memory edits
-        }));
+        setEntries(db.entries);
+        const streak = calculateStreak(db.entries);
+        checkAndTriggerCapsules(db.entries, streak);
       }
     } catch (err) {
       console.error('Failed to load database in App:', err);
@@ -322,7 +337,7 @@ export default function App() {
       if (u) {
         setIsGuestDisclaimerOpen(false);
       }
-      
+
       // Re-fetch database entries immediately for the active user
       loadData(u);
 
@@ -334,24 +349,6 @@ export default function App() {
             console.log('☁️ [Cloud Settings] Loaded preferences for user:', effectiveId);
             if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
               localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
-            }
-            // ☁️ Zero-knowledge cloud capsules hydration
-            if (cloudSettings.encryptedCapsules && Array.isArray(cloudSettings.encryptedCapsules)) {
-              const local = getRansomCapsules();
-              const mergedMap = new Map();
-              cloudSettings.encryptedCapsules.forEach(c => {
-                if (c?.id) mergedMap.set(c.id, c);
-              });
-              local.forEach(c => {
-                if (c?.id) {
-                  const existing = mergedMap.get(c.id);
-                  if (!existing || c.status === 'unlocked' || c.unlockedAt) {
-                    mergedMap.set(c.id, c);
-                  }
-                }
-              });
-              const merged = Array.from(mergedMap.values());
-              localStorage.setItem('daily_verdict_ransom_capsules', JSON.stringify(merged));
             }
             if (cloudSettings.vaultPinEncrypted) {
               const decrypted = decryptVaultPin(cloudSettings.vaultPinEncrypted);
@@ -369,6 +366,8 @@ export default function App() {
             }
             setSphereSettingsVer(v => v + 1);
           }
+          // ☁️ Cross-Device Cloud Capsules Hydration & Decryption Engine
+          await hydrateTimeCapsulesFromCloud(u);
         } catch (err) {
           console.warn('Cloud settings fetch error:', err);
         }
@@ -397,8 +396,9 @@ export default function App() {
         if (target) {
           sessionStorage.setItem(`capsule_triggered_${target.id}_${todayStr}`, 'true');
           setTimeout(() => {
-            setReleasedCapsule(target);
-            setIsCapsuleReleaseOpen(true);
+            setCapsuleTarget(target);
+            setCapsuleModalMode('release');
+            setIsCapsuleModalOpen(true);
           }, 1500);
         }
       }
@@ -410,7 +410,7 @@ export default function App() {
   const checkConsecutiveRoughDays = (allEntries) => {
     if (!allEntries) return;
     const todayRating = allEntries[todayStr]?.rating;
-    
+
     // Calculate yesterday's date
     const yestObj = new Date(`${todayStr}T00:00:00`);
     yestObj.setDate(yestObj.getDate() - 1);
@@ -427,12 +427,125 @@ export default function App() {
   };
 
   const handleCapsuleDismissed = () => {
-    if (releasedCapsule?.id) {
-      sessionStorage.setItem(`capsule_triggered_${releasedCapsule.id}_${todayStr}`, 'true');
+    if (capsuleTarget?.id) {
+      sessionStorage.setItem(`capsule_triggered_${capsuleTarget.id}_${todayStr}`, 'true');
     }
-    setIsCapsuleReleaseOpen(false);
-    setReleasedCapsule(null);
+    setIsCapsuleModalOpen(false);
+    setCapsuleTarget(null);
+    setCapsuleModalMode('vault');
   };
+
+  // 🧪 Behavioral Lab State Launchers
+  const handleOpenReceiptFromLab = useCallback((variant) => {
+    soundEngine.playClick();
+    const currYear = new Date().getFullYear();
+    const currMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+    
+    if (variant === 'solvent') {
+      const mockSolvent = {};
+      for (let i = 1; i <= 25; i++) {
+        const dStr = `${currYear}-${currMonth}-${String(i).padStart(2, '0')}`;
+        const isGod = i % 4 === 0;
+        mockSolvent[dStr] = {
+          date: dStr,
+          rating: isGod ? 5 : 4,
+          dayRating: isGod ? 5 : 4,
+          notes: isGod ? '⚡ Complete God-mode execution. Deep flow state unlocked.' : 'Disciplined execution across all daily non-negotiables.',
+          anchors: { 'Morning Workout': true, 'Deep Work Session': true, 'Read 20 Pages': true },
+          spheres: { discipline: 5, health: 4, career: 5 }
+        };
+      }
+      setReceiptPreviewEntries(mockSolvent);
+    } else if (variant === 'debt') {
+      const mockDebt = {};
+      for (let i = 1; i <= 25; i++) {
+        const dStr = `${currYear}-${currMonth}-${String(i).padStart(2, '0')}`;
+        const isTrench = i % 2 === 0;
+        mockDebt[dStr] = {
+          date: dStr,
+          rating: isTrench ? 1 : 2,
+          dayRating: isTrench ? 1 : 2,
+          notes: isTrench ? 'Heavy friction day, distraction loops and missed anchors.' : 'Felt behind and struggled with focus.',
+          anchors: { 'Morning Workout': false, 'Deep Work Session': false, 'Read 20 Pages': false },
+          spheres: { discipline: 1, health: 2, career: 2 }
+        };
+      }
+      setReceiptPreviewEntries(mockDebt);
+    } else {
+      setReceiptPreviewEntries(null);
+    }
+    setIsBehavioralLabOpen(false);
+    setIsGlobalReceiptOpen(true);
+  }, []);
+
+  const handleOpenCapsuleFromLab = useCallback((mode) => {
+    soundEngine.playClick();
+    setIsBehavioralLabOpen(false);
+    if (mode === 'release') {
+      const mockReleaseCapsule = {
+        id: 'capsule_showcase_demo',
+        title: 'To Future Ashish — Read When You Stumble',
+        createdAt: '2026-03-14T09:00:00.000Z',
+        createdDate: '2026-03-14',
+        status: 'unlocked',
+        triggerType: 'slump',
+        sealStyle: 'wax',
+        category: 'motivation',
+        streakAtCapture: 14,
+        cipher: 'TRINNO_CAPSULE_MOCK',
+        decryptedMessage: "Homie, if you are reading this, you are probably doubting the grind. Remember the late nights in early 2026 when you rebuilt this entire system from scratch? You didn't come this far just to fold over a bad week. Stand up, close the browser, do 20 pushups, and reclaim tomorrow's verdict."
+      };
+      setCapsuleTarget(mockReleaseCapsule);
+      setCapsuleModalMode('release');
+    } else {
+      setCapsuleTarget(null);
+      setCapsuleModalMode(mode === 'create' ? 'capture' : 'vault');
+    }
+    setIsCapsuleModalOpen(true);
+  }, []);
+
+  const handleOpenAutopsyFromLab = useCallback((mode) => {
+    soundEngine.playClick();
+    setIsBehavioralLabOpen(false);
+    setAutopsyDate(todayStr);
+    setAutopsyRating(1);
+    if (mode === 'verdict') {
+      setAutopsyExistingData({
+        causeOfDeath: 'Acute Executive Breakdown: Frictionless distraction loops severed morning momentum and derailed habit anchors.',
+        severity: 'CRITICAL',
+        primaryDeficit: 'Sleep & Discipline Momentum',
+        questions: [
+          { id: 'q1', question: 'What triggered the primary breakdown of momentum?' },
+          { id: 'q2', question: 'Which anchor collapsed under evening fatigue?' },
+          { id: 'q3', question: 'What is the immediate root cause of the friction?' }
+        ],
+        userAnswers: {
+          q1: 'Doomscrolling until 2 AM without sleep curfew',
+          q2: 'Skipped morning workout and felt behind all day',
+          q3: 'Low physical energy, dopamine distraction loops'
+        },
+        antidote: [
+          'Lock phone in physical drawer at 10:30 PM tonight with zero exceptions.',
+          'Complete mandatory 15-minute morning mobility anchor before touching any screen.',
+          'Score minimum 3-stars tomorrow to sever the consecutive rough day chain.'
+        ],
+        recoveryAntidote: [
+          'Lock phone in physical drawer at 10:30 PM tonight with zero exceptions.',
+          'Complete mandatory 15-minute morning mobility anchor before touching any screen.',
+          'Score minimum 3-stars tomorrow to sever the consecutive rough day chain.'
+        ]
+      });
+    } else {
+      setAutopsyExistingData(null);
+    }
+    setIsAutopsyOpen(true);
+  }, [todayStr]);
+
+  const handleTriggerErrorTest = useCallback(() => {
+    soundEngine.playRoughTone();
+    setIsBehavioralLabOpen(false);
+    setSimulatedCrash(true);
+  }, []);
 
   const handleGuestLogin = async () => {
     try {
@@ -466,12 +579,16 @@ export default function App() {
         }
       };
       try {
-        const cached = JSON.parse(localStorage.getItem('goodness_db') || '{}');
-        localStorage.setItem('goodness_db', JSON.stringify({
+        const u = getCurrentUser();
+        const storageKey = getDbStorageKey(u);
+        const cached = JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem('goodness_db') || '{}');
+        const updatedPayload = JSON.stringify({
           ...cached,
           entries: next
-        }));
-      } catch (e) {}
+        });
+        localStorage.setItem(storageKey, updatedPayload);
+        localStorage.setItem('goodness_db', updatedPayload);
+      } catch (e) { }
 
       // Check consecutive rough days & time capsule auto-triggers
       checkConsecutiveRoughDays(next);
@@ -593,7 +710,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-black font-sans selection:bg-[#FDC800] selection:text-black">
-      
+
       {/* 📲 PWA 1-Tap Native Install Prompt Banner */}
       <PWAInstallBanner />
 
@@ -660,7 +777,7 @@ export default function App() {
             {activeDesktopTab === 'timeline' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div className="lg:col-span-7">
-                  <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center font-mono text-sm font-black">LOADING CALENDAR MATRIX...</div>}>
+                  <Suspense fallback={<div className="min-h-400px flex items-center justify-center font-mono text-sm font-black">LOADING CALENDAR MATRIX...</div>}>
                     <CalendarModal
                       isOpen={true}
                       isEmbedded={true}
@@ -688,7 +805,7 @@ export default function App() {
             {/* VIEW 3: FULL IN-PAGE MONTHLY DOSSIER */}
             {activeDesktopTab === 'dossier' && (
               <div className="w-full">
-                <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center font-mono text-sm font-black">LOADING MONTHLY DOSSIER...</div>}>
+                <Suspense fallback={<div className="min-h-400px flex items-center justify-center font-mono text-sm font-black">LOADING MONTHLY DOSSIER...</div>}>
                   <MonthlyReportModal
                     isOpen={true}
                     isEmbedded={true}
@@ -702,7 +819,7 @@ export default function App() {
             {/* VIEW 4: FULL IN-PAGE CREATIVE STUDIO */}
             {activeDesktopTab === 'studio' && (
               <div className="w-full">
-                <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center font-mono text-sm font-black">LOADING STUDIO...</div>}>
+                <Suspense fallback={<div className="min-h-400px flex items-center justify-center font-mono text-sm font-black">LOADING STUDIO...</div>}>
                   <AestheticCardExportModal
                     isOpen={true}
                     isEmbedded={true}
@@ -826,13 +943,13 @@ export default function App() {
             />
           )}
 
-          {/* 🩸 Emergency Down-Bad Ransom Capsule Breach Modal */}
-          {isCapsuleReleaseOpen && (
+          {/* 🩸 Time & Mood Capsule Modal */}
+          {isCapsuleModalOpen && (
             <RansomCapsuleModal
-              isOpen={isCapsuleReleaseOpen}
+              isOpen={isCapsuleModalOpen}
               onClose={handleCapsuleDismissed}
-              mode="release"
-              targetCapsule={releasedCapsule}
+              mode={capsuleModalMode}
+              targetCapsule={capsuleTarget}
               activeDate={todayStr}
               activeStreak={currentStreak}
               onCapsuleDismissed={handleCapsuleDismissed}
@@ -843,16 +960,49 @@ export default function App() {
           {isGlobalReceiptOpen && (
             <ReceiptOfTruthModal
               isOpen={isGlobalReceiptOpen}
-              onClose={() => setIsGlobalReceiptOpen(false)}
+              onClose={() => {
+                setIsGlobalReceiptOpen(false);
+                setReceiptPreviewEntries(null);
+              }}
               entry={entries[todayStr] || null}
               dateStr={todayStr}
               dayCount={dayCount}
-              entries={entries}
+              entries={receiptPreviewEntries || entries}
               displayName={userDisplayName}
             />
           )}
+
+          {/* 🔬 AI Forensic Autopsy Chamber Modal */}
+          {isAutopsyOpen && (
+            <AutopsyChamberModal
+              isOpen={isAutopsyOpen}
+              onClose={() => setIsAutopsyOpen(false)}
+              entryDate={autopsyDate}
+              rating={autopsyRating}
+              existingAutopsy={autopsyExistingData}
+              onSaveAutopsy={() => setIsAutopsyOpen(false)}
+            />
+          )}
+
+          {/* 🧪 Behavioral Trilogy State Inspector & Dev Lab */}
+          {isBehavioralLabOpen && (
+            <BehavioralLabModal
+              isOpen={isBehavioralLabOpen}
+              onClose={() => setIsBehavioralLabOpen(false)}
+              onOpenReceipt={handleOpenReceiptFromLab}
+              onOpenCapsule={handleOpenCapsuleFromLab}
+              onOpenAutopsy={handleOpenAutopsyFromLab}
+              onTriggerErrorTest={handleTriggerErrorTest}
+            />
+          )}
+
+          {/* Simulated Crash Harness for ErrorBoundary */}
+          {simulatedCrash && (
+            <SimulatedCrashTrigger shouldCrash={simulatedCrash} />
+          )}
         </Suspense>
       </ErrorBoundary>
+
 
       {/* 🔐 Private 4-Digit Vault PIN Gatekeeper */}
       <VaultLockGatekeeper
