@@ -1,14 +1,14 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Settings, 
-  X, 
-  Bell, 
-  BellOff, 
-  Cloud, 
-  Smartphone, 
-  Check, 
-  Sparkles, 
+import {
+  Settings,
+  X,
+  Bell,
+  BellOff,
+  Cloud,
+  Smartphone,
+  Check,
+  Sparkles,
   ShieldCheck,
   Moon,
   Info,
@@ -35,10 +35,10 @@ import {
   Printer,
   FileText
 } from 'lucide-react';
-import { 
-  isNotificationSupported, 
-  isNotificationEnabled, 
-  requestNotificationPermission, 
+import {
+  isNotificationSupported,
+  isNotificationEnabled,
+  requestNotificationPermission,
   disableNotifications,
   getReminderTime,
   setReminderTime,
@@ -89,14 +89,14 @@ export default function SettingsModal({
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
   const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const [aiLanguage, setAiLanguage] = useState('auto');
-  
+
   // Behavioral Trilogy Preferences (Off by Default)
   const [ransomCapsuleOn, setRansomCapsuleOn] = useState(false);
   const [ransomSensitivity, setRansomSensitivity] = useState(2);
   const [autopsyChamberOn, setAutopsyChamberOn] = useState(false);
   const [receiptOfTruthOn, setReceiptOfTruthOn] = useState(false);
   const [isCapsuleVaultOpen, setIsCapsuleVaultOpen] = useState(false);
-  
+
   // Segmented Multi-Sphere Matrix Settings
   const [sphereModeOn, setSphereModeOn] = useState(false);
   const [spheresList, setSpheresList] = useState([]);
@@ -121,7 +121,7 @@ export default function SettingsModal({
     try {
       const saved = localStorage.getItem('daily_verdict_custom_tags');
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) { }
     return [
       'Deep Work',
       'Screen Trap',
@@ -399,11 +399,10 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleNotifications}
-                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
-                      notificationsOn 
-                        ? 'bg-[#00E599] text-black' 
+                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${notificationsOn
+                        ? 'bg-[#00E599] text-black'
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                    }`}
+                      }`}
                   >
                     {notificationsOn ? 'ACTIVE (ON)' : 'MUTED (OFF)'}
                   </button>
@@ -435,11 +434,10 @@ export default function SettingsModal({
                         key={preset.value}
                         type="button"
                         onClick={() => handleTimeChange(preset.value)}
-                        className={`py-1 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${
-                          reminderTimeVal === preset.value
+                        className={`py-1 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${reminderTimeVal === preset.value
                             ? 'bg-[#FDC800] text-black shadow-[1.5px_1.5px_0px_#000000] border-2 border-black'
                             : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600'
-                        }`}
+                          }`}
                       >
                         {preset.label}
                       </button>
@@ -476,11 +474,10 @@ export default function SettingsModal({
                       setSoundFxOn(next);
                       soundEngine.setSoundEnabled(next);
                     }}
-                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
-                      soundFxOn 
-                        ? 'bg-[#00E599] text-black' 
+                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${soundFxOn
+                        ? 'bg-[#00E599] text-black'
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                    }`}
+                      }`}
                   >
                     {soundFxOn ? 'ACTIVE (ON)' : 'MUTED (OFF)'}
                   </button>
@@ -511,11 +508,10 @@ export default function SettingsModal({
                       setBannerState(next);
                       setBannerEnabled(next);
                     }}
-                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
-                      bannerEnabled 
-                        ? 'bg-[#FDC800] text-black' 
+                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${bannerEnabled
+                        ? 'bg-[#FDC800] text-black'
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                    }`}
+                      }`}
                   >
                     {bannerEnabled ? 'ENABLED (ON)' : 'DISABLED (OFF)'}
                   </button>
@@ -537,9 +533,8 @@ export default function SettingsModal({
                         <h4 className="font-display font-black text-sm uppercase text-black">
                           Daily Non-Negotiables Studio
                         </h4>
-                        <span className={`px-2 py-0.5 rounded-lg border border-black text-[9px] font-mono font-black uppercase ${
-                          isNonNegotiablesActive() ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-lg border border-black text-[9px] font-mono font-black uppercase ${isNonNegotiablesActive() ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                          }`}>
                           {isNonNegotiablesActive() ? 'ACTIVE' : 'OFF'}
                         </span>
                       </div>
@@ -560,7 +555,7 @@ export default function SettingsModal({
                     <span>CONFIGURE ➔</span>
                   </button>
                 </div>
-              </div>              
+              </div>
 
               {/* 🏛️ BEHAVIORAL TRILOGY MATRIX (OFF BY DEFAULT) */}
               <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
@@ -588,9 +583,8 @@ export default function SettingsModal({
                           <h5 className="font-display font-black text-xs uppercase text-black">
                             Down-Bad Ransom Capsule
                           </h5>
-                          <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${
-                            ransomCapsuleOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
-                          }`}>
+                          <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${ransomCapsuleOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                            }`}>
                             {ransomCapsuleOn ? 'ON' : 'OFF'}
                           </span>
                         </div>
@@ -603,11 +597,10 @@ export default function SettingsModal({
                     <button
                       type="button"
                       onClick={handleToggleRansomCapsule}
-                      className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
-                        ransomCapsuleOn 
-                          ? 'bg-[#00E599] text-black' 
+                      className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${ransomCapsuleOn
+                          ? 'bg-[#00E599] text-black'
                           : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                      }`}
+                        }`}
                     >
                       {ransomCapsuleOn ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
                     </button>
@@ -622,11 +615,10 @@ export default function SettingsModal({
                             key={days}
                             type="button"
                             onClick={() => handleSensitivityChange(days)}
-                            className={`px-2 py-0.5 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${
-                              ransomSensitivity === days 
-                                ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]' 
+                            className={`px-2 py-0.5 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${ransomSensitivity === days
+                                ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]'
                                 : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                            }`}
+                              }`}
                           >
                             {days} ROUGH DAYS {days === 2 ? '(RECOMMENDED)' : ''}
                           </button>
@@ -658,9 +650,8 @@ export default function SettingsModal({
                         <h5 className="font-display font-black text-xs uppercase text-black">
                           The Autopsy Chamber Interrogator
                         </h5>
-                        <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${
-                          autopsyChamberOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
-                        }`}>
+                        <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${autopsyChamberOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                          }`}>
                           {autopsyChamberOn ? 'ON' : 'OFF'}
                         </span>
                       </div>
@@ -673,11 +664,10 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleAutopsyChamber}
-                    className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
-                      autopsyChamberOn 
-                        ? 'bg-[#00E599] text-black' 
+                    className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${autopsyChamberOn
+                        ? 'bg-[#00E599] text-black'
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                    }`}
+                      }`}
                   >
                     {autopsyChamberOn ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
                   </button>
@@ -694,9 +684,8 @@ export default function SettingsModal({
                         <h5 className="font-display font-black text-xs uppercase text-black">
                           Receipt of Truth Thermal Slip
                         </h5>
-                        <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${
-                          receiptOfTruthOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
-                        }`}>
+                        <span className={`px-1.5 py-0.2 rounded border border-black text-[9px] font-mono font-black uppercase ${receiptOfTruthOn ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                          }`}>
                           {receiptOfTruthOn ? 'ON' : 'OFF'}
                         </span>
                       </div>
@@ -709,11 +698,10 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleReceiptOfTruth}
-                    className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
-                      receiptOfTruthOn 
-                        ? 'bg-[#00E599] text-black' 
+                    className={`w-full sm:w-auto px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${receiptOfTruthOn
+                        ? 'bg-[#00E599] text-black'
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                    }`}
+                      }`}
                   >
                     {receiptOfTruthOn ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
                   </button>
@@ -746,11 +734,10 @@ export default function SettingsModal({
                       key={lang.id}
                       type="button"
                       onClick={() => handleAiLanguageChange(lang.id)}
-                      className={`py-2 px-1.5 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${
-                        (aiLanguage === lang.id || (lang.id === 'english' && aiLanguage === 'en'))
+                      className={`py-2 px-1.5 rounded-xl border-2 border-black font-mono text-xs font-black text-center cursor-pointer transition-all ${(aiLanguage === lang.id || (lang.id === 'english' && aiLanguage === 'en'))
                           ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-[1.02]'
                           : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700'
-                      }`}
+                        }`}
                     >
                       <span className="block">{lang.label}</span>
                       <span className="block text-[9px] font-normal text-neutral-600">{lang.desc}</span>
@@ -875,11 +862,10 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleSphereMode}
-                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 ${
-                      sphereModeOn 
-                        ? 'bg-[#00E599] text-black' 
+                    className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 ${sphereModeOn
+                        ? 'bg-[#00E599] text-black'
                         : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                    }`}
+                      }`}
                   >
                     {sphereModeOn ? 'ACTIVE' : 'OFF'}
                   </button>
@@ -938,9 +924,8 @@ export default function SettingsModal({
                                         key={item.id}
                                         type="button"
                                         onClick={() => setEditSphereIcon(item.id)}
-                                        className={`p-1.5 rounded flex flex-col items-center justify-center border cursor-pointer transition-all ${
-                                          isSel ? 'bg-[#FDC800] border-black shadow-[1px_1px_0px_#000000]' : 'border-transparent hover:bg-neutral-100'
-                                        }`}
+                                        className={`p-1.5 rounded flex flex-col items-center justify-center border cursor-pointer transition-all ${isSel ? 'bg-[#FDC800] border-black shadow-[1px_1px_0px_#000000]' : 'border-transparent hover:bg-neutral-100'
+                                          }`}
                                         title={item.label}
                                       >
                                         <Svg className="w-4 h-4 text-black stroke-[2.5]" />
@@ -976,9 +961,8 @@ export default function SettingsModal({
                                       key={c}
                                       type="button"
                                       onClick={() => setEditSphereColor(c)}
-                                      className={`w-5 h-5 rounded-full border-2 border-black cursor-pointer ${
-                                        editSphereColor === c ? 'scale-125 ring-2 ring-black' : ''
-                                      }`}
+                                      className={`w-5 h-5 rounded-full border-2 border-black cursor-pointer ${editSphereColor === c ? 'scale-125 ring-2 ring-black' : ''
+                                        }`}
                                       style={{ backgroundColor: c }}
                                     />
                                   ))}
@@ -1007,12 +991,11 @@ export default function SettingsModal({
                         return (
                           <div
                             key={sphere.id}
-                            className={`flex items-center justify-between p-2.5 rounded-xl border-2 border-black transition-all ${
-                              sphere.enabled ? 'bg-[#FFFDF0]' : 'bg-neutral-100 opacity-60'
-                            }`}
+                            className={`flex items-center justify-between p-2.5 rounded-xl border-2 border-black transition-all ${sphere.enabled ? 'bg-[#FFFDF0]' : 'bg-neutral-100 opacity-60'
+                              }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div 
+                              <div
                                 className="w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]"
                                 style={{ backgroundColor: sphere.color || '#FDC800' }}
                               >
@@ -1055,9 +1038,8 @@ export default function SettingsModal({
                               <button
                                 type="button"
                                 onClick={() => handleToggleSphereItem(sphere.id)}
-                                className={`w-7 h-7 rounded-lg border-2 border-black flex items-center justify-center font-mono text-xs font-black cursor-pointer transition-all ${
-                                  sphere.enabled ? 'bg-[#00E599] text-black shadow-[1px_1px_0px_#000000]' : 'bg-white text-transparent'
-                                }`}
+                                className={`w-7 h-7 rounded-lg border-2 border-black flex items-center justify-center font-mono text-xs font-black cursor-pointer transition-all ${sphere.enabled ? 'bg-[#00E599] text-black shadow-[1px_1px_0px_#000000]' : 'bg-white text-transparent'
+                                  }`}
                                 title={sphere.enabled ? 'Enabled' : 'Disabled'}
                               >
                                 ✓
@@ -1119,9 +1101,8 @@ export default function SettingsModal({
                                 key={c}
                                 type="button"
                                 onClick={() => setNewSphereColor(c)}
-                                className={`w-5 h-5 rounded-full border border-black cursor-pointer transition-transform ${
-                                  newSphereColor === c ? 'scale-125 ring-2 ring-black' : ''
-                                }`}
+                                className={`w-5 h-5 rounded-full border border-black cursor-pointer transition-transform ${newSphereColor === c ? 'scale-125 ring-2 ring-black' : ''
+                                  }`}
                                 style={{ backgroundColor: c }}
                               />
                             ))}
@@ -1176,9 +1157,8 @@ export default function SettingsModal({
                     </p>
                   </div>
                 </div>
-                <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shrink-0 ${
-                  user ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
-                }`}>
+                <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shrink-0 ${user ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-600'
+                  }`}>
                   {user ? 'SYNCED' : 'LOCAL'}
                 </span>
               </div>
@@ -1199,7 +1179,7 @@ export default function SettingsModal({
                   </div>
                 </div>
                 <span className="px-2.5 py-1 rounded-xl border-2 border-black bg-[#FDC800] text-black font-mono text-[10px] font-black shrink-0">
-                  PWA v1.0
+                  PWA v6.0
                 </span>
               </div>
 
