@@ -80,46 +80,45 @@ export default function EditDayModal({
     const cfg = getSphereConfig().filter(s => s.enabled);
     setSpheresConfig(cfg);
 
-    if (entryData) {
-      setRating(entryData.rating || 3);
-      setNotes(entryData.notes || '');
-      setHistoryStack([entryData.notes || '']);
-      setHistoryIdx(0);
+    const activeEntry = entryData || {};
+    setRating(activeEntry.rating || 3);
+    setNotes(activeEntry.notes || '');
+    setHistoryStack([activeEntry.notes || '']);
+    setHistoryIdx(0);
 
-      const initialSpheres = {};
-      cfg.forEach(s => {
-        initialSpheres[s.id] = {
-          id: s.id,
-          name: s.name,
-          icon: s.icon,
-          color: s.color,
-          desc: s.desc,
-          rating: entryData?.spheres?.[s.id]?.rating || null,
-          notes: entryData?.spheres?.[s.id]?.notes || ''
-        };
+    const initialSpheres = {};
+    cfg.forEach(s => {
+      initialSpheres[s.id] = {
+        id: s.id,
+        name: s.name,
+        icon: s.icon,
+        color: s.color,
+        desc: s.desc,
+        rating: activeEntry?.spheres?.[s.id]?.rating || null,
+        notes: activeEntry?.spheres?.[s.id]?.notes || ''
+      };
+    });
+
+    // Also restore any previously saved ad-hoc event spheres for this specific day
+    if (activeEntry?.spheres) {
+      Object.entries(activeEntry.spheres).forEach(([sId, sVal]) => {
+        if (!initialSpheres[sId] && sVal && (sVal.isDayEvent || sVal.rating || sVal.notes)) {
+          initialSpheres[sId] = {
+            id: sId,
+            name: sVal.name || sId,
+            icon: sVal.icon || 'Sparkles',
+            color: sVal.color || '#FF4D6D',
+            desc: sVal.desc || 'Day-specific outlier event',
+            rating: sVal.rating || null,
+            notes: sVal.notes || '',
+            isDayEvent: true
+          };
+        }
       });
-
-      // Also restore any previously saved ad-hoc event spheres for this specific day
-      if (entryData?.spheres) {
-        Object.entries(entryData.spheres).forEach(([sId, sVal]) => {
-          if (!initialSpheres[sId] && sVal && (sVal.isDayEvent || sVal.rating || sVal.notes)) {
-            initialSpheres[sId] = {
-              id: sId,
-              name: sVal.name || sId,
-              icon: sVal.icon || 'Sparkles',
-              color: sVal.color || '#FF4D6D',
-              desc: sVal.desc || 'Day-specific outlier event',
-              rating: sVal.rating || null,
-              notes: sVal.notes || '',
-              isDayEvent: true
-            };
-          }
-        });
-      }
-
-      setSpheresData(initialSpheres);
     }
-  }, [entryData, dateStr, sphereSettingsVer]);
+
+    setSpheresData(initialSpheres);
+  }, [entryData, dateStr, sphereSettingsVer, isOpen]);
 
   const handleAddEventSphere = (preset) => {
     const sId = preset.id.startsWith('event_') ? preset.id : `event_${preset.id}_${Date.now()}`;

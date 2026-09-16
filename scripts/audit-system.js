@@ -65,6 +65,7 @@ const weekViewCode = readSrc('components/WeekView.jsx');
 
 assert(calCode.includes('onEditDay'), 'CalendarModal: onEditDay handler bound to date matrix');
 assert(editDayCode.includes('handleAddEventSphere'), 'EditDayModal: Day-specific outlier event sphere support active');
+assert(editDayCode.includes('const activeEntry = entryData || {};') && !editDayCode.includes('if (entryData) {'), 'EditDayModal: Unrecorded days (null entryData) initialize all active spheres without empty void');
 assert(timelineCode.includes('entries') && timelineCode.includes('onEditDay'), 'JourneyTimeline: Chronological stream with entry edit triggers');
 assert(monthCalCode.length > 500 && weekViewCode.length > 500, 'MonthCalendar & WeekView components loaded and valid');
 
@@ -298,6 +299,17 @@ assert(firebaseCode.includes('getEffectiveUserId'), 'firebase.js: getEffectiveUs
 assert(firebaseCode.includes('cleanFirestorePayload'), 'firebase.js: cleanFirestorePayload sanitizes entries & blocks invalid undefined fields');
 assert(!firebaseCode.includes('batchSaveCloudEntries(user.uid, parsed.entries)'), 'firebase.js: Removed unsafe cross-user cache auto-upload');
 assert(firebaseCode.includes('window.location.reload()'), 'firebase.js: logoutUser triggers browser reload to purge telemetry/cache memory');
+
+// ----------------------------------------------------------------------
+// SUITE 11: Offline Mathematical & Dynamic State Model Matrix
+// ----------------------------------------------------------------------
+console.log('\n📐 [11/11] Executing Mathematical & Component State Invariant Verification...');
+try {
+  const mathOutput = execSync('node scripts/verify-math-and-state-models.js', { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'pipe' });
+  assert(mathOutput.includes('18 PASSED | 0 FAILED'), 'Mathematical & State Model: All 18 invariants and lifecycle permutations verified');
+} catch (mathErr) {
+  assert(false, `Mathematical model verification failed: ${mathErr.message}`);
+}
 
 // ----------------------------------------------------------------------
 // COMPILER VERIFICATION

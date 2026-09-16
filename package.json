@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "start": "node server/index.js",
     "audit": "node scripts/audit-system.js",
+    "audit:models": "node scripts/verify-math-and-state-models.js",
     "audit:perf": "node scripts/audit-performance.js",
     "test:e2e": "playwright test"
   },
