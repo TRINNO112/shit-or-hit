@@ -303,12 +303,23 @@ assert(firebaseCode.includes('window.location.reload()'), 'firebase.js: logoutUs
 // ----------------------------------------------------------------------
 // SUITE 11: Offline Mathematical & Dynamic State Model Matrix
 // ----------------------------------------------------------------------
-console.log('\n📐 [11/11] Executing Mathematical & Component State Invariant Verification...');
+console.log('\n📐 [11/12] Executing Mathematical & Component State Invariant Verification...');
 try {
   const mathOutput = execSync('node scripts/verify-math-and-state-models.js', { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'pipe' });
   assert(mathOutput.includes('18 PASSED | 0 FAILED'), 'Mathematical & State Model: All 18 invariants and lifecycle permutations verified');
 } catch (mathErr) {
   assert(false, `Mathematical model verification failed: ${mathErr.message}`);
+}
+
+// ----------------------------------------------------------------------
+// SUITE 12: Database Schema & Multi-Source Reconciliation Invariants
+// ----------------------------------------------------------------------
+console.log('\n🗄️ [12/12] Executing Database Schema & Reconciliation Invariant Audit...');
+try {
+  const dbOutput = execSync('node scripts/audit-database-integrity.js', { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'pipe' });
+  assert(dbOutput.includes('19 PASSED | 0 FAILED'), 'Database & Reconciliation: All 19 schema invariants and conflict rules verified');
+} catch (dbErr) {
+  assert(false, `Database integrity audit failed: ${dbErr.message}`);
 }
 
 // ----------------------------------------------------------------------
