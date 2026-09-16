@@ -229,7 +229,7 @@ export async function fetchDatabase(userOverride = null) {
   if (!isStaticHost) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const timeoutId = setTimeout(() => controller.abort(), 900);
       const res = await fetch(`${API_BASE}/entries`, { signal: controller.signal });
       clearTimeout(timeoutId);
       if (res.ok) {

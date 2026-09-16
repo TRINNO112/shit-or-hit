@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, startTransition } from 'react';
-import * as Sentry from '@sentry/react';
 import { Zap, Calendar, FlaskConical } from 'lucide-react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
@@ -376,9 +375,25 @@ export default function App() {
     return () => unsubscribe();
   }, [loadData]);
 
+  // ⚡ Predictive Idle Chunk Preloader: Preload common modal JS chunks on idle so mobile taps open in 0ms
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const preloadCommonModals = () => {
+      import('./components/EditDayModal');
+      import('./components/CalendarModal');
+      import('./components/SettingsModal');
+      import('./components/ReceiptOfTruthModal');
+      import('./components/RansomCapsuleModal');
+      import('./components/AutopsyChamberModal');
+      import('./components/ForensicStatsModal');
+    };
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(preloadCommonModals, { timeout: 2500 });
+      } else {
+        setTimeout(preloadCommonModals, 1000);
+      }
+    }
+  }, []);
 
   const currentStreak = useMemo(() => calculateStreak(entries), [entries]);
 
