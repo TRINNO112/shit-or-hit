@@ -294,6 +294,32 @@ export async function logoutUser() {
   }
 }
 
+// 🛡️ DPDPA 2023 Statutory Compliance: Permanent Right to Erasure
+export async function deleteCloudUserData(userId) {
+  if (!userId) return false;
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return false;
+  try {
+    console.log(`🧹 [Firestore] DPDPA 2023 Erasure initiated for user: ${userId}...`);
+    const subcollections = ['entries', 'reports', 'capsules'];
+    for (const subcol of subcollections) {
+      const colRef = fb.firestoreMod.collection(fb.db, 'users', userId, subcol);
+      const snapshot = await fb.firestoreMod.getDocs(colRef);
+      if (snapshot && snapshot.docs && snapshot.docs.length > 0) {
+        const deletePromises = snapshot.docs.map(docSnap => fb.firestoreMod.deleteDoc(docSnap.ref));
+        await Promise.all(deletePromises);
+      }
+    }
+    const userDocRef = fb.firestoreMod.doc(fb.db, 'users', userId);
+    await fb.firestoreMod.deleteDoc(userDocRef);
+    console.log(`✅ [Firestore] All cloud records permanently erased for user: ${userId}`);
+    return true;
+  } catch (err) {
+    console.error(`❌ [Firestore Erasure Error]:`, err);
+    return false;
+  }
+}
+
 // 🧹 Firestore Payload Sanitizer: Recursively removes all `undefined` values that Firestore rejects
 export function cleanFirestorePayload(obj) {
   if (obj === null || obj === undefined) return null;

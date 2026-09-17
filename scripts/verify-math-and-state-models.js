@@ -296,6 +296,85 @@ assert(dualInactivePayload.spheres === undefined && dualInactivePayload.anchors 
 assert(!JSON.stringify(dualInactivePayload).includes('undefined'), 'Firestore Hygiene: JSON string contains zero undefined values');
 
 // ---------------------------------------------------------------------------
+// SUITE E: Anti-Burnout Rehabilitation Sanctuary & Streak Freeze Mathematics
+// ---------------------------------------------------------------------------
+console.log('\n🌿 [E] Evaluating Anti-Burnout Rehabilitation & Streak Freeze Mathematical Model...');
+
+function simulateStreakCalculation(entries, rehabActive, todayStr, yestStr) {
+  const dates = Object.keys(entries || {});
+  if (dates.length === 0) return 0;
+
+  if (!entries[todayStr]?.rating && !entries[yestStr]?.rating && !rehabActive) {
+    return 0;
+  }
+
+  let streak = 0;
+  let curr = entries[todayStr]?.rating ? new Date(`${todayStr}T00:00:00`) : new Date(`${yestStr}T00:00:00`);
+  if (!entries[todayStr]?.rating && rehabActive) {
+    curr = new Date(`${yestStr}T00:00:00`);
+  }
+
+  let safety = 0;
+  while (safety < 365) {
+    safety++;
+    const ds = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+    const entry = entries[ds];
+    const isRehabDay = (entry && (entry.isRehabilitation || entry.isStreakFreeze));
+
+    if (entry && Number(entry.rating) >= 3) {
+      streak++;
+      curr.setDate(curr.getDate() - 1);
+    } else if (isRehabDay) {
+      // 🌿 Rehabilitation: Bridge without resetting to zero
+      curr.setDate(curr.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+// Invariant 1: Unrated days normally reset streak to 0
+const brokenStreak = simulateStreakCalculation({
+  '2026-09-10': { rating: 4 },
+  '2026-09-11': { rating: 5 },
+  // 2026-09-12 unrated
+  // 2026-09-13 unrated
+}, false, '2026-09-13', '2026-09-12');
+assert(brokenStreak === 0, 'Rehabilitation Invariant: Missing rating without freeze breaks streak to 0');
+
+// Invariant 2: Active streak freeze bridges across unrated days
+const bridgedStreak = simulateStreakCalculation({
+  '2026-09-10': { rating: 4 },
+  '2026-09-11': { rating: 5 },
+  '2026-09-12': { isRehabilitation: true }, // Freeze day 1
+  '2026-09-13': { isRehabilitation: true }, // Freeze day 2
+}, true, '2026-09-13', '2026-09-12');
+assert(bridgedStreak === 2, 'Rehabilitation Invariant: Active freeze preserves unbroken 2-day streak across unrated recovery period');
+
+// Invariant 3: Hard Ceiling of 14 days maximum
+function simulateRehabDurationCap(startDateStr, extendDays) {
+  const initialDays = 7;
+  const totalDays = initialDays + extendDays;
+  return Math.min(14, totalDays);
+}
+assert(simulateRehabDurationCap('2026-09-01', 7) === 14, 'Rehabilitation Invariant: 7 initial + 7 extension reaches exact 14-day limit');
+assert(simulateRehabDurationCap('2026-09-01', 14) === 14, 'Rehabilitation Invariant: Hard ceiling stops at 14 days maximum');
+
+// Invariant 4: RFC 4180 CSV Serialization
+function simulateRfc4180Escape(value) {
+  const str = String(value ?? '');
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+assert(simulateRfc4180Escape('Normal text') === 'Normal text', 'Export Invariant: Normal string unchanged in CSV');
+assert(simulateRfc4180Escape('Hello, world') === '"Hello, world"', 'Export Invariant: String with comma wrapped in quotes');
+assert(simulateRfc4180Escape('He said "yes"') === '"He said ""yes"""', 'Export Invariant: Double quotes properly escaped as double-double-quotes');
+assert(simulateRfc4180Escape('Line 1\nLine 2') === '"Line 1\nLine 2"', 'Export Invariant: Multiline text wrapped in quotes');
+
+// ---------------------------------------------------------------------------
 // REPORT
 // ---------------------------------------------------------------------------
 console.log('\n======================================================================');

@@ -67,11 +67,15 @@ import {
   setAutopsyChamberEnabled,
   isReceiptOfTruthEnabled,
   setReceiptOfTruthEnabled,
-  getRansomCapsules
+  getRansomCapsules,
+  permanentlyDeleteAllUserData,
+  isRehabilitationActive
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
 import StickerVaultModal from './StickerVaultModal';
+import PrivacyPolicyModal from './PrivacyPolicyModal';
+import RehabilitationModal from './RehabilitationModal';
 
 export default function SettingsModal({
   isOpen,
@@ -96,6 +100,11 @@ export default function SettingsModal({
   const [autopsyChamberOn, setAutopsyChamberOn] = useState(false);
   const [receiptOfTruthOn, setReceiptOfTruthOn] = useState(false);
   const [isCapsuleVaultOpen, setIsCapsuleVaultOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
+  const [isErasureConfirmOpen, setIsErasureConfirmOpen] = useState(false);
+  const [erasureInput, setErasureInput] = useState('');
+  const [erasing, setErasing] = useState(false);
 
   // Segmented Multi-Sphere Matrix Settings
   const [sphereModeOn, setSphereModeOn] = useState(false);
@@ -1207,6 +1216,102 @@ export default function SettingsModal({
                 </button>
               </div>
 
+              {/* 11. Anti-Burnout Rehabilitation Sanctuary (Streak Freeze) */}
+              <div className="flex items-center justify-between p-3.5 bg-[#F0FDF4] border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                    <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-display font-black text-sm uppercase truncate text-black">
+                        Rehabilitation Sanctuary
+                      </h4>
+                      {isRehabilitationActive() ? (
+                        <span className="px-2 py-0.5 rounded-full bg-[#00E599] border border-black text-[9px] font-mono font-black uppercase text-black">
+                          ACTIVE
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-neutral-200 border border-black text-[9px] font-mono font-black uppercase text-neutral-600">
+                          STANDBY
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] font-mono text-neutral-600 truncate">
+                      Streak freeze & compassion anchors (up to 14 days)
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRehabModalOpen(true)}
+                  className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap text-black"
+                >
+                  SANCTUARY
+                </button>
+              </div>
+
+              {/* 12. Privacy Policy & Indian DPDPA 2023 */}
+              <div className="flex items-center justify-between p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFFDF5] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                    <ShieldCheck className="w-5 h-5 text-black stroke-[2.5]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-display font-black text-sm uppercase truncate text-black">
+                        Privacy & DPDPA 2023
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-blue-100 border border-black text-[9px] font-mono font-black uppercase text-blue-800">
+                        STATUTORY
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-mono text-neutral-600 truncate">
+                      Digital Personal Data Protection Act compliance
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPrivacyModalOpen(true)}
+                  className="py-1.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap text-black"
+                >
+                  VIEW POLICY
+                </button>
+              </div>
+
+              {/* 13. Nuclear Data Erasure: Indian DPDPA Right to Erasure */}
+              <div className="flex items-center justify-between p-3.5 bg-red-50/80 border-2 border-red-500 rounded-2xl shadow-[2px_2px_0px_#ef4444] gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 rounded-xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                    <AlertOctagon className="w-5 h-5 text-white stroke-[2.5]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-display font-black text-sm uppercase truncate text-red-700">
+                        Right to Erasure (DPDPA)
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-red-200 border border-red-800 text-[9px] font-mono font-black uppercase text-red-900">
+                        PERMANENT
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-mono text-red-600 truncate">
+                      Purge all local storage and Firestore cloud records
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErasureInput('');
+                    setIsErasureConfirmOpen(true);
+                  }}
+                  className="py-1.5 px-3 bg-[#FF4D4D] hover:bg-red-600 text-white border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap"
+                >
+                  ERASE ALL
+                </button>
+              </div>
+
             </div>
 
             {/* Pinned Footer */}
@@ -1275,6 +1380,97 @@ export default function SettingsModal({
           />
         )}
       </Suspense>
+
+      {/* Privacy Policy Modal (DPDPA 2023) */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+      />
+
+      {/* Rehabilitation & Streak Freeze Modal */}
+      <RehabilitationModal
+        isOpen={isRehabModalOpen}
+        onClose={() => {
+          setIsRehabModalOpen(false);
+          if (onSettingsChanged) onSettingsChanged();
+        }}
+      />
+
+      {/* Nuclear Right to Erasure Confirmation Modal */}
+      {isErasureConfirmOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-[#FFFDF5] border-3 border-black rounded-3xl p-6 shadow-[8px_8px_0px_#000000] space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
+                <AlertOctagon className="w-7 h-7 text-white stroke-[2.5]" />
+              </div>
+              <div>
+                <h3 className="font-display font-black text-lg uppercase text-red-700 leading-none">
+                  Nuclear Data Erasure
+                </h3>
+                <span className="text-xs font-mono text-neutral-600">
+                  Statutory DPDPA 2023 Sec. 12/13
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-red-50 border-2 border-red-400 rounded-xl space-y-2">
+              <p className="text-xs font-mono text-red-900 leading-relaxed font-bold">
+                ⚠️ THIS ACTION CANNOT BE UNDONE.
+              </p>
+              <p className="text-[11px] font-mono text-red-800 leading-relaxed">
+                This will permanently delete your entire diary history, habit streaks, PIN credentials, reflection notes, and all associated cloud Firestore backups.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono font-bold text-neutral-700 uppercase">
+                Type <span className="text-red-600 underline font-black">DELETE</span> to confirm:
+              </label>
+              <input
+                type="text"
+                value={erasureInput}
+                onChange={(e) => setErasureInput(e.target.value)}
+                placeholder="DELETE"
+                disabled={erasing}
+                className="w-full px-3.5 py-2.5 bg-white border-2 border-black rounded-xl font-mono text-sm font-bold text-black focus:outline-none focus:ring-2 focus:ring-red-500 shadow-[2px_2px_0px_#000000]"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={erasing}
+                onClick={() => setIsErasureConfirmOpen(false)}
+                className="flex-1 py-2.5 bg-neutral-200 hover:bg-neutral-300 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black cursor-pointer shadow-[2px_2px_0px_#000000]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={erasureInput !== 'DELETE' || erasing}
+                onClick={async () => {
+                  setErasing(true);
+                  try {
+                    await permanentlyDeleteAllUserData();
+                  } catch (e) {
+                    console.error('Erasure error:', e);
+                    setErasing(false);
+                    setIsErasureConfirmOpen(false);
+                  }
+                }}
+                className={`flex-1 py-2.5 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] transition-all ${
+                  erasureInput === 'DELETE' && !erasing
+                    ? 'bg-[#FF4D4D] text-white hover:bg-red-600 cursor-pointer'
+                    : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
+                }`}
+              >
+                {erasing ? 'Erasing...' : 'Erase Forever'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

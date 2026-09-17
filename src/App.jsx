@@ -26,6 +26,8 @@ const RansomCapsuleModal = lazy(() => import('./components/RansomCapsuleModal'))
 const ReceiptOfTruthModal = lazy(() => import('./components/ReceiptOfTruthModal'));
 const AutopsyChamberModal = lazy(() => import('./components/AutopsyChamberModal'));
 const BehavioralLabModal = lazy(() => import('./components/BehavioralLabModal'));
+const ExportStudioModal = lazy(() => import('./components/ExportStudioModal'));
+const RehabilitationModal = lazy(() => import('./components/RehabilitationModal'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -114,6 +116,8 @@ export default function App() {
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
+  const [isExportStudioOpen, setIsExportStudioOpen] = useState(false);
+  const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
     year: new Date().getFullYear(),
@@ -742,6 +746,7 @@ export default function App() {
           onOpenTelemetry={() => setIsTelemetryOpen(true)}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenStickerVault={() => setIsStickerVaultOpen(true)}
+          onOpenExportStudio={() => setIsExportStudioOpen(true)}
           sphereSettingsVer={sphereSettingsVer}
         />
       ) : (
@@ -757,6 +762,7 @@ export default function App() {
                 onTabChange={handleDesktopTabChange}
                 onOpenSettings={() => setIsSettingsOpen(true)}
                 onOpenReceipt={() => setIsGlobalReceiptOpen(true)}
+                onOpenExportStudio={() => setIsExportStudioOpen(true)}
                 onSyncRefresh={loadData}
               />
             </div>
@@ -774,6 +780,7 @@ export default function App() {
                   onSaveToday={handleSaveEntry}
                   onSave={handleSaveEntry}
                   onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
+                  onOpenRehab={() => setIsRehabModalOpen(true)}
                   sphereSettingsVer={sphereSettingsVer}
                 />
 
@@ -938,6 +945,27 @@ export default function App() {
             <StickerVaultModal
               isOpen={isStickerVaultOpen}
               onClose={() => setIsStickerVaultOpen(false)}
+            />
+          )}
+
+          {/* 📊 Multi-Format Data Export Studio Modal */}
+          {isExportStudioOpen && (
+            <ExportStudioModal
+              isOpen={isExportStudioOpen}
+              onClose={() => setIsExportStudioOpen(false)}
+              entries={entries}
+              startDate={startDate}
+            />
+          )}
+
+          {/* 🌿 Anti-Burnout Rehabilitation Sanctuary Modal */}
+          {isRehabModalOpen && (
+            <RehabilitationModal
+              isOpen={isRehabModalOpen}
+              onClose={() => {
+                setIsRehabModalOpen(false);
+                setSphereSettingsVer(v => v + 1);
+              }}
             />
           )}
 

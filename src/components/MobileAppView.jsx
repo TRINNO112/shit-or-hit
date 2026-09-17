@@ -53,7 +53,8 @@ import {
   calculateCompositeScore,
   isRansomCapsuleEnabled,
   isAutopsyChamberEnabled,
-  isReceiptOfTruthEnabled
+  isReceiptOfTruthEnabled,
+  isRehabilitationActive
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import { soundFx } from '../services/soundEffects';
@@ -113,7 +114,8 @@ export default function MobileAppView({
   onOpenTelemetry,
   onOpenSettings,
   onOpenStickerVault,
-  sphereSettingsVer = 0
+  sphereSettingsVer = 0,
+  onOpenExportStudio
 }) {
   const [activeTab, setActiveTabState] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -650,6 +652,16 @@ export default function MobileAppView({
             <span>DAY {dayCount}</span>
           </div>
 
+          {/* 🌿 Sanctuary Active Indicator */}
+          {isRehabilitationActive() && (
+            <div 
+              className="flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-xl bg-[#E8F5E9] border-2 border-black text-[#1B5E20] font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+              title="Rehabilitation Sanctuary Active — Streak Protected"
+            >
+              <span>🌿 SANCTUARY</span>
+            </div>
+          )}
+
           {/* Cloud Auth / Profile */}
           {user ? (
             <button
@@ -678,14 +690,18 @@ export default function MobileAppView({
             </button>
           )}
 
-          {/* Backup Button */}
+          {/* Backup Button (Export Studio) */}
           <button
             onClick={() => {
               triggerHaptic('light');
-              exportDatabaseBackup(startDate, entries);
+              if (onOpenExportStudio) {
+                onOpenExportStudio();
+              } else {
+                exportDatabaseBackup(startDate, entries);
+              }
             }}
             className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
-            title="Download JSON Backup"
+            title="Export Studio (CSV, Markdown, JSON)"
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
           </button>

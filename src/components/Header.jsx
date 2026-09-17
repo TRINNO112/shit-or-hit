@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer } from 'lucide-react';
-import { exportDatabaseBackup, isReceiptOfTruthEnabled } from '../services/api';
+import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
 import { soundEngine } from '../services/soundEngine';
 import MagneticButton from './MagneticButton';
@@ -17,7 +17,8 @@ export default function Header({
   onTabChange,
   onOpenSettings,
   onOpenReceipt,
-  onSyncRefresh
+  onSyncRefresh,
+  onOpenExportStudio
 }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -68,7 +69,12 @@ export default function Header({
   };
 
   const handleExport = () => {
-    exportDatabaseBackup(startDate, entries);
+    soundEngine.playClick();
+    if (onOpenExportStudio) {
+      onOpenExportStudio();
+    } else {
+      exportDatabaseBackup(startDate, entries);
+    }
   };
 
   const isWhitelisted = user && isEmailWhitelisted(user.email);
@@ -107,6 +113,16 @@ export default function Header({
             <Flame className="w-3.5 h-3.5 text-black fill-black" />
             <span>DAY {dayCount}</span>
           </div>
+
+          {/* 🌿 Sanctuary Active Indicator (Tablet) */}
+          {isRehabilitationActive() && (
+            <div 
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#E8F5E9] border-2 border-black text-[#1B5E20] font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+              title="Rehabilitation Sanctuary Active — Streak Protected"
+            >
+              <span>🌿 SANCTUARY</span>
+            </div>
+          )}
 
           {/* Cloud Status */}
           {user ? (
@@ -193,6 +209,16 @@ export default function Header({
           <Flame className="w-4 h-4 text-black fill-black" />
           <span>DAY {dayCount}</span>
         </div>
+
+        {/* 🌿 Sanctuary Active Indicator (Desktop) */}
+        {isRehabilitationActive() && (
+          <div 
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E8F5E9] border-2 border-black text-[#1B5E20] font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
+            title="Rehabilitation Sanctuary Active — Streak Frozen & Protected"
+          >
+            <span>🌿 SANCTUARY</span>
+          </div>
+        )}
 
         {/* Minimal Cloud Status Pill / Dropdown */}
         {user ? (() => {

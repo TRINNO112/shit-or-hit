@@ -37,7 +37,8 @@ import {
   isReceiptOfTruthEnabled,
   getActiveSealedCapsule,
   checkCapsuleUnlockConditions,
-  calculateStreak
+  calculateStreak,
+  isRehabilitationActive
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
@@ -83,7 +84,8 @@ export default function TodayHero({
   onSave,
   dayCount,
   onOpenWallpaper,
-  sphereSettingsVer = 0
+  sphereSettingsVer = 0,
+  onOpenRehab
 }) {
   const activeEntry = currentEntry || todayEntry || null;
   const saveHandler = onSaveToday || onSave || (() => Promise.resolve());
@@ -462,6 +464,39 @@ export default function TodayHero({
       style={{ padding: '36px 40px' }}
     >
       
+      {/* 🌿 Anti-Burnout Rehabilitation Sanctuary Banner */}
+      {isRehabilitationActive(todayStr) && (
+        <div className="mb-6 p-4 rounded-2xl bg-[#F0FDF4] border-2 border-black shadow-[3px_3px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+              <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h4 className="font-display font-black text-sm uppercase tracking-tight text-emerald-950 truncate">
+                  🌿 Rehabilitation Sanctuary Active
+                </h4>
+                <span className="px-2 py-0.5 rounded-full bg-[#00E599] border border-black text-[9px] font-mono font-black uppercase text-black">
+                  Streak Protected
+                </span>
+              </div>
+              <p className="text-xs font-mono text-emerald-800 mt-0.5">
+                Daily pressure suspended. Your unbroken streak is held safe while you rest and recover.
+              </p>
+            </div>
+          </div>
+          {onOpenRehab && (
+            <button
+              type="button"
+              onClick={onOpenRehab}
+              className="py-1.5 px-3.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 self-start sm:self-auto"
+            >
+              Sanctuary Status
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Top Panoramic Grid or Segmented Matrix Header */}
       {!sphereModeActive ? (
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">

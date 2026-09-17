@@ -9,7 +9,8 @@ import {
   fetchCloudReport, 
   isEmailWhitelisted,
   saveCloudCapsules,
-  fetchCloudCapsules 
+  fetchCloudCapsules,
+  deleteCloudUserData
 } from './firebase';
 import { encryptCapsuleMessage, decryptCapsuleMessage } from './cipherEngine';
 
@@ -1151,7 +1152,7 @@ export function getRansomCapsules() {
 
 export const getTimeCapsules = getRansomCapsules;
 
-// 🧮 Compute Current Unbroken Positive Habit Streak (>=3 Stars)
+// 🧮 Compute Current Unbroken Positive Habit Streak (>=3 Stars, Protected by Rehabilitation Freeze)
 export function calculateStreak(entries = {}) {
   const dates = Object.keys(entries || {});
   if (dates.length === 0) return 0;
@@ -1166,17 +1167,28 @@ export function calculateStreak(entries = {}) {
   yest.setDate(yest.getDate() - 1);
   const yestStr = `${yest.getFullYear()}-${String(yest.getMonth() + 1).padStart(2, '0')}-${String(yest.getDate()).padStart(2, '0')}`;
 
-  if (!entries[todayStr]?.rating && !entries[yestStr]?.rating) {
+  const rehabActive = isRehabilitationActive();
+
+  if (!entries[todayStr]?.rating && !entries[yestStr]?.rating && !rehabActive) {
     return 0;
   }
 
   let streak = 0;
   let curr = entries[todayStr]?.rating ? new Date(now) : yest;
+  if (!entries[todayStr]?.rating && rehabActive) {
+    curr = yest;
+  }
+
   while (true) {
     const ds = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
     const entry = entries[ds];
+    const isRehabDay = (entry && (entry.isRehabilitation || entry.isStreakFreeze)) || isRehabilitationActive(ds);
+
     if (entry && Number(entry.rating) >= 3) {
       streak++;
+      curr.setDate(curr.getDate() - 1);
+    } else if (isRehabDay) {
+      // 🌿 Rehabilitation & Streak Freeze: Bridge the streak without resetting to zero
       curr.setDate(curr.getDate() - 1);
     } else {
       break;
@@ -1464,4 +1476,293 @@ export function setGuestDisclaimerDismissed() {
     localStorage.setItem(GUEST_DISCLAIMER_KEY, Date.now().toString());
   } catch (e) {}
 }
+
+// ============================================================================
+// 🌿 REHABILITATION & STREAK FREEZE PROTOCOL (7-TO-14 DAYS SANCTUARY ENGINE)
+// ============================================================================
+
+export const REHAB_CONFIG_KEY = 'daily_verdict_rehabilitation_v1';
+export const COMPASSION_ANCHORS_KEY = 'daily_verdict_compassion_anchors_v1';
+
+export const DEFAULT_COMPASSION_ANCHORS = [
+  { id: 'rest_sleep', title: 'Rest & 8hr Sleep', desc: 'Allow body and mind to recharge deeply', utils: 2.0 },
+  { id: 'hydration', title: 'Drink Water & Hydrate', desc: 'At least 2L clean water throughout the day', utils: 1.0 },
+  { id: 'fresh_air', title: 'Step Outside for Fresh Air', desc: '5-10 minutes without screens or obligations', utils: 1.0 },
+  { id: 'peaceful_joy', title: 'One Small Joy / Peaceful Act', desc: 'Read, listen to music, or just sit peacefully', utils: 1.0 }
+];
+
+export function getRehabilitationConfig() {
+  if (typeof window === 'undefined') return { active: false, freezeDays: 7, maxDays: 14 };
+  try {
+    const raw = localStorage.getItem(REHAB_CONFIG_KEY);
+    if (!raw) return { active: false, freezeDays: 7, maxDays: 14 };
+    const parsed = JSON.parse(raw);
+    if (parsed.active && parsed.startDate) {
+      const start = new Date(`${parsed.startDate}T00:00:00`).getTime();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const elapsedDays = Math.max(0, Math.floor((today.getTime() - start) / (24 * 60 * 60 * 1000)));
+      const allowedDays = Math.min(parsed.freezeDays || 7, 14);
+
+      if (elapsedDays >= allowedDays) {
+        parsed.active = false;
+        parsed.expired = true;
+        localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(parsed));
+      } else {
+        parsed.daysRemaining = Math.max(0, allowedDays - elapsedDays);
+        parsed.elapsedDays = elapsedDays;
+        parsed.needsDay7CheckIn = elapsedDays >= 7 && !parsed.checkedInDay7;
+      }
+    }
+    return parsed;
+  } catch (e) {
+    return { active: false, freezeDays: 7, maxDays: 14 };
+  }
+}
+
+export function isRehabilitationActive(targetDateStr = null) {
+  if (typeof window === 'undefined') return false;
+  try {
+    const cfg = getRehabilitationConfig();
+    if (!cfg || !cfg.active || !cfg.startDate) return false;
+
+    if (!targetDateStr) return true; // Current status check
+
+    const start = new Date(`${cfg.startDate}T00:00:00`).getTime();
+    const target = new Date(`${targetDateStr}T00:00:00`).getTime();
+    const allowedDays = Math.min(cfg.freezeDays || 7, 14);
+    const end = start + (allowedDays * 24 * 60 * 60 * 1000);
+
+    return target >= start && target < end;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function activateRehabilitation(freezeDays = 7) {
+  if (typeof window === 'undefined') return;
+  try {
+    const cappedDays = Math.min(Math.max(1, freezeDays), 14);
+    const now = new Date();
+    const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const payload = {
+      active: true,
+      startDate,
+      freezeDays: cappedDays,
+      maxDays: 14,
+      checkedInDay7: false,
+      activatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
+    return payload;
+  } catch (e) {
+    console.warn('Failed to activate rehabilitation:', e);
+  }
+}
+
+export function extendRehabilitation(additionalDays = 7) {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getRehabilitationConfig();
+    if (!current.active) return activateRehabilitation(7);
+    const newTotal = Math.min((current.freezeDays || 7) + additionalDays, 14); // 14 days strict ceiling
+    current.freezeDays = newTotal;
+    current.checkedInDay7 = true;
+    localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(current));
+    return current;
+  } catch (e) {
+    console.warn('Failed to extend rehabilitation:', e);
+  }
+}
+
+export function exitRehabilitation() {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getRehabilitationConfig();
+    current.active = false;
+    current.exitedAt = new Date().toISOString();
+    localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(current));
+  } catch (e) {}
+}
+
+export function getCompassionAnchors() {
+  if (typeof window === 'undefined') return DEFAULT_COMPASSION_ANCHORS;
+  try {
+    const raw = localStorage.getItem(COMPASSION_ANCHORS_KEY);
+    return raw ? JSON.parse(raw) : DEFAULT_COMPASSION_ANCHORS;
+  } catch (e) {
+    return DEFAULT_COMPASSION_ANCHORS;
+  }
+}
+
+export function saveCompassionAnchors(anchors) {
+  if (typeof window === 'undefined' || !Array.isArray(anchors)) return;
+  try {
+    localStorage.setItem(COMPASSION_ANCHORS_KEY, JSON.stringify(anchors));
+  } catch (e) {}
+}
+
+// ============================================================================
+// 📊 MULTI-FORMAT DATA EXPORT STUDIO (CSV, DIARY DIGEST, JSON)
+// ============================================================================
+
+export function exportEntriesToCsv(entries = {}, startDate = '') {
+  const dates = Object.keys(entries || {}).sort().reverse();
+  const rows = [
+    ['Date', 'Verdict', 'Star Rating', 'Rehabilitation', 'Habits Completed', 'Reflection Notes', 'Life Spheres']
+  ];
+
+  dates.forEach(ds => {
+    const item = entries[ds];
+    if (!item) return;
+
+    const rating = item.rating || '';
+    const verdict = item.verdict || (ratingMeta[rating]?.title) || '';
+    const isRehab = item.isRehabilitation || item.isStreakFreeze ? 'YES' : 'NO';
+
+    // Format anchors / habits
+    let habitsStr = '';
+    if (item.anchors && typeof item.anchors === 'object') {
+      habitsStr = Object.entries(item.anchors)
+        .filter(([_, val]) => !!val)
+        .map(([key]) => key)
+        .join('; ');
+    }
+
+    // Notes
+    const notesStr = item.notes ? item.notes.replace(/\r?\n/g, ' ') : '';
+
+    // Spheres
+    let spheresStr = '';
+    if (item.spheres && typeof item.spheres === 'object') {
+      spheresStr = Object.entries(item.spheres)
+        .map(([id, s]) => `${id}:${s.rating || ''}`)
+        .join('; ');
+    }
+
+    rows.push([ds, verdict, rating, isRehab, habitsStr, notesStr, spheresStr]);
+  });
+
+  // RFC 4180 CSV serialization
+  const csvContent = rows.map(row => 
+    row.map(cell => {
+      const str = String(cell ?? '');
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }).join(',')
+  ).join('\r\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `daily_verdict_export_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+export function exportEntriesToDiaryDigest(entries = {}, startDate = '') {
+  const dates = Object.keys(entries || {}).sort().reverse();
+  const dateExported = new Date().toISOString().slice(0, 10);
+
+  let digest = `# 📖 Daily Verdict — Personal Diary Digest\n`;
+  digest += `*Exported on ${dateExported} • Total Recorded Entries: ${dates.length}*\n\n`;
+  digest += `> "A private sanctuary for daily truth, habit forensics, and personal momentum."\n\n`;
+  digest += `---\n\n`;
+
+  dates.forEach(ds => {
+    const item = entries[ds];
+    if (!item) return;
+
+    const rating = item.rating || 0;
+    const verdict = item.verdict || (ratingMeta[rating]?.title) || 'Unrated';
+    const starIcons = '★'.repeat(Math.max(0, Math.min(5, Number(rating)))) + '☆'.repeat(Math.max(0, 5 - Number(rating)));
+
+    digest += `### 📅 ${ds} — ${starIcons} ${verdict}\n`;
+    if (item.isRehabilitation || item.isStreakFreeze) {
+      digest += `*🌿 Rehabilitation / Streak Freeze Day*\n\n`;
+    }
+
+    if (item.notes && item.notes.trim()) {
+      digest += `**Reflection Notes:**\n> ${item.notes.replace(/\n/g, '\n> ')}\n\n`;
+    } else {
+      digest += `*No notes recorded for this day.*\n\n`;
+    }
+
+    if (item.anchors && typeof item.anchors === 'object') {
+      const completed = Object.entries(item.anchors).filter(([_, v]) => !!v).map(([k]) => k);
+      if (completed.length > 0) {
+        digest += `**Habits Completed:** ${completed.join(', ')}\n\n`;
+      }
+    }
+
+    digest += `---\n\n`;
+  });
+
+  const blob = new Blob([digest], { type: 'text/markdown;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `daily_verdict_diary_digest_${dateExported}.md`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================================
+// 🛡️ DPDPA 2023 STATUTORY COMPLIANCE: COMPLETE RIGHT TO ERASURE
+// ============================================================================
+
+export async function permanentlyDeleteAllUserData() {
+  if (typeof window === 'undefined') return false;
+  try {
+    console.log('🚨 [DPDPA 2023] Executing Permanent Right to Erasure...');
+
+    // 1. Cloud Deletion: Purge all Firestore user documents if authenticated
+    try {
+      const user = getCurrentUser();
+      const effectiveId = getEffectiveUserId(user);
+      if (effectiveId && effectiveId !== 'guest') {
+        await deleteCloudUserData(effectiveId);
+      }
+    } catch (cloudErr) {
+      console.warn('Cloud purge warning:', cloudErr);
+    }
+
+    // 2. Local Deletion: Purge all application localStorage keys
+    const allKeys = Object.keys(localStorage);
+    allKeys.forEach(k => {
+      if (
+        k.startsWith('goodness_db') ||
+        k.startsWith('daily_verdict') ||
+        k.startsWith('custom_display_name') ||
+        k.startsWith('daily_non_negotiables') ||
+        k.startsWith('vault_pin') ||
+        k.startsWith('user_spheres') ||
+        k.startsWith('custom_stickers') ||
+        k.startsWith('active_wallpaper') ||
+        k === 'local_auth_user' ||
+        k === 'goodness_theme'
+      ) {
+        localStorage.removeItem(k);
+      }
+    });
+
+    // 3. Purge session storage
+    sessionStorage.clear();
+
+    console.log('✅ [DPDPA 2023] All local and cloud records completely erased.');
+    window.location.reload();
+    return true;
+  } catch (err) {
+    console.error('Failed to execute complete data erasure:', err);
+    return false;
+  }
+}
+
 

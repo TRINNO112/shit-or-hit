@@ -20,6 +20,7 @@ import {
   Sliders
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
+import { isRehabilitationActive, getCompassionAnchors } from '../services/api';
 
 export const NON_NEGOTIABLES_ENABLED_KEY = 'daily_verdict_non_negotiables_enabled';
 export const NON_NEGOTIABLES_MODE_KEY = 'daily_verdict_non_negotiables_mode'; // 'checklist' | 'hybrid_50_50' | 'deterministic_100'
@@ -133,10 +134,15 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
     setNewDayAnchorTitle('');
   }, [dateStr, storageKey, dayAnchorsKey]);
 
-  // Combined active anchor list (Global Template Anchors + Day-Specific Outlier Anchors)
+  // Combined active anchor list (Compassion Anchors during Rehab, otherwise Global + Day-Specific)
+  const isRehab = isRehabilitationActive(dateStr);
+  const activeBaseAnchors = useMemo(() => {
+    return isRehab ? getCompassionAnchors() : anchors;
+  }, [isRehab, anchors]);
+
   const combinedAnchors = useMemo(() => {
-    return [...anchors, ...daySpecificAnchors];
-  }, [anchors, daySpecificAnchors]);
+    return isRehab ? activeBaseAnchors : [...activeBaseAnchors, ...daySpecificAnchors];
+  }, [isRehab, activeBaseAnchors, daySpecificAnchors]);
 
   // Calculate total possible utils and achieved utils
   const { totalUtils, achievedUtils, completedCount, isAllCompleted } = useMemo(() => {
@@ -160,8 +166,8 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
     return Number(normalized.toFixed(1));
   }, [achievedUtils, totalUtils]);
 
-  // If disabled in Settings, do not render on dashboard
-  if (!isEnabled) {
+  // If disabled in Settings and not in rehab mode, do not render on dashboard
+  if (!isEnabled && !isRehab) {
     return null;
   }
 
@@ -260,30 +266,37 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
   };
 
   return (
-    <div className="bg-white border-3 border-black rounded-3xl p-4 sm:p-5 shadow-[4px_4px_0px_#000000] space-y-3.5 relative overflow-hidden">
+    <div className={`border-3 border-black rounded-3xl p-4 sm:p-5 shadow-[4px_4px_0px_#000000] space-y-3.5 relative overflow-hidden ${
+      isRehab ? 'bg-[#F4FAF6]' : 'bg-white'
+    }`}>
       
       {/* Top Header: Title, Mode Pill, and Utils Counter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-2xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#000000]">
-            <Shield className="w-5 h-5 text-black stroke-[2.5]" />
+            {isRehab ? <Sparkles className="w-5 h-5 text-black stroke-[2.5]" /> : <Shield className="w-5 h-5 text-black stroke-[2.5]" />}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h4 className="font-display font-black text-sm sm:text-base uppercase tracking-tight text-black truncate">
-                Daily Non-Negotiables
+                {isRehab ? '🌿 Sanctuary Compassion Anchors' : 'Daily Non-Negotiables'}
               </h4>
               <span className={`px-2 py-0.5 rounded-lg border border-black text-[9px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] ${
+                isRehab ? 'bg-[#00E599] text-black font-black' :
                 mode === 'deterministic_100' ? 'bg-[#FF6B6B] text-white' :
                 mode === 'hybrid_50_50' ? 'bg-[#FDC800] text-black' :
                 'bg-neutral-100 text-neutral-800'
               }`}>
-                {mode === 'deterministic_100' ? '🔒 100% Task Engine' :
+                {isRehab ? '🌿 REHABILITATION (STREAK FROZEN)' :
+                 mode === 'deterministic_100' ? '🔒 100% Task Engine' :
                  mode === 'hybrid_50_50' ? '⚖️ 50/50 Hybrid' : '📋 Checklist'}
               </span>
             </div>
             <p className="text-[11px] font-mono text-neutral-600 truncate">
-              {achievedUtils} / {totalUtils} Satisfaction Utils ({calculatedRating}★)
+              {isRehab 
+                ? `${completedCount}/${combinedAnchors.length} Restorative anchors fulfilled today`
+                : `${achievedUtils} / ${totalUtils} Satisfaction Utils (${calculatedRating}★)`
+              }
             </p>
           </div>
         </div>

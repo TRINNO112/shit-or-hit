@@ -303,10 +303,10 @@ assert(firebaseCode.includes('window.location.reload()'), 'firebase.js: logoutUs
 // ----------------------------------------------------------------------
 // SUITE 11: Offline Mathematical & Dynamic State Model Matrix
 // ----------------------------------------------------------------------
-console.log('\n📐 [11/12] Executing Mathematical & Component State Invariant Verification...');
+console.log('\n📐 [11/13] Executing Mathematical & Component State Invariant Verification...');
 try {
   const mathOutput = execSync('node scripts/verify-math-and-state-models.js', { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'pipe' });
-  assert(mathOutput.includes('18 PASSED | 0 FAILED'), 'Mathematical & State Model: All 18 invariants and lifecycle permutations verified');
+  assert(mathOutput.includes('26 PASSED | 0 FAILED'), 'Mathematical & State Model: All 26 invariants and lifecycle permutations verified');
 } catch (mathErr) {
   assert(false, `Mathematical model verification failed: ${mathErr.message}`);
 }
@@ -314,13 +314,26 @@ try {
 // ----------------------------------------------------------------------
 // SUITE 12: Database Schema & Multi-Source Reconciliation Invariants
 // ----------------------------------------------------------------------
-console.log('\n🗄️ [12/12] Executing Database Schema & Reconciliation Invariant Audit...');
+console.log('\n🗄️ [12/13] Executing Database Schema & Reconciliation Invariant Audit...');
 try {
   const dbOutput = execSync('node scripts/audit-database-integrity.js', { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'pipe' });
   assert(dbOutput.includes('19 PASSED | 0 FAILED'), 'Database & Reconciliation: All 19 schema invariants and conflict rules verified');
 } catch (dbErr) {
   assert(false, `Database integrity audit failed: ${dbErr.message}`);
 }
+
+// ----------------------------------------------------------------------
+// SUITE 13: Rehabilitation Sanctuary, DPDPA 2023 & Export Studio Architecture
+// ----------------------------------------------------------------------
+console.log('\n🏛️ [13/13] Testing Rehabilitation Sanctuary, DPDPA 2023 & Export Studio Protocols...');
+const privacyModalCode = readSrc('components/PrivacyPolicyModal.jsx');
+const rehabModalCode = readSrc('components/RehabilitationModal.jsx');
+const exportStudioCode = readSrc('components/ExportStudioModal.jsx');
+
+assert(privacyModalCode.includes('DPDPA 2023') && privacyModalCode.includes('Right to Erasure'), 'PrivacyPolicyModal: Statutory Indian DPDPA 2023 compliance & Section 12/13 provisions declared');
+assert(rehabModalCode.includes('Rehabilitation') && rehabModalCode.includes('MAX_DAYS = 14'), 'RehabilitationModal: 7-day initial freeze with 14-day hard ceiling & Day 7 check-in active');
+assert(exportStudioCode.includes('exportEntriesToCsv') && exportStudioCode.includes('exportEntriesToDiaryDigest'), 'ExportStudioModal: Multi-format CSV, Diary Digest, and raw JSON export suite active');
+assert(apiCode.includes('permanentlyDeleteAllUserData') && firebaseCode.includes('deleteCloudUserData'), 'DPDPA Erasure Engine: Nuclear local + cloud Firestore data purge operational');
 
 // ----------------------------------------------------------------------
 // COMPILER VERIFICATION
