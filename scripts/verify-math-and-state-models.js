@@ -374,6 +374,74 @@ assert(simulateRfc4180Escape('Hello, world') === '"Hello, world"', 'Export Invar
 assert(simulateRfc4180Escape('He said "yes"') === '"He said ""yes"""', 'Export Invariant: Double quotes properly escaped as double-double-quotes');
 assert(simulateRfc4180Escape('Line 1\nLine 2') === '"Line 1\nLine 2"', 'Export Invariant: Multiline text wrapped in quotes');
 
+// Invariant 5: Auto-Sanctuary Assumption Engine
+function simulateAutoSanctuaryEligibility(entries, todayStr, yestStr) {
+  if (!entries || typeof entries !== 'object') return false;
+  if (entries[yestStr]?.rating) return false; // Yesterday was rated
+
+  let consecutiveRough = 0;
+  const now = new Date(`${todayStr}T00:00:00`);
+  for (let i = 2; i <= 5; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const entry = entries[ds];
+    if (entry && entry.rating && Number(entry.rating) <= 2) {
+      consecutiveRough++;
+    } else if (entry && entry.rating && Number(entry.rating) > 2) {
+      break;
+    } else {
+      break;
+    }
+  }
+  return consecutiveRough >= 2;
+}
+
+const eligibleEntries = {
+  '2026-09-10': { rating: 1 }, // 2 days before yesterday: rough
+  '2026-09-11': { rating: 2 }, // 1 day before yesterday: rough
+  // 2026-09-12 unrated (yesterday)
+  // 2026-09-13 unrated (today)
+};
+assert(
+  simulateAutoSanctuaryEligibility(eligibleEntries, '2026-09-13', '2026-09-12') === true,
+  'Auto-Sanctuary Invariant: 2 consecutive rough days before missed day triggers automatic freeze safeguard'
+);
+
+const normalEntries = {
+  '2026-09-10': { rating: 4 },
+  '2026-09-11': { rating: 4 },
+  // 2026-09-12 unrated
+};
+assert(
+  simulateAutoSanctuaryEligibility(normalEntries, '2026-09-13', '2026-09-12') === false,
+  'Auto-Sanctuary Invariant: Normal/hit streak before missed day does not spuriously trigger auto-sanctuary'
+);
+
+// Invariant 6: Sabbatical Mode indefinite holding pattern
+function simulateSabbaticalBridge(streakBeforeSabbatical, isSabbatical) {
+  if (isSabbatical) {
+    return streakBeforeSabbatical; // Milestone frozen in amber without reset
+  }
+  return 0;
+}
+assert(simulateSabbaticalBridge(42, true) === 42, 'Sabbatical Invariant: Infinite sabbatical pause preserves 42-day milestone intact');
+
+// Invariant 7: 7-Day Cooling-Off Erasure Model
+function simulateCoolingOffHolding(nowMs, scheduledAtMs, graceDays = 7) {
+  const executeAtMs = scheduledAtMs + (graceDays * 86400000);
+  const isPending = nowMs < executeAtMs;
+  const isPurged = nowMs >= executeAtMs;
+  const daysRemaining = Math.max(0, Math.ceil((executeAtMs - nowMs) / 86400000));
+  return { isPending, isPurged, daysRemaining };
+}
+const day1State = simulateCoolingOffHolding(1000000, 1000000, 7);
+assert(day1State.isPending === true && day1State.daysRemaining === 7, 'Erasure Invariant: Immediate schedule gives 7-day pending cooling-off window');
+
+const day8State = simulateCoolingOffHolding(1000000 + 8 * 86400000, 1000000, 7);
+assert(day8State.isPurged === true && day8State.daysRemaining === 0, 'Erasure Invariant: Day 8 after cooling-off triggers permanent purge');
+
+
 // ---------------------------------------------------------------------------
 // REPORT
 // ---------------------------------------------------------------------------

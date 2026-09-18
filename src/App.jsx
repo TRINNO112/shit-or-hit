@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, startTransition } from 'react';
-import { Zap, Calendar, FlaskConical } from 'lucide-react';
+import { Zap, Calendar, FlaskConical, Clock, Layers } from 'lucide-react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
@@ -28,6 +28,9 @@ const AutopsyChamberModal = lazy(() => import('./components/AutopsyChamberModal'
 const BehavioralLabModal = lazy(() => import('./components/BehavioralLabModal'));
 const ExportStudioModal = lazy(() => import('./components/ExportStudioModal'));
 const RehabilitationModal = lazy(() => import('./components/RehabilitationModal'));
+const SanctuaryPage = lazy(() => import('./components/SanctuaryPage'));
+const PrivacyPolicyPage = lazy(() => import('./components/PrivacyPolicyPage'));
+const DataErasurePage = lazy(() => import('./components/DataErasurePage'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -42,7 +45,10 @@ import {
   calculateStreak,
   getRansomCapsules,
   hydrateTimeCapsulesFromCloud,
-  isGuestDisclaimerDismissed
+  isGuestDisclaimerDismissed,
+  autoActivateSanctuaryIfEligible,
+  getPendingDeletionStatus,
+  cancelAccountDeletion
 } from './services/api';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser, loginWithGoogle } from './services/firebase';
@@ -76,6 +82,19 @@ export default function App() {
     if (typeof window === 'undefined') return false;
     return window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton');
   });
+  const [showSanctuary, setShowSanctuary] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.search.includes('view=sanctuary') || window.location.hash.includes('sanctuary');
+  });
+  const [showPrivacy, setShowPrivacy] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.search.includes('view=privacy') || window.location.hash.includes('privacy');
+  });
+  const [showErasure, setShowErasure] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.search.includes('view=erasure') || window.location.hash.includes('erasure');
+  });
+  const [pendingDeletion, setPendingDeletion] = useState(() => getPendingDeletionStatus());
   const [showNotFound, setShowNotFound] = useState(() => {
     if (typeof window === 'undefined') return false;
     const path = window.location.pathname;
@@ -275,6 +294,10 @@ export default function App() {
     const checkHash = () => {
       setShowIconLab(window.location.search.includes('view=icons') || window.location.hash.includes('icons'));
       setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
+      setShowSanctuary(window.location.search.includes('view=sanctuary') || window.location.hash.includes('sanctuary'));
+      setShowPrivacy(window.location.search.includes('view=privacy') || window.location.hash.includes('privacy'));
+      setShowErasure(window.location.search.includes('view=erasure') || window.location.hash.includes('erasure'));
+      setPendingDeletion(getPendingDeletionStatus());
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
       }
@@ -306,6 +329,17 @@ export default function App() {
       window.removeEventListener('hashchange', checkHash);
     };
   }, []);
+
+  // 🤖 Auto-Sanctuary Assumption Engine: Safeguard streak automatically on load
+  useEffect(() => {
+    try {
+      if (entries && Object.keys(entries).length > 0) {
+        autoActivateSanctuaryIfEligible(entries);
+      }
+    } catch (e) {
+      console.warn('Auto-sanctuary trigger check note:', e);
+    }
+  }, [entries]);
 
   const now = new Date();
   const y = now.getFullYear();
@@ -675,7 +709,8 @@ export default function App() {
     return (
       <div className="relative">
         <div className="fixed top-3 right-4 z-50 flex items-center gap-2 bg-black text-white px-3.5 py-2 rounded-2xl border-2 border-white shadow-[4px_4px_0px_#000000]">
-          <span className="font-mono text-xs font-bold text-[#FDC800]">🦴 SKELETON PREVIEW ACTIVE</span>
+          <Layers className="w-4 h-4 text-[#FDC800]" />
+          <span className="font-mono text-xs font-bold text-[#FDC800]">SKELETON PREVIEW ACTIVE</span>
           <button
             type="button"
             onClick={() => {
@@ -717,6 +752,55 @@ export default function App() {
     );
   }
 
+  if (showSanctuary) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[#F4FAF6] flex items-center justify-center font-mono text-sm font-black">ENTERING REHABILITATION SANCTUARY...</div>}>
+          <SanctuaryPage
+            onBack={() => {
+              setShowSanctuary(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+            isDemo={window.location.search.includes('demo=true')}
+            activeStreak={currentStreak}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  if (showPrivacy) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[#FFFDF8] flex items-center justify-center font-mono text-sm font-black">LOADING PRIVACY CHARTER...</div>}>
+          <PrivacyPolicyPage
+            onBack={() => {
+              setShowPrivacy(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
+  if (showErasure) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[#FFFDF8] flex items-center justify-center font-mono text-sm font-black">LOADING ERASURE PORTAL...</div>}>
+          <DataErasurePage
+            onBack={() => {
+              setShowErasure(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+            isDemo={window.location.search.includes('demo=true')}
+            entries={entries}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   if (isInitialLoading) {
     return <SkeletonLoader isMobile={isMobile} />;
   }
@@ -729,6 +813,37 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-black font-sans selection:bg-[#FDC800] selection:text-black">
+
+      {/* DPDPA 2023 7-Day Cooling-Off Erasure Banner */}
+      {pendingDeletion?.pending && (
+        <div className="bg-[#FF4D4D] border-b-3 border-black py-2.5 px-4 text-black font-mono font-black text-xs shadow-[0_2px_0px_#000000] sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-black shrink-0" />
+              <span>ACCOUNT SCHEDULED FOR PURGE IN {pendingDeletion.daysRemaining} DAYS ({pendingDeletion.executeDateStr})</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  cancelAccountDeletion();
+                  setPendingDeletion(getPendingDeletionStatus());
+                }}
+                className="px-3 py-1 bg-black text-[#00E599] rounded-lg border border-black hover:bg-neutral-800 cursor-pointer text-[11px]"
+              >
+                CANCEL ERASURE
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowErasure(true)}
+                className="px-3 py-1 bg-white text-black rounded-lg border border-black hover:bg-neutral-100 cursor-pointer text-[11px]"
+              >
+                VIEW PORTAL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 📲 PWA 1-Tap Native Install Prompt Banner */}
       <PWAInstallBanner />
@@ -747,6 +862,7 @@ export default function App() {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenStickerVault={() => setIsStickerVaultOpen(true)}
           onOpenExportStudio={() => setIsExportStudioOpen(true)}
+          onOpenRehab={() => setShowSanctuary(true)}
           sphereSettingsVer={sphereSettingsVer}
         />
       ) : (
@@ -763,6 +879,7 @@ export default function App() {
                 onOpenSettings={() => setIsSettingsOpen(true)}
                 onOpenReceipt={() => setIsGlobalReceiptOpen(true)}
                 onOpenExportStudio={() => setIsExportStudioOpen(true)}
+                onOpenRehab={() => setShowSanctuary(true)}
                 onSyncRefresh={loadData}
               />
             </div>
@@ -780,7 +897,7 @@ export default function App() {
                   onSaveToday={handleSaveEntry}
                   onSave={handleSaveEntry}
                   onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
-                  onOpenRehab={() => setIsRehabModalOpen(true)}
+                  onOpenRehab={() => setShowSanctuary(true)}
                   sphereSettingsVer={sphereSettingsVer}
                 />
 
@@ -937,6 +1054,9 @@ export default function App() {
               onClose={() => setIsSettingsOpen(false)}
               user={currentUser}
               onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
+              onOpenSanctuaryPage={() => setShowSanctuary(true)}
+              onOpenPrivacyPage={() => setShowPrivacy(true)}
+              onOpenErasurePage={() => setShowErasure(true)}
             />
           )}
 

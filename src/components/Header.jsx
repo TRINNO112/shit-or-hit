@@ -18,7 +18,8 @@ export default function Header({
   onOpenSettings,
   onOpenReceipt,
   onSyncRefresh,
-  onOpenExportStudio
+  onOpenExportStudio,
+  onOpenRehab
 }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -116,12 +117,17 @@ export default function Header({
 
           {/* 🌿 Sanctuary Active Indicator (Tablet) */}
           {isRehabilitationActive() && (
-            <div 
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#E8F5E9] border-2 border-black text-[#1B5E20] font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
-              title="Rehabilitation Sanctuary Active — Streak Protected"
+            <button 
+              type="button"
+              onClick={() => {
+                if (onOpenRehab) onOpenRehab();
+                else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border-2 border-black text-[#1B5E20] font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors"
+              title="Rehabilitation Sanctuary Active — Streak Protected (Click to View)"
             >
               <span>🌿 SANCTUARY</span>
-            </div>
+            </button>
           )}
 
           {/* Cloud Status */}
@@ -212,12 +218,17 @@ export default function Header({
 
         {/* 🌿 Sanctuary Active Indicator (Desktop) */}
         {isRehabilitationActive() && (
-          <div 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E8F5E9] border-2 border-black text-[#1B5E20] font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
-            title="Rehabilitation Sanctuary Active — Streak Frozen & Protected"
+          <button 
+            type="button"
+            onClick={() => {
+              if (onOpenRehab) onOpenRehab();
+              else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border-2 border-black text-[#1B5E20] font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors"
+            title="Rehabilitation Sanctuary Active — Streak Frozen & Protected (Click to View)"
           >
             <span>🌿 SANCTUARY</span>
-          </div>
+          </button>
         )}
 
         {/* Minimal Cloud Status Pill / Dropdown */}

@@ -81,7 +81,10 @@ export default function SettingsModal({
   isOpen,
   onClose,
   user,
-  onSettingsChanged
+  onSettingsChanged,
+  onOpenSanctuaryPage,
+  onOpenPrivacyPage,
+  onOpenErasurePage
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('22:00');
@@ -1244,7 +1247,16 @@ export default function SettingsModal({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsRehabModalOpen(true)}
+                  onClick={() => {
+                    if (onOpenSanctuaryPage) {
+                      onClose();
+                      onOpenSanctuaryPage();
+                    } else if (typeof window !== 'undefined') {
+                      window.location.href = '/?view=sanctuary';
+                    } else {
+                      setIsRehabModalOpen(true);
+                    }
+                  }}
                   className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap text-black"
                 >
                   SANCTUARY
@@ -1273,7 +1285,16 @@ export default function SettingsModal({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsPrivacyModalOpen(true)}
+                  onClick={() => {
+                    if (onOpenPrivacyPage) {
+                      onClose();
+                      onOpenPrivacyPage();
+                    } else if (typeof window !== 'undefined') {
+                      window.location.href = '/?view=privacy';
+                    } else {
+                      setIsPrivacyModalOpen(true);
+                    }
+                  }}
                   className="py-1.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap text-black"
                 >
                   VIEW POLICY
@@ -1303,8 +1324,15 @@ export default function SettingsModal({
                 <button
                   type="button"
                   onClick={() => {
-                    setErasureInput('');
-                    setIsErasureConfirmOpen(true);
+                    if (onOpenErasurePage) {
+                      onClose();
+                      onOpenErasurePage();
+                    } else if (typeof window !== 'undefined') {
+                      window.location.href = '/?view=erasure';
+                    } else {
+                      setErasureInput('');
+                      setIsErasureConfirmOpen(true);
+                    }
                   }}
                   className="py-1.5 px-3 bg-[#FF4D4D] hover:bg-red-600 text-white border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap"
                 >

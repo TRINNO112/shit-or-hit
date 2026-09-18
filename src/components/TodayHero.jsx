@@ -38,7 +38,9 @@ import {
   getActiveSealedCapsule,
   checkCapsuleUnlockConditions,
   calculateStreak,
-  isRehabilitationActive
+  isRehabilitationActive,
+  isAutoSanctuaryAssumed,
+  getRehabilitationConfig
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
@@ -551,63 +553,98 @@ export default function TodayHero({
             </div>
           </div>
 
-          {/* Right Side: 5 Chunky Tactile 1-Tap Buttons */}
+          {/* Right Side: 5 Chunky Tactile 1-Tap Buttons OR Judgment-Free Sanctuary Deck */}
           <div className="w-full lg:w-7/12">
-            <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 relative">
-              {[1, 2, 3, 4, 5].map((val) => {
-                const m = ratingMeta[val];
-                const SvgIcon = IconMap[m.icon];
-                const isSelected = selectedRating === val;
-
-                return (
-                  <motion.button
-                    key={val}
+            {isRehabilitationActive(todayStr) ? (
+              <div className="bg-[#F0FDF4] border-3 border-black rounded-2xl p-5 sm:p-6 shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
+                    <span className="font-mono text-xs font-black uppercase text-emerald-950">
+                      🌿 SANCTUARY ACTIVE • JUDGMENT SUSPENDED
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 bg-black text-[#00E599] rounded-lg font-mono text-[10px] font-black uppercase">
+                    STREAK SAFE
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-sans font-medium text-emerald-900 leading-relaxed">
+                  Daily ratings and self-judgment are suspended today. Your momentum is sheltered while your nervous system rests.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <button
                     type="button"
-                    whileHover={!isDeterministicTaskLocked ? { 
-                      scale: 1.06, 
-                      y: -4, 
-                      boxShadow: '4px 4px 0px #000000' 
-                    } : {}}
-                    whileTap={!isDeterministicTaskLocked ? { 
-                      scale: 0.88, 
-                      rotate: (val - 3) * -2.5 
-                    } : {}}
-                    transition={{ type: 'spring', stiffness: 450, damping: 16 }}
-                    onClick={(e) => handleRate(val, e)}
-                    className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
-                    style={{ 
-                      minHeight: '82px',
-                      backgroundColor: isSelected ? m.bg : '#FFFFFF'
+                    onClick={() => {
+                      if (onOpenRehab) onOpenRehab();
+                      else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
                     }}
-                    title={isDeterministicTaskLocked ? 'Locked by 100% Task Engine' : `Log ${m.title} (${val}/5)`}
+                    className="px-4 py-2 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5"
                   >
-                    {/* Seamless Active Selection Highlight */}
-                    {isSelected && (
-                      <motion.div
-                        layoutId="active-cyber-box"
-                        className="absolute -inset-0.5 rounded-2xl border-[3px] border-black pointer-events-none"
-                        transition={{ type: 'spring', stiffness: 480, damping: 26 }}
-                      />
-                    )}
+                    <Sparkles className="w-4 h-4" />
+                    <span>OPEN RESTORATIVE HAVEN</span>
+                  </button>
+                  <span className="text-[11px] font-mono text-emerald-800">
+                    Gentle check-ins • 0 pressure
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 relative">
+                {[1, 2, 3, 4, 5].map((val) => {
+                  const m = ratingMeta[val];
+                  const SvgIcon = IconMap[m.icon];
+                  const isSelected = selectedRating === val;
 
-                    <div 
-                      className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 shadow-[1.5px_1.5px_0px_#000000]"
-                      style={{ backgroundColor: m.bg }}
+                  return (
+                    <motion.button
+                      key={val}
+                      type="button"
+                      whileHover={!isDeterministicTaskLocked ? { 
+                        scale: 1.06, 
+                        y: -4, 
+                        boxShadow: '4px 4px 0px #000000' 
+                      } : {}}
+                      whileTap={!isDeterministicTaskLocked ? { 
+                        scale: 0.88, 
+                        rotate: (val - 3) * -2.5 
+                      } : {}}
+                      transition={{ type: 'spring', stiffness: 450, damping: 16 }}
+                      onClick={(e) => handleRate(val, e)}
+                      className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
+                      style={{ 
+                        minHeight: '82px',
+                        backgroundColor: isSelected ? m.bg : '#FFFFFF'
+                      }}
+                      title={isDeterministicTaskLocked ? 'Locked by 100% Task Engine' : `Log ${m.title} (${val}/5)`}
                     >
-                      <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
-                    </div>
+                      {/* Seamless Active Selection Highlight */}
+                      {isSelected && (
+                        <motion.div
+                          layoutId="active-cyber-box"
+                          className="absolute -inset-0.5 rounded-2xl border-[3px] border-black pointer-events-none"
+                          transition={{ type: 'spring', stiffness: 480, damping: 26 }}
+                        />
+                      )}
 
-                    <span className="font-display font-black text-[10px] sm:text-xs uppercase tracking-tight leading-none truncate max-w-full">
-                      {m.title}
-                    </span>
+                      <div 
+                        className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 shadow-[1.5px_1.5px_0px_#000000]"
+                        style={{ backgroundColor: m.bg }}
+                      >
+                        <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
+                      </div>
 
-                    <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neutral-600 mt-0.5 sm:mt-1">
-                      {val}/5
-                    </span>
-                  </motion.button>
-                );
-              })}
-            </div>
+                      <span className="font-display font-black text-[10px] sm:text-xs uppercase tracking-tight leading-none truncate max-w-full">
+                        {m.title}
+                      </span>
+
+                      <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neutral-600 mt-0.5 sm:mt-1">
+                        {val}/5
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
         </div>

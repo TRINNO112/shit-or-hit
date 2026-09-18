@@ -173,35 +173,19 @@ export async function saveVaultPinDualLayer(pin, customUserId = null) {
     localStorage.removeItem('daily_verdict_vault_pin_cipher');
   }
 
-  // 2. Encrypted Cloud Transit & Firestore Persistence
+  // 2. Encrypted Cloud Transit & Firestore Persistence (Ciphertext Only)
   const currentUser = getCurrentUser();
   const effectiveId = customUserId || getEffectiveUserId(currentUser);
   
   if (effectiveId && effectiveId !== 'guest') {
     try {
       const encryptedToken = encryptVaultPin(pin);
-      
-      // Attempt serverless cloud mediator decryption before storing
-      let cloudDecryptedPin = pin;
-      try {
-        const res = await fetch('/.netlify/functions/decrypt-mediator', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'decrypt-token', token: encryptedToken })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.decryptedPin) cloudDecryptedPin = data.decryptedPin;
-        }
-      } catch (e) {}
-
       await saveCloudUserSettings(effectiveId, {
         vaultPinEncrypted: encryptedToken,
-        vaultPinPlain: cloudDecryptedPin,
         vaultSecurityActive: true,
         vaultUpdatedAt: new Date().toISOString()
       });
-      console.log(`🔐 [Vault Security] PIN securely saved to Firestore for user: ${effectiveId}`);
+      console.log(`🔐 [Vault Security] Encrypted cipher token saved to Firestore for user: ${effectiveId}`);
     } catch (err) {
       console.warn('Vault cloud sync note:', err.message);
     }
@@ -255,7 +239,6 @@ export async function removeVaultPinDualLayer(customUserId = null) {
     try {
       await saveCloudUserSettings(effectiveId, {
         vaultPinEncrypted: null,
-        vaultPinPlain: null,
         vaultSecurityActive: false,
         vaultUpdatedAt: new Date().toISOString()
       });

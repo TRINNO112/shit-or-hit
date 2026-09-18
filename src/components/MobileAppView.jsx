@@ -115,7 +115,8 @@ export default function MobileAppView({
   onOpenSettings,
   onOpenStickerVault,
   sphereSettingsVer = 0,
-  onOpenExportStudio
+  onOpenExportStudio,
+  onOpenRehab
 }) {
   const [activeTab, setActiveTabState] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -654,12 +655,17 @@ export default function MobileAppView({
 
           {/* 🌿 Sanctuary Active Indicator */}
           {isRehabilitationActive() && (
-            <div 
-              className="flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-xl bg-[#E8F5E9] border-2 border-black text-[#1B5E20] font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
-              title="Rehabilitation Sanctuary Active — Streak Protected"
+            <button 
+              type="button"
+              onClick={() => {
+                if (onOpenRehab) onOpenRehab();
+                else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
+              }}
+              className="flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border-2 border-black text-[#1B5E20] font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors"
+              title="Rehabilitation Sanctuary Active — Streak Protected (Click to View)"
             >
               <span>🌿 SANCTUARY</span>
-            </div>
+            </button>
           )}
 
           {/* Cloud Auth / Profile */}
@@ -761,8 +767,36 @@ export default function MobileAppView({
             </div>
           </div>
 
-          {/* Rating Engine: Segmented Sphere Cards vs Standard Verdict */}
-          {sphereModeActive ? (
+          {/* Rating Engine: Sanctuary Recovery Deck vs Segmented Sphere Cards vs Standard Verdict */}
+          {isRehabilitationActive(todayStr) ? (
+            <div className="p-4 rounded-2xl border-2 border-black bg-[#F0FDF4] shadow-[3px_3px_0px_#000000] space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
+                  <span className="font-mono text-xs font-black uppercase text-emerald-950">
+                    🌿 SANCTUARY ACTIVE
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded-lg bg-black text-[#00E599] font-mono text-[10px] font-black uppercase">
+                  FROZEN
+                </span>
+              </div>
+              <p className="text-xs font-sans font-medium text-emerald-900 leading-relaxed">
+                Daily ratings and verdict pressure are suspended. Your streak is sheltered while you rest.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onOpenRehab) onOpenRehab();
+                  else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
+                }}
+                className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>OPEN RESTORATIVE HAVEN</span>
+              </button>
+            </div>
+          ) : sphereModeActive ? (
             /* Multi-Sphere Segmentation Cards */
             <div className="space-y-3">
               {spheresConfig.map((sphere) => {

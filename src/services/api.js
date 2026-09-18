@@ -1483,12 +1483,21 @@ export function setGuestDisclaimerDismissed() {
 
 export const REHAB_CONFIG_KEY = 'daily_verdict_rehabilitation_v1';
 export const COMPASSION_ANCHORS_KEY = 'daily_verdict_compassion_anchors_v1';
+export const AUTO_SANCTUARY_ASSUMED_KEY = 'daily_verdict_auto_sanctuary_assumed_v1';
+export const SANCTUARY_RESPONSES_KEY = 'daily_verdict_sanctuary_responses_v1';
 
 export const DEFAULT_COMPASSION_ANCHORS = [
   { id: 'rest_sleep', title: 'Rest & 8hr Sleep', desc: 'Allow body and mind to recharge deeply', utils: 2.0 },
   { id: 'hydration', title: 'Drink Water & Hydrate', desc: 'At least 2L clean water throughout the day', utils: 1.0 },
   { id: 'fresh_air', title: 'Step Outside for Fresh Air', desc: '5-10 minutes without screens or obligations', utils: 1.0 },
   { id: 'peaceful_joy', title: 'One Small Joy / Peaceful Act', desc: 'Read, listen to music, or just sit peacefully', utils: 1.0 }
+];
+
+export const DEFAULT_SANCTUARY_INQUIRIES = [
+  { id: 'water', question: 'Have you drank a glass of water today?', icon: '💧', affirmText: 'Yes 💧', deferText: 'Not yet' },
+  { id: 'screens', question: 'Did you step away from screens for a moment?', icon: '🌿', affirmText: 'Yes 🌿', deferText: 'Not yet' },
+  { id: 'nourish', question: 'Have you eaten something nourishing?', icon: '🍲', affirmText: 'Yes 🍲', deferText: 'Later' },
+  { id: 'sigh', question: 'Took a deep physiological sigh (2 inhales, long exhale)?', icon: '🫁', affirmText: 'Done 🫁', deferText: 'Will try' }
 ];
 
 export function getRehabilitationConfig() {
@@ -1498,6 +1507,12 @@ export function getRehabilitationConfig() {
     if (!raw) return { active: false, freezeDays: 7, maxDays: 14 };
     const parsed = JSON.parse(raw);
     if (parsed.active && parsed.startDate) {
+      if (parsed.isSabbatical) {
+        parsed.daysRemaining = '∞';
+        parsed.elapsedDays = 0;
+        parsed.needsDay7CheckIn = false;
+        return parsed;
+      }
       const start = new Date(`${parsed.startDate}T00:00:00`).getTime();
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -1530,6 +1545,9 @@ export function isRehabilitationActive(targetDateStr = null) {
 
     const start = new Date(`${cfg.startDate}T00:00:00`).getTime();
     const target = new Date(`${targetDateStr}T00:00:00`).getTime();
+    if (cfg.isSabbatical) {
+      return target >= start;
+    }
     const allowedDays = Math.min(cfg.freezeDays || 7, 14);
     const end = start + (allowedDays * 24 * 60 * 60 * 1000);
 
@@ -1547,6 +1565,7 @@ export function activateRehabilitation(freezeDays = 7) {
     const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const payload = {
       active: true,
+      isSabbatical: false,
       startDate,
       freezeDays: cappedDays,
       maxDays: 14,
@@ -1575,13 +1594,159 @@ export function extendRehabilitation(additionalDays = 7) {
   }
 }
 
+export function activateSabbatical() {
+  if (typeof window === 'undefined') return;
+  try {
+    const now = new Date();
+    const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const payload = {
+      active: true,
+      isSabbatical: true,
+      startDate,
+      freezeDays: 9999,
+      maxDays: 9999,
+      checkedInDay7: true,
+      activatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
+    return payload;
+  } catch (e) {
+    console.warn('Failed to activate sabbatical:', e);
+  }
+}
+
 export function exitRehabilitation() {
   if (typeof window === 'undefined') return;
   try {
     const current = getRehabilitationConfig();
     current.active = false;
+    current.isSabbatical = false;
     current.exitedAt = new Date().toISOString();
+    delete current.autoSanctuaryAssumed;
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(current));
+  } catch (e) {}
+}
+
+/**
+ * 🤖 Auto-Sanctuary Assumption Engine
+ * Automatically triggers freeze if 2+ consecutive rough days (<=2 stars) were experienced right before missing yesterday
+ */
+export function checkAutoSanctuaryEligible(entries = {}) {
+  if (!entries || typeof entries !== 'object') return { eligible: false, reason: 'no_entries' };
+
+  const now = new Date();
+  const yest = new Date(now);
+  yest.setDate(yest.getDate() - 1);
+  const yestStr = `${yest.getFullYear()}-${String(yest.getMonth() + 1).padStart(2, '0')}-${String(yest.getDate()).padStart(2, '0')}`;
+
+  // If yesterday already has an entry, user didn't miss yesterday
+  if (entries[yestStr]?.rating) {
+    return { eligible: false, reason: 'yesterday_rated' };
+  }
+
+  // If sanctuary is already active, no need to auto-trigger
+  if (isRehabilitationActive()) {
+    return { eligible: false, reason: 'sanctuary_already_active' };
+  }
+
+  // Look back at preceding days before yesterday (days -2, -3, -4, -5)
+  let consecutiveRoughCount = 0;
+  for (let i = 2; i <= 5; i++) {
+    const prevDate = new Date(now);
+    prevDate.setDate(prevDate.getDate() - i);
+    const prevStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+    const entry = entries[prevStr];
+
+    if (entry && entry.rating && Number(entry.rating) <= 2) {
+      consecutiveRoughCount++;
+    } else if (entry && entry.rating && Number(entry.rating) > 2) {
+      break; // Streak of rough days ended
+    } else {
+      break;
+    }
+  }
+
+  if (consecutiveRoughCount >= 2) {
+    return {
+      eligible: true,
+      roughCount: consecutiveRoughCount,
+      reason: 'chronic_friction_before_missed_day'
+    };
+  }
+
+  return { eligible: false, roughCount: consecutiveRoughCount, reason: 'insufficient_consecutive_rough' };
+}
+
+export function autoActivateSanctuaryIfEligible(entries = {}) {
+  if (typeof window === 'undefined') return { autoActivated: false };
+  try {
+    const check = checkAutoSanctuaryEligible(entries);
+    if (!check.eligible) return { autoActivated: false, check };
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const lastAssumedDate = localStorage.getItem(AUTO_SANCTUARY_ASSUMED_KEY);
+    if (lastAssumedDate === todayStr) {
+      return { autoActivated: false, reason: 'already_assumed_today' };
+    }
+
+    const payload = activateRehabilitation(7);
+    if (payload) {
+      payload.autoSanctuaryAssumed = true;
+      payload.roughCount = check.roughCount;
+      localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
+      localStorage.setItem(AUTO_SANCTUARY_ASSUMED_KEY, todayStr);
+      return { autoActivated: true, roughCount: check.roughCount };
+    }
+  } catch (e) {
+    console.warn('Auto-sanctuary trigger note:', e);
+  }
+  return { autoActivated: false };
+}
+
+export function isAutoSanctuaryAssumed() {
+  if (typeof window === 'undefined') return false;
+  try {
+    const cfg = getRehabilitationConfig();
+    return Boolean(cfg && cfg.active && cfg.autoSanctuaryAssumed);
+  } catch (e) {
+    return false;
+  }
+}
+
+export function dismissAutoSanctuaryAssumption() {
+  if (typeof window === 'undefined') return;
+  try {
+    const cfg = getRehabilitationConfig();
+    if (cfg && cfg.autoSanctuaryAssumed) {
+      delete cfg.autoSanctuaryAssumed;
+      localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(cfg));
+    }
+  } catch (e) {}
+}
+
+export function getSanctuaryInquiryResponses(dateStr = '') {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(SANCTUARY_RESPONSES_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    return dateStr ? (all[dateStr] || {}) : all;
+  } catch (e) {
+    return {};
+  }
+}
+
+export function saveSanctuaryInquiryResponse(dateStr, inquiryId, answer) {
+  if (typeof window === 'undefined' || !dateStr || !inquiryId) return;
+  try {
+    const raw = localStorage.getItem(SANCTUARY_RESPONSES_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    if (!all[dateStr]) all[dateStr] = {};
+    all[dateStr][inquiryId] = {
+      answer,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(SANCTUARY_RESPONSES_KEY, JSON.stringify(all));
+    return all[dateStr];
   } catch (e) {}
 }
 
@@ -1714,11 +1879,79 @@ export function exportEntriesToDiaryDigest(entries = {}, startDate = '') {
   URL.revokeObjectURL(url);
 }
 
+export const exportDiaryDigestToMarkdown = exportEntriesToDiaryDigest;
+
 // ============================================================================
 // 🛡️ DPDPA 2023 STATUTORY COMPLIANCE: COMPLETE RIGHT TO ERASURE
 // ============================================================================
 
-export async function permanentlyDeleteAllUserData() {
+export const PENDING_DELETION_KEY = 'daily_verdict_pending_deletion_v1';
+
+/**
+ * ⏳ 7-Day Cooling-Off Erasure Holding Pattern (DPDPA 2023 Statutory Protection)
+ * Schedules account deletion with a reversible 7-day grace window.
+ */
+export function scheduleAccountDeletion(graceDays = 7) {
+  if (typeof window === 'undefined') return;
+  const now = Date.now();
+  const executeAt = now + (graceDays * 24 * 60 * 60 * 1000);
+  const payload = {
+    active: true,
+    scheduledAt: now,
+    executeAt,
+    graceDays,
+    scheduledDateStr: new Date(now).toISOString().slice(0, 10),
+    executeDateStr: new Date(executeAt).toISOString().slice(0, 10)
+  };
+  localStorage.setItem(PENDING_DELETION_KEY, JSON.stringify(payload));
+  return payload;
+}
+
+/**
+ * Cancels pending account deletion immediately, preserving user records
+ */
+export function cancelAccountDeletion() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(PENDING_DELETION_KEY);
+  return { cancelled: true };
+}
+
+/**
+ * Checks pending deletion status and remaining grace period
+ */
+export function getPendingDeletionStatus() {
+  if (typeof window === 'undefined') return { pending: false };
+  try {
+    const raw = localStorage.getItem(PENDING_DELETION_KEY);
+    if (!raw) return { pending: false };
+    const parsed = JSON.parse(raw);
+    if (!parsed.active || !parsed.executeAt) return { pending: false };
+
+    const now = Date.now();
+    if (now >= parsed.executeAt) {
+      permanentlyDeleteAllUserData(true);
+      return { pending: false, executed: true };
+    }
+
+    const msRemaining = Math.max(0, parsed.executeAt - now);
+    const daysRemaining = Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
+    const hoursRemaining = Math.ceil(msRemaining / (60 * 60 * 1000));
+
+    return {
+      pending: true,
+      scheduledAt: parsed.scheduledAt,
+      executeAt: parsed.executeAt,
+      daysRemaining,
+      hoursRemaining,
+      scheduledDateStr: parsed.scheduledDateStr,
+      executeDateStr: parsed.executeDateStr
+    };
+  } catch (e) {
+    return { pending: false };
+  }
+}
+
+export async function permanentlyDeleteAllUserData(shouldReload = true) {
   if (typeof window === 'undefined') return false;
   try {
     console.log('🚨 [DPDPA 2023] Executing Permanent Right to Erasure...');
@@ -1757,12 +1990,15 @@ export async function permanentlyDeleteAllUserData() {
     sessionStorage.clear();
 
     console.log('✅ [DPDPA 2023] All local and cloud records completely erased.');
-    window.location.reload();
+    if (shouldReload) {
+      window.location.reload();
+    }
     return true;
   } catch (err) {
     console.error('Failed to execute complete data erasure:', err);
     return false;
   }
 }
+
 
 
