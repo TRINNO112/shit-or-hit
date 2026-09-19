@@ -29,8 +29,8 @@ import {
   exportDiaryDigestToMarkdown 
 } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
-import mascotCoolingOff from '../assets/mascots/mascot_cooling_off_guardian.png';
-import mascotFarewell from '../assets/mascots/mascot_farewell_decommission.png';
+import mascotCoolingOff from '../assets/mascots/mascot_cooling_off_guardian.webp';
+import mascotFarewell from '../assets/mascots/mascot_farewell_decommission.webp';
 
 export default function DataErasurePage({ onBack, isDemo = false, entries = {} }) {
   const isSandboxDemo = isDemo || (typeof window !== 'undefined' && window.location.search.includes('demo=true'));

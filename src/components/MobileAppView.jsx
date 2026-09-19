@@ -1265,15 +1265,19 @@ export default function MobileAppView({
                         isDimmed ? 'opacity-25 grayscale' : ''
                       }`}
                       style={{
-                        backgroundColor: m ? m.bg : inStasis ? '#E8F5E9' : '#F8FAFC'
+                        backgroundColor: m ? m.bg : inStasis ? (isSabbatical ? '#FEF3C7' : '#E8F5E9') : '#F8FAFC'
                       }}
-                      title={inStasis ? 'Sanctuary Stasis Active — Streak Protected' : undefined}
+                      title={inStasis ? (isSabbatical ? 'Grand Sabbatical Horizon — Streak Protected' : 'Sanctuary Stasis Active — Streak Protected') : undefined}
                     >
                       <span className="text-xs font-mono font-black leading-none text-black">
                         {dayNum}
                       </span>
                       {inStasis && (
-                        <Shield className="w-2.5 h-2.5 text-emerald-800 shrink-0 mt-0.5" />
+                        isSabbatical ? (
+                          <Compass className="w-2.5 h-2.5 text-amber-800 shrink-0 mt-0.5" />
+                        ) : (
+                          <Shield className="w-2.5 h-2.5 text-emerald-800 shrink-0 mt-0.5" />
+                        )
                       )}
                       {entry?.notes && (
                         <div className="w-1.5 h-1.5 rounded-full bg-black mt-1" />

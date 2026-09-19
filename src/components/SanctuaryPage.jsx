@@ -30,6 +30,8 @@ import {
   isAutoSanctuaryAssumed,
   dismissAutoSanctuaryAssumption
 } from '../services/api';
+import mascotSanctuaryRain from '../assets/mascots/mascot_sanctuary_rain.webp';
+import mascotSabbaticalSummit from '../assets/mascots/mascot_sabbatical_summit.webp';
 import { soundEngine } from '../services/soundEngine';
 
 export const SANCTUARY_VECTOR_INQUIRIES = [
@@ -529,6 +531,21 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
             {activeTab === 'anchors' && (
               <div className="space-y-4">
                 
+                {/* Visual Haven Artwork */}
+                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] h-48 sm:h-56">
+                  <img
+                    src={mascotSanctuaryRain}
+                    alt="Sanctuary Veranda Rest"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover object-top"
+                  />
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[10px] font-black uppercase">
+                    <span>Tranquility Sanctuary • Calm Japanese Veranda</span>
+                    <span className="text-[#00E599]">Rest & Recovery</span>
+                  </div>
+                </div>
+
                 {/* Velocity Status Strip */}
                 <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -627,6 +644,22 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
             {/* TAB 2: Sabbatical Protocol */}
             {activeTab === 'sabbatical' && (
               <div className="bg-white border-3 border-black rounded-3xl p-6 sm:p-7 shadow-[6px_6px_0px_#000000] space-y-6">
+                
+                {/* Sabbatical Mountain Summit Artwork */}
+                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] h-48 sm:h-56">
+                  <img
+                    src={mascotSabbaticalSummit}
+                    alt="Sabbatical Mountain Horizon"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover object-center"
+                  />
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[10px] font-black uppercase">
+                    <span>Grand Sabbatical Horizon • Sovereign Exploration</span>
+                    <span className="text-[#FFB800]">Unplugged Horizon</span>
+                  </div>
+                </div>
+
                 <div className="space-y-1.5 border-b-2 border-black/10 pb-5">
                   <span className="px-3 py-0.5 bg-[#FDC800] border-2 border-black rounded-lg text-xs font-mono font-black uppercase shadow-[1.5px_1.5px_0px_#000000] inline-block">
                     PERMANENT MOMENTUM ANCHOR

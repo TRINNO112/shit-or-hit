@@ -56,6 +56,8 @@ import {
   activateSabbatical,
   activateRehabilitation
 } from '../services/api';
+import mascotSanctuaryRain from '../assets/mascots/mascot_sanctuary_rain.webp';
+import mascotSabbaticalSummit from '../assets/mascots/mascot_sabbatical_summit.webp';
 import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
 import confetti from 'canvas-confetti';
@@ -136,6 +138,25 @@ export default function TodayHero({
     rest: false,
     screens: false
   });
+
+  // Daily alternating companion artwork state
+  const isEvenDay = (() => {
+    try {
+      const d = todayStr ? new Date(todayStr).getDate() : new Date().getDate();
+      return d % 2 === 0;
+    } catch (e) {
+      return true;
+    }
+  })();
+  const [companionArtworkOverride, setCompanionArtworkOverride] = useState(null);
+  const activeCompanionMascot = companionArtworkOverride === 'rain' 
+    ? mascotSanctuaryRain 
+    : companionArtworkOverride === 'summit' 
+    ? mascotSabbaticalSummit 
+    : (isEvenDay ? mascotSanctuaryRain : mascotSabbaticalSummit);
+  const activeCompanionTitle = activeCompanionMascot === mascotSanctuaryRain
+    ? 'Rainy Veranda Sanctuary'
+    : 'Mountain Summit Sabbatical';
 
   // 4s Inhale - 2s Hold - 6s Long Exhale vagal calming cycle
   useEffect(() => {
@@ -736,6 +757,21 @@ export default function TodayHero({
                 </p>
               </div>
 
+              {/* Sacred Rest Anime Artwork */}
+              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] h-44 sm:h-48">
+                <img 
+                  src={mascotSanctuaryRain} 
+                  alt="Zen Veranda Sanctuary" 
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute bottom-2 left-2 right-2 bg-black/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[9px] font-black uppercase">
+                  <span>Zen Porch • Warm Tea & Soft Rain</span>
+                  <span className="text-[#00E599]">Rest Active</span>
+                </div>
+              </div>
+
               {/* Visual 7-Day Cycle Pebble Beads */}
               <div className="space-y-2.5 pt-1">
                 <div className="flex items-center justify-between text-xs font-mono">
@@ -982,6 +1018,21 @@ export default function TodayHero({
                 <p className="text-black font-medium leading-relaxed">
                   Your lifetime streak is frozen with <strong>zero expiration date</strong>. Take months or years — your record will wait for you untouched.
                 </p>
+              </div>
+
+              {/* Grand Sabbatical Anime Artwork */}
+              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] h-44 sm:h-48">
+                <img 
+                  src={mascotSabbaticalSummit} 
+                  alt="Mountain Summit Grand Sabbatical" 
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover object-center"
+                />
+                <div className="absolute bottom-2 left-2 right-2 bg-black/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[9px] font-black uppercase">
+                  <span>Mountain Overlook • Journaling In Freedom</span>
+                  <span className="text-[#FFB800]">Unplugged</span>
+                </div>
               </div>
             </div>
 
@@ -1462,6 +1513,50 @@ export default function TodayHero({
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
             className="mt-5 pt-5 pb-3 border-t-2 border-dashed border-black/20 text-left space-y-3.5"
           >
+            {/* Daily Companion Visual Horizon Strip */}
+            <div className="p-3 bg-linear-to-r from-neutral-100 to-amber-50 rounded-2xl border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[2px_2px_0px_#000000]">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="w-13 h-13 rounded-xl border-2 border-black overflow-hidden shadow-[1.5px_1.5px_0px_#000000] shrink-0 bg-neutral-900">
+                  <img
+                    src={activeCompanionMascot}
+                    alt={activeCompanionTitle}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-black uppercase text-black">
+                      {activeCompanionTitle}
+                    </span>
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-black text-white font-bold">
+                      {companionArtworkOverride ? 'PINNED' : isEvenDay ? 'DAILY ZEN A' : 'DAILY ZEN B'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-sans text-neutral-600 mt-0.5 font-medium">
+                    {activeCompanionMascot === mascotSanctuaryRain 
+                      ? "Gentle rain & warm tea on the veranda. Take your time writing."
+                      : "Standing on the mountain summit. Look how far you have climbed."}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  soundEngine.playClick();
+                  setCompanionArtworkOverride(prev => {
+                    const current = prev || (isEvenDay ? 'rain' : 'summit');
+                    return current === 'rain' ? 'summit' : 'rain';
+                  });
+                }}
+                className="self-end sm:self-center px-3 py-1 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px transition-all shrink-0"
+              >
+                Switch Horizon Art
+              </button>
+            </div>
+
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
               <span className="flex items-center gap-1.5">
                 <PenLine className="w-3.5 h-3.5 stroke-[2.5]" />

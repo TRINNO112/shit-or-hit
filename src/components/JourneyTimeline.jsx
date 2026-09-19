@@ -8,9 +8,10 @@ import {
   Sparkles,
   Calendar,
   PenLine,
-  Shield
+  Shield,
+  Compass
 } from 'lucide-react';
-import { ratingMeta, isRehabilitationActive } from '../services/api';
+import { ratingMeta, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 
 const IconMap = {
   AlertCircle,
@@ -23,9 +24,11 @@ const IconMap = {
 export default function JourneyTimeline({ 
   startDate, 
   todayStr, 
-  entries,
+  entries = {}, 
   onEditDay
 }) {
+  const rehabConfig = getRehabilitationConfig();
+  const isSabbatical = Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
   const start = new Date(`${startDate}T00:00:00`);
   const today = new Date(`${todayStr}T00:00:00`);
 
@@ -116,8 +119,8 @@ export default function JourneyTimeline({
                         "{entry.notes}"
                       </p>
                     ) : inStasis ? (
-                      <p className="text-[10px] sm:text-[11px] font-mono text-emerald-800 font-bold mt-0.5 truncate">
-                        Sanctuary Stasis Active • Streak Shielded
+                      <p className={`text-[10px] sm:text-[11px] font-mono font-bold mt-0.5 truncate ${isSabbatical ? 'text-amber-800' : 'text-emerald-800'}`}>
+                        {isSabbatical ? 'Grand Sabbatical Horizon • Sovereign Life Pause' : 'Sanctuary Stasis Active • Streak Shielded'}
                       </p>
                     ) : (
                       <p className="text-[10px] sm:text-[11px] font-mono text-neutral-400 mt-0.5 truncate">
@@ -138,9 +141,13 @@ export default function JourneyTimeline({
                       <span className="whitespace-nowrap">{meta.title}</span>
                     </div>
                   ) : inStasis ? (
-                    <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-black text-[11px] sm:text-xs font-display font-black uppercase text-black bg-[#E8F5E9] shadow-[1.5px_1.5px_0px_#000000] shrink-0">
-                      <Shield className="w-3.5 h-3.5 text-emerald-800 stroke-[2.5]" />
-                      <span className="whitespace-nowrap">STASIS</span>
+                    <div className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-black text-[11px] sm:text-xs font-display font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 ${isSabbatical ? 'bg-[#FEF3C7]' : 'bg-[#E8F5E9]'}`}>
+                      {isSabbatical ? (
+                        <Compass className="w-3.5 h-3.5 text-amber-800 stroke-[2.5]" />
+                      ) : (
+                        <Shield className="w-3.5 h-3.5 text-emerald-800 stroke-[2.5]" />
+                      )}
+                      <span className="whitespace-nowrap">{isSabbatical ? 'SABBATICAL' : 'SANCTUARY'}</span>
                     </div>
                   ) : (
                     <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-400 bg-neutral-100 px-2 sm:px-2.5 py-1 rounded-lg border border-neutral-300 shrink-0">

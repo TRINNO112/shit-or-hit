@@ -11,7 +11,8 @@ import {
   Zap,
   Sparkles,
   PenLine,
-  Shield
+  Shield,
+  Compass
 } from 'lucide-react';
 import { ratingMeta, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 
@@ -26,14 +27,14 @@ const IconMap = {
 export default function CalendarModal({ 
   isOpen, 
   onClose, 
-  entries, 
-  startDate, 
-  todayStr,
+  entries = {}, 
   onEditDay,
-  onOpenMonthlyReport,
-  isEmbedded = false
+  startDateStr,
+  todayStr
 }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const rehabConfig = getRehabilitationConfig();
+  const isSabbatical = Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1; // 1-indexed for report
@@ -164,7 +165,7 @@ export default function CalendarModal({
                   const rating = entry?.rating;
                   const meta = rating ? ratingMeta[rating] : null;
                   const inStasis = !rating && isRehabilitationActive(dateStr);
-                  const SvgIcon = meta ? IconMap[meta.icon] : inStasis ? Shield : null;
+                  const SvgIcon = meta ? IconMap[meta.icon] : inStasis ? (isSabbatical ? Compass : Shield) : null;
                   const isEditable = !isBeforeStart && !isFuture;
 
                   return (
@@ -178,7 +179,7 @@ export default function CalendarModal({
                       className={`min-h-14.5 sm:min-h-17 p-2 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
                         isToday ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000000]' : 'bg-white'
                       } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
-                      style={{ backgroundColor: meta ? meta.bg : inStasis ? '#E8F5E9' : undefined }}
+                      style={{ backgroundColor: meta ? meta.bg : inStasis ? (isSabbatical ? '#FEF3C7' : '#E8F5E9') : undefined }}
                     >
                       <div className="flex items-center justify-between">
                         <span className={`font-mono text-[11px] font-black ${isToday ? 'bg-black text-white px-1.5 rounded' : 'text-black'}`}>
@@ -192,12 +193,12 @@ export default function CalendarModal({
 
                       <div className="my-auto text-center">
                         {SvgIcon && (
-                          <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5] mx-auto" />
+                          <SvgIcon className={`w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5] mx-auto ${inStasis && isSabbatical ? 'text-amber-800' : inStasis ? 'text-emerald-800' : 'text-black'}`} />
                         )}
                       </div>
 
                       <div className="text-[8px] sm:text-[9px] font-mono font-bold text-black uppercase truncate text-right">
-                        {meta ? meta.title : inStasis ? 'STASIS' : isBeforeStart ? '—' : ''}
+                        {meta ? meta.title : inStasis ? (isSabbatical ? 'SABBATICAL' : 'SANCTUARY') : isBeforeStart ? '—' : ''}
                       </div>
                     </div>
                   );
