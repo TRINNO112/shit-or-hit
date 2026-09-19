@@ -638,9 +638,9 @@ export default function MobileAppView({
   const rehabConfig = getRehabilitationConfig();
   const isLiveSanctuary = isRehabilitationActive(todayStr);
   const isSanctuaryActive = isLiveSanctuary || isDemoSanctuary || isDemoSabbatical;
-  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical);
+  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
 
-  const freezeDays = rehabConfig?.freezeDays || 7;
+  const freezeDays = isSabbatical ? null : Math.min(14, rehabConfig?.freezeDays || 7);
   const rehabStartDate = rehabConfig?.startDate || todayStr;
   const startMs = new Date(rehabStartDate).getTime();
   const todayMs = new Date(todayStr).getTime();
@@ -818,7 +818,7 @@ export default function MobileAppView({
                 <span className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-black uppercase border border-black ${
                   isSabbatical ? 'bg-[#FFB800] text-black shadow-[1px_1px_0px_#000000]' : 'bg-black text-[#00E599]'
                 }`}>
-                  {isSabbatical ? 'INDEFINITE' : `DAY ${daysIn}/${freezeDays}`}
+                  {isSabbatical ? 'INDEFINITE' : `DAY ${daysIn}/${freezeDays || 7}`}
                 </span>
               </div>
 

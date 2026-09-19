@@ -511,10 +511,10 @@ export default function TodayHero({
   const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
   const rehabConfig = getRehabilitationConfig();
   const isLiveSanctuary = isRehabilitationActive(todayStr);
-  const isSanctuaryActive = isLiveSanctuary || isDemoSanctuary || isDemoSabbatical;
-  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical);
+  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
 
-  const freezeDays = rehabConfig?.freezeDays || 7;
+  const rawFreezeDays = rehabConfig?.freezeDays || 7;
+  const freezeDays = isSabbatical ? null : Math.min(14, rawFreezeDays);
   const startDate = rehabConfig?.startDate || todayStr;
   const startMs = new Date(startDate).getTime();
   const todayMs = new Date(todayStr).getTime();
@@ -581,7 +581,7 @@ export default function TodayHero({
             </div>
 
             <span className="px-3.5 py-1.5 rounded-full border-2 border-black font-mono text-xs font-black uppercase bg-[#00E599] text-black shadow-[2px_2px_0px_#000000]">
-              DAY {daysIn} OF {freezeDays} • STREAK SHIELDED & FROZEN
+              DAY {daysIn}{freezeDays ? ` OF ${freezeDays}` : ' • OPEN HORIZON'} • STREAK SHIELDED & FROZEN
             </span>
 
             <span className="text-xs font-mono font-bold text-neutral-600 hidden lg:inline">
@@ -738,12 +738,12 @@ export default function TodayHero({
               {/* Visual 7-Day Cycle Pebble Beads */}
               <div className="space-y-2.5 pt-1">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="font-bold text-neutral-600 uppercase text-[11px]">7-Day Rest Arc</span>
-                  <span className="font-black text-black">Day {daysIn} of {freezeDays}</span>
+                  <span className="font-bold text-neutral-600 uppercase text-[11px]">{freezeDays === 14 ? '14-Day Rest Arc' : '7-Day Rest Arc'}</span>
+                  <span className="font-black text-black">Day {daysIn} of {freezeDays || 7}</span>
                 </div>
 
                 <div className="grid grid-cols-7 gap-2">
-                  {Array.from({ length: freezeDays || 7 }).map((_, i) => {
+                  {Array.from({ length: Math.min(14, freezeDays || 7) }).map((_, i) => {
                     const dayNum = i + 1;
                     const isPast = dayNum < daysIn;
                     const isCurrent = dayNum === daysIn;
