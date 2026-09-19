@@ -59,6 +59,8 @@ export default function Header({
     }
   };
 
+  const isSanctuaryActive = isRehabilitationActive() || (typeof window !== 'undefined' && window.location.search.includes('demo=sanctuary'));
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -116,7 +118,7 @@ export default function Header({
           </div>
 
           {/* 🌿 Sanctuary Active Indicator (Tablet) */}
-          {isRehabilitationActive() && (
+          {isSanctuaryActive && (
             <button 
               type="button"
               onClick={() => {
@@ -217,7 +219,7 @@ export default function Header({
         </div>
 
         {/* 🌿 Sanctuary Active Indicator (Desktop) */}
-        {isRehabilitationActive() && (
+        {isSanctuaryActive && (
           <button 
             type="button"
             onClick={() => {

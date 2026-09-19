@@ -61,7 +61,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
               className="p-1.5 bg-[#FF4D4D] text-black border-2 border-black hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_#000000] shrink-0"
               aria-label="Close Export Studio"
             >
-              <X className="w-5 h-5 stroke-[3]" />
+              <X className="w-5 h-5 stroke-3" />
             </button>
           </div>
 
@@ -76,7 +76,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
             <button
               onClick={handleExportCsv}
               disabled={downloadState !== null}
-              className="w-full text-left p-4 bg-white hover:bg-[#00E599]/20 border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#000000] transition-all flex items-start gap-3 cursor-pointer group"
+              className="w-full text-left p-4 bg-white hover:bg-[#00E599]/20 border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0px_#000000] transition-all flex items-start gap-3 cursor-pointer group"
             >
               <div className="p-2 bg-[#00E599] border-2 border-black shrink-0 mt-0.5">
                 <FileSpreadsheet className="w-5 h-5 text-black stroke-[2.5]" />
@@ -88,7 +88,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
                   </span>
                   {downloadState === 'csv' && (
                     <span className="text-[10px] font-mono font-black bg-[#00E599] text-black px-1.5 py-0.5 border border-black flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 stroke-[3]" /> DOWNLOADED
+                      <CheckCircle2 className="w-3 h-3 stroke-3" /> DOWNLOADED
                     </span>
                   )}
                 </div>
@@ -102,7 +102,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
             <button
               onClick={handleExportDigest}
               disabled={downloadState !== null}
-              className="w-full text-left p-4 bg-white hover:bg-[#FDC800]/25 border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#000000] transition-all flex items-start gap-3 cursor-pointer group"
+              className="w-full text-left p-4 bg-white hover:bg-[#FDC800]/25 border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0px_#000000] transition-all flex items-start gap-3 cursor-pointer group"
             >
               <div className="p-2 bg-[#FDC800] border-2 border-black shrink-0 mt-0.5">
                 <BookOpen className="w-5 h-5 text-black stroke-[2.5]" />
@@ -114,7 +114,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
                   </span>
                   {downloadState === 'digest' && (
                     <span className="text-[10px] font-mono font-black bg-[#FDC800] text-black px-1.5 py-0.5 border border-black flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 stroke-[3]" /> DOWNLOADED
+                      <CheckCircle2 className="w-3 h-3 stroke-3" /> DOWNLOADED
                     </span>
                   )}
                 </div>
@@ -128,7 +128,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
             <button
               onClick={handleExportJson}
               disabled={downloadState !== null}
-              className="w-full text-left p-4 bg-white hover:bg-[#00D8F6]/20 border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#000000] transition-all flex items-start gap-3 cursor-pointer group"
+              className="w-full text-left p-4 bg-white hover:bg-[#00D8F6]/20 border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0px_#000000] transition-all flex items-start gap-3 cursor-pointer group"
             >
               <div className="p-2 bg-[#00D8F6] border-2 border-black shrink-0 mt-0.5">
                 <Code className="w-5 h-5 text-black stroke-[2.5]" />
@@ -140,7 +140,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
                   </span>
                   {downloadState === 'json' && (
                     <span className="text-[10px] font-mono font-black bg-[#00D8F6] text-black px-1.5 py-0.5 border border-black flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 stroke-[3]" /> DOWNLOADED
+                      <CheckCircle2 className="w-3 h-3 stroke-3" /> DOWNLOADED
                     </span>
                   )}
                 </div>

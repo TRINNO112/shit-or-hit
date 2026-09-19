@@ -1426,7 +1426,7 @@ export default function SettingsModal({
 
       {/* Nuclear Right to Erasure Confirmation Modal */}
       {isErasureConfirmOpen && (
-        <div className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-70 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-[#FFFDF5] border-3 border-black rounded-3xl p-6 shadow-[8px_8px_0px_#000000] space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">

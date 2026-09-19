@@ -261,7 +261,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-2 bg-[#F4FAF6] hover:bg-[#FDC800] px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              className="flex items-center gap-2 bg-[#F4FAF6] hover:bg-[#FDC800] px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>RETURN TO DASHBOARD</span>
@@ -417,7 +417,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                   <button
                     type="button"
                     onClick={handleActivate7Days}
-                    className="w-full py-3 bg-[#00E599] hover:bg-[#00c984] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer transition-all active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-2 uppercase"
+                    className="w-full py-3 bg-[#00E599] hover:bg-[#00c984] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer transition-all active:translate-x-px active:translate-y-px flex items-center justify-center gap-2 uppercase"
                   >
                     <ShieldCheck className="w-4 h-4" />
                     <span>ENGAGE 7-DAY RECOVERY FREEZE</span>
@@ -428,7 +428,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                       <button
                         type="button"
                         onClick={handleExtend14Days}
-                        className="w-full py-2.5 bg-[#FDC800] hover:bg-[#ffd633] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer transition-all active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-2 uppercase"
+                        className="w-full py-2.5 bg-[#FDC800] hover:bg-[#ffd633] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer transition-all active:translate-x-px active:translate-y-px flex items-center justify-center gap-2 uppercase"
                       >
                         <Clock className="w-4 h-4" />
                         <span>EXTEND FREEZE TO 14-DAY MAXIMUM</span>
@@ -438,7 +438,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                     <button
                       type="button"
                       onClick={handleResumeNormalLogging}
-                      className="w-full py-2.5 bg-white hover:bg-neutral-100 text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer transition-all active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-2 uppercase"
+                      className="w-full py-2.5 bg-white hover:bg-neutral-100 text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer transition-all active:translate-x-px active:translate-y-px flex items-center justify-center gap-2 uppercase"
                     >
                       <RefreshCw className="w-4 h-4" />
                       <span>FEELING BETTER — RESUME STANDARD VERDICTS</span>
@@ -673,7 +673,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                     <button
                       type="button"
                       onClick={handleActivateSabbatical}
-                      className="w-full sm:w-auto px-5 py-2.5 bg-[#00E599] hover:bg-[#00c984] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
+                      className="w-full sm:w-auto px-5 py-2.5 bg-[#00E599] hover:bg-[#00c984] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
                     >
                       ACTIVATE SABBATICAL HOLD
                     </button>
@@ -681,7 +681,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                     <button
                       type="button"
                       onClick={handleResumeNormalLogging}
-                      className="w-full sm:w-auto px-5 py-2.5 bg-[#FDC800] hover:bg-[#ffd633] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
+                      className="w-full sm:w-auto px-5 py-2.5 bg-[#FDC800] hover:bg-[#ffd633] text-black font-mono font-black text-xs rounded-xl border-2 border-black shadow-[3px_3px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
                     >
                       DISENGAGE SABBATICAL
                     </button>

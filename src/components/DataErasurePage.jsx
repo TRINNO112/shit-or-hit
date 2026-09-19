@@ -29,6 +29,8 @@ import {
   exportDiaryDigestToMarkdown 
 } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
+import mascotCoolingOff from '../assets/mascots/mascot_cooling_off_guardian.png';
+import mascotFarewell from '../assets/mascots/mascot_farewell_decommission.png';
 
 export default function DataErasurePage({ onBack, isDemo = false, entries = {} }) {
   const isSandboxDemo = isDemo || (typeof window !== 'undefined' && window.location.search.includes('demo=true'));
@@ -212,7 +214,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-2 bg-[#1A1D26] hover:bg-[#FFB800] hover:text-black text-white px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              className="flex items-center gap-2 bg-[#1A1D26] hover:bg-[#FFB800] hover:text-black text-white px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>RETURN TO DASHBOARD</span>
@@ -441,6 +443,21 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
                   </p>
                 </div>
 
+                {/* 7-Day Custodian Anime Mascot Banner */}
+                <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-[#0C0D11] border-2 border-black shadow-[3px_3px_0px_#000000]">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-2xl border-2 border-black overflow-hidden bg-[#161821] shadow-[2px_2px_0px_#000000]">
+                    <img src={mascotCoolingOff} alt="Cooling-off safe guardian" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="space-y-1.5 text-center sm:text-left">
+                    <span className="px-2.5 py-0.5 rounded bg-[#FFB800] text-black font-mono text-[10px] font-black uppercase inline-block">
+                      7-Day Safe Custodian Active
+                    </span>
+                    <p className="text-xs text-neutral-300 font-sans leading-relaxed">
+                      Your vault is parked in an air-gapped safe with a 7-day holding protocol. Zero records are touched. You can abort at any time with a single click.
+                    </p>
+                  </div>
+                </div>
+
                 {/* Mechanical Flip-Clock Matrix */}
                 <div className="border-2 border-black rounded-3xl p-6 bg-[#0C0D11] space-y-4 shadow-[4px_4px_0px_#000000]">
                   <div className="flex items-center justify-between text-xs font-mono text-neutral-500 font-bold border-b border-neutral-800 pb-2">
@@ -510,7 +527,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
                   <button
                     type="button"
                     onClick={handleCancelDeletion}
-                    className="w-full py-4 px-6 bg-[#00E599] hover:bg-emerald-400 text-black rounded-2xl border-3 border-black font-mono font-black text-sm cursor-pointer shadow-[5px_5px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-3 transition-all uppercase tracking-wider"
+                    className="w-full py-4 px-6 bg-[#00E599] hover:bg-emerald-400 text-black rounded-2xl border-3 border-black font-mono font-black text-sm cursor-pointer shadow-[5px_5px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-3 transition-all uppercase tracking-wider"
                   >
                     <RotateCcw className="w-5 h-5 stroke-[2.5]" />
                     <span>ABORT ACCOUNT DELETION & RESTORE SOVEREIGNTY</span>
@@ -541,6 +558,21 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
                   Initiating this protocol schedules your complete account and journal dossier for irreversible cryptographic wiping. You will have exactly 7 days to cancel before execution.
                 </p>
 
+                {/* Farewell Decommission Anime Mascot Card */}
+                <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-[#0C0D11] border-2 border-black shadow-[3px_3px_0px_#000000]">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-2xl border-2 border-black overflow-hidden bg-[#161821] shadow-[2px_2px_0px_#000000]">
+                    <img src={mascotFarewell} alt="Farewell anime protagonist" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="space-y-1.5 text-center sm:text-left">
+                    <span className="px-2.5 py-0.5 rounded bg-[#FF4D4D] text-black font-mono text-[10px] font-black uppercase inline-block">
+                      Same Dreams • Different Place
+                    </span>
+                    <p className="text-xs text-neutral-300 font-sans leading-relaxed">
+                      Zero dark patterns. If you ever choose to part ways, your data will be dismantled with total mathematical finality and zero digital footprints left behind.
+                    </p>
+                  </div>
+                </div>
+
                 {/* Industrial Confirmation Box */}
                 <div className="border-2 border-black rounded-2xl p-5 bg-[#0C0D11] space-y-4 shadow-[3px_3px_0px_#000000]">
                   <div className="space-y-1.5 font-mono text-xs">
@@ -553,7 +585,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
                       value={confirmText}
                       onChange={(e) => setConfirmText(e.target.value)}
                       placeholder="TYPE DELETE HERE..."
-                      className="w-full bg-[#1A1D26] border-2 border-neutral-700 focus:border-[#FF4D4D] text-white px-3 py-2 rounded-xl font-mono text-xs tracking-widest uppercase focus:outline-none"
+                      className="w-full bg-[#1A1D26] border-2 border-neutral-700 focus:border-[#FF4D4D] text-white px-3 py-2 rounded-xl font-mono text-xs tracking-widest uppercase outline-none"
                     />
                   </div>
 
@@ -578,7 +610,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
                     type="button"
                     onClick={handleScheduleDeletion}
                     disabled={confirmText.trim().toUpperCase() !== 'DELETE' || !agreedToTerms}
-                    className={`w-full py-3.5 px-6 rounded-2xl border-3 border-black font-mono font-black text-xs cursor-pointer shadow-[4px_4px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-2 transition-all uppercase tracking-wider ${
+                    className={`w-full py-3.5 px-6 rounded-2xl border-3 border-black font-mono font-black text-xs cursor-pointer shadow-[4px_4px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-2 transition-all uppercase tracking-wider ${
                       confirmText.trim().toUpperCase() === 'DELETE' && agreedToTerms
                         ? 'bg-[#FF4D4D] hover:bg-red-500 text-black cursor-pointer'
                         : 'bg-neutral-800 text-neutral-500 border-neutral-700 cursor-not-allowed shadow-none'

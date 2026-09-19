@@ -86,7 +86,7 @@ export default function PrivacyPolicyPage({ onBack }) {
             <button
               type="button"
               onClick={handleBack}
-              className="flex items-center gap-2 bg-[#FFFDF9] hover:bg-[#FDC800] px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              className="flex items-center gap-2 bg-[#FFFDF9] hover:bg-[#FDC800] px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>RETURN TO DASHBOARD</span>
@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage({ onBack }) {
             <button
               type="button"
               onClick={handleOpenErasure}
-              className="flex items-center gap-1.5 bg-[#FF4D4D] hover:bg-red-500 text-black px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              className="flex items-center gap-1.5 bg-[#FF4D4D] hover:bg-red-500 text-black px-3.5 py-1.5 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all"
             >
               <span>RIGHT TO ERASURE PORTAL</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -248,7 +248,7 @@ export default function PrivacyPolicyPage({ onBack }) {
                     type="text"
                     value={cipherInput}
                     onChange={(e) => setCipherInput(e.target.value)}
-                    className="w-full bg-[#FFFDF9] border border-black/30 rounded px-2 py-1 text-black font-mono text-[11px] focus:outline-none focus:border-black"
+                    className="w-full bg-[#FFFDF9] border border-black/30 rounded px-2 py-1 text-black font-mono text-[11px] outline-none focus:border-black"
                   />
                 </div>
 
@@ -606,7 +606,7 @@ export default function PrivacyPolicyPage({ onBack }) {
                 <button
                   type="button"
                   onClick={handleOpenErasure}
-                  className="w-full sm:w-auto px-6 py-3 bg-black text-white hover:bg-neutral-900 rounded-2xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[3px_3px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-2 transition-all"
+                  className="w-full sm:w-auto px-6 py-3 bg-black text-white hover:bg-neutral-900 rounded-2xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-2 transition-all"
                 >
                   <span>LAUNCH RIGHT TO ERASURE PORTAL (7-DAY HOLD)</span>
                   <ExternalLink className="w-4 h-4" />

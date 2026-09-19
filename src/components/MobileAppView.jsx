@@ -627,6 +627,8 @@ export default function MobileAppView({
     });
   }
 
+  const isSanctuaryActive = isRehabilitationActive(todayStr) || (typeof window !== 'undefined' && window.location.search.includes('demo=sanctuary'));
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-28 select-none relative">
       
@@ -654,7 +656,7 @@ export default function MobileAppView({
           </div>
 
           {/* 🌿 Sanctuary Active Indicator */}
-          {isRehabilitationActive() && (
+          {isSanctuaryActive && (
             <button 
               type="button"
               onClick={() => {
@@ -768,7 +770,7 @@ export default function MobileAppView({
           </div>
 
           {/* Rating Engine: Sanctuary Recovery Deck vs Segmented Sphere Cards vs Standard Verdict */}
-          {isRehabilitationActive(todayStr) ? (
+          {isSanctuaryActive ? (
             <div className="p-4 rounded-2xl border-2 border-black bg-[#F0FDF4] shadow-[3px_3px_0px_#000000] space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -790,7 +792,7 @@ export default function MobileAppView({
                   if (onOpenRehab) onOpenRehab();
                   else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
                 }}
-                className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-1.5"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>OPEN RESTORATIVE HAVEN</span>

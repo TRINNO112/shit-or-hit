@@ -458,6 +458,8 @@ export default function TodayHero({
     }
   };
 
+  const isSanctuaryActive = isRehabilitationActive(todayStr) || (typeof window !== 'undefined' && window.location.search.includes('demo=sanctuary'));
+
   return (
     <motion.div 
       animate={sadSettle ? { y: [0, 4, 1, 0] } : {}}
@@ -467,7 +469,7 @@ export default function TodayHero({
     >
       
       {/* 🌿 Anti-Burnout Rehabilitation Sanctuary Banner */}
-      {isRehabilitationActive(todayStr) && (
+      {isSanctuaryActive && (
         <div className="mb-6 p-4 rounded-2xl bg-[#F0FDF4] border-2 border-black shadow-[3px_3px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
@@ -555,7 +557,7 @@ export default function TodayHero({
 
           {/* Right Side: 5 Chunky Tactile 1-Tap Buttons OR Judgment-Free Sanctuary Deck */}
           <div className="w-full lg:w-7/12">
-            {isRehabilitationActive(todayStr) ? (
+            {isSanctuaryActive ? (
               <div className="bg-[#F0FDF4] border-3 border-black rounded-2xl p-5 sm:p-6 shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
@@ -578,7 +580,7 @@ export default function TodayHero({
                       if (onOpenRehab) onOpenRehab();
                       else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
                     }}
-                    className="px-4 py-2 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5"
+                    className="px-4 py-2 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-1.5"
                   >
                     <Sparkles className="w-4 h-4" />
                     <span>OPEN RESTORATIVE HAVEN</span>

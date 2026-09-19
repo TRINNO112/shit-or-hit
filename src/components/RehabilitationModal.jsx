@@ -115,7 +115,7 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
               className="p-1.5 bg-[#FF4D4D] text-black border-2 border-black hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_#000000] shrink-0 cursor-pointer"
               aria-label="Close Rehabilitation Modal"
             >
-              <X className="w-5 h-5 stroke-[3]" />
+              <X className="w-5 h-5 stroke-3" />
             </button>
           </div>
 
@@ -174,14 +174,14 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
                 {canExtend && (
                   <button
                     onClick={handleExtendTo14Days}
-                    className="flex-1 py-2 px-3 bg-[#FDC800] text-black font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer text-center"
+                    className="flex-1 py-2 px-3 bg-[#FDC800] text-black font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer text-center"
                   >
                     Extend to 14 Days Max
                   </button>
                 )}
                 <button
                   onClick={handleExitRehab}
-                  className="flex-1 py-2 px-3 bg-[#FF4D4D] text-black font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer text-center"
+                  className="flex-1 py-2 px-3 bg-[#FF4D4D] text-black font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer text-center"
                 >
                   Exit Sanctuary (Resume Normal)
                 </button>
@@ -198,7 +198,7 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
               </p>
               <button
                 onClick={handleActivate7Days}
-                className="w-full py-3 bg-[#A8E6CF] hover:bg-[#88D49E] text-black font-black uppercase text-xs sm:text-sm border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_#000000] transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[#A8E6CF] hover:bg-[#88D49E] text-black font-black uppercase text-xs sm:text-sm border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0px_#000000] transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <Heart className="w-4 h-4 stroke-[2.5]" />
                 ACTIVATE 7-DAY REHABILITATION
@@ -255,13 +255,13 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
                 placeholder="Add custom restorative habit..."
                 value={newAnchorText}
                 onChange={(e) => setNewAnchorText(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-[#FFFDF8] border-2 border-black text-xs font-mono text-black placeholder:text-black/40 focus:outline-none focus:bg-white"
+                className="flex-1 px-3 py-1.5 bg-[#FFFDF8] border-2 border-black text-xs font-mono text-black placeholder:text-neutral-400 outline-none focus:bg-white"
               />
               <button
                 type="submit"
-                className="px-3 py-1.5 bg-[#A8E6CF] text-black font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_#000000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer flex items-center gap-1"
+                className="px-3 py-1.5 bg-[#A8E6CF] text-black font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[1px_1px_0px_#000000] transition-all cursor-pointer flex items-center gap-1"
               >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                <Plus className="w-3.5 h-3.5 stroke-3" />
                 ADD
               </button>
             </form>
@@ -269,7 +269,7 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
 
           {/* Footer Note */}
           <div className="mt-5 pt-3 border-t-2 border-black flex justify-between items-center text-xs font-mono text-black/60">
-            <span>🛡️ Hard ceiling: 14 days maximum</span>
+            <span>Hard ceiling: 14 days maximum</span>
             <button
               onClick={onClose}
               className="font-bold underline text-black hover:text-black/80 cursor-pointer"
