@@ -246,7 +246,7 @@ export default function SettingsModal({
   const handleStartEditSphere = (sphere) => {
     setEditingSphereId(sphere.id);
     setEditSphereName(sphere.name);
-    setEditSphereIcon(sphere.icon || '⚡');
+    setEditSphereIcon(sphere.icon || 'Zap');
     setEditSphereColor(sphere.color || '#FDC800');
     setEditSphereDesc(sphere.desc || '');
     setIsAddingSphere(false);
@@ -260,7 +260,7 @@ export default function SettingsModal({
         return {
           ...s,
           name: editSphereName.trim(),
-          icon: editSphereIcon.trim() || '⚡',
+          icon: editSphereIcon.trim() || 'Zap',
           color: editSphereColor,
           desc: editSphereDesc.trim() || s.desc
         };
@@ -290,7 +290,7 @@ export default function SettingsModal({
     const newSphere = {
       id: newId,
       name: newSphereName.trim(),
-      icon: newSphereIcon.trim() || '⚡',
+      icon: newSphereIcon.trim() || 'Zap',
       color: newSphereColor,
       desc: newSphereDesc.trim() || 'Custom life classification sphere',
       enabled: true,
@@ -321,9 +321,9 @@ export default function SettingsModal({
       const granted = await requestNotificationPermission();
       if (granted) {
         setNotificationsOn(true);
-        setNotificationMsg(`✅ Daily reminders active for ${formatDisplayTime(reminderTimeVal)}!`);
+        setNotificationMsg(`Daily reminders active for ${formatDisplayTime(reminderTimeVal)}!`);
       } else {
-        setNotificationMsg('⚠️ Permission denied. Please enable notifications in your browser settings.');
+        setNotificationMsg('Permission denied. Please enable notifications in your browser settings.');
       }
     }
   };
@@ -332,7 +332,7 @@ export default function SettingsModal({
     setReminderTimeVal(newTime);
     setReminderTime(newTime);
     if (notificationsOn) {
-      setNotificationMsg(`⏰ Reminder time updated to ${formatDisplayTime(newTime)}`);
+      setNotificationMsg(`Reminder time updated to ${formatDisplayTime(newTime)}`);
     }
   };
 

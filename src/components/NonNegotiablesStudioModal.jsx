@@ -14,7 +14,8 @@ import {
   Scale,
   Gauge,
   Award,
-  Flame
+  Flame,
+  Gamepad2
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { 
@@ -434,8 +435,10 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
               
               {/* Game Analogy Box */}
               <div className="p-3.5 sm:p-5 bg-[#FAF8ED] border-3 border-black rounded-2xl sm:rounded-3xl space-y-2.5 shadow-[3px_3px_0px_#000000]">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">🎮</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                    <Gamepad2 className="w-4 h-4 text-black stroke-2.5" />
+                  </div>
                   <div>
                     <h4 className="font-display font-black text-sm sm:text-base uppercase text-black">
                       How Points Work (Like a Quest!)
@@ -447,11 +450,11 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
                 </div>
 
                 <div className="p-3 bg-white border-2 border-black rounded-xl space-y-1.5 text-[11px] sm:text-xs font-mono font-bold text-neutral-800">
-                  <p>🌟 <strong>Full Quest = 5.0 Points (5 Stars)</strong>.</p>
-                  <p>⚡ Each completed habit adds points to your score.</p>
-                  <p>🏆 3 tasks = 1.67 points each.</p>
+                  <p><strong>Full Quest = 5.0 Points (5 Stars)</strong>.</p>
+                  <p>Each completed habit adds points to your score.</p>
+                  <p>3 tasks = 1.67 points each.</p>
                   <p className="text-black bg-[#FDC800]/30 p-1.5 rounded-lg border border-black/20">
-                    🚀 Finish all 3 tasks ➔ You collect <strong>1.67 + 1.67 + 1.67 = 5.0 Stars!</strong>
+                    Finish all 3 tasks: You collect <strong>1.67 + 1.67 + 1.67 = 5.0 Stars!</strong>
                   </p>
                 </div>
               </div>
@@ -496,7 +499,7 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
         {/* Fixed Footer Bar */}
         <div className="p-3 sm:p-4 border-t-3 border-black bg-white flex items-center justify-between shrink-0">
           <span className="text-[11px] font-mono font-bold text-neutral-600">
-            💾 Auto-saved
+            Auto-saved
           </span>
 
           <button

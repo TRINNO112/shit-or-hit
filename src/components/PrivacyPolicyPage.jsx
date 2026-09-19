@@ -248,7 +248,7 @@ export default function PrivacyPolicyPage({ onBack }) {
                     type="text"
                     value={cipherInput}
                     onChange={(e) => setCipherInput(e.target.value)}
-                    className="w-full bg-[#FFFDF9] border border-black/30 rounded px-2 py-1 text-black font-mono text-[11px] outline-none focus:border-black"
+                    className="w-full bg-[#FFFDF9] border-2 border-black rounded px-2 py-1 text-black font-mono text-[11px] outline-none focus:ring-1 focus:ring-black"
                   />
                 </div>
 

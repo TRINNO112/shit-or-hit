@@ -70,21 +70,21 @@ export default function MonthCalendar({
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevMonth}
-            className="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/[0.06]"
+            className="w-8 h-8 rounded-lg bg-white/3 hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/6"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           
           <button
             onClick={() => setCurrentDate(new Date())}
-            className="px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/10 text-xs font-mono text-[#8e95a5] hover:text-white border border-white/[0.06]"
+            className="px-2.5 py-1 rounded-lg bg-white/3 hover:bg-white/10 text-xs font-mono text-[#8e95a5] hover:text-white border border-white/6"
           >
             This Month
           </button>
 
           <button
             onClick={handleNextMonth}
-            className="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/[0.06]"
+            className="w-8 h-8 rounded-lg bg-white/3 hover:bg-white/10 flex items-center justify-center text-[#8e95a5] hover:text-white border border-white/6"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -110,7 +110,7 @@ export default function MonthCalendar({
         {/* Calendar days */}
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: leadingBlanks }).map((_, i) => (
-            <div key={`blank-${i}`} className="min-h-[70px] rounded-xl bg-transparent" />
+            <div key={`blank-${i}`} className="min-h-17.5 rounded-xl bg-transparent" />
           ))}
 
           {days.map(({ dayNumber, dateStr, isToday, entry }) => {
@@ -122,12 +122,12 @@ export default function MonthCalendar({
               <div
                 key={dateStr}
                 onClick={() => onSelectDate(dateStr)}
-                className={`min-h-[70px] sm:min-h-[85px] p-2 rounded-xl border flex flex-col justify-between cursor-pointer transition-all hover:border-white/20 ${
+                className={`min-h-17.5 sm:min-h-21.25 p-2 rounded-xl border flex flex-col justify-between cursor-pointer transition-all hover:border-white/20 ${
                   isToday 
-                    ? 'border-amber-400/50 bg-white/[0.04]' 
+                    ? 'border-amber-400/50 bg-white/4' 
                     : inStasis
                     ? 'border-emerald-500/50 bg-emerald-950/20'
-                    : 'border-white/[0.05] bg-white/[0.01]'
+                    : 'border-white/5 bg-white/1'
                 }`}
                 style={{
                   backgroundColor: meta ? meta.bg : inStasis ? 'rgba(0, 229, 153, 0.12)' : undefined,

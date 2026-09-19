@@ -41,21 +41,21 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
   const handleActivate7Days = () => {
     const res = activateRehabilitation(7);
     setConfig(res);
-    showToast('🌿 7-Day Rehabilitation Sanctuary Activated!');
+    showToast('7-Day Rehabilitation Sanctuary Activated!');
     if (onStateChange) onStateChange();
   };
 
   const handleExtendTo14Days = () => {
     const res = extendRehabilitation(7);
     setConfig(res);
-    showToast('🌿 Sanctuary Extended to 14 Days Maximum!');
+    showToast('Sanctuary Extended to 14 Days Maximum!');
     if (onStateChange) onStateChange();
   };
 
   const handleExitRehab = () => {
     exitRehabilitation();
     setConfig(getRehabilitationConfig());
-    showToast('☀️ Welcome Back! Regular Tracking Restored.');
+    showToast('Welcome Back! Regular Tracking Restored.');
     if (onStateChange) onStateChange();
   };
 
@@ -163,7 +163,7 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
               {config.needsDay7CheckIn && (
                 <div className="p-3 bg-[#FDC800]/25 border-2 border-black mb-4 text-xs font-mono">
                   <span className="font-black block uppercase text-black mb-1">
-                    ☕ 7-Day Rest Check-in
+                    7-Day Rest Check-in
                   </span>
                   You have completed your first 7 days of rest. How are you feeling? If you need more time, you can extend up to 14 days total.
                 </div>
@@ -255,7 +255,7 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
                 placeholder="Add custom restorative habit..."
                 value={newAnchorText}
                 onChange={(e) => setNewAnchorText(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-[#FFFDF8] border-2 border-black text-xs font-mono text-black placeholder:text-neutral-400 outline-none focus:bg-white"
+                className="flex-1 px-3 py-1.5 bg-white border-2 border-black text-xs font-mono text-black placeholder-neutral-400 outline-none focus:ring-1 focus:ring-black"
               />
               <button
                 type="submit"

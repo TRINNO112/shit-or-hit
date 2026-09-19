@@ -454,18 +454,21 @@ export default function RansomCapsuleModal({
                           <div className="text-[11px] font-mono text-[#6E5B4B] mt-1 space-y-0.5">
                             <div>Inscribed: {cap.createdDate || cap.createdAt?.slice(0, 10)}</div>
                             {cap.triggerType === 'date' && cap.targetDate && (
-                              <div className="text-[#991B1B] font-bold">
-                                ⏳ Opens: {cap.targetDate}
+                              <div className="text-[#991B1B] font-bold flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                <span>Opens: {cap.targetDate}</span>
                               </div>
                             )}
                             {cap.triggerType === 'slump' && (
-                              <div className="text-[#B45309] font-bold">
-                                🩸 Tripwire: Triggers upon {cap.roughDaysThreshold || 2} rough days
+                              <div className="text-[#B45309] font-bold flex items-center gap-1">
+                                <Flame className="w-3 h-3 text-[#B45309]" />
+                                <span>Tripwire: Triggers upon {cap.roughDaysThreshold || 2} rough days</span>
                               </div>
                             )}
                             {cap.triggerType === 'streak' && (
-                              <div className="text-[#065F46] font-bold">
-                                ⚡ Reward: Unlocks at {cap.streakThreshold || 7}-day streak
+                              <div className="text-[#065F46] font-bold flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-[#065F46]" />
+                                <span>Reward: Unlocks at {cap.streakThreshold || 7}-day streak</span>
                               </div>
                             )}
                           </div>

@@ -30,7 +30,12 @@ import {
   Shield,
   Compass,
   Sun,
-  Coffee
+  Coffee,
+  Droplets,
+  Footprints,
+  Moon,
+  PhoneOff,
+  ArrowRight
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -561,7 +566,7 @@ export default function TodayHero({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="neo-card w-full mb-8 relative overflow-hidden border-3 border-black shadow-[8px_8px_0px_#000000] bg-gradient-to-br from-[#F4FAF6] via-[#EDF7F1] to-[#E5F2EA] rounded-[32px] p-6 sm:p-8 md:p-10"
+        className="neo-card w-full mb-8 relative overflow-hidden border-3 border-black shadow-[8px_8px_0px_#000000] bg-linear-to-br from-[#F4FAF6] via-[#EDF7F1] to-[#E5F2EA] rounded-4xl p-6 sm:p-8 md:p-10"
       >
         {/* Subtle Ambient Zen Glow Background Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#00E599]/12 blur-3xl pointer-events-none -mr-20 -mt-20" />
@@ -572,7 +577,7 @@ export default function TodayHero({
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black text-white font-mono text-xs font-black shadow-[2px_2px_0px_#000000]">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00E599] animate-ping" />
-              <span className="tracking-wider">🌿 TRANQUILITY SANCTUARY</span>
+              <span className="tracking-wider">{isSabbatical ? 'GRAND SABBATICAL' : 'TRANQUILITY SANCTUARY'}</span>
             </div>
 
             <span className="px-3.5 py-1.5 rounded-full border-2 border-black font-mono text-xs font-black uppercase bg-[#00E599] text-black shadow-[2px_2px_0px_#000000]">
@@ -633,7 +638,7 @@ export default function TodayHero({
               </div>
 
               {/* Center Meditative Lotus Orb with Concentric Ripples */}
-              <div className="py-6 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-b from-[#F0FDF4] to-[#E6F8ED] rounded-2xl border-2 border-emerald-300">
+              <div className="py-6 flex flex-col items-center justify-center relative overflow-hidden bg-linear-to-b from-[#F0FDF4] to-[#E6F8ED] rounded-2xl border-2 border-emerald-300">
                 <div className="relative w-40 h-40 flex items-center justify-center">
                   {breathActive && (
                     <>
@@ -754,7 +759,7 @@ export default function TodayHero({
                         }`}
                         title={`Sanctuary Day ${dayNum}`}
                       >
-                        {isPast ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : dayNum}
+                        {isPast ? <Check className="w-3.5 h-3.5 stroke-3" /> : dayNum}
                       </div>
                     );
                   })}
@@ -786,11 +791,12 @@ export default function TodayHero({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
               {[
-                { key: 'water', icon: '💧', label: 'Hydration Well', blurb: 'Drank a tall glass of water', doneLabel: 'Hydrated' },
-                { key: 'walk', icon: '🚶', label: 'Fresh Air Step', blurb: 'Stepped outside for breeze', doneLabel: 'Breathed Fresh Air' },
-                { key: 'rest', icon: '🛏️', label: 'Quiet Horizon', blurb: 'Rested eyes for 10 minutes', doneLabel: 'Eyes Rested' },
-                { key: 'screens', icon: '📵', label: 'Digital Boundary', blurb: 'Put down feeds & devices', doneLabel: 'Screen Unplugged' }
+                { key: 'water', icon: Droplets, label: 'Hydration Well', blurb: 'Drank a tall glass of water', doneLabel: 'Hydrated' },
+                { key: 'walk', icon: Footprints, label: 'Fresh Air Step', blurb: 'Stepped outside for breeze', doneLabel: 'Breathed Fresh Air' },
+                { key: 'rest', icon: Moon, label: 'Quiet Horizon', blurb: 'Rested eyes for 10 minutes', doneLabel: 'Eyes Rested' },
+                { key: 'screens', icon: PhoneOff, label: 'Digital Boundary', blurb: 'Put down feeds & devices', doneLabel: 'Screen Unplugged' }
               ].map((stone) => {
+                const IconComp = stone.icon;
                 const isDone = somaticCare[stone.key];
                 return (
                   <button
@@ -807,11 +813,13 @@ export default function TodayHero({
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-2xl">{stone.icon}</span>
+                      <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                        <IconComp className="w-4 h-4 text-black stroke-[2.5]" />
+                      </div>
                       <span className={`w-5 h-5 rounded-full border border-black flex items-center justify-center text-[10px] ${
                         isDone ? 'bg-black text-[#00E599]' : 'bg-white text-transparent'
                       }`}>
-                        ✓
+                        <Check className="w-3.5 h-3.5 stroke-3" />
                       </span>
                     </div>
                     <div>
@@ -854,7 +862,7 @@ export default function TodayHero({
               <span>Words are preserved safely in your diary stasis.</span>
               {syncedBadge && (
                 <span className="text-emerald-700 font-black flex items-center gap-1">
-                  <Check className="w-3 h-3 stroke-[3]" /> Saved to Vault
+                  <Check className="w-3.5 h-3.5 stroke-3" /> Saved to Vault
                 </span>
               )}
             </div>
@@ -869,9 +877,10 @@ export default function TodayHero({
             <button
               type="button"
               onClick={handleActivateSabbatical}
-              className="px-4 py-2 bg-[#FFB800] hover:bg-amber-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all shrink-0"
+              className="px-4 py-2 bg-[#FFB800] hover:bg-amber-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all shrink-0 flex items-center gap-1.5"
             >
-              Step Into Grand Sabbatical Horizon ➔
+              <span>Step Into Grand Sabbatical Horizon</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
           </div>
 
@@ -889,7 +898,7 @@ export default function TodayHero({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="neo-card w-full mb-8 relative overflow-hidden border-3 border-black shadow-[8px_8px_0px_#000000] bg-gradient-to-br from-[#FFFDF2] via-[#FEF9E7] to-[#FDEFC2] rounded-[32px] p-6 sm:p-8 md:p-10"
+        className="neo-card w-full mb-8 relative overflow-hidden border-3 border-black shadow-[8px_8px_0px_#000000] bg-linear-to-br from-[#FFFDF2] via-[#FEF9E7] to-[#FDEFC2] rounded-4xl p-6 sm:p-8 md:p-10"
       >
         {/* Subtle Ambient Sunburst Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#FFB800]/15 blur-3xl pointer-events-none -mr-20 -mt-20" />
@@ -1039,7 +1048,7 @@ export default function TodayHero({
               <span>Stored safely in your private journal without assigning numbers or scores.</span>
               {syncedBadge && (
                 <span className="text-amber-800 font-black flex items-center gap-1">
-                  <Check className="w-3 h-3 stroke-[3]" /> Saved
+                  <Check className="w-3 h-3 stroke-3" /> Saved
                 </span>
               )}
             </div>
@@ -1122,7 +1131,7 @@ export default function TodayHero({
               </p>
               <p className="text-xs font-mono text-neutral-500 mt-1 font-semibold">
                 {isDeterministicTaskLocked 
-                  ? '🔒 Rating governed 100% by your Non-Negotiable Tasks below.' 
+                  ? 'Rating governed 100% by your Non-Negotiable Tasks below.' 
                   : 'Hover & punch an icon to log your verdict.'}
               </p>
             </div>
@@ -1185,7 +1194,6 @@ export default function TodayHero({
                   );
                 })}
               </div>
-            )}
           </div>
 
         </div>

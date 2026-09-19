@@ -424,7 +424,7 @@ export default function MobileAppView({
     if (isDeterministicLockedMobile) {
       triggerHaptic('medium');
       soundEngine.playRoughTone();
-      alert("🔒 Deterministic 100% Mode Active: Your day rating is automatically governed by your completed habit tasks below. Check off your tasks to update your rating!");
+      alert("Deterministic 100% Mode Active: Your day rating is automatically governed by your completed habit tasks below. Check off your tasks to update your rating!");
       return;
     }
 
@@ -804,15 +804,15 @@ export default function MobileAppView({
           {isSanctuaryActive ? (
             <div className={`p-5 rounded-3xl border-3 border-black space-y-4 shadow-[4px_4px_0px_#000000] relative overflow-hidden ${
               isSabbatical 
-                ? 'bg-gradient-to-br from-[#FFFDF2] to-[#FEF3C7]' 
-                : 'bg-gradient-to-br from-[#F4FAF6] via-[#EDF7F1] to-[#E5F2EA]'
+                ? 'bg-linear-to-br from-[#FFFDF2] to-[#FEF3C7]' 
+                : 'bg-linear-to-br from-[#F4FAF6] via-[#EDF7F1] to-[#E5F2EA]'
             }`}>
               {/* Header Pill */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className={`w-2.5 h-2.5 rounded-full ${isSabbatical ? 'bg-[#FFB800]' : 'bg-[#00E599]'} animate-ping`} />
                   <span className="font-mono text-xs font-black uppercase text-black">
-                    {isSabbatical ? '⛺ GRAND SABBATICAL' : '🌿 TRANQUILITY SANCTUARY'}
+                    {isSabbatical ? 'GRAND SABBATICAL' : 'TRANQUILITY SANCTUARY'}
                   </span>
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-black uppercase border border-black ${
@@ -1112,7 +1112,7 @@ export default function MobileAppView({
                   className="py-3 px-2 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
                 >
                   <PenLine className="w-4 h-4" />
-                  <span className="truncate">{entries[todayStr]?.notes ? '✏️ DIARY' : '+ DIARY'}</span>
+                  <span className="truncate">{entries[todayStr]?.notes ? 'DIARY' : '+ DIARY'}</span>
                 </button>
               )}
 
@@ -1209,9 +1209,9 @@ export default function MobileAppView({
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                 {[
                   { id: 'all', label: 'All Days' },
-                  { id: 'hits', label: '🔥 Hits (4-5★)' },
-                  { id: 'leaks', label: '⚠️ Misses (1-2★)' },
-                  { id: 'notes', label: '✏️ With Notes' }
+                  { id: 'hits', label: 'Hits (4-5 Stars)' },
+                  { id: 'leaks', label: 'Misses (1-2 Stars)' },
+                  { id: 'notes', label: 'With Notes' }
                 ].map(f => (
                   <button
                     key={f.id}

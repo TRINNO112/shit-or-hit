@@ -293,7 +293,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   }`}
                 >
                   <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>{isLoading ? 'EVALUATING...' : report ? '🔄 RE-EVALUATE' : '⚡ RUN EVALUATION'}</span>
+                  <span>{isLoading ? 'EVALUATING...' : report ? 'RE-EVALUATE' : 'RUN EVALUATION'}</span>
                 </button>
 
                 {report && (
@@ -370,7 +370,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                     className="neo-btn px-6 py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-sm uppercase flex items-center gap-2 shadow-[3px_3px_0px_#000000] cursor-pointer"
                   >
                     <Wand2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>⚡ RUN EVALUATION ({new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span>
+                    <span>RUN EVALUATION ({new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span>
                   </button>
                 </div>
               </div>
@@ -413,7 +413,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       )}
                       {report.evaluatedAt && (
                         <span className="text-[9px] font-mono font-bold bg-black/40 text-neutral-200 border border-white/20 px-2 py-0.5 rounded">
-                          💾 SAVED IN LOCAL DB ({new Date(report.evaluatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                          SAVED IN LOCAL DB ({new Date(report.evaluatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
                         </span>
                       )}
                     </div>
@@ -671,7 +671,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 {report.homieLetter && report.homieLetter.length > 0 && (
                   <div className="p-5 sm:p-6 rounded-2xl border-3 border-black bg-[#FFFBEA] shadow-[4px_4px_0px_#000000] space-y-3">
                     <div className="flex items-center gap-2 pb-2 border-b-2 border-black/10">
-                      <span className="text-xl">💬</span>
+                      <div className="w-7 h-7 rounded-lg bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                        <MessageSquareQuote className="w-4 h-4 text-black stroke-2" />
+                      </div>
                       <h4 className="font-display font-black text-sm uppercase text-black flex items-center gap-2">
                         <span>THE CHRONICLER'S ADDRESS: DEEP DIVE & UNFILTERED HYPE</span>
                         <span className="px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase">
@@ -1026,7 +1028,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 {/* Subtitle attribution note */}
                 <div className="text-center pt-1 pb-2">
                   <span className="text-[10px] font-mono font-bold text-neutral-500">
-                    💡 Performance intelligence synthesized from {report?.totalLogged || 0} logged days in {report?.monthName}.
+                    Performance intelligence synthesized from {report?.totalLogged || 0} logged days in {report?.monthName}.
                   </span>
                 </div>
 

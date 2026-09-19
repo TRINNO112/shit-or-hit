@@ -585,7 +585,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
                       value={confirmText}
                       onChange={(e) => setConfirmText(e.target.value)}
                       placeholder="TYPE DELETE HERE..."
-                      className="w-full bg-[#1A1D26] border-2 border-neutral-700 focus:border-[#FF4D4D] text-white px-3 py-2 rounded-xl font-mono text-xs tracking-widest uppercase outline-none"
+                      className="w-full bg-[#1A1D26] border-2 border-neutral-700 focus:ring-2 focus:ring-[#FF4D4D] text-white px-3 py-2 rounded-xl font-mono text-xs tracking-widest uppercase outline-none"
                     />
                   </div>
 

@@ -67,9 +67,10 @@ export default function NotificationOptInModal() {
             <button
               type="button"
               onClick={handleEnable}
-              className="w-full py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] cursor-pointer active:scale-95 transition-all"
+              className="w-full py-3 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] cursor-pointer active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              ✅ TURN ON 9 PM REMINDERS
+              <CheckCircle2 className="w-4 h-4 text-black stroke-2.5" />
+              <span>TURN ON 9 PM REMINDERS</span>
             </button>
 
             <button
