@@ -268,7 +268,7 @@ export default function TodayHero({
     // 🛡️ Enforce Deterministic 100% Task Engine Lock:
     if (isDeterministicTaskLocked) {
       soundEngine.playRoughTone();
-      alert("🔒 Deterministic 100% Mode Active: Your day rating is automatically governed by your completed habit tasks below. Check off your tasks to update your rating!");
+      alert("Deterministic 100% Mode Active: Your day rating is automatically governed by your completed habit tasks below. Check off your tasks to update your rating!");
       return;
     }
 
@@ -511,6 +511,7 @@ export default function TodayHero({
   const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
   const rehabConfig = getRehabilitationConfig();
   const isLiveSanctuary = isRehabilitationActive(todayStr);
+  const isSanctuaryActive = isLiveSanctuary || isDemoSanctuary || isDemoSabbatical;
   const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
 
   const rawFreezeDays = rehabConfig?.freezeDays || 7;
@@ -909,7 +910,8 @@ export default function TodayHero({
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black text-white font-mono text-xs font-black shadow-[2px_2px_0px_#000000]">
               <span className="w-2.5 h-2.5 rounded-full bg-[#FFB800] animate-ping" />
-              <span className="tracking-wider">⛺ GRAND SABBATICAL HORIZON</span>
+              <Compass className="w-3.5 h-3.5 text-[#FFB800]" />
+              <span className="tracking-wider">GRAND SABBATICAL HORIZON</span>
             </div>
 
             <span className="px-3.5 py-1.5 rounded-full border-2 border-black font-mono text-xs font-black uppercase bg-[#FFB800] text-black shadow-[2px_2px_0px_#000000]">

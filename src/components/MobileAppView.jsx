@@ -42,7 +42,9 @@ import {
   Printer,
   AlertOctagon,
   Wind,
-  Shield
+  Shield,
+  Database,
+  MessageSquareQuote
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -1075,8 +1077,9 @@ export default function MobileAppView({
                         </span>
                       </div>
                       {savedFlash && (
-                        <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shrink-0">
-                          SAVED ⚡
+                        <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shrink-0 flex items-center gap-1">
+                          <Zap className="w-2.5 h-2.5 text-[#FDC800] fill-current" />
+                          <span>SAVED</span>
                         </span>
                       )}
                     </div>
@@ -1357,7 +1360,19 @@ export default function MobileAppView({
                 className="w-full py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-98 transition-all"
               >
                 <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${dossierLoading ? 'animate-spin' : ''}`} />
-                <span>{dossierLoading ? 'Synthesizing...' : dossierReport ? '🔄 Re-Evaluate Dossier' : '⚡ Run Monthly Evaluation'}</span>
+                <span className="flex items-center gap-1.5">
+                  {dossierLoading ? 'Synthesizing...' : dossierReport ? (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Re-Evaluate Dossier</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>Run Monthly Evaluation</span>
+                    </>
+                  )}
+                </span>
               </button>
             </div>
           </div>
@@ -1397,8 +1412,9 @@ export default function MobileAppView({
                   }`}>
                     MONTHLY PERSONA
                   </span>
-                  <span className="text-[10px] font-mono font-bold opacity-80">
-                    💾 Saved in Local DB
+                  <span className="text-[10px] font-mono font-bold opacity-80 flex items-center gap-1">
+                    <Database className="w-3 h-3" />
+                    <span>Saved in Local DB</span>
                   </span>
                 </div>
 
@@ -1446,7 +1462,7 @@ export default function MobileAppView({
               {dossierReport.homieLetter && dossierReport.homieLetter.length > 0 && (
                 <div className="p-4 rounded-2xl border-2 border-black bg-[#FFFBEA] shadow-[3px_3px_0px_#000000] space-y-2.5">
                   <div className="flex items-center gap-2 pb-2 border-b border-black/10">
-                    <span className="text-lg">💬</span>
+                    <MessageSquareQuote className="w-4 h-4 text-black shrink-0" />
                     <h4 className="font-display font-black text-xs uppercase text-black tracking-wide">
                       REAL TALK FROM YOUR BRO
                     </h4>
@@ -1920,7 +1936,10 @@ export default function MobileAppView({
 
                 <div className="flex items-center justify-between text-[10px] font-mono font-bold text-neutral-500 pt-0.5 shrink-0">
                   <span>{noteText.length} characters</span>
-                  <span>💾 Auto-synced with rating</span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-[#00E599]" />
+                    <span>Auto-synced with rating</span>
+                  </span>
                 </div>
               </div>
 
