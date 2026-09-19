@@ -140,7 +140,7 @@ export default function ForensicStatsModal({
                   <span className="font-display font-black text-xl text-black">{currentStreak}</span>
                   <span className="text-[10px] font-mono font-bold text-neutral-600">DAYS</span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-600 font-bold">🔥 Active</span>
+                <span className="text-[10px] font-mono text-emerald-600 font-bold">Active</span>
               </div>
 
               <div className="bg-white border-2 border-black rounded-2xl p-3 shadow-[2.5px_2.5px_0px_#000000]">
@@ -157,7 +157,7 @@ export default function ForensicStatsModal({
                   <span className="font-display font-black text-xl text-black">{avgScore}</span>
                   <span className="text-[10px] font-mono text-neutral-500">/5.0</span>
                 </div>
-                <span className="text-[10px] font-mono text-[#FDC800] font-black">★ Velocity</span>
+                <span className="text-[10px] font-mono text-amber-600 font-black">Velocity</span>
               </div>
 
               <div className="bg-white border-2 border-black rounded-2xl p-3 shadow-[2.5px_2.5px_0px_#000000]">
@@ -166,7 +166,7 @@ export default function ForensicStatsModal({
                   <span className="font-display font-black text-xl text-black">{totalLogged}</span>
                   <span className="text-[10px] font-mono font-bold text-neutral-600">DAYS</span>
                 </div>
-                <span className="text-[10px] font-mono text-blue-600 font-bold">⚡ Verified</span>
+                <span className="text-[10px] font-mono text-blue-600 font-bold">Verified</span>
               </div>
             </div>
 

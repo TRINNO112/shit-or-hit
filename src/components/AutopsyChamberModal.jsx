@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Terminal,
-  Crosshair
+  Crosshair,
+  AlertTriangle
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { AutopsyBadge } from './AutopsyBadge';
@@ -35,7 +36,7 @@ function TopSecretStamp({ text = "TOP SECRET // EYES ONLY", isDeclassified = fal
         className="px-3 py-1 border-3 border-dashed font-mono font-black text-xs sm:text-sm tracking-widest uppercase rounded-sm shadow-[2px_2px_0px_rgba(0,0,0,0.15)] flex items-center gap-1.5"
         style={{ color, borderColor: color }}
       >
-        <span>⚠️</span>
+        <AlertTriangle className="w-3.5 h-3.5" />
         <span>{label}</span>
       </div>
     </div>

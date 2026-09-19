@@ -41,7 +41,8 @@ import {
   Terminal,
   Printer,
   AlertOctagon,
-  Wind
+  Wind,
+  Shield
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -659,44 +660,45 @@ export default function MobileAppView({
   return (
     <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-28 select-none relative">
       
-      {/* 📱 TOP COMPACT APP BAR (Guaranteed Single-Line Layout) */}
-      <header className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between shadow-[0_2px_0px_#000000]">
-        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0 p-0.5">
+      {/* TOP COMPACT APP BAR (Single-Line Layout Guaranteed) */}
+      <header className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-2.5 py-2 sm:px-4 sm:py-3 flex items-center justify-between shadow-[0_2px_0px_#000000] gap-1.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0 p-0.5">
             <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
           </div>
           <div className="min-w-0">
-            <h1 className="font-display font-black text-sm sm:text-base uppercase leading-none tracking-tight whitespace-nowrap">
+            <h1 className="font-display font-black text-xs sm:text-base uppercase leading-none tracking-tight whitespace-nowrap">
               VERDICT
             </h1>
-            <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate max-w-28 sm:max-w-40">
-              {isWhitelisted ? `☁️ ${user.displayName || 'Cloud Synced'}` : 'Life Matrix OS'}
+            <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 hidden xs:block mt-0.5 truncate max-w-24 sm:max-w-40">
+              {isWhitelisted ? (user.displayName || 'Cloud Synced') : 'Life Matrix OS'}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Day Streak Pill */}
-          <div className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl bg-[#00E599] border-2 border-black font-mono text-[11px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000]">
-            <Flame className="w-3.5 h-3.5 fill-black text-black" />
+          <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-[#00E599] border-2 border-black font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+            <Flame className="w-3.5 h-3.5 fill-black text-black shrink-0" />
             <span>DAY {dayCount}</span>
           </div>
 
-          {/* 🌿 Sanctuary / ⛺ Sabbatical Active Indicator */}
+          {/* Sanctuary / Sabbatical Active Indicator */}
           {isSanctuaryActive && (
-            <button 
-              type="button"
-              onClick={() => {
-                if (onOpenRehab) onOpenRehab();
-                else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
-              }}
-              className={`flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-xl border-2 border-black font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors ${
+            <div 
+              className={`flex items-center gap-1 px-2 py-1 rounded-xl border-2 border-black font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 ${
                 isSabbatical ? 'bg-[#FEF3C7] text-amber-950' : 'bg-[#E8F5E9] text-[#1B5E20]'
               }`}
               title={isSabbatical ? 'Grand Sabbatical Active — Streak Sheltered Indefinitely' : 'Rehabilitation Sanctuary Active — Streak Protected'}
             >
-              <span>{isSabbatical ? '⛺ SABBATICAL' : '🌿 SANCTUARY'}</span>
-            </button>
+              {isSabbatical ? (
+                <Compass className="w-3 h-3 text-amber-800 shrink-0" />
+              ) : (
+                <Shield className="w-3 h-3 text-emerald-800 shrink-0" />
+              )}
+              <span className="hidden xs:inline">{isSabbatical ? 'SABBATICAL' : 'SANCTUARY'}</span>
+              <span className="xs:hidden">STASIS</span>
+            </div>
           )}
 
           {/* Cloud Auth / Profile */}
@@ -706,7 +708,7 @@ export default function MobileAppView({
                 triggerHaptic('light');
                 setShowUserModal(true);
               }}
-              className={`p-1.5 sm:p-2 rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 ${
                 isWhitelisted ? 'bg-[#00E599]' : 'bg-neutral-200'
               }`}
               title={user.email}
@@ -720,14 +722,14 @@ export default function MobileAppView({
                 handleGoogleLogin();
               }}
               disabled={authLoading}
-              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black font-mono text-xs font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-colors"
+              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black font-mono text-xs font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-colors shrink-0"
             >
               <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>SYNC</span>
+              <span className="hidden xs:inline">SYNC</span>
             </button>
           )}
 
-          {/* Backup Button (Export Studio) */}
+          {/* Backup Button (Export Studio) - hidden on xs to prevent collision */}
           <button
             onClick={() => {
               triggerHaptic('light');
@@ -737,7 +739,7 @@ export default function MobileAppView({
                 exportDatabaseBackup(startDate, entries);
               }
             }}
-            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer hidden sm:flex shrink-0"
             title="Export Studio (CSV, Markdown, JSON)"
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
@@ -749,20 +751,20 @@ export default function MobileAppView({
               triggerHaptic('light');
               if (onOpenSettings) onOpenSettings();
             }}
-            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0"
             title="Settings & Reminders"
           >
             <Settings className="w-4 h-4 text-black" />
           </button>
 
-          {/* Sticker Vault Button */}
+          {/* Sticker Vault Button - hidden on xs */}
           {onOpenStickerVault && (
             <button
               onClick={() => {
                 triggerHaptic('light');
                 onOpenStickerVault();
               }}
-              className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer hidden sm:flex shrink-0"
               title="Sticker & Mascot Vault"
             >
               <Sparkles className="w-4 h-4 text-black" />
@@ -888,28 +890,15 @@ export default function MobileAppView({
               )}
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onOpenRehab) onOpenRehab();
-                    else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
-                  }}
-                  className={`flex-1 py-2.5 px-3 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-1.5 ${
-                    isSabbatical ? 'bg-[#FFB800] hover:bg-amber-400 text-black' : 'bg-[#00E599] hover:bg-[#00c984] text-black'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{isSabbatical ? 'SABBATICAL CHARTER' : 'OPEN HAVEN'}</span>
-                </button>
-
+              <div className="pt-1">
                 <button
                   type="button"
                   onClick={handleExitSanctuaryMobile}
-                  className="py-2.5 px-3 bg-white hover:bg-neutral-100 text-neutral-800 rounded-xl border-2 border-black font-mono text-xs font-bold uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px shrink-0"
-                  title="Resume verdicts"
+                  className="w-full py-2.5 px-3 bg-white hover:bg-neutral-100 text-black rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-2 transition-all"
+                  title="Turn off sanctuary mode and resume daily verdicts"
                 >
-                  <span>RESUME</span>
+                  <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>TURN OFF SANCTUARY • RESUME VERDICTS</span>
                 </button>
               </div>
             </div>
@@ -1058,9 +1047,11 @@ export default function MobileAppView({
           )}
 
           {/* 3 Daily Non-Negotiables Card */}
-          <div className="pt-1">
-            <NonNegotiableCard dateStr={todayStr} onScoreUpdate={handleAnchorScoreUpdateMobile} />
-          </div>
+          {!isSanctuaryActive && (
+            <div className="pt-1">
+              <NonNegotiableCard dateStr={todayStr} onScoreUpdate={handleAnchorScoreUpdateMobile} />
+            </div>
+          )}
 
           {/* Active Verdict Status & Reflection Button */}
           <div className="pt-1.5 space-y-2.5">
@@ -1253,6 +1244,7 @@ export default function MobileAppView({
                 {calDays.map(({ dayNum, dayIndex, dateStr, entry, isBeforeStart, isFuture, isToday, isDimmed }) => {
                   const rating = entry?.rating || null;
                   const m = rating ? ratingMeta[rating] : null;
+                  const inStasis = !rating && isRehabilitationActive(dateStr);
 
                   return (
                     <button
@@ -1270,12 +1262,16 @@ export default function MobileAppView({
                         isDimmed ? 'opacity-25 grayscale' : ''
                       }`}
                       style={{
-                        backgroundColor: m ? m.bg : '#F8FAFC'
+                        backgroundColor: m ? m.bg : inStasis ? '#E8F5E9' : '#F8FAFC'
                       }}
+                      title={inStasis ? 'Sanctuary Stasis Active — Streak Protected' : undefined}
                     >
                       <span className="text-xs font-mono font-black leading-none text-black">
                         {dayNum}
                       </span>
+                      {inStasis && (
+                        <Shield className="w-2.5 h-2.5 text-emerald-800 shrink-0 mt-0.5" />
+                      )}
                       {entry?.notes && (
                         <div className="w-1.5 h-1.5 rounded-full bg-black mt-1" />
                       )}

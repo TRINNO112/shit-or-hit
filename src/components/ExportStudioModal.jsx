@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, X, FileSpreadsheet, BookOpen, Code, CheckCircle2, Sparkles } from 'lucide-react';
+import { Download, X, FileSpreadsheet, BookOpen, Code, CheckCircle2, Sparkles, ShieldCheck } from 'lucide-react';
 import { exportEntriesToCsv, exportEntriesToDiaryDigest, exportDatabaseBackup } from '../services/api';
 
 /**
@@ -154,7 +154,10 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
 
           {/* Footer Note */}
           <div className="mt-6 pt-4 border-t-2 border-black flex items-center justify-between text-xs font-mono text-black/60">
-            <span>🔒 100% Client-Side Generation</span>
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+              <span>100% Client-Side Generation</span>
+            </span>
             <button
               onClick={onClose}
               className="font-bold underline text-black hover:text-black/80 cursor-pointer"

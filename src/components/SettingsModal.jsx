@@ -33,7 +33,8 @@ import {
   Sliders,
   AlertOctagon,
   Printer,
-  FileText
+  FileText,
+  Shield
 } from 'lucide-react';
 import {
   isNotificationSupported,
@@ -69,7 +70,10 @@ import {
   setReceiptOfTruthEnabled,
   getRansomCapsules,
   permanentlyDeleteAllUserData,
-  isRehabilitationActive
+  isRehabilitationActive,
+  activateRehabilitation,
+  exitRehabilitation,
+  getRehabilitationConfig
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
@@ -105,6 +109,7 @@ export default function SettingsModal({
   const [isCapsuleVaultOpen, setIsCapsuleVaultOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
+  const [rehabActive, setRehabActive] = useState(() => isRehabilitationActive());
   const [isErasureConfirmOpen, setIsErasureConfirmOpen] = useState(false);
   const [erasureInput, setErasureInput] = useState('');
   const [erasing, setErasing] = useState(false);
@@ -162,6 +167,7 @@ export default function SettingsModal({
       setRansomSensitivity(getRansomCapsuleSensitivity());
       setAutopsyChamberOn(isAutopsyChamberEnabled());
       setReceiptOfTruthOn(isReceiptOfTruthEnabled());
+      setRehabActive(isRehabilitationActive());
       setNotificationMsg('');
       setIsAddingSphere(false);
       setEditingSphereId(null);
@@ -1223,43 +1229,51 @@ export default function SettingsModal({
               <div className="flex items-center justify-between p-3.5 bg-[#F0FDF4] border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] gap-3">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                    <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
+                    <Shield className="w-5 h-5 text-black stroke-[2.5]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-display font-black text-sm uppercase truncate text-black">
-                        Rehabilitation Sanctuary
+                        Sanctuary Mode
                       </h4>
-                      {isRehabilitationActive() ? (
+                      {rehabActive ? (
                         <span className="px-2 py-0.5 rounded-full bg-[#00E599] border border-black text-[9px] font-mono font-black uppercase text-black">
-                          ACTIVE
+                          ACTIVE (STASIS)
                         </span>
                       ) : (
                         <span className="px-2 py-0.5 rounded-full bg-neutral-200 border border-black text-[9px] font-mono font-black uppercase text-neutral-600">
-                          STANDBY
+                          OFF
                         </span>
                       )}
                     </div>
                     <p className="text-[11px] font-mono text-neutral-600 truncate">
-                      Streak freeze & compassion anchors (up to 14 days)
+                      {rehabActive ? 'Streak shielded & frozen. Daily verdicts paused.' : 'Freeze streak & pause ratings for 7 days.'}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    if (onOpenSanctuaryPage) {
-                      onClose();
-                      onOpenSanctuaryPage();
-                    } else if (typeof window !== 'undefined') {
-                      window.location.href = '/?view=sanctuary';
+                    try { soundEngine.playClick(); } catch (e) {}
+                    if (rehabActive) {
+                      exitRehabilitation();
+                      setRehabActive(false);
                     } else {
-                      setIsRehabModalOpen(true);
+                      activateRehabilitation(7);
+                      setRehabActive(true);
+                    }
+                    if (onSettingsChanged) onSettingsChanged();
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new Event('storage'));
                     }
                   }}
-                  className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap text-black"
+                  className={`py-1.5 px-3.5 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap ${
+                    rehabActive 
+                      ? 'bg-[#FF4D4D] text-white hover:bg-red-500' 
+                      : 'bg-[#00E599] text-black hover:bg-emerald-400'
+                  }`}
                 >
-                  SANCTUARY
+                  {rehabActive ? 'TURN OFF' : 'TURN ON'}
                 </button>
               </div>
 

@@ -584,28 +584,15 @@ export default function TodayHero({
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                try { soundEngine.playClick(); } catch (e) {}
-                if (onOpenRehab) onOpenRehab();
-                else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
-              }}
-              className="py-2 px-4 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-2 bg-[#00E599] hover:bg-emerald-400 text-black transition-all"
-            >
-              <Sparkles className="w-4 h-4 stroke-[2.5]" />
-              <span>OPEN RESTORATIVE HAVEN</span>
-            </button>
-
+          <div className="flex items-center gap-2.5 shrink-0">
             <button
               type="button"
               onClick={handleExitSanctuary}
-              className="py-2 px-3.5 bg-white hover:bg-neutral-100 text-neutral-800 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-1.5 transition-all"
-              title="Resume daily verdicts and end sanctuary"
+              className="py-2.5 px-4 bg-white hover:bg-neutral-100 text-neutral-900 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-2 transition-all"
+              title="End sanctuary mode and resume daily verdicts"
             >
-              <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>I FEEL BETTER • RESUME VERDICTS</span>
+              <RotateCcw className="w-4 h-4 stroke-[2.5]" />
+              <span>TURN OFF SANCTUARY • RESUME VERDICTS</span>
             </button>
           </div>
         </div>
@@ -614,10 +601,10 @@ export default function TodayHero({
         <div className="relative z-10 space-y-6 pt-6">
           
           {/* Row 1: The Breathing Lotus Orb (Left) & The Sacred Momentum Shelter (Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
             
             {/* Left Card (6 cols): The Vagus Breathing Lotus Orb */}
-            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+            <div className="md:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
@@ -716,7 +703,7 @@ export default function TodayHero({
             </div>
 
             {/* Right Card (6 cols): The Sacred Momentum Shelter */}
-            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+            <div className="md:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">

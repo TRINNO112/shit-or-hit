@@ -12,14 +12,16 @@ import {
   Zap,
   Sparkles,
   Undo2,
-  Redo2
+  Redo2,
+  Shield
 } from 'lucide-react';
 import {
   ratingMeta,
   enhanceReflectionWithAI,
   isSphereModeEnabled,
   getSphereConfig,
-  calculateCompositeScore
+  calculateCompositeScore,
+  isRehabilitationActive
 } from '../services/api';
 import confetti from 'canvas-confetti';
 import { Layers } from 'lucide-react';
@@ -36,11 +38,11 @@ const IconMap = {
 };
 
 const EVENT_PRESETS = [
-  { id: 'party', name: '🎉 Party & Social', icon: 'Sparkles', color: '#FF4D6D', desc: 'Night out, party, festival or celebration' },
-  { id: 'travel', name: '✈️ Travel & Roadtrip', icon: 'Zap', color: '#00D8F6', desc: 'Journey, exploring, or vacation' },
-  { id: 'tournament', name: '🏆 Tournament / Match', icon: 'ShieldAlert', color: '#FDC800', desc: 'Sports, gaming or competition' },
-  { id: 'outing', name: '🍕 Outing & Hangout', icon: 'Flame', color: '#00E599', desc: 'Dinner, cafe, or friends hangout' },
-  { id: 'allnighter', name: '⚡ Hackathon / Grind', icon: 'Terminal', color: '#9D4EDD', desc: 'All-nighter coding or deep project sprint' }
+  { id: 'party', name: 'Party & Social', icon: 'Sparkles', color: '#FF4D6D', desc: 'Night out, party, festival or celebration' },
+  { id: 'travel', name: 'Travel & Roadtrip', icon: 'Zap', color: '#00D8F6', desc: 'Journey, exploring, or vacation' },
+  { id: 'tournament', name: 'Tournament / Match', icon: 'ShieldAlert', color: '#FDC800', desc: 'Sports, gaming or competition' },
+  { id: 'outing', name: 'Outing & Hangout', icon: 'Flame', color: '#00E599', desc: 'Dinner, cafe, or friends hangout' },
+  { id: 'allnighter', name: 'Hackathon / Grind', icon: 'Terminal', color: '#9D4EDD', desc: 'All-nighter coding or deep project sprint' }
 ];
 
 export default function EditDayModal({
@@ -144,7 +146,7 @@ export default function EditDayModal({
     if (!customEventName.trim()) return;
     handleAddEventSphere({
       id: `custom_${Date.now()}`,
-      name: `✨ ${customEventName.trim()}`,
+      name: customEventName.trim(),
       icon: 'Sparkles',
       color: '#00D8F6',
       desc: 'Custom special day event'
@@ -326,6 +328,23 @@ export default function EditDayModal({
                 </button>
               </div>
             </div>
+
+            {/* Stasis Banner if Sanctuary Active */}
+            {isRehabilitationActive(dateStr) && (
+              <div className="p-3 bg-[#E8F5E9] border-2 border-black rounded-2xl flex items-center gap-3 shadow-[2px_2px_0px_#000000] shrink-0 mb-3">
+                <div className="w-8 h-8 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0">
+                  <Shield className="w-4 h-4 text-black stroke-[2.5]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-display font-black text-xs uppercase text-emerald-950">
+                    Sanctuary Stasis Active
+                  </h4>
+                  <p className="text-[11px] font-mono text-emerald-900 truncate">
+                    Daily verdicts are suspended for this date and your streak is preserved.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Scrollable Content Body */}
             <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden pr-1 space-y-4">

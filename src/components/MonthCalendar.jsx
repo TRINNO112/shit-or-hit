@@ -6,9 +6,10 @@ import {
   CloudRain, 
   MinusCircle, 
   Zap, 
-  Sparkles 
+  Sparkles,
+  Shield
 } from 'lucide-react';
-import { ratingMeta } from '../services/api';
+import { ratingMeta, isRehabilitationActive } from '../services/api';
 
 const IconMap = {
   AlertOctagon,
@@ -114,7 +115,8 @@ export default function MonthCalendar({
 
           {days.map(({ dayNumber, dateStr, isToday, entry }) => {
             const meta = entry?.rating ? ratingMeta[entry.rating] : null;
-            const IconComp = meta ? IconMap[meta.icon] : null;
+            const inStasis = !entry?.rating && isRehabilitationActive(dateStr);
+            const IconComp = meta ? IconMap[meta.icon] : inStasis ? Shield : null;
 
             return (
               <div
@@ -123,29 +125,31 @@ export default function MonthCalendar({
                 className={`min-h-[70px] sm:min-h-[85px] p-2 rounded-xl border flex flex-col justify-between cursor-pointer transition-all hover:border-white/20 ${
                   isToday 
                     ? 'border-amber-400/50 bg-white/[0.04]' 
+                    : inStasis
+                    ? 'border-emerald-500/50 bg-emerald-950/20'
                     : 'border-white/[0.05] bg-white/[0.01]'
                 }`}
                 style={{
-                  backgroundColor: meta ? meta.bg : undefined,
-                  borderColor: meta ? meta.border : undefined
+                  backgroundColor: meta ? meta.bg : inStasis ? 'rgba(0, 229, 153, 0.12)' : undefined,
+                  borderColor: meta ? meta.border : inStasis ? '#00E599' : undefined
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span className={`font-mono text-xs ${isToday ? 'text-amber-300 font-bold' : 'text-[#8e95a5]'}`}>
+                  <span className={`font-mono text-xs ${isToday ? 'text-amber-300 font-bold' : inStasis ? 'text-emerald-400 font-bold' : 'text-[#8e95a5]'}`}>
                     {dayNumber}
                   </span>
                 </div>
 
                 <div className="my-auto text-center">
                   {IconComp && (
-                    <div className="inline-block" style={{ color: meta.color }}>
+                    <div className="inline-block" style={{ color: meta ? meta.color : inStasis ? '#00E599' : undefined }}>
                       <IconComp className="w-5 h-5 stroke-[1.75]" />
                     </div>
                   )}
                 </div>
 
                 <div className="text-[10px] font-mono text-[#8e95a5] text-right truncate">
-                  {meta ? meta.title : ''}
+                  {meta ? meta.title : inStasis ? 'STASIS' : ''}
                 </div>
               </div>
             );

@@ -312,7 +312,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
               <div className="flex items-center justify-between border-b-2 border-black/10 pb-4 mb-5">
                 <div className="space-y-0.5">
                   <span className="text-[10px] font-mono font-black tracking-widest text-neutral-400 uppercase">
-                    AUTONOMIC REST HAVEN
+                    AUTONOMIC REST SANCTUARY
                   </span>
                   <h1 className="text-xl font-display font-black tracking-tight text-black">
                     Rehabilitation Sanctuary

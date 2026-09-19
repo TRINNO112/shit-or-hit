@@ -88,7 +88,7 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-2.5 py-1 rounded-lg bg-[#FF4D4D] text-white border-2 border-black font-mono text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_#000000] inline-flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
-                ⚠️ LOCAL GUEST MODE
+                LOCAL GUEST MODE
               </span>
               <span className="px-2 py-0.5 rounded-md bg-[#FDC800] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
                 TWO-TIER ACCESS GATE
@@ -141,7 +141,7 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
               </p>
               <div className="pt-1">
                 <span className="inline-block px-2 py-0.5 rounded bg-red-100 text-red-900 text-[10px] font-mono font-black border border-red-300">
-                  ⚠️ ZERO RECOVERY BYPASS • LOCAL PBKDF2 ENCRYPTED HASH
+                  ZERO RECOVERY BYPASS • LOCAL PBKDF2 ENCRYPTED HASH
                 </span>
               </div>
             </div>

@@ -7,9 +7,10 @@ import {
   Zap, 
   Sparkles,
   Calendar,
-  PenLine
+  PenLine,
+  Shield
 } from 'lucide-react';
-import { ratingMeta } from '../services/api';
+import { ratingMeta, isRehabilitationActive } from '../services/api';
 
 const IconMap = {
   AlertCircle,
@@ -80,6 +81,8 @@ export default function JourneyTimeline({
             const meta = rating ? ratingMeta[rating] : null;
             const SvgIcon = meta ? IconMap[meta.icon] : null;
 
+            const inStasis = !entry && isRehabilitationActive(dateStr);
+
             return (
               <motion.div
                 key={dateStr}
@@ -112,6 +115,10 @@ export default function JourneyTimeline({
                       <p className="text-[11px] sm:text-xs font-mono text-neutral-700 truncate mt-0.5 font-medium">
                         "{entry.notes}"
                       </p>
+                    ) : inStasis ? (
+                      <p className="text-[10px] sm:text-[11px] font-mono text-emerald-800 font-bold mt-0.5 truncate">
+                        Sanctuary Stasis Active • Streak Shielded
+                      </p>
                     ) : (
                       <p className="text-[10px] sm:text-[11px] font-mono text-neutral-400 mt-0.5 truncate">
                         No reflection note
@@ -129,6 +136,11 @@ export default function JourneyTimeline({
                     >
                       {SvgIcon && <SvgIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />}
                       <span className="whitespace-nowrap">{meta.title}</span>
+                    </div>
+                  ) : inStasis ? (
+                    <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-black text-[11px] sm:text-xs font-display font-black uppercase text-black bg-[#E8F5E9] shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+                      <Shield className="w-3.5 h-3.5 text-emerald-800 stroke-[2.5]" />
+                      <span className="whitespace-nowrap">STASIS</span>
                     </div>
                   ) : (
                     <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-400 bg-neutral-100 px-2 sm:px-2.5 py-1 rounded-lg border border-neutral-300 shrink-0">

@@ -10,9 +10,10 @@ import {
   MinusCircle,
   Zap,
   Sparkles,
-  PenLine
+  PenLine,
+  Shield
 } from 'lucide-react';
-import { ratingMeta } from '../services/api';
+import { ratingMeta, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 
 const IconMap = {
   AlertCircle,
@@ -162,7 +163,8 @@ export default function CalendarModal({
                 {days.map(({ dayNumber, dayIndex, dateStr, isToday, isBeforeStart, isFuture, entry }) => {
                   const rating = entry?.rating;
                   const meta = rating ? ratingMeta[rating] : null;
-                  const SvgIcon = meta ? IconMap[meta.icon] : null;
+                  const inStasis = !rating && isRehabilitationActive(dateStr);
+                  const SvgIcon = meta ? IconMap[meta.icon] : inStasis ? Shield : null;
                   const isEditable = !isBeforeStart && !isFuture;
 
                   return (
@@ -176,7 +178,7 @@ export default function CalendarModal({
                       className={`min-h-14.5 sm:min-h-17 p-2 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
                         isToday ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000000]' : 'bg-white'
                       } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
-                      style={{ backgroundColor: meta ? meta.bg : undefined }}
+                      style={{ backgroundColor: meta ? meta.bg : inStasis ? '#E8F5E9' : undefined }}
                     >
                       <div className="flex items-center justify-between">
                         <span className={`font-mono text-[11px] font-black ${isToday ? 'bg-black text-white px-1.5 rounded' : 'text-black'}`}>
@@ -195,7 +197,7 @@ export default function CalendarModal({
                       </div>
 
                       <div className="text-[8px] sm:text-[9px] font-mono font-bold text-black uppercase truncate text-right">
-                        {meta ? meta.title : isBeforeStart ? '—' : ''}
+                        {meta ? meta.title : inStasis ? 'STASIS' : isBeforeStart ? '—' : ''}
                       </div>
                     </div>
                   );
@@ -216,6 +218,10 @@ export default function CalendarModal({
                     </div>
                   );
                 })}
+                <div className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full border border-black bg-[#E8F5E9]" />
+                  <span className="text-[11px]">SANCTUARY STASIS</span>
+                </div>
               </div>
             </div>
 

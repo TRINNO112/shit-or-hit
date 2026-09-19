@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer } from 'lucide-react';
+import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass } from 'lucide-react';
 import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
 import { soundEngine } from '../services/soundEngine';
@@ -108,36 +108,36 @@ export default function Header({
               SHIT OR HIT
             </h1>
             <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
-              {isWhitelisted ? `☁️ Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Daily Verdict OS'}
+              {isWhitelisted ? `Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Daily Verdict OS'}
             </span>
           </div>
         </div>
 
         {/* Right Controls for Tablet / Medium screens (hidden on xl desktop where it sits on the right) */}
         <div className="flex xl:hidden items-center gap-2 shrink-0">
-          {/* 🔥 Day Counter */}
+          {/* Day Counter */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00E599] border-2 border-black text-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
             <Flame className="w-3.5 h-3.5 text-black fill-black" />
             <span>DAY {dayCount}</span>
           </div>
 
-          {/* 🌿 Sanctuary / ⛺ Sabbatical Active Indicator (Tablet) */}
+          {/* Sanctuary / Sabbatical Active Indicator (Tablet) */}
           {isSanctuaryActive && (
-            <button 
-              type="button"
-              onClick={() => {
-                if (onOpenRehab) onOpenRehab();
-                else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
-              }}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors ${
+            <div 
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 ${
                 isSabbatical 
-                  ? 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-950' 
-                  : 'bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#1B5E20]'
+                  ? 'bg-[#FEF3C7] text-amber-950' 
+                  : 'bg-[#E8F5E9] text-[#1B5E20]'
               }`}
               title={isSabbatical ? 'Grand Sabbatical Active — Streak Sheltered Indefinitely' : 'Rehabilitation Sanctuary Active — Streak Protected'}
             >
-              <span>{isSabbatical ? '⛺ SABBATICAL' : '🌿 SANCTUARY'}</span>
-            </button>
+              {isSabbatical ? (
+                <Compass className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+              ) : (
+                <Shield className="w-3.5 h-3.5 text-emerald-800 shrink-0" />
+              )}
+              <span>{isSabbatical ? 'SABBATICAL' : 'SANCTUARY'}</span>
+            </div>
           )}
 
           {/* Cloud Status */}
@@ -220,29 +220,29 @@ export default function Header({
       {/* 3. Right: Prominent Day Counter, Cloud Status, Backup & Settings (Visible on xl+ desktop) */}
       <div className="hidden xl:flex items-center gap-2 shrink-0">
         
-        {/* 🔥 Prominent Day Streak Counter Pill */}
+        {/* Prominent Day Streak Counter Pill */}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00E599] border-2 border-black text-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
           <Flame className="w-4 h-4 text-black fill-black" />
           <span>DAY {dayCount}</span>
         </div>
 
-        {/* 🌿 Sanctuary / ⛺ Sabbatical Active Indicator (Desktop) */}
+        {/* Sanctuary / Sabbatical Active Indicator (Desktop) */}
         {isSanctuaryActive && (
-          <button 
-            type="button"
-            onClick={() => {
-              if (onOpenRehab) onOpenRehab();
-              else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors ${
+          <div 
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 ${
               isSabbatical 
-                ? 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-950' 
-                : 'bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#1B5E20]'
+                ? 'bg-[#FEF3C7] text-amber-950' 
+                : 'bg-[#E8F5E9] text-[#1B5E20]'
             }`}
             title={isSabbatical ? 'Grand Sabbatical Active — Streak Sheltered Indefinitely' : 'Rehabilitation Sanctuary Active — Streak Frozen & Protected'}
           >
-            <span>{isSabbatical ? '⛺ SABBATICAL' : '🌿 SANCTUARY'}</span>
-          </button>
+            {isSabbatical ? (
+              <Compass className="w-4 h-4 text-amber-800 shrink-0" />
+            ) : (
+              <Shield className="w-4 h-4 text-emerald-800 shrink-0" />
+            )}
+            <span>{isSabbatical ? 'SABBATICAL' : 'SANCTUARY'}</span>
+          </div>
         )}
 
         {/* Minimal Cloud Status Pill / Dropdown */}
