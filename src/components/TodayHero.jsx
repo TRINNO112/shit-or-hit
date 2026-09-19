@@ -24,7 +24,13 @@ import {
   AlertOctagon,
   Layers,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Wind,
+  Heart,
+  Shield,
+  Compass,
+  Sun,
+  Coffee
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -40,7 +46,10 @@ import {
   calculateStreak,
   isRehabilitationActive,
   isAutoSanctuaryAssumed,
-  getRehabilitationConfig
+  getRehabilitationConfig,
+  exitRehabilitation,
+  activateSabbatical,
+  activateRehabilitation
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import MagneticButton from './MagneticButton';
@@ -113,7 +122,42 @@ export default function TodayHero({
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [originalDraft, setOriginalDraft] = useState('');
 
-  // Sync state whenever activeEntry or sphereSettingsVer changes
+  // 🌿 Somatic Care & Breathing Pacer State for Sanctuary Mode
+  const [breathActive, setBreathActive] = useState(false);
+  const [breathPhase, setBreathPhase] = useState('Inhale');
+  const [somaticCare, setSomaticCare] = useState({
+    water: false,
+    walk: false,
+    rest: false,
+    screens: false
+  });
+
+  // 4s Inhale - 2s Hold - 6s Long Exhale vagal calming cycle
+  useEffect(() => {
+    if (!breathActive) {
+      setBreathPhase('Inhale');
+      return;
+    }
+    let t1, t2, t3;
+    const runCycle = () => {
+      setBreathPhase('Inhale (4s)');
+      t1 = setTimeout(() => {
+        setBreathPhase('Hold (2s)');
+        t2 = setTimeout(() => {
+          setBreathPhase('Long Exhale (6s)');
+          t3 = setTimeout(() => {
+            runCycle();
+          }, 6000);
+        }, 2000);
+      }, 4000);
+    };
+    runCycle();
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [breathActive]);
   useEffect(() => {
     const isEnabled = isSphereModeEnabled();
     setSphereModeActive(isEnabled);
@@ -458,8 +502,584 @@ export default function TodayHero({
     }
   };
 
-  const isSanctuaryActive = isRehabilitationActive(todayStr) || (typeof window !== 'undefined' && window.location.search.includes('demo=sanctuary'));
+  const isDemoSabbatical = typeof window !== 'undefined' && window.location.search.includes('demo=sabbatical');
+  const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
+  const rehabConfig = getRehabilitationConfig();
+  const isLiveSanctuary = isRehabilitationActive(todayStr);
+  const isSanctuaryActive = isLiveSanctuary || isDemoSanctuary || isDemoSabbatical;
+  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical);
 
+  const freezeDays = rehabConfig?.freezeDays || 7;
+  const startDate = rehabConfig?.startDate || todayStr;
+  const startMs = new Date(startDate).getTime();
+  const todayMs = new Date(todayStr).getTime();
+  const daysIn = Math.max(1, Math.floor((todayMs - startMs) / (1000 * 60 * 60 * 24)) + 1);
+
+  const handleExitSanctuary = () => {
+    try { soundEngine.playSuccessChime(); } catch (e) {}
+    exitRehabilitation();
+    if (typeof window !== 'undefined') {
+      if (window.location.search.includes('demo=')) {
+        window.history.replaceState(null, '', '/');
+      }
+      window.location.reload();
+    }
+  };
+
+  const handleActivateSabbatical = () => {
+    try { soundEngine.playClick(); } catch (e) {}
+    activateSabbatical();
+    if (typeof window !== 'undefined') {
+      if (window.location.search.includes('demo=')) {
+        window.history.replaceState(null, '', '/?demo=sabbatical');
+      }
+      window.location.reload();
+    }
+  };
+
+  const handleActivate7Day = () => {
+    try { soundEngine.playClick(); } catch (e) {}
+    activateRehabilitation(7);
+    if (typeof window !== 'undefined') {
+      if (window.location.search.includes('demo=')) {
+        window.history.replaceState(null, '', '/?demo=sanctuary');
+      }
+      window.location.reload();
+    }
+  };
+
+  // =========================================================================
+  // 🌿 TOTAL DESIGN OVERHAUL: DEDICATED SANCTUARY & GRAND SABBATICAL HERO DECK
+  // =========================================================================
+  // =========================================================================
+  // 🌿 1. REHABILITATION SANCTUARY DECK (Acute Nervous System Recovery & Rest)
+  // =========================================================================
+  if (isSanctuaryActive && !isSabbatical) {
+    const nourishedCount = Object.values(somaticCare).filter(Boolean).length;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="neo-card w-full mb-8 relative overflow-hidden border-3 border-black shadow-[8px_8px_0px_#000000] bg-gradient-to-br from-[#F4FAF6] via-[#EDF7F1] to-[#E5F2EA] rounded-[32px] p-6 sm:p-8 md:p-10"
+      >
+        {/* Subtle Ambient Zen Glow Background Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#00E599]/12 blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-[#FDC800]/10 blur-3xl pointer-events-none -ml-20 -mb-20" />
+
+        {/* Top Serenity Architectural Header Strip */}
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b-2 border-black/15">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black text-white font-mono text-xs font-black shadow-[2px_2px_0px_#000000]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00E599] animate-ping" />
+              <span className="tracking-wider">🌿 TRANQUILITY SANCTUARY</span>
+            </div>
+
+            <span className="px-3.5 py-1.5 rounded-full border-2 border-black font-mono text-xs font-black uppercase bg-[#00E599] text-black shadow-[2px_2px_0px_#000000]">
+              DAY {daysIn} OF {freezeDays} • STREAK SHIELDED & FROZEN
+            </span>
+
+            <span className="text-xs font-mono font-bold text-neutral-600 hidden lg:inline">
+              DAY {dayCount} • {dayName}, {fullDate}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                try { soundEngine.playClick(); } catch (e) {}
+                if (onOpenRehab) onOpenRehab();
+                else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
+              }}
+              className="py-2 px-4 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-2 bg-[#00E599] hover:bg-emerald-400 text-black transition-all"
+            >
+              <Sparkles className="w-4 h-4 stroke-[2.5]" />
+              <span>OPEN RESTORATIVE HAVEN</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExitSanctuary}
+              className="py-2 px-3.5 bg-white hover:bg-neutral-100 text-neutral-800 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-1.5 transition-all"
+              title="Resume daily verdicts and end sanctuary"
+            >
+              <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>I FEEL BETTER • RESUME VERDICTS</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bento Content Architecture */}
+        <div className="relative z-10 space-y-6 pt-6">
+          
+          {/* Row 1: The Breathing Lotus Orb (Left) & The Sacred Momentum Shelter (Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            {/* Left Card (6 cols): The Vagus Breathing Lotus Orb */}
+            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                    <Wind className="w-5 h-5 text-black stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-black text-sm uppercase text-black">Nervous System Pacer</h3>
+                    <span className="text-[10px] font-mono text-neutral-500 font-bold block">
+                      Vagus Reset • 4s Inhale - 2s Hold - 6s Exhale
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    try { soundEngine.playClick(); } catch (e) {}
+                    setBreathActive(!breathActive);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all ${
+                    breathActive ? 'bg-[#FF4D4D] text-black' : 'bg-[#00E599] text-black'
+                  }`}
+                >
+                  {breathActive ? 'Pause Breath' : 'Start Pacer'}
+                </button>
+              </div>
+
+              {/* Center Meditative Lotus Orb with Concentric Ripples */}
+              <div className="py-6 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-b from-[#F0FDF4] to-[#E6F8ED] rounded-2xl border-2 border-emerald-300">
+                <div className="relative w-40 h-40 flex items-center justify-center">
+                  {breathActive && (
+                    <>
+                      <motion.div
+                        animate={{ 
+                          scale: breathPhase.includes('Inhale') ? [1, 1.45] : breathPhase.includes('Hold') ? 1.45 : [1.45, 1], 
+                          opacity: [0.3, 0.6, 0.3] 
+                        }}
+                        transition={{ 
+                          duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6, 
+                          ease: 'easeInOut', 
+                          repeat: Infinity 
+                        }}
+                        className="absolute inset-0 rounded-full border-2 border-[#00E599]/60 pointer-events-none"
+                      />
+                      <motion.div
+                        animate={{ 
+                          scale: breathPhase.includes('Inhale') ? [1.1, 1.7] : breathPhase.includes('Hold') ? 1.7 : [1.7, 1.1], 
+                          opacity: [0.15, 0.35, 0.15] 
+                        }}
+                        transition={{ 
+                          duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6, 
+                          ease: 'easeInOut', 
+                          repeat: Infinity 
+                        }}
+                        className="absolute inset-0 rounded-full border-2 border-emerald-400/40 pointer-events-none"
+                      />
+                    </>
+                  )}
+
+                  {/* Central Touch Orb */}
+                  <motion.button
+                    type="button"
+                    onClick={() => {
+                      try { soundEngine.playClick(); } catch (e) {}
+                      setBreathActive(!breathActive);
+                    }}
+                    animate={breathActive ? {
+                      scale: breathPhase.includes('Inhale') ? [1, 1.25] : breathPhase.includes('Hold') ? 1.25 : [1.25, 0.95],
+                      backgroundColor: breathPhase.includes('Inhale') ? '#00E599' : breathPhase.includes('Hold') ? '#FDC800' : '#86EFAC'
+                    } : { scale: 1, backgroundColor: '#00E599' }}
+                    transition={{ 
+                      duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6, 
+                      ease: 'easeInOut' 
+                    }}
+                    className="w-24 h-24 rounded-full border-3 border-black flex flex-col items-center justify-center shadow-[3px_3px_0px_#000000] cursor-pointer active:scale-95 transition-transform z-10"
+                    title="Tap to toggle breathing pacer"
+                  >
+                    <Wind className="w-7 h-7 text-black stroke-[2.5]" />
+                    <span className="font-mono text-[10px] font-black uppercase tracking-wider text-black mt-1">
+                      {breathActive 
+                        ? (breathPhase.includes('Inhale') ? 'INHALE' : breathPhase.includes('Hold') ? 'HOLD' : 'EXHALE') 
+                        : 'BREATHE'}
+                    </span>
+                  </motion.button>
+                </div>
+
+                <div className="mt-3 text-center px-4">
+                  <span className="font-mono text-xs font-black uppercase text-neutral-800 tracking-wider block">
+                    {breathActive ? breathPhase : 'Tap Orb to Begin Nervous System Reset'}
+                  </span>
+                  <p className="text-[11px] font-sans text-neutral-600 max-w-xs mt-1">
+                    Slow prolonged exhales stimulate the vagus nerve, dropping cortisol and lowering physiological tension.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Card (6 cols): The Sacred Momentum Shelter */}
+            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                    <Shield className="w-5 h-5 text-black stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-black text-sm uppercase text-black">Sacred Momentum Shelter</h3>
+                    <span className="text-[10px] font-mono text-emerald-800 font-bold block">Untouchable Streak Protection</span>
+                  </div>
+                </div>
+
+                <span className="px-3 py-1 rounded-full bg-[#DCFCE7] text-emerald-950 font-mono text-[11px] font-black border border-emerald-400 shadow-[1px_1px_0px_#000000]">
+                  0% JUDGMENT
+                </span>
+              </div>
+
+              {/* Reassurance Lead */}
+              <div className="p-4 bg-[#F2FBF5] border-2 border-black/80 rounded-2xl space-y-1.5">
+                <p className="text-xs sm:text-sm font-sans text-neutral-800 leading-relaxed font-medium">
+                  Your <span className="font-mono font-black text-black underline decoration-[#00E599] decoration-2">{dayCount}-day streak</span> is sealed in safe stasis. Daily grading is suspended, and missed days cannot break your momentum.
+                </p>
+                <p className="text-[11px] font-sans text-neutral-500">
+                  Permission granted to sleep, rest your eyes, and recuperate with zero guilt.
+                </p>
+              </div>
+
+              {/* Visual 7-Day Cycle Pebble Beads */}
+              <div className="space-y-2.5 pt-1">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="font-bold text-neutral-600 uppercase text-[11px]">7-Day Rest Arc</span>
+                  <span className="font-black text-black">Day {daysIn} of {freezeDays}</span>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2">
+                  {Array.from({ length: freezeDays || 7 }).map((_, i) => {
+                    const dayNum = i + 1;
+                    const isPast = dayNum < daysIn;
+                    const isCurrent = dayNum === daysIn;
+                    return (
+                      <div
+                        key={i}
+                        className={`h-9 rounded-xl border-2 border-black flex items-center justify-center font-mono text-xs font-black transition-all ${
+                          isPast 
+                            ? 'bg-[#00E599] text-black shadow-[1.5px_1.5px_0px_#000000]' 
+                            : isCurrent 
+                            ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-105 ring-2 ring-black' 
+                            : 'bg-neutral-100 text-neutral-400'
+                        }`}
+                        title={`Sanctuary Day ${dayNum}`}
+                      >
+                        {isPast ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : dayNum}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 pt-0.5">
+                  <span>Initiated</span>
+                  <span>Day 7 Check-in</span>
+                  <span>Max 14d Ceiling</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Row 2: Somatic Grounding Garden • Tactile Talismans (Full Width) */}
+          <div className="border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Heart className="w-4 h-4 text-emerald-600 fill-emerald-600" />
+                <h4 className="font-display font-black text-sm uppercase text-black">
+                  Somatic Grounding Garden • Tactile Talismans
+                </h4>
+              </div>
+              <span className="text-[11px] font-mono font-bold text-neutral-600 bg-[#F4F9F5] px-3 py-1 rounded-full border border-neutral-300">
+                {nourishedCount} of 4 Nourished Today • Zero Pressure
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
+              {[
+                { key: 'water', icon: '💧', label: 'Hydration Well', blurb: 'Drank a tall glass of water', doneLabel: 'Hydrated' },
+                { key: 'walk', icon: '🚶', label: 'Fresh Air Step', blurb: 'Stepped outside for breeze', doneLabel: 'Breathed Fresh Air' },
+                { key: 'rest', icon: '🛏️', label: 'Quiet Horizon', blurb: 'Rested eyes for 10 minutes', doneLabel: 'Eyes Rested' },
+                { key: 'screens', icon: '📵', label: 'Digital Boundary', blurb: 'Put down feeds & devices', doneLabel: 'Screen Unplugged' }
+              ].map((stone) => {
+                const isDone = somaticCare[stone.key];
+                return (
+                  <button
+                    key={stone.key}
+                    type="button"
+                    onClick={() => {
+                      try { soundEngine.playClick(); } catch (e) {}
+                      setSomaticCare(prev => ({ ...prev, [stone.key]: !prev[stone.key] }));
+                    }}
+                    className={`p-4 rounded-2xl border-2 border-black flex flex-col justify-between text-left cursor-pointer transition-all duration-150 relative overflow-hidden ${
+                      isDone 
+                        ? 'bg-[#DCFCE7] border-black shadow-[3px_3px_0px_#000000] translate-y-px' 
+                        : 'bg-[#F9FBFA] hover:bg-neutral-100 hover:shadow-[3px_3px_0px_#000000] text-neutral-700 shadow-[1.5px_1.5px_0px_#000000]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">{stone.icon}</span>
+                      <span className={`w-5 h-5 rounded-full border border-black flex items-center justify-center text-[10px] ${
+                        isDone ? 'bg-black text-[#00E599]' : 'bg-white text-transparent'
+                      }`}>
+                        ✓
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-black text-xs uppercase block text-black">
+                        {isDone ? stone.doneLabel : stone.label}
+                      </span>
+                      <span className="text-[10px] text-neutral-500 font-sans block mt-0.5 leading-snug">
+                        {stone.blurb}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Row 3: Field of Unburdened Thoughts (Full Width) */}
+          <div className="border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-xs font-mono font-black text-black uppercase">
+                <PenLine className="w-4 h-4 text-black" />
+                <span>Field of Unburdened Thoughts (Optional)</span>
+              </div>
+              <span className="text-[10px] font-mono text-neutral-500 font-bold">
+                No scores • Auto-saves to your private diary
+              </span>
+            </div>
+
+            <AutoExpandTextarea
+              minHeight={70}
+              maxHeight={200}
+              placeholder="How is your body feeling right now? Write freely without scoring, self-judgment, or performance anxiety..."
+              value={noteText}
+              onChange={(e) => handleNoteChange(e.target.value)}
+              onBlur={handleSaveNote}
+              className="w-full p-4 text-xs font-mono bg-[#FCFDF9] border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
+            />
+
+            <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-neutral-500">
+              <span>Words are preserved safely in your diary stasis.</span>
+              {syncedBadge && (
+                <span className="text-emerald-700 font-black flex items-center gap-1">
+                  <Check className="w-3 h-3 stroke-[3]" /> Saved to Vault
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Row 4: Sabbatical Transition Ribbon */}
+          <div className="border-2 border-dashed border-neutral-400 rounded-2xl p-4 bg-white/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+            <div className="flex items-center gap-2.5 text-neutral-700">
+              <Compass className="w-4 h-4 text-amber-600 stroke-[2.5]" />
+              <span>Need an open-ended macro break for months or years instead of 7 days?</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleActivateSabbatical}
+              className="px-4 py-2 bg-[#FFB800] hover:bg-amber-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all shrink-0"
+            >
+              Step Into Grand Sabbatical Horizon ➔
+            </button>
+          </div>
+
+        </div>
+      </motion.div>
+    );
+  }
+
+  // =========================================================================
+  // ⛺ 2. GRAND SABBATICAL DECK (Open-Ended Macro Life Pause & Unplugged Living)
+  // =========================================================================
+  if (isSanctuaryActive && isSabbatical) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="neo-card w-full mb-8 relative overflow-hidden border-3 border-black shadow-[8px_8px_0px_#000000] bg-gradient-to-br from-[#FFFDF2] via-[#FEF9E7] to-[#FDEFC2] rounded-[32px] p-6 sm:p-8 md:p-10"
+      >
+        {/* Subtle Ambient Sunburst Glow */}
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#FFB800]/15 blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-[#F59E0B]/10 blur-3xl pointer-events-none -ml-20 -mb-20" />
+
+        {/* Top Horizon Atmosphere Strip */}
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b-2 border-black/15">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-black text-white font-mono text-xs font-black shadow-[2px_2px_0px_#000000]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FFB800] animate-ping" />
+              <span className="tracking-wider">⛺ GRAND SABBATICAL HORIZON</span>
+            </div>
+
+            <span className="px-3.5 py-1.5 rounded-full border-2 border-black font-mono text-xs font-black uppercase bg-[#FFB800] text-black shadow-[2px_2px_0px_#000000]">
+              DAY {daysIn} OF SABBATICAL • INDEFINITE STREAK SHELTER
+            </span>
+
+            <span className="text-xs font-mono font-bold text-neutral-600 hidden lg:inline">
+              DAY {dayCount} • {dayName}, {fullDate}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                try { soundEngine.playClick(); } catch (e) {}
+                if (onOpenRehab) onOpenRehab();
+                else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
+              }}
+              className="py-2 px-4 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-2 bg-[#FFB800] hover:bg-amber-400 text-black transition-all"
+            >
+              <Compass className="w-4 h-4 stroke-[2.5]" />
+              <span>OPEN SABBATICAL CHARTER</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExitSanctuary}
+              className="py-2 px-3.5 bg-white hover:bg-neutral-100 text-neutral-800 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-1.5 transition-all"
+              title="Return to daily verdicts"
+            >
+              <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>RETURN TO DAILY TRACKING</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bento Content Architecture */}
+        <div className="relative z-10 space-y-6 pt-6">
+          
+          {/* Row 1: The Astrolabe Centerpiece (Left) & The Unbounded Life Horizon (Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            {/* Left Card (6 cols): Sabbatical Compass Narrative */}
+            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFB800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
+                  <Compass className="w-6 h-6 text-black stroke-[2.5]" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-black uppercase text-amber-900 px-2.5 py-0.5 bg-[#FEF3C7] rounded-full border border-amber-300 inline-block">
+                    Living Offline & Unplugged
+                  </span>
+                  <h3 className="font-display font-black text-xl text-black uppercase leading-tight mt-1">
+                    The Grand Life Sabbatical
+                  </h3>
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-neutral-700 font-sans leading-relaxed">
+                You have stepped back from daily self-scoring to focus on an expansive season of life — deep creation, unhurried travel, family, or personal reinvention. There are no daily quotas or alarms here.
+              </p>
+
+              <div className="p-4 bg-[#FEF3C7] border-2 border-black rounded-2xl font-mono text-xs space-y-1 shadow-[2px_2px_0px_#000000]">
+                <span className="text-[10px] text-amber-900 font-black uppercase block tracking-wider">
+                  SABBATICAL GUARANTEE:
+                </span>
+                <p className="text-black font-medium leading-relaxed">
+                  Your lifetime streak is frozen with <strong>zero expiration date</strong>. Take months or years — your record will wait for you untouched.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Card (6 cols): Sabbatical Horizon Metrics */}
+            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+              <div className="flex items-center justify-between border-b border-neutral-200 pb-3 font-mono text-xs">
+                <span className="font-black text-black uppercase flex items-center gap-2">
+                  <Sun className="w-5 h-5 text-[#FFB800]" />
+                  <span>Sabbatical Horizon Overview</span>
+                </span>
+                <span className="text-amber-900 font-black text-xs px-2.5 py-0.5 rounded-full bg-[#FEF3C7] border border-amber-300">
+                  DEADLINE: NONE
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 font-mono text-center">
+                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[2px_2px_0px_#000000]">
+                  <span className="text-[10px] text-neutral-500 uppercase block font-bold">STREAK SHELTER</span>
+                  <span className="text-2xl font-black text-black block mt-1">{dayCount}d Safe</span>
+                  <span className="text-[9px] text-amber-800 uppercase block font-black mt-1">UNTOUCHABLE</span>
+                </div>
+
+                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[2px_2px_0px_#000000]">
+                  <span className="text-[10px] text-neutral-500 uppercase block font-bold">DURATION</span>
+                  <span className="text-2xl font-black text-black block mt-1">Day {daysIn}</span>
+                  <span className="text-[9px] text-neutral-600 uppercase block font-bold mt-1">IN THE FIELD</span>
+                </div>
+
+                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[2px_2px_0px_#000000]">
+                  <span className="text-[10px] text-neutral-500 uppercase block font-bold">EXPECTATIONS</span>
+                  <span className="text-2xl font-black text-emerald-700 block mt-1">0%</span>
+                  <span className="text-[9px] text-neutral-600 uppercase block font-bold mt-1">PURE FREEDOM</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-neutral-50 border border-neutral-300 rounded-xl text-center text-xs font-mono text-neutral-600">
+                You are on an open path with no checklist. Live today fully without judging it.
+              </div>
+            </div>
+
+          </div>
+
+          {/* Row 2: Sabbatical Field Chronicles (Full Width) */}
+          <div className="border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-xs font-mono font-black text-black uppercase">
+                <PenLine className="w-4 h-4 text-black" />
+                <span>Sabbatical Field Notes & Chronicles</span>
+              </div>
+              <span className="text-[10px] font-mono text-neutral-500 font-bold">
+                Freeform • Auto-saves to your private diary
+              </span>
+            </div>
+
+            <AutoExpandTextarea
+              minHeight={70}
+              maxHeight={220}
+              placeholder="Observations from the road, book excerpts, ideas, creative brainstorms, or reflections from this season of life..."
+              value={noteText}
+              onChange={(e) => handleNoteChange(e.target.value)}
+              onBlur={handleSaveNote}
+              className="w-full p-4 text-xs font-mono bg-[#FFFDF5] border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
+            />
+
+            <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-neutral-500">
+              <span>Stored safely in your private journal without assigning numbers or scores.</span>
+              {syncedBadge && (
+                <span className="text-amber-800 font-black flex items-center gap-1">
+                  <Check className="w-3 h-3 stroke-[3]" /> Saved
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Row 3: Switch to Short-Term Sanctuary */}
+          <div className="border-2 border-dashed border-amber-300 rounded-2xl p-4 bg-white/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+            <span className="text-neutral-700 font-medium">
+              Just need a structured 7-day nervous system reset instead of an open-ended pause?
+            </span>
+            <button
+              type="button"
+              onClick={handleActivate7Day}
+              className="px-4 py-2 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all shrink-0"
+            >
+              Switch to 7-Day Sanctuary
+            </button>
+          </div>
+
+        </div>
+      </motion.div>
+    );
+  }
+
+  // =========================================================================
+  // ⚡ STANDARD DAILY VERDICT FLOW
+  // =========================================================================
   return (
     <motion.div 
       animate={sadSettle ? { y: [0, 4, 1, 0] } : {}}
@@ -467,40 +1087,6 @@ export default function TodayHero({
       className="neo-card w-full mb-8 bg-white relative overflow-hidden" 
       style={{ padding: '36px 40px' }}
     >
-      
-      {/* 🌿 Anti-Burnout Rehabilitation Sanctuary Banner */}
-      {isSanctuaryActive && (
-        <div className="mb-6 p-4 rounded-2xl bg-[#F0FDF4] border-2 border-black shadow-[3px_3px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-              <Sparkles className="w-5 h-5 text-black stroke-[2.5]" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h4 className="font-display font-black text-sm uppercase tracking-tight text-emerald-950 truncate">
-                  🌿 Rehabilitation Sanctuary Active
-                </h4>
-                <span className="px-2 py-0.5 rounded-full bg-[#00E599] border border-black text-[9px] font-mono font-black uppercase text-black">
-                  Streak Protected
-                </span>
-              </div>
-              <p className="text-xs font-mono text-emerald-800 mt-0.5">
-                Daily pressure suspended. Your unbroken streak is held safe while you rest and recover.
-              </p>
-            </div>
-          </div>
-          {onOpenRehab && (
-            <button
-              type="button"
-              onClick={onOpenRehab}
-              className="py-1.5 px-3.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 self-start sm:self-auto"
-            >
-              Sanctuary Status
-            </button>
-          )}
-        </div>
-      )}
-
       {/* Top Panoramic Grid or Segmented Matrix Header */}
       {!sphereModeActive ? (
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
@@ -555,42 +1141,8 @@ export default function TodayHero({
             </div>
           </div>
 
-          {/* Right Side: 5 Chunky Tactile 1-Tap Buttons OR Judgment-Free Sanctuary Deck */}
+          {/* Right Side: 5 Chunky Tactile 1-Tap Buttons */}
           <div className="w-full lg:w-7/12">
-            {isSanctuaryActive ? (
-              <div className="bg-[#F0FDF4] border-3 border-black rounded-2xl p-5 sm:p-6 shadow-[4px_4px_0px_#000000] flex flex-col justify-between space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
-                    <span className="font-mono text-xs font-black uppercase text-emerald-950">
-                      🌿 SANCTUARY ACTIVE • JUDGMENT SUSPENDED
-                    </span>
-                  </div>
-                  <span className="px-2.5 py-0.5 bg-black text-[#00E599] rounded-lg font-mono text-[10px] font-black uppercase">
-                    STREAK SAFE
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm font-sans font-medium text-emerald-900 leading-relaxed">
-                  Daily ratings and self-judgment are suspended today. Your momentum is sheltered while your nervous system rests.
-                </p>
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onOpenRehab) onOpenRehab();
-                      else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
-                    }}
-                    className="px-4 py-2 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-1.5"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>OPEN RESTORATIVE HAVEN</span>
-                  </button>
-                  <span className="text-[11px] font-mono text-emerald-800">
-                    Gentle check-ins • 0 pressure
-                  </span>
-                </div>
-              </div>
-            ) : (
               <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 relative">
                 {[1, 2, 3, 4, 5].map((val) => {
                   const m = ratingMeta[val];

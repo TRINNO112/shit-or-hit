@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer } from 'lucide-react';
-import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive } from '../services/api';
+import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
 import { soundEngine } from '../services/soundEngine';
 import MagneticButton from './MagneticButton';
@@ -59,7 +59,11 @@ export default function Header({
     }
   };
 
-  const isSanctuaryActive = isRehabilitationActive() || (typeof window !== 'undefined' && window.location.search.includes('demo=sanctuary'));
+  const isDemoSabbatical = typeof window !== 'undefined' && window.location.search.includes('demo=sabbatical');
+  const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
+  const rehabConfig = getRehabilitationConfig();
+  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical);
+  const isSanctuaryActive = isRehabilitationActive() || isDemoSanctuary || isDemoSabbatical;
 
   const handleLogout = async () => {
     try {
@@ -117,7 +121,7 @@ export default function Header({
             <span>DAY {dayCount}</span>
           </div>
 
-          {/* 🌿 Sanctuary Active Indicator (Tablet) */}
+          {/* 🌿 Sanctuary / ⛺ Sabbatical Active Indicator (Tablet) */}
           {isSanctuaryActive && (
             <button 
               type="button"
@@ -125,10 +129,14 @@ export default function Header({
                 if (onOpenRehab) onOpenRehab();
                 else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border-2 border-black text-[#1B5E20] font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors"
-              title="Rehabilitation Sanctuary Active — Streak Protected (Click to View)"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors ${
+                isSabbatical 
+                  ? 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-950' 
+                  : 'bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#1B5E20]'
+              }`}
+              title={isSabbatical ? 'Grand Sabbatical Active — Streak Sheltered Indefinitely' : 'Rehabilitation Sanctuary Active — Streak Protected'}
             >
-              <span>🌿 SANCTUARY</span>
+              <span>{isSabbatical ? '⛺ SABBATICAL' : '🌿 SANCTUARY'}</span>
             </button>
           )}
 
@@ -218,7 +226,7 @@ export default function Header({
           <span>DAY {dayCount}</span>
         </div>
 
-        {/* 🌿 Sanctuary Active Indicator (Desktop) */}
+        {/* 🌿 Sanctuary / ⛺ Sabbatical Active Indicator (Desktop) */}
         {isSanctuaryActive && (
           <button 
             type="button"
@@ -226,10 +234,14 @@ export default function Header({
               if (onOpenRehab) onOpenRehab();
               else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border-2 border-black text-[#1B5E20] font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors"
-            title="Rehabilitation Sanctuary Active — Streak Frozen & Protected (Click to View)"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors ${
+              isSabbatical 
+                ? 'bg-[#FEF3C7] hover:bg-[#FDE68A] text-amber-950' 
+                : 'bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#1B5E20]'
+            }`}
+            title={isSabbatical ? 'Grand Sabbatical Active — Streak Sheltered Indefinitely' : 'Rehabilitation Sanctuary Active — Streak Frozen & Protected'}
           >
-            <span>🌿 SANCTUARY</span>
+            <span>{isSabbatical ? '⛺ SABBATICAL' : '🌿 SANCTUARY'}</span>
           </button>
         )}
 

@@ -40,7 +40,8 @@ import {
   ListOrdered,
   Terminal,
   Printer,
-  AlertOctagon
+  AlertOctagon,
+  Wind
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -54,7 +55,11 @@ import {
   isRansomCapsuleEnabled,
   isAutopsyChamberEnabled,
   isReceiptOfTruthEnabled,
-  isRehabilitationActive
+  isRehabilitationActive,
+  getRehabilitationConfig,
+  exitRehabilitation,
+  activateSabbatical,
+  activateRehabilitation
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import { soundFx } from '../services/soundEffects';
@@ -627,7 +632,29 @@ export default function MobileAppView({
     });
   }
 
-  const isSanctuaryActive = isRehabilitationActive(todayStr) || (typeof window !== 'undefined' && window.location.search.includes('demo=sanctuary'));
+  const isDemoSabbatical = typeof window !== 'undefined' && window.location.search.includes('demo=sabbatical');
+  const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
+  const rehabConfig = getRehabilitationConfig();
+  const isLiveSanctuary = isRehabilitationActive(todayStr);
+  const isSanctuaryActive = isLiveSanctuary || isDemoSanctuary || isDemoSabbatical;
+  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical);
+
+  const freezeDays = rehabConfig?.freezeDays || 7;
+  const rehabStartDate = rehabConfig?.startDate || todayStr;
+  const startMs = new Date(rehabStartDate).getTime();
+  const todayMs = new Date(todayStr).getTime();
+  const daysIn = Math.max(1, Math.floor((todayMs - startMs) / (1000 * 60 * 60 * 24)) + 1);
+
+  const handleExitSanctuaryMobile = () => {
+    soundFx.playSuccess();
+    exitRehabilitation();
+    if (typeof window !== 'undefined') {
+      if (window.location.search.includes('demo=')) {
+        window.history.replaceState(null, '', '/');
+      }
+      window.location.reload();
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-28 select-none relative">
@@ -655,7 +682,7 @@ export default function MobileAppView({
             <span>DAY {dayCount}</span>
           </div>
 
-          {/* 🌿 Sanctuary Active Indicator */}
+          {/* 🌿 Sanctuary / ⛺ Sabbatical Active Indicator */}
           {isSanctuaryActive && (
             <button 
               type="button"
@@ -663,10 +690,12 @@ export default function MobileAppView({
                 if (onOpenRehab) onOpenRehab();
                 else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
               }}
-              className="flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-xl bg-[#E8F5E9] hover:bg-[#C8E6C9] border-2 border-black text-[#1B5E20] font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors"
-              title="Rehabilitation Sanctuary Active — Streak Protected (Click to View)"
+              className={`flex items-center gap-1 px-2 py-0.5 sm:px-2 sm:py-1 rounded-xl border-2 border-black font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 cursor-pointer transition-colors ${
+                isSabbatical ? 'bg-[#FEF3C7] text-amber-950' : 'bg-[#E8F5E9] text-[#1B5E20]'
+              }`}
+              title={isSabbatical ? 'Grand Sabbatical Active — Streak Sheltered Indefinitely' : 'Rehabilitation Sanctuary Active — Streak Protected'}
             >
-              <span>🌿 SANCTUARY</span>
+              <span>{isSabbatical ? '⛺ SABBATICAL' : '🌿 SANCTUARY'}</span>
             </button>
           )}
 
@@ -771,32 +800,118 @@ export default function MobileAppView({
 
           {/* Rating Engine: Sanctuary Recovery Deck vs Segmented Sphere Cards vs Standard Verdict */}
           {isSanctuaryActive ? (
-            <div className="p-4 rounded-2xl border-2 border-black bg-[#F0FDF4] shadow-[3px_3px_0px_#000000] space-y-3">
+            <div className={`p-5 rounded-3xl border-3 border-black space-y-4 shadow-[4px_4px_0px_#000000] relative overflow-hidden ${
+              isSabbatical 
+                ? 'bg-gradient-to-br from-[#FFFDF2] to-[#FEF3C7]' 
+                : 'bg-gradient-to-br from-[#F4FAF6] via-[#EDF7F1] to-[#E5F2EA]'
+            }`}>
+              {/* Header Pill */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
-                  <span className="font-mono text-xs font-black uppercase text-emerald-950">
-                    🌿 SANCTUARY ACTIVE
+                  <span className={`w-2.5 h-2.5 rounded-full ${isSabbatical ? 'bg-[#FFB800]' : 'bg-[#00E599]'} animate-ping`} />
+                  <span className="font-mono text-xs font-black uppercase text-black">
+                    {isSabbatical ? '⛺ GRAND SABBATICAL' : '🌿 TRANQUILITY SANCTUARY'}
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded-lg bg-black text-[#00E599] font-mono text-[10px] font-black uppercase">
-                  FROZEN
+                <span className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-black uppercase border border-black ${
+                  isSabbatical ? 'bg-[#FFB800] text-black shadow-[1px_1px_0px_#000000]' : 'bg-black text-[#00E599]'
+                }`}>
+                  {isSabbatical ? 'INDEFINITE' : `DAY ${daysIn}/${freezeDays}`}
                 </span>
               </div>
-              <p className="text-xs font-sans font-medium text-emerald-900 leading-relaxed">
-                Daily ratings and verdict pressure are suspended. Your streak is sheltered while you rest.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  if (onOpenRehab) onOpenRehab();
-                  else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
-                }}
-                className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-[#00c984] text-black rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-1.5"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>OPEN RESTORATIVE HAVEN</span>
-              </button>
+
+              {/* Protective Emblem & Narrative Row */}
+              <div className="flex items-center gap-3 bg-white/90 p-3.5 rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000]">
+                <div className={`w-12 h-12 rounded-xl border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0 ${
+                  isSabbatical ? 'bg-[#FFB800]' : 'bg-[#00E599]'
+                }`}>
+                  {isSabbatical ? (
+                    <Compass className="w-6 h-6 text-black stroke-[2.5]" />
+                  ) : (
+                    <Wind className="w-6 h-6 text-black stroke-[2.5]" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <span className={`text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded-full border border-black inline-block ${
+                    isSabbatical ? 'bg-[#FEF3C7] text-amber-900' : 'bg-[#DCFCE7] text-emerald-900'
+                  }`}>
+                    {isSabbatical ? 'Unburdened Horizon' : 'Nervous System Reset'}
+                  </span>
+                  <p className="text-xs font-sans text-neutral-800 font-medium leading-tight mt-1">
+                    {isSabbatical 
+                      ? 'Daily ratings are turned off. Live freely with zero fear of breaking your streak.'
+                      : 'Self-judgment is suspended. Your momentum is held safe in vault stasis while you rest.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Sacred Streak Shield Banner */}
+              <div className="p-3 bg-white/80 rounded-xl border border-black/80 flex items-center justify-between text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700 stroke-[2.5]" />
+                  <span className="font-black text-black">{dayCount}d Streak Safe</span>
+                </div>
+                <span className="text-[10px] font-bold text-neutral-500 uppercase bg-[#F4F9F5] px-2 py-0.5 rounded border border-neutral-300">
+                  0% Judgment
+                </span>
+              </div>
+
+              {/* Visual 7-Pebble Rest Arc for Sanctuary */}
+              {!isSabbatical && (
+                <div className="space-y-1.5 pt-0.5">
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <span className="font-bold text-neutral-600">Rest Arc</span>
+                    <span className="font-black text-black">Day {daysIn} of {freezeDays}</span>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {Array.from({ length: freezeDays || 7 }).map((_, i) => {
+                      const dayNum = i + 1;
+                      const isPast = dayNum < daysIn;
+                      const isCurrent = dayNum === daysIn;
+                      return (
+                        <div
+                          key={i}
+                          className={`h-7 rounded-lg border border-black flex items-center justify-center font-mono text-[10px] font-black ${
+                            isPast 
+                              ? 'bg-[#00E599] text-black' 
+                              : isCurrent 
+                              ? 'bg-[#FDC800] text-black ring-1 ring-black' 
+                              : 'bg-white text-neutral-400'
+                          }`}
+                        >
+                          {isPast ? '✓' : dayNum}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onOpenRehab) onOpenRehab();
+                    else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
+                  }}
+                  className={`flex-1 py-2.5 px-3 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-1.5 ${
+                    isSabbatical ? 'bg-[#FFB800] hover:bg-amber-400 text-black' : 'bg-[#00E599] hover:bg-[#00c984] text-black'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{isSabbatical ? 'SABBATICAL CHARTER' : 'OPEN HAVEN'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExitSanctuaryMobile}
+                  className="py-2.5 px-3 bg-white hover:bg-neutral-100 text-neutral-800 rounded-xl border-2 border-black font-mono text-xs font-bold uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px shrink-0"
+                  title="Resume verdicts"
+                >
+                  <span>RESUME</span>
+                </button>
+              </div>
             </div>
           ) : sphereModeActive ? (
             /* Multi-Sphere Segmentation Cards */
