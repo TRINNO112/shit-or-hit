@@ -29,9 +29,13 @@ export default function CalendarModal({
   onClose, 
   entries = {}, 
   onEditDay,
+  startDate,
   startDateStr,
-  todayStr
+  todayStr,
+  onOpenMonthlyReport,
+  isEmbedded = false
 }) {
+  const activeStartDate = startDate || startDateStr || todayStr || new Date().toISOString().slice(0, 10);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const rehabConfig = getRehabilitationConfig();
   const isSabbatical = Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
@@ -59,12 +63,12 @@ export default function CalendarModal({
     const dateStr = `${yStr}-${mStr}-${dStr}`;
     
     // Check if before start date
-    const isBeforeStart = dateStr < startDate;
+    const isBeforeStart = dateStr < activeStartDate;
     const isFuture = dateStr > todayStr;
     const entry = entries[dateStr] || null;
 
-    // Calculate dayIndex from startDate
-    const startObj = new Date(`${startDate}T00:00:00`);
+    // Calculate dayIndex from activeStartDate
+    const startObj = new Date(`${activeStartDate}T00:00:00`);
     const thisObj = new Date(`${dateStr}T00:00:00`);
     const dayIndex = Math.max(1, Math.floor((thisObj - startObj) / (1000 * 60 * 60 * 24)) + 1);
 

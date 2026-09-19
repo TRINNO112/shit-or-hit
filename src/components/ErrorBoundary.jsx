@@ -12,7 +12,8 @@ import {
   Skull,
   Glasses,
   DoorOpen,
-  Bug
+  Bug,
+  Download
 } from 'lucide-react';
 
 /**
@@ -38,6 +39,7 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidMount() {
+    // Only capture fatal global script syntax errors, do NOT trip reactor on background promise rejections
     window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
     window.addEventListener('error', this.handleWindowError);
   }
@@ -48,30 +50,27 @@ export class ErrorBoundary extends React.Component {
   }
 
   handleUnhandledRejection = (event) => {
-    console.error('🛡️ [ErrorBoundary Trapped Unhandled Promise Rejection]:', event.reason);
-    const reason = event.reason;
-    const err = reason instanceof Error ? reason : new Error(typeof reason === 'string' ? reason : JSON.stringify(reason || 'Unhandled Promise Rejection'));
-    this.setState({
-      hasError: true,
-      error: err,
-      errorInfo: { componentStack: 'Trapped via window.unhandledrejection listener' },
-      errorOrigin: 'promise'
-    });
+    // Log and report to Sentry silently, do NOT unmount the entire application
+    console.warn('🛡️ [ErrorBoundary Observed Background Promise Rejection]:', event.reason);
+    try {
+      if (Sentry?.captureException) {
+        Sentry.captureException(event.reason, {
+          tags: { mechanism: 'unhandledrejection_silent' }
+        });
+      }
+    } catch (e) {}
   };
 
   handleWindowError = (event) => {
-    // Ignore benign cross-origin or resize observer noise
-    if (event.message?.includes('ResizeObserver') || event.message?.includes('Script error')) {
+    // Ignore benign cross-origin, ResizeObserver, or 3rd party script noise
+    if (
+      event.message?.includes('ResizeObserver') || 
+      event.message?.includes('Script error') ||
+      event.filename?.includes('chrome-extension')
+    ) {
       return;
     }
-    console.error('🛡️ [ErrorBoundary Trapped Global Window Error]:', event.error || event.message);
-    const err = event.error instanceof Error ? event.error : new Error(event.message || 'Global uncaught script error');
-    this.setState({
-      hasError: true,
-      error: err,
-      errorInfo: { componentStack: `Line ${event.lineno}, Column ${event.colno} in ${event.filename}` },
-      errorOrigin: 'window'
-    });
+    console.warn('🛡️ [ErrorBoundary Global Window Event]:', event.error || event.message);
   };
 
   componentDidCatch(error, errorInfo) {
@@ -98,15 +97,65 @@ export class ErrorBoundary extends React.Component {
     window.location.reload();
   };
 
+  handleRebootSafeMode = () => {
+    try {
+      sessionStorage.setItem('daily_verdict_safe_mode', 'true');
+      window.location.href = '/';
+    } catch (e) {
+      window.location.reload();
+    }
+  };
+
+  handleEmergencyDownload = () => {
+    try {
+      let mergedEntries = {};
+      let foundStartDate = null;
+      
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('goodness_db') || k.includes('verdict'))) {
+          try {
+            const val = JSON.parse(localStorage.getItem(k));
+            if (val && typeof val === 'object') {
+              if (val.entries && typeof val.entries === 'object') {
+                mergedEntries = { ...mergedEntries, ...val.entries };
+              }
+              if (val.startDate && !foundStartDate) foundStartDate = val.startDate;
+            }
+          } catch (e) {}
+        }
+      }
+      
+      const rescuePayload = {
+        rescueTimestamp: new Date().toISOString(),
+        startDate: foundStartDate || new Date().toISOString().slice(0, 10),
+        totalEntriesRescued: Object.keys(mergedEntries).length,
+        entries: mergedEntries,
+        systemStatus: 'RESCUED_VIA_EMERGENCY_REACTOR_CORE'
+      };
+      
+      const blob = new Blob([JSON.stringify(rescuePayload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `shit_or_hit_emergency_rescue_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.setState({ rescueDownloaded: true });
+    } catch (err) {
+      alert('Emergency export failed. Your data is still safely in localStorage.');
+    }
+  };
+
   handleDismiss = () => {
-    // Sarcastic exit: User confesses it is beyond their limits
     this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
       showDetails: false
     });
-    // If on a broken route or URL query, clear query params
     try {
       if (window.location.search || window.location.hash) {
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -193,33 +242,54 @@ User Agent: ${navigator.userAgent}
             </div>
 
             {/* Primary Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="space-y-2.5">
+              {/* Emergency Diary Rescue Download Button */}
               <button
                 type="button"
-                onClick={this.handleReload}
-                className="py-3 px-4 bg-[#FFE66D] hover:bg-[#FFDE4D] border-2 border-black font-black uppercase tracking-wider text-xs rounded-xl shadow-3px_3px_0px_#000000 active:translate-x-1px active:translate-y-1px active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
+                onClick={this.handleEmergencyDownload}
+                className="w-full py-3.5 px-4 bg-[#00E599] hover:bg-emerald-400 border-2 border-black font-mono font-black uppercase tracking-wider text-xs rounded-xl shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-2 cursor-pointer text-black"
               >
-                <RotateCcw className="w-4 h-4 stroke-[2.5]" />
-                <span>Reboot Reactor</span>
+                <Download className="w-4 h-4 stroke-[2.5]" />
+                <span>{this.state.rescueDownloaded ? 'DIARY BACKUP DOWNLOADED ✓' : 'EMERGENCY RESCUE: DOWNLOAD MY DIARY (JSON)'}</span>
               </button>
 
-              <button
-                type="button"
-                onClick={this.handleCopyDiagnostics}
-                className="py-3 px-4 bg-white hover:bg-neutral-50 border-2 border-black font-black uppercase tracking-wider text-xs rounded-xl shadow-3px_3px_0px_#000000 active:translate-x-1px active:translate-y-1px active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-600 stroke-3" />
-                    <span className="text-emerald-700">Report Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 stroke-[2.5]" />
-                    <span>Copy Incident Dossier</span>
-                  </>
-                )}
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={this.handleReload}
+                  className="py-2.5 px-3 bg-[#FFE66D] hover:bg-[#FFDE4D] border-2 border-black font-black uppercase tracking-wider text-[11px] rounded-xl shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Reboot</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={this.handleRebootSafeMode}
+                  className="py-2.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black font-black uppercase tracking-wider text-[11px] rounded-xl shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5] text-emerald-700" />
+                  <span>Safe Mode</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={this.handleCopyDiagnostics}
+                  className="py-2.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black font-black uppercase tracking-wider text-[11px] rounded-xl shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-3" />
+                      <span className="text-emerald-700">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Copy Incident</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Expandable Technical Details Drawer */}
