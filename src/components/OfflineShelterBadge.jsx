@@ -6,6 +6,7 @@ export default function OfflineShelterBadge() {
   const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
   const [storageVerified, setStorageVerified] = useState(true);
   const [justReconnected, setJustReconnected] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -22,9 +23,12 @@ export default function OfflineShelterBadge() {
       }
     };
 
+    let autoDismissTimer;
+
     const handleOnline = () => {
       setIsOnline(true);
       setJustReconnected(true);
+      setIsDismissed(false);
 
       // Auto-check for fresh PWA service worker updates when internet returns
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -35,14 +39,21 @@ export default function OfflineShelterBadge() {
 
       const timer = setTimeout(() => {
         setJustReconnected(false);
-      }, 4000);
+      }, 3500);
       return () => clearTimeout(timer);
     };
 
     const handleOffline = () => {
       setIsOnline(false);
+      setIsDismissed(false);
       const isVerified = verifyStorage();
       setStorageVerified(isVerified);
+
+      // Auto-dismiss after 6 seconds so it doesn't linger and block the mobile screen
+      clearTimeout(autoDismissTimer);
+      autoDismissTimer = setTimeout(() => {
+        setIsDismissed(true);
+      }, 6000);
     };
 
     window.addEventListener('online', handleOnline);
@@ -54,6 +65,7 @@ export default function OfflineShelterBadge() {
     }
 
     return () => {
+      clearTimeout(autoDismissTimer);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -61,7 +73,7 @@ export default function OfflineShelterBadge() {
 
   return (
     <AnimatePresence>
-      {!isOnline && (
+      {!isOnline && !isDismissed && (
         <motion.div
           key="offline-shelter"
           initial={{ opacity: 0, y: -20 }}
@@ -70,8 +82,8 @@ export default function OfflineShelterBadge() {
           transition={{ type: 'spring', stiffness: 450, damping: 25 }}
           className="fixed top-2 left-1/2 -translate-x-1/2 z-60 w-[92%] max-w-lg pointer-events-none"
         >
-          <div className="bg-[#FFFDF5] border-3 border-black p-2.5 rounded-2xl shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-3 pointer-events-auto">
-            <div className="flex items-center gap-2.5 min-w-0">
+          <div className="bg-[#FFFDF5] border-3 border-black p-2.5 rounded-2xl shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-2.5 pointer-events-auto">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="w-8 h-8 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
                 <WifiOff className="w-4 h-4 text-black stroke-[2.5]" />
               </div>
@@ -92,9 +104,19 @@ export default function OfflineShelterBadge() {
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-1 text-[10px] font-mono font-black bg-neutral-100 border-1.5 border-black px-2 py-1 rounded-lg">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-              <span>0ms LAG</span>
+            <div className="shrink-0 flex items-center gap-1.5">
+              <div className="hidden sm:flex items-center gap-1 text-[10px] font-mono font-black bg-neutral-100 border-1.5 border-black px-2 py-1 rounded-lg">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                <span>0ms LAG</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDismissed(true)}
+                className="px-2.5 py-1 bg-black text-white hover:bg-neutral-800 border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
+                title="Dismiss notification"
+              >
+                OK
+              </button>
             </div>
           </div>
         </motion.div>
