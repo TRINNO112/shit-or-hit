@@ -35,7 +35,9 @@ import {
   Footprints,
   Moon,
   PhoneOff,
-  ArrowRight
+  ArrowRight,
+  Clock,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -128,6 +130,54 @@ export default function TodayHero({
   const [historyStack, setHistoryStack] = useState([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [originalDraft, setOriginalDraft] = useState('');
+
+  // 📝 Keystroke Auto-Stash: Auto-saves uncommitted thought drafts to localStorage
+  const draftKey = `shit_or_hit_draft_stash_${todayStr}`;
+  const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
+  const [unsavedDraftText, setUnsavedDraftText] = useState('');
+
+  // Check on mount if an uncommitted draft exists that differs from activeEntry
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stashed = localStorage.getItem(draftKey);
+      if (stashed && stashed.trim() && stashed.trim() !== (activeEntry?.notes || '').trim()) {
+        setHasUnsavedDraft(true);
+        setUnsavedDraftText(stashed);
+      }
+    } catch (e) {}
+  }, [draftKey, activeEntry]);
+
+  // Auto-debounce stash every 1.5 seconds while typing
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const t = setTimeout(() => {
+      try {
+        if (noteText && noteText.trim() && noteText.trim() !== (activeEntry?.notes || '').trim()) {
+          localStorage.setItem(draftKey, noteText);
+        } else if (!noteText || noteText.trim() === (activeEntry?.notes || '').trim()) {
+          localStorage.removeItem(draftKey);
+          setHasUnsavedDraft(false);
+        }
+      } catch (e) {}
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [noteText, draftKey, activeEntry]);
+
+  const handleRestoreDraft = () => {
+    if (unsavedDraftText) {
+      setNoteText(unsavedDraftText);
+      setShowNote(true);
+      setHasUnsavedDraft(false);
+      localStorage.removeItem(draftKey);
+    }
+  };
+
+  const handleDiscardDraft = () => {
+    setHasUnsavedDraft(false);
+    setUnsavedDraftText('');
+    localStorage.removeItem(draftKey);
+  };
 
   // 🌿 Somatic Care & Breathing Pacer State for Sanctuary Mode
   const [breathActive, setBreathActive] = useState(false);
@@ -459,6 +509,10 @@ export default function TodayHero({
         calculatedScore: comp?.score
       });
     }
+    try {
+      localStorage.removeItem(draftKey);
+      setHasUnsavedDraft(false);
+    } catch (e) {}
     setSyncedBadge(true);
     setTimeout(() => setSyncedBadge(false), 2500);
   };
@@ -1491,13 +1545,26 @@ export default function TodayHero({
 
           {/* Note Toggle Button with Magnetic Cursor Attraction */}
           {!showNote && (
-            <MagneticButton
-              onClick={() => setShowNote(true)}
-              className="text-xs font-mono font-bold text-black bg-white hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer"
-            >
-              <PenLine className="w-3.5 h-3.5" />
-              <span>{currentEntry?.notes ? 'Edit Master Reflection' : '+ Unified Day Journal'}</span>
-            </MagneticButton>
+            <div className="flex items-center gap-2">
+              {hasUnsavedDraft && (
+                <button
+                  type="button"
+                  onClick={handleRestoreDraft}
+                  className="text-xs font-mono font-black text-black bg-[#FDC800] hover:bg-amber-400 border-2 border-black px-3 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer animate-pulse"
+                  title="Restore uncommitted draft reflection"
+                >
+                  <Clock className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                  <span>RESTORE UNSAVED DRAFT</span>
+                </button>
+              )}
+              <MagneticButton
+                onClick={() => setShowNote(true)}
+                className="text-xs font-mono font-bold text-black bg-white hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer"
+              >
+                <PenLine className="w-3.5 h-3.5" />
+                <span>{currentEntry?.notes ? 'Edit Master Reflection' : '+ Unified Day Journal'}</span>
+              </MagneticButton>
+            </div>
           )}
         </div>
 
@@ -1627,6 +1694,34 @@ export default function TodayHero({
                 </button>
               </div>
             </div>
+
+            {/* Unsaved Draft Notification Pill */}
+            {hasUnsavedDraft && (
+              <div className="p-3 bg-[#FDC800]/25 border-2 border-black rounded-xl flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000000]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Clock className="w-4 h-4 text-black shrink-0 stroke-[2.5]" />
+                  <span className="font-mono text-xs font-black uppercase text-black truncate">
+                    Unsaved reflection recovered from local memory
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleRestoreDraft}
+                    className="px-2.5 py-1 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
+                  >
+                    RESTORE
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="px-2 py-1 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
+                  >
+                    DISCARD
+                  </button>
+                </div>
+              </div>
+            )}
 
             <textarea
               rows={6}

@@ -265,7 +265,25 @@ export async function fetchDatabase(userOverride = null) {
       if (parsed && parsed.entries && Object.keys(parsed.entries).length > 0) {
         cachedData = parsed;
       }
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Primary database corrupted! Attempting auto-recovery from rolling snapshots...');
+      for (let i = 1; i <= 3; i++) {
+        try {
+          const snapRaw = localStorage.getItem(`${storageKey}_snapshot_${i}`);
+          if (snapRaw) {
+            const snapParsed = JSON.parse(snapRaw);
+            if (snapParsed && snapParsed.entries && Object.keys(snapParsed.entries).length > 0) {
+              cachedData = {
+                startDate: snapParsed.startDate || new Date().toISOString().slice(0, 10),
+                entries: snapParsed.entries
+              };
+              console.log(`🛡️ Auto-healed database from snapshot ${i}!`);
+              break;
+            }
+          }
+        } catch (e) {}
+      }
+    }
   }
 
   // 🛡️ RECONCILIATION: Server data (data/entries.json) is the ground truth
@@ -285,6 +303,7 @@ export async function fetchDatabase(userOverride = null) {
   // Persist clean merged ground truth to user storageKey and mirror immediately
   localStorage.setItem(storageKey, JSON.stringify(localData));
   localStorage.setItem('goodness_db', JSON.stringify(localData));
+  saveRollingSnapshot(storageKey, localData);
 
   // 2. If user is logged in with whitelisted Firebase account, sync bidirectionally with Firestore
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
@@ -306,6 +325,7 @@ export async function fetchDatabase(userOverride = null) {
         const payload = JSON.stringify({ startDate, entries: mergedEntries });
         localStorage.setItem(storageKey, payload);
         localStorage.setItem('goodness_db', payload);
+        saveRollingSnapshot(storageKey, { startDate, entries: mergedEntries });
         
         // Push any healed local entries back to Firestore so cloud stays 100% clean
         Object.entries(mergedEntries).forEach(([dKey, mItem]) => {
@@ -339,6 +359,91 @@ export async function fetchDatabase(userOverride = null) {
   return localData;
 }
 
+// 🔄 Triple-Tier Rolling Snapshots Engine (Time Machine)
+export function saveRollingSnapshot(storageKey, db) {
+  if (typeof window === 'undefined' || !storageKey || !db || !db.entries) return;
+  try {
+    const entryCount = Object.keys(db.entries).length;
+    if (entryCount === 0) return;
+
+    // Shift snapshots: 2 -> 3, 1 -> 2
+    const s1 = localStorage.getItem(`${storageKey}_snapshot_1`);
+    const s2 = localStorage.getItem(`${storageKey}_snapshot_2`);
+
+    if (s2) {
+      localStorage.setItem(`${storageKey}_snapshot_3`, s2);
+    }
+    if (s1) {
+      localStorage.setItem(`${storageKey}_snapshot_2`, s1);
+    }
+
+    // Save current state as Snapshot 1
+    const snapshotData = {
+      timestamp: new Date().toISOString(),
+      entryCount,
+      startDate: db.startDate,
+      entries: db.entries
+    };
+    localStorage.setItem(`${storageKey}_snapshot_1`, JSON.stringify(snapshotData));
+  } catch (e) {
+    console.warn('Snapshot write warning:', e);
+  }
+}
+
+export function getRollingSnapshots(userOverride = null) {
+  if (typeof window === 'undefined') return [];
+  const currentUser = userOverride || getCurrentUser();
+  const effectiveId = getEffectiveUserId(currentUser);
+  const storageKey = getDbStorageKey(effectiveId);
+
+  const snapshots = [];
+  for (let i = 1; i <= 3; i++) {
+    try {
+      const raw = localStorage.getItem(`${storageKey}_snapshot_${i}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.timestamp && parsed.entries) {
+          snapshots.push({
+            id: i,
+            timestamp: parsed.timestamp,
+            entryCount: parsed.entryCount || Object.keys(parsed.entries).length,
+            startDate: parsed.startDate
+          });
+        }
+      }
+    } catch (e) {}
+  }
+  return snapshots;
+}
+
+export function restoreSnapshot(snapshotId, userOverride = null) {
+  if (typeof window === 'undefined') return null;
+  const currentUser = userOverride || getCurrentUser();
+  const effectiveId = getEffectiveUserId(currentUser);
+  const storageKey = getDbStorageKey(effectiveId);
+
+  try {
+    const raw = localStorage.getItem(`${storageKey}_snapshot_${snapshotId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.entries) return null;
+
+    const restoredDb = {
+      startDate: parsed.startDate || new Date().toISOString().slice(0, 10),
+      entries: parsed.entries
+    };
+
+    const payload = JSON.stringify(restoredDb);
+    localStorage.setItem(storageKey, payload);
+    localStorage.setItem('goodness_db', payload);
+
+    return restoredDb;
+  } catch (e) {
+    console.error('Failed to restore snapshot:', e);
+    return null;
+  }
+}
+
 export async function saveEntry(entryData) {
   const formatted = {
     ...entryData,
@@ -358,6 +463,8 @@ export async function saveEntry(entryData) {
     if (!db.entries) db.entries = {};
     db.entries[formatted.date] = formatted;
     localStorage.setItem(storageKey, JSON.stringify(db));
+    localStorage.setItem('goodness_db', JSON.stringify(db));
+    saveRollingSnapshot(storageKey, db);
   } catch (e) {}
 
   // 2. Cloud save with 4s timeout protection against slow connections

@@ -163,7 +163,7 @@ export default function MobileAppView({
   const [showNoteDrawer, setShowNoteDrawer] = useState(false);
   const [noteText, setNoteText] = useState(() => {
     if (typeof window !== 'undefined') {
-      const draft = sessionStorage.getItem(`daily_verdict_draft_notes_${todayStr}`);
+      const draft = localStorage.getItem(`shit_or_hit_draft_stash_${todayStr}`) || sessionStorage.getItem(`daily_verdict_draft_notes_${todayStr}`);
       if (draft) return draft;
     }
     return entries?.[todayStr]?.notes || '';
@@ -177,17 +177,17 @@ export default function MobileAppView({
   const [isAutopsyModalOpen, setIsAutopsyModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
-  // Auto-debounce draft notes in sessionStorage
+  // Auto-debounce draft notes in localStorage (keystroke auto-stash)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const draftKey = `daily_verdict_draft_notes_${todayStr}`;
+    const draftKey = `shit_or_hit_draft_stash_${todayStr}`;
     const t = setTimeout(() => {
       if (noteText && (!entries?.[todayStr]?.notes || noteText !== entries[todayStr].notes)) {
-        sessionStorage.setItem(draftKey, noteText);
+        localStorage.setItem(draftKey, noteText);
       } else if (!noteText) {
-        sessionStorage.removeItem(draftKey);
+        localStorage.removeItem(draftKey);
       }
-    }, 400);
+    }, 500);
     return () => clearTimeout(t);
   }, [noteText, todayStr, entries]);
 

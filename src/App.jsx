@@ -9,28 +9,55 @@ import PWAInstallBanner from './components/PWAInstallBanner';
 import SkeletonLoader from './components/SkeletonLoader';
 import { VaultLockGatekeeper, isVaultPinActive } from './components/VaultPinModal';
 import ErrorBoundary from './components/ErrorBoundary';
+import FaultBoundary from './components/FaultBoundary';
+import OfflineShelterBadge from './components/OfflineShelterBadge';
 
-// ⚡ React.lazy Code Splitting for Heavy Modals & Sub-Views
-const CalendarModal = lazy(() => import('./components/CalendarModal'));
-const EditDayModal = lazy(() => import('./components/EditDayModal'));
-const MonthlyReportModal = lazy(() => import('./components/MonthlyReportModal'));
-const AestheticCardExportModal = lazy(() => import('./components/AestheticCardExportModal'));
-const ForensicStatsModal = lazy(() => import('./components/ForensicStatsModal'));
-const SettingsModal = lazy(() => import('./components/SettingsModal'));
-const IconLab = lazy(() => import('./components/IconLab'));
-const StickerVaultModal = lazy(() => import('./components/StickerVaultModal'));
-const MotivationalRecoveryModal = lazy(() => import('./components/MotivationalRecoveryModal'));
-const NotFound404 = lazy(() => import('./components/NotFound404'));
-const GuestDisclaimerModal = lazy(() => import('./components/GuestDisclaimerModal'));
-const RansomCapsuleModal = lazy(() => import('./components/RansomCapsuleModal'));
-const ReceiptOfTruthModal = lazy(() => import('./components/ReceiptOfTruthModal'));
-const AutopsyChamberModal = lazy(() => import('./components/AutopsyChamberModal'));
-const BehavioralLabModal = lazy(() => import('./components/BehavioralLabModal'));
-const ExportStudioModal = lazy(() => import('./components/ExportStudioModal'));
-const RehabilitationModal = lazy(() => import('./components/RehabilitationModal'));
-const SanctuaryPage = lazy(() => import('./components/SanctuaryPage'));
-const PrivacyPolicyPage = lazy(() => import('./components/PrivacyPolicyPage'));
-const DataErasurePage = lazy(() => import('./components/DataErasurePage'));
+// ⚡ Self-Healing Dynamic Import for Vite Chunks:
+// When new code is deployed to the server, stale open tabs might fail to fetch old chunk hashes.
+// This wrapper intercepts chunk load errors and reloads the page once cleanly in the background.
+function safeLazy(importFn) {
+  return lazy(async () => {
+    try {
+      return await importFn();
+    } catch (err) {
+      const isChunkError = err?.message?.includes('Failed to fetch dynamically imported module') ||
+                           err?.message?.includes('Loading chunk') ||
+                           err?.name === 'ChunkLoadError';
+      if (isChunkError && typeof window !== 'undefined') {
+        const reloadKey = 'shit_or_hit_chunk_reload_lock';
+        const lastReload = sessionStorage.getItem(reloadKey);
+        if (!lastReload || Date.now() - Number(lastReload) > 10000) {
+          sessionStorage.setItem(reloadKey, Date.now().toString());
+          console.warn('🔄 Deploy update detected! Refreshing client for latest code release...');
+          window.location.reload();
+        }
+      }
+      throw err;
+    }
+  });
+}
+
+// ⚡ Self-Healing Code Splitting for Heavy Modals & Sub-Views
+const CalendarModal = safeLazy(() => import('./components/CalendarModal'));
+const EditDayModal = safeLazy(() => import('./components/EditDayModal'));
+const MonthlyReportModal = safeLazy(() => import('./components/MonthlyReportModal'));
+const AestheticCardExportModal = safeLazy(() => import('./components/AestheticCardExportModal'));
+const ForensicStatsModal = safeLazy(() => import('./components/ForensicStatsModal'));
+const SettingsModal = safeLazy(() => import('./components/SettingsModal'));
+const IconLab = safeLazy(() => import('./components/IconLab'));
+const StickerVaultModal = safeLazy(() => import('./components/StickerVaultModal'));
+const MotivationalRecoveryModal = safeLazy(() => import('./components/MotivationalRecoveryModal'));
+const NotFound404 = safeLazy(() => import('./components/NotFound404'));
+const GuestDisclaimerModal = safeLazy(() => import('./components/GuestDisclaimerModal'));
+const RansomCapsuleModal = safeLazy(() => import('./components/RansomCapsuleModal'));
+const ReceiptOfTruthModal = safeLazy(() => import('./components/ReceiptOfTruthModal'));
+const AutopsyChamberModal = safeLazy(() => import('./components/AutopsyChamberModal'));
+const BehavioralLabModal = safeLazy(() => import('./components/BehavioralLabModal'));
+const ExportStudioModal = safeLazy(() => import('./components/ExportStudioModal'));
+const RehabilitationModal = safeLazy(() => import('./components/RehabilitationModal'));
+const SanctuaryPage = safeLazy(() => import('./components/SanctuaryPage'));
+const PrivacyPolicyPage = safeLazy(() => import('./components/PrivacyPolicyPage'));
+const DataErasurePage = safeLazy(() => import('./components/DataErasurePage'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -845,26 +872,36 @@ export default function App() {
         </div>
       )}
 
+      {/* 🛫 Verified Offline Airplane Shelter Status Badge */}
+      <OfflineShelterBadge />
+
       {/* 📲 PWA 1-Tap Native Install Prompt Banner */}
       <PWAInstallBanner />
 
       {isMobile ? (
-        <MobileAppView
-          startDate={startDate}
-          entries={entries}
-          dayCount={dayCount}
+        <FaultBoundary
+          name="MobileAppView"
+          variant="hero"
           todayStr={todayStr}
-          onSaveToday={handleSaveEntry}
-          onOpenMonthlyReport={handleOpenMonthlyReport}
-          onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-          onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
-          onOpenTelemetry={() => setIsTelemetryOpen(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onOpenStickerVault={() => setIsStickerVaultOpen(true)}
-          onOpenExportStudio={() => setIsExportStudioOpen(true)}
-          onOpenRehab={() => setShowSanctuary(true)}
-          sphereSettingsVer={sphereSettingsVer}
-        />
+          onEmergencySave={handleSaveEntry}
+        >
+          <MobileAppView
+            startDate={startDate}
+            entries={entries}
+            dayCount={dayCount}
+            todayStr={todayStr}
+            onSaveToday={handleSaveEntry}
+            onOpenMonthlyReport={handleOpenMonthlyReport}
+            onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+            onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+            onOpenTelemetry={() => setIsTelemetryOpen(true)}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenStickerVault={() => setIsStickerVaultOpen(true)}
+            onOpenExportStudio={() => setIsExportStudioOpen(true)}
+            onOpenRehab={() => setShowSanctuary(true)}
+            sphereSettingsVer={sphereSettingsVer}
+          />
+        </FaultBoundary>
       ) : (
         <div className="flex flex-col min-h-screen">
           <div className="border-b-3 border-black bg-white sticky top-0 z-30">
@@ -889,25 +926,34 @@ export default function App() {
             {/* VIEW 1: TODAY ACTIVE WORKSPACE & STATS */}
             {activeDesktopTab === 'today' && (
               <div className="space-y-6">
-                <TodayHero
+                <FaultBoundary
+                  name="TodayHero"
+                  variant="hero"
                   todayStr={todayStr}
-                  dayCount={dayCount}
-                  todayEntry={entries[todayStr] || null}
-                  currentEntry={entries[todayStr] || null}
-                  onSaveToday={handleSaveEntry}
-                  onSave={handleSaveEntry}
-                  onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
-                  onOpenRehab={() => setShowSanctuary(true)}
-                  sphereSettingsVer={sphereSettingsVer}
-                />
+                  onEmergencySave={handleSaveEntry}
+                >
+                  <TodayHero
+                    todayStr={todayStr}
+                    dayCount={dayCount}
+                    todayEntry={entries[todayStr] || null}
+                    currentEntry={entries[todayStr] || null}
+                    onSaveToday={handleSaveEntry}
+                    onSave={handleSaveEntry}
+                    onOpenWallpaper={() => handleOpenWallpaper(null, todayStr)}
+                    onOpenRehab={() => setShowSanctuary(true)}
+                    sphereSettingsVer={sphereSettingsVer}
+                  />
+                </FaultBoundary>
 
                 {/* Full Width Lifetime Metrics Widget */}
                 <div className="w-full">
-                  <StatsWidget
-                    entries={entries}
-                    dayCount={dayCount}
-                    onOpenTelemetry={() => setIsTelemetryOpen(true)}
-                  />
+                  <FaultBoundary name="StatsWidget" variant="widget">
+                    <StatsWidget
+                      entries={entries}
+                      dayCount={dayCount}
+                      onOpenTelemetry={() => setIsTelemetryOpen(true)}
+                    />
+                  </FaultBoundary>
                 </div>
               </div>
             )}
@@ -916,27 +962,31 @@ export default function App() {
             {activeDesktopTab === 'timeline' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div className="lg:col-span-7">
-                  <Suspense fallback={<div className="min-h-400px flex items-center justify-center font-mono text-sm font-black">LOADING CALENDAR MATRIX...</div>}>
-                    <CalendarModal
-                      isOpen={true}
-                      isEmbedded={true}
-                      entries={entries}
-                      startDate={startDate}
-                      todayStr={todayStr}
-                      onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-                      onOpenMonthlyReport={handleOpenMonthlyReport}
-                    />
-                  </Suspense>
+                  <FaultBoundary name="CalendarModal" variant="view">
+                    <Suspense fallback={<div className="min-h-400px flex items-center justify-center font-mono text-sm font-black">LOADING CALENDAR MATRIX...</div>}>
+                      <CalendarModal
+                        isOpen={true}
+                        isEmbedded={true}
+                        entries={entries}
+                        startDate={startDate}
+                        todayStr={todayStr}
+                        onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                        onOpenMonthlyReport={handleOpenMonthlyReport}
+                      />
+                    </Suspense>
+                  </FaultBoundary>
                 </div>
 
                 <div className="lg:col-span-5 space-y-6">
-                  <JourneyTimeline
-                    startDate={startDate}
-                    entries={entries}
-                    todayStr={todayStr}
-                    onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-                    onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
-                  />
+                  <FaultBoundary name="JourneyTimeline" variant="view">
+                    <JourneyTimeline
+                      startDate={startDate}
+                      entries={entries}
+                      todayStr={todayStr}
+                      onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                      onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+                    />
+                  </FaultBoundary>
                 </div>
               </div>
             )}

@@ -34,7 +34,10 @@ import {
   AlertOctagon,
   Printer,
   FileText,
-  Shield
+  Shield,
+  History,
+  Download,
+  CheckCircle2
 } from 'lucide-react';
 import {
   isNotificationSupported,
@@ -73,7 +76,10 @@ import {
   isRehabilitationActive,
   activateRehabilitation,
   exitRehabilitation,
-  getRehabilitationConfig
+  getRehabilitationConfig,
+  getRollingSnapshots,
+  restoreSnapshot,
+  exportDatabaseBackup
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
@@ -127,6 +133,26 @@ export default function SettingsModal({
   const [editingSphereId, setEditingSphereId] = useState(null);
   const [editSphereName, setEditSphereName] = useState('');
   const [editSphereIcon, setEditSphereIcon] = useState('Briefcase');
+
+  // 🔄 Time Machine Snapshots State
+  const [snapshots, setSnapshots] = useState([]);
+  const [snapshotRestoredMsg, setSnapshotRestoredMsg] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setSnapshots(getRollingSnapshots(user));
+    }
+  }, [isOpen, user]);
+
+  const handleRestoreSnapshot = (snapId) => {
+    const res = restoreSnapshot(snapId, user);
+    if (res) {
+      setSnapshotRestoredMsg(`SNAPSHOT ${snapId} RESTORED SUCCESSFULLY`);
+      if (onSettingsChanged) onSettingsChanged();
+      setSnapshots(getRollingSnapshots(user));
+      setTimeout(() => setSnapshotRestoredMsg(''), 3000);
+    }
+  };
   const [editSphereColor, setEditSphereColor] = useState('#FDC800');
   const [editSphereDesc, setEditSphereDesc] = useState('');
 
@@ -1315,7 +1341,83 @@ export default function SettingsModal({
                 </button>
               </div>
 
-              {/* 13. Nuclear Data Erasure: Indian DPDPA Right to Erasure */}
+              {/* 13. Time Machine: 3 Rolling Automated Snapshots */}
+              <div className="p-3.5 bg-amber-50/85 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                      <History className="w-5 h-5 text-black stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h4 className="font-display font-black text-sm uppercase text-black">
+                        Time Machine Snapshots
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600">
+                        Automatic rolling backups with 1-click restore
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => exportDatabaseBackup()}
+                    className="py-1 px-2.5 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-[10px] font-black uppercase text-black flex items-center gap-1 shadow-[1px_1px_0px_#000000] cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    EXPORT JSON
+                  </button>
+                </div>
+
+                {snapshotRestoredMsg && (
+                  <div className="p-2 bg-[#00E599] border-2 border-black rounded-xl text-xs font-mono font-black uppercase text-black flex items-center gap-1.5 shadow-[1px_1px_0px_#000000]">
+                    <CheckCircle2 className="w-4 h-4" />
+                    {snapshotRestoredMsg}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {snapshots.length === 0 ? (
+                    <div className="p-3 bg-white border-2 border-black/20 rounded-xl text-center font-mono text-xs text-neutral-500">
+                      NO SNAPSHOTS RECORDED YET. SNAPSHOTS GENERATE AUTOMATICALLY ON EVERY SAVE.
+                    </div>
+                  ) : (
+                    snapshots.map((snap) => {
+                      const dateObj = new Date(snap.timestamp);
+                      const timeStr = isNaN(dateObj.getTime()) ? snap.timestamp : dateObj.toLocaleString();
+                      return (
+                        <div
+                          key={snap.id}
+                          className="flex items-center justify-between p-2.5 bg-white border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000] gap-2"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="px-1.5 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase">
+                                SNAPSHOT #{snap.id}
+                              </span>
+                              <span className="font-mono text-xs font-black text-black truncate">
+                                {snap.entryCount} {snap.entryCount === 1 ? 'ENTRY' : 'ENTRIES'}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-mono text-neutral-600 block truncate mt-0.5">
+                              {timeStr}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRestoreSnapshot(snap.id)}
+                            className="py-1 px-2.5 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none flex items-center gap-1"
+                          >
+                            <RotateCcw className="w-3 h-3 stroke-[3]" />
+                            RESTORE
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* 14. Nuclear Data Erasure: Indian DPDPA Right to Erasure */}
               <div className="flex items-center justify-between p-3.5 bg-red-50/80 border-2 border-red-500 rounded-2xl shadow-[2px_2px_0px_#ef4444] gap-3">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="w-10 h-10 rounded-xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
@@ -1403,7 +1505,7 @@ export default function SettingsModal({
           if (customText !== undefined) {
             localStorage.setItem('daily_verdict_custom_prompt', customText.trim());
           }
-          setNotificationMsg(`✅ AI Directive updated: ${dirId.toUpperCase()}`);
+          setNotificationMsg(`AI Directive updated: ${dirId.toUpperCase()}`);
           setTimeout(() => setNotificationMsg(''), 2500);
         }}
         customPrompt={localStorage.getItem('daily_verdict_custom_prompt') || ''}
@@ -1457,8 +1559,8 @@ export default function SettingsModal({
             </div>
 
             <div className="p-3.5 bg-red-50 border-2 border-red-400 rounded-xl space-y-2">
-              <p className="text-xs font-mono text-red-900 leading-relaxed font-bold">
-                ⚠️ THIS ACTION CANNOT BE UNDONE.
+              <p className="text-xs font-mono text-red-900 leading-relaxed font-black uppercase">
+                CAUTION: THIS ACTION CANNOT BE UNDONE.
               </p>
               <p className="text-[11px] font-mono text-red-800 leading-relaxed">
                 This will permanently delete your entire diary history, habit streaks, PIN credentials, reflection notes, and all associated cloud Firestore backups.
