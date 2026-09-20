@@ -1,5 +1,4 @@
 import React from 'react';
-import * as Sentry from '@sentry/react';
 import { 
   AlertTriangle, 
   RotateCcw, 
@@ -43,8 +42,8 @@ export default class FaultBoundary extends React.Component {
     console.error(`🛡️ [FaultBoundary Caught Exception in ${this.props.name || 'Component'}]:`, error, errorInfo);
 
     try {
-      if (Sentry?.captureException) {
-        Sentry.captureException(error, {
+      if (typeof window !== 'undefined' && window.Sentry?.captureException) {
+        window.Sentry.captureException(error, {
           tags: { boundary: this.props.name || 'FaultBoundary' },
           extra: {
             componentStack: errorInfo?.componentStack,

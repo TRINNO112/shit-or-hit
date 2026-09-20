@@ -1,5 +1,4 @@
 import React from 'react';
-import * as Sentry from '@sentry/react';
 import {
   AlertTriangle,
   RotateCcw,
@@ -53,8 +52,8 @@ export class ErrorBoundary extends React.Component {
     // Log and report to Sentry silently, do NOT unmount the entire application
     console.warn('🛡️ [ErrorBoundary Observed Background Promise Rejection]:', event.reason);
     try {
-      if (Sentry?.captureException) {
-        Sentry.captureException(event.reason, {
+      if (typeof window !== 'undefined' && window.Sentry?.captureException) {
+        window.Sentry.captureException(event.reason, {
           tags: { mechanism: 'unhandledrejection_silent' }
         });
       }
@@ -77,16 +76,27 @@ export class ErrorBoundary extends React.Component {
     this.setState({ errorInfo, errorOrigin: 'react' });
     console.error('🛡️ [ErrorBoundary Caught React Exception]:', error, errorInfo);
 
-    // Sentry telemetry hook
+    // Non-blocking Sentry telemetry hook
     try {
-      if (Sentry?.captureException) {
-        Sentry.captureException(error, {
+      if (typeof window !== 'undefined' && window.Sentry?.captureException) {
+        window.Sentry.captureException(error, {
           extra: {
             componentStack: errorInfo?.componentStack,
             url: window.location.href,
             timestamp: new Date().toISOString()
           }
         });
+      } else {
+        // Fallback: asynchronously import Sentry to record critical crash if available
+        import('@sentry/react').then((Sentry) => {
+          Sentry.captureException(error, {
+            extra: {
+              componentStack: errorInfo?.componentStack,
+              url: window.location.href,
+              timestamp: new Date().toISOString()
+            }
+          });
+        }).catch(() => {});
       }
     } catch (e) {
       // Sentry hook failure should never break UI containment

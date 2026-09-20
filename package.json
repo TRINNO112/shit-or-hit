@@ -17,6 +17,8 @@
     "audit:models": "node scripts/verify-math-and-state-models.js",
     "audit:db": "node scripts/audit-database-integrity.js",
     "audit:perf": "node scripts/audit-performance.js",
+    "benchmark:live": "node scripts/benchmark-live.js",
+    "test:perf:live": "node scripts/benchmark-live.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {
