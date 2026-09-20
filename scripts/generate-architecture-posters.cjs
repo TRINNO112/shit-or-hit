@@ -2,7 +2,6 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
-// Ensure output directories exist
 const publicArchDir = path.join(__dirname, '..', 'public', 'architecture');
 const artifactDir = path.join('C:', 'Users', 'pathak.amitkumar', '.gemini', 'antigravity-ide', 'brain', '6cbaaa5d-e5c8-4d04-9893-b7156b5b6b92');
 
@@ -10,120 +9,122 @@ if (!fs.existsSync(publicArchDir)) {
   fs.mkdirSync(publicArchDir, { recursive: true });
 }
 
-// Diagram 1: User Experience, 5 Life Modes & Behavioral Trilogy
+// =========================================================================
+// POSTER 1: USER MODES, LIFE STASIS & BEHAVIORAL INTELLIGENCE (LANDSCAPE)
+// =========================================================================
 const mermaidPoster1 = `
-graph TD
-    classDef mainHeader fill:#FDC800,stroke:#000,stroke-width:3px,color:#000,font-weight:900,font-family:sans-serif;
-    classDef sectionHeader fill:#00E599,stroke:#000,stroke-width:2.5px,color:#000,font-weight:900;
-    classDef actionBox fill:#FFFDF5,stroke:#000,stroke-width:2px,color:#000,font-weight:700;
-    classDef triggerBox fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#000;
-    classDef stasisBox fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#000;
-    classDef alertBox fill:#FEE2E2,stroke:#EF4444,stroke-width:2px,color:#000;
-    classDef finishBox fill:#00E599,stroke:#000,stroke-width:2px,color:#000,font-weight:800;
+graph LR
+    classDef headerNode fill:#FDC800,stroke:#000,stroke-width:3px,color:#000,font-weight:900,font-family:sans-serif;
+    classDef modeNode fill:#FFFDF5,stroke:#000,stroke-width:2.5px,color:#000,font-weight:700;
+    classDef stasisNode fill:#FEF3C7,stroke:#D97706,stroke-width:2.5px,color:#000,font-weight:800;
+    classDef heroNode fill:#E0F2FE,stroke:#0284C7,stroke-width:2.5px,color:#000,font-weight:700;
+    classDef trilogyNode fill:#FEE2E2,stroke:#EF4444,stroke-width:2.5px,color:#000,font-weight:700;
+    classDef exportNode fill:#F0FDF4,stroke:#16A34A,stroke-width:2.5px,color:#000,font-weight:700;
+    classDef saveNode fill:#00E599,stroke:#000,stroke-width:3px,color:#000,font-weight:900;
 
-    User(["👤 USER OPENS APP (MOBILE PWA / DESKTOP WEB)"]):::mainHeader
-
-    User --> MainChoice{"CHOOSE ACTIVE LIFE CONTEXT"}:::sectionHeader
-
-    %% --- 5 MODES CLUSTER ---
-    subgraph S1["🌿 THE 5 RATING & STASIS MODES"]
-        MainChoice -->|"Mode 1: Normal Unfiltered"| M1["1. Classic 1-Tap Verdict<br/>• Subjective rating 1★ to 5★<br/>• Raw personal diary notes"]:::actionBox
-        MainChoice -->|"Mode 2: 100% Habits"| M2["2. Deterministic 100% Mode<br/>• Score locked to task completion<br/>• 0% done = 1★ | 100% done = 5★"]:::actionBox
-        MainChoice -->|"Mode 3: 50/50 Balance"| M3["3. Hybrid 50/50 Mode<br/>• 50% subjective feeling<br/>• 50% habit completion math"]:::actionBox
-        MainChoice -->|"Mode 4: Acute Burnout"| M4["4. Tranquility Sanctuary<br/>• 7 to 14 days acute nervous reset<br/>• Vagus 4-2-6 breathing lotus<br/>• Somatic grounding garden<br/>• Rainy veranda zen artwork"]:::stasisBox
-        MainChoice -->|"Mode 5: Life Transition"| M5["5. Grand Sabbatical<br/>• Indefinite horizon pause<br/>• STREAK SHIELDED & FROZEN<br/>• Freeform chronicle writing<br/>• Mountain summit zen artwork"]:::stasisBox
+    subgraph C1["🚀 1. USER ENTRY & INTERFACE"]
+        User(["👤 USER OPENS APP"]):::headerNode --> FrameZero["Instant Frame-0 Hydration<br/>• Sub-1ms synchronous local cache read<br/>• Mobile PWA or Desktop Web"]:::modeNode
+        FrameZero --> AuthRoute{"User Authentication Check"}:::modeNode
+        AuthRoute -->|"Whitelisted Google (3 Emails)"| Tier1["Tier 1: Verified Owner<br/>• Bidirectional Cloud Sync<br/>• AI Ghostwriter & Monthly Dossier<br/>• Cloud-Persisted PIN Vault"]:::heroNode
+        AuthRoute -->|"Guest / Unverified Account"| Tier2["Tier 2: Local-First Guest<br/>• 100% Offline in Browser (goodness_db_guest)<br/>• Local PIN Encryption<br/>• Manual JSON Backup Studio"]:::modeNode
     end
 
-    %% --- CORE TODAY HERO ---
-    subgraph S2["⚡ THE TODAY WORKSPACE (TODAYHERO)"]
-        M1 --> HeroCard["Today Rating Workspace<br/>• 5 Big Tactile Buttons (1★ to 5★)<br/>• Multi-Sphere Life Matrix (Work, Home, Social)<br/>• Daily Habit Non-Negotiable Anchors"]:::actionBox
-        M2 --> HeroCard
-        M3 --> HeroCard
+    subgraph C2["🌿 2. THE FIVE LIFE & VERDICT ENGINES"]
+        Tier1 --> ModeSelect{"Select Life Mode"}:::headerNode
+        Tier2 --> ModeSelect
 
-        HeroCard --> JournalInput["Unfiltered Reflection Journal"]:::actionBox
-        JournalInput -.->|"Keystroke auto-save every 1.5s"| AutoStash["📝 Keystroke Auto-Stash<br/>• Saves draft to local storage<br/>• Survives tab close / dead phone<br/>• 1-Click 'RESTORE DRAFT' banner"]:::triggerBox
-        JournalInput --> AI["🤖 Gemini AI Diary Ghostwriter<br/>• Tough Love, Stoic, or Bullet Directives<br/>• Preserves 1st person voice"]:::triggerBox
+        ModeSelect -->|"Standard Daily Log"| M1["1. Classic 1-Tap Verdict<br/>• Pure subjective rating: 1★ to 5★<br/>• Freeform unfiltered journaling"]:::modeNode
+        ModeSelect -->|"Habit-Driven Protocol"| M2["2. Deterministic 100% Mode<br/>• Rating = round(completed/total * 4) + 1<br/>• Manual rating buttons locked<br/>• Strict mathematical accountability"]:::modeNode
+        ModeSelect -->|"Balanced Protocol"| M3["3. Hybrid 50/50 Mode<br/>• 50% subjective feeling<br/>• 50% habit completion math<br/>• Blended composite score"]:::modeNode
+        ModeSelect -->|"Acute Burnout (7-14 Days)"| M4["4. Tranquility Sanctuary<br/>• Capped strictly: Math.min(14, days)<br/>• Vagus Nerve 4-2-6 Breathing Lotus<br/>• Somatic Grounding Garden<br/>• Zen Rainy Veranda companion art"]:::stasisNode
+        ModeSelect -->|"Life Transition / Gap Year"| M5["5. Grand Sabbatical<br/>• Open horizon without deadline<br/>• STREAK SHIELDED & FROZEN<br/>• Freeform reflection chronicles<br/>• Mountain Summit companion art"]:::stasisNode
     end
 
-    %% --- BEHAVIORAL TRILOGY ---
-    subgraph S3["🏛️ THE BEHAVIORAL TRILOGY (SMART MENTORSHIP)"]
-        HeroCard --> VerdictCheck{"Evaluate Day Rating"}:::sectionHeader
+    subgraph C3["⚡ 3. TODAY ACTIVE WORKSPACE (TODAYHERO)"]
+        M1 --> Cockpit["Daily Rating Cockpit<br/>• 5 Big Tactile Buttons (1★ to 5★)<br/>• Multi-Sphere Matrix (Work, Home, Social)<br/>• Procedural Web Audio Sound Oscillators"]:::heroNode
+        M2 --> Cockpit
+        M3 --> Cockpit
+
+        Cockpit --> ReflectionArea["Unfiltered Diary Reflection Area"]:::heroNode
+        ReflectionArea -.->|"Debounced every 1.5s"| KeystrokeStash["📝 Keystroke Auto-Stash<br/>• Saves draft to shit_or_hit_draft_stash<br/>• Survives battery death & tab close<br/>• 1-Click 'RESTORE DRAFT' banner"]:::stasisNode
+        ReflectionArea --> AIGhost["🤖 Gemini AI Ghostwriter<br/>• Directives: Tough Love, Stoic, Bullet<br/>• Organizes thoughts in 1st person"]:::heroNode
+    end
+
+    subgraph C4["🏛️ 4. BEHAVIORAL TRILOGY (SMART MENTOR)"]
+        Cockpit --> RatingAudit{"Evaluate Day Verdict"}:::headerNode
         
-        VerdictCheck -->|"1★ or 2★ (Rough Day)"| Autopsy["🕵️ Forensic Autopsy Chamber<br/>• CIA manila folder inquest<br/>• Diagnoses sleep deficit, screen trap & friction<br/>• Formulates rebound action protocol"]:::alertBox
+        RatingAudit -->|"1★ or 2★ (Rough Day)"| Autopsy["🕵️ Forensic Autopsy Chamber<br/>• CIA Manila Folder Inquest<br/>• Diagnoses: Friction, Sleep, Triggers<br/>• Commits rebound action protocol"]:::trilogyNode
         
-        VerdictCheck -->|"5★ (Peak Day)"| Capsule["✉️ Ransom Time-Lock Capsule<br/>• Confidential letter to future self sealed with wax<br/>• Auto-unlocks on future slump or milestone streak"]:::triggerBox
+        RatingAudit -->|"5★ (Peak Day)"| Capsule["✉️ Ransom Time-Lock Capsule<br/>• Wax-sealed letter to future self<br/>• Unlocks on slump or milestone streak"]:::heroNode
         
-        VerdictCheck -->|"End of Every Month"| MonthlyDossier["📊 Monthly AI Dossier<br/>• Tough-love homie mentor feedback<br/>• Persona archetype diagnosis<br/>• Weekly velocity & friction breakdown"]:::actionBox
+        RatingAudit -->|"End of Every Month"| MonthlyAI["📊 Monthly Executive Dossier<br/>• Homie tough-love mentor letter<br/>• Persona archetype diagnosis<br/>• Weekly velocity & friction analysis"]:::exportNode
     end
 
-    %% --- STUDIO & EXPORT ---
-    subgraph S4["🎨 STUDIO & EXPORT SUITE"]
-        HeroCard --> ReceiptPrint["🧾 Streetwear Thermal Receipt<br/>• 80mm printable thermal slip<br/>• Verdict score, habit checklist, barcode"]:::actionBox
-        HeroCard --> ExportStudio["📁 Export Studio Suite<br/>• Tabular CSV export<br/>• Readable Diary Digest PDF<br/>• 4K Year-In-Pixels Wallpapers"]:::actionBox
+    subgraph C5["🎨 5. STUDIO & DATA VAULT"]
+        Cockpit --> Receipt["🧾 Streetwear Thermal Receipt<br/>• Printable 80mm receipt slip<br/>• Score, habits, truth barcode"]:::exportNode
+        Cockpit --> ExportStudio["📁 Export Studio Suite<br/>• Tabular CSV export<br/>• Readable Diary Digest PDF<br/>• 4K Aesthetic Wallpapers"]:::exportNode
+        
+        Autopsy --> CommitSave["💾 COMMIT TO 5-LAYER DATA VAULT<br/>• Synchronous 0ms Local Storage<br/>• 3 Rolling Time Machine Snapshots<br/>• Background Cloud Sync"]:::saveNode
+        Capsule --> CommitSave
+        Cockpit --> CommitSave
+        M4 --> CommitSave
+        M5 --> CommitSave
     end
-
-    Autopsy --> SaveCommitted["💾 Tap Save Entry: Stored in Triple Vault"]:::finishBox
-    Capsule --> SaveCommitted
-    HeroCard --> SaveCommitted
-    M4 --> SaveCommitted
-    M5 --> SaveCommitted
 `;
 
-// Diagram 2: Under-the-Hood Security, Data Pipelines & Architecture
+// =========================================================================
+// POSTER 2: UNDER-THE-HOOD SECURITY, DATA PIPELINES & RELIABILITY (LANDSCAPE)
+// =========================================================================
 const mermaidPoster2 = `
-graph TD
-    classDef mainHeader fill:#FDC800,stroke:#000,stroke-width:3px,color:#000,font-weight:900;
-    classDef sectionHeader fill:#00E599,stroke:#000,stroke-width:2.5px,color:#000,font-weight:900;
-    classDef boxStyle fill:#FFFDF5,stroke:#000,stroke-width:2px,color:#000,font-weight:700;
-    classDef vaultBox fill:#FEF3C7,stroke:#D97706,stroke-width:2.5px,color:#000;
-    classDef shieldBox fill:#DCFCE7,stroke:#16A34A,stroke-width:2.5px,color:#000;
-    classDef alertBox fill:#FEE2E2,stroke:#EF4444,stroke-width:2px,color:#000;
+graph LR
+    classDef headerNode fill:#FDC800,stroke:#000,stroke-width:3px,color:#000,font-weight:900;
+    classDef techNode fill:#FFFDF5,stroke:#000,stroke-width:2.5px,color:#000,font-weight:700;
+    classDef vaultNode fill:#FEF3C7,stroke:#D97706,stroke-width:2.5px,color:#000,font-weight:800;
+    classDef shieldNode fill:#DCFCE7,stroke:#16A34A,stroke-width:2.5px,color:#000,font-weight:800;
+    classDef alertNode fill:#FEE2E2,stroke:#EF4444,stroke-width:2.5px,color:#000,font-weight:700;
+    classDef pwaNode fill:#E0F2FE,stroke:#0284C7,stroke-width:2.5px,color:#000,font-weight:700;
 
-    Title(["🛡️ SHIT OR HIT — TECHNICAL & SECURITY ARCHITECTURE"]):::mainHeader
-
-    %% --- CI/CD & GIT PIPELINE ---
-    subgraph G1["🚢 1. GIT VERSION CONTROL & MANDATORY AUDIT GATE"]
-        Dev["Developer Creates Code Update"]:::boxStyle --> AuditGate["🛡️ Pre-Push Audit Gate (audit-system.js)<br/>• 54 Automated Checks Across 33 Components<br/>• State Invariant & Math Model Verification<br/>• Blocks push if ANY test fails (0 tolerated)"]:::shieldBox
-        AuditGate -->|"54 PASSED | 0 FAILED"| DualPush["Dual-Remote Deployment<br/>• git push origin main (GitHub)<br/>• git push gitlab main (GitLab)<br/>• Commit Series 'D' prefix enforced"]:::boxStyle
+    subgraph G1["🚢 1. GIT CI/CD & AUDIT GATE"]
+        Dev["Developer Prepares Code Update"]:::techNode --> PrePush["🛡️ Mandatory Pre-Push Gatekeeper<br/>• scripts/audit-system.js<br/>• 54 Automated Checks Across 33 Components<br/>• Mathematical & Schema Invariant Tests<br/>• Vite Production Bundle Check"]:::shieldNode
+        PrePush -->|"54 PASSED | 0 FAILED"| DualPush["Dual-Remote Deployment<br/>• git push origin main (GitHub)<br/>• git push gitlab main (GitLab)<br/>• Commit Series 'D' prefix enforced"]:::headerNode
     end
 
-    %% --- CLIENT SECURITY & PIN VAULT ---
-    subgraph G2["🔒 2. CLIENT-SIDE ZERO-KNOWLEDGE ENCRYPTION VAULT"]
-        UserAuth["User Sets 4-Digit PIN"]:::boxStyle --> CipherEngine["Cipher Engine (cipherEngine.js)<br/>• PBKDF2 Key Derivation with Unique Salt<br/>• AES-GCM 256-bit Symmetric Encryption<br/>• All sensitive notes encrypted client-side"]:::vaultBox
-        CipherEngine --> CipherText[("Encrypted Ciphertext<br/>Even database admins cannot read diary notes without user PIN")]:::boxStyle
+    subgraph G2["🔒 2. ZERO-KNOWLEDGE CRYPTO VAULT"]
+        PIN["User Sets 4-Digit PIN"]:::techNode --> SaltDerive["PBKDF2 Key Derivation<br/>• SHA-256 with 100,000 Iterations<br/>• Unique Cryptographic Salt per User"]:::vaultNode
+        SaltDerive --> AESKey["256-Bit AES-GCM Symmetric Key"]:::vaultNode
+        AESKey --> EncryptEngine["Client Cipher Engine (cipherEngine.js)<br/>• Encrypts sensitive reflections client-side<br/>• Admins & Cloud Firestore hold ONLY ciphertext"]:::vaultNode
+        EncryptEngine --> CipherStorage[("🔒 Zero-Knowledge Ciphertext<br/>Unreadable without local user PIN")]:::vaultNode
     end
 
-    %% --- 5-LAYER DATA RESILIENCE NET ---
     subgraph G3["💾 3. FIVE-LAYER DATA SAFETY NET (ZERO DATA LOSS)"]
-        UserSave(["User Saves Entry / Reflection"]):::mainHeader --> L1[("Layer 1: User-Partitioned Local Storage<br/>• goodness_db_UID / goodness_db_guest<br/>• 0 millisecond instant synchronous disk write")]:::boxStyle
+        SaveTrigger(["User Clicks Save Entry"]):::headerNode --> L1[("Layer 1: Partitioned LocalStorage<br/>• goodness_db_UID / goodness_db_guest<br/>• 0 millisecond instant disk commit")]:::techNode
         
-        L1 --> L2[("Layer 2: Triple-Tier Rolling Snapshots<br/>• Snapshot 1 (Recent) • Snapshot 2 • Snapshot 3<br/>• Auto-rotates on every single save<br/>• Time Machine 1-Click Restore in Settings")]:::shieldBox
+        L1 --> L2[("Layer 2: Triple-Tier Rolling Snapshots<br/>• Snapshot 1 (Recent) • Snapshot 2 • Snapshot 3<br/>• Auto-rotates on every single save<br/>• Time Machine 1-Click Restore in Settings")]:::shieldNode
         
-        L1 -.->|"If corrupted by OS glitch"| AutoHeal["Auto-Healing Parser<br/>Silently recovers 100% of data from newest healthy snapshot"]:::shieldBox
+        L1 -.->|"If corrupted by OS / Browser glitch"| AutoHeal["Auto-Healing Parser (safeParseDatabase)<br/>Silently restores 100% of diary from newest snapshot"]:::shieldNode
         AutoHeal -.-> L1
 
-        L1 --> L3["Layer 3: Verified Airplane Shelter<br/>• Probes browser write capability on offline<br/>• Displays peace-of-mind amber banner (0ms lag)<br/>• Auto-dismisses in 6s so UI stays clean"]:::boxStyle
+        L1 --> L3["Layer 3: Verified Airplane Shelter<br/>• Probes browser write capability on offline<br/>• Tactile 'OK' dismiss + 6s auto-fade<br/>• Zero lag, zero network anxiety"]:::shieldNode
 
-        L1 --> L4[("Layer 4: Firebase Firestore Multi-Tenant Sync<br/>• Bidirectional cloud synchronization for whitelisted users<br/>• Silent timeout protection (never blocks or crashes UI)")]:::boxStyle
+        L1 --> L4[("Layer 4: Firebase Firestore Multi-Tenant Cloud<br/>• Bidirectional cloud sync for whitelisted accounts<br/>• Silent timeout protection (never crashes UI)")]:::techNode
 
-        L1 --> L5["Layer 5: Emergency Diary Rescue Button<br/>• Embedded in Root ErrorBoundary<br/>• 1-Click direct memory download: shit_or_hit_diary_backup.json"]:::alertBox
+        L1 --> L5["Layer 5: Emergency Diary Rescue Button<br/>• Root ErrorBoundary emergency rope<br/>• 1-Click JSON extraction directly to device disk"]:::alertNode
     end
 
-    %% --- PWA & RUNTIME ISOLATION ---
-    subgraph G4["⚡ 4. PWA RUNTIME & COMPONENT FAULT SHIELDS"]
-        DeployEvent["New Release Deployed to Web"]:::boxStyle --> SW["Service Worker (sw.js)<br/>• Stale-While-Revalidate caching<br/>• Dynamic chunks returned in <2ms"]:::boxStyle
+    subgraph G4["⚡ 4. PWA RUNTIME & COMPONENT AIRBAGS"]
+        DualPush --> NewDeploy["New Release Deployed to Production"]:::techNode
+        NewDeploy --> SW["PWA Service Worker (sw.js)<br/>• Stale-While-Revalidate caching<br/>• Static chunks load in <2ms"]:::pwaNode
         
-        SW --> ChunkDetector{"Tab requests old chunk hash?"}:::sectionHeader
-        ChunkDetector -->|"ChunkLoadError detected"| SafeLazy["Self-Healing Dynamic Chunk Loader (safeLazy)<br/>• Intercepts chunk failure<br/>• Silently refreshes client once to get latest code<br/>• User never sees an error popup"]:::shieldBox
+        SW --> ChunkDetect{"Browser requests outdated chunk hash?"}:::techNode
+        ChunkDetect -->|"ChunkLoadError detected"| SafeLazy["Self-Healing Dynamic Loader (safeLazy)<br/>• Intercepts chunk mismatch<br/>• Silently reloads client once in background<br/>• User never sees an error screen!"]:::shieldNode
         
-        SafeLazy --> ComponentAirbags["Component Fault Boundaries (FaultBoundary.jsx)<br/>• Airbag around TodayHero (Emergency 1★-5★ rating strip)<br/>• Airbag around Modals (Closes safely with toast)<br/>• Header, Nav & History stay 100% alive!"]:::shieldBox
+        SafeLazy --> FaultShields["Component Fault Boundaries (FaultBoundary.jsx)<br/>• TodayHero: Fallback emergency 1★-5★ rating strip<br/>• Modals: Safe auto-close with friendly toast<br/>• Header, Calendar & History stay 100% alive!"]:::shieldNode
     end
 
-    DualPush --> DeployEvent
-    CipherText --> L1
+    CipherStorage --> L1
 `;
 
-function buildHtml(title, subtitle, mermaidCode) {
+function buildLandscapeHtml(title, subtitle, badgeText, mermaidCode) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -131,7 +132,7 @@ function buildHtml(title, subtitle, mermaidCode) {
   <title>${title}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800;900&family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     * {
@@ -143,32 +144,33 @@ function buildHtml(title, subtitle, mermaidCode) {
       background-color: #FFFDF5;
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: #000000;
-      padding: 36px 40px 48px;
-      min-width: 1400px;
+      padding: 24px;
+      display: inline-block;
+      min-width: 2560px;
     }
     .poster-container {
-      max-width: 1600px;
-      margin: 0 auto;
+      width: 2500px;
       border: 4px solid #000000;
       border-radius: 28px;
       background: #FFFFFF;
-      box-shadow: 10px 10px 0px #000000;
-      padding: 32px 36px 40px;
+      box-shadow: 12px 12px 0px #000000;
+      padding: 28px 36px 32px;
+      display: inline-block;
     }
     .poster-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 3.5px solid #000000;
-      padding-bottom: 24px;
-      margin-bottom: 32px;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
       gap: 20px;
     }
     .badge-row {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .pill {
       font-family: 'JetBrains Mono', monospace;
@@ -183,9 +185,10 @@ function buildHtml(title, subtitle, mermaidCode) {
     .pill-yellow { background: #FDC800; color: #000000; }
     .pill-green { background: #00E599; color: #000000; }
     .pill-black { background: #000000; color: #FFFFFF; }
+    .pill-red { background: #FF4D4D; color: #FFFFFF; }
     h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 30px;
+      font-size: 28px;
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: -0.5px;
@@ -193,17 +196,17 @@ function buildHtml(title, subtitle, mermaidCode) {
       line-height: 1.15;
     }
     p.subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: #4B5563;
       font-weight: 600;
-      margin-top: 6px;
+      margin-top: 4px;
     }
     .meta-box {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
       font-weight: 700;
       text-align: right;
-      padding: 10px 16px;
+      padding: 8px 16px;
       background: #FFFDF5;
       border: 2px solid #000000;
       border-radius: 14px;
@@ -214,7 +217,6 @@ function buildHtml(title, subtitle, mermaidCode) {
       display: flex;
       justify-content: center;
       width: 100%;
-      overflow: visible;
     }
     .mermaid {
       width: 100% !important;
@@ -223,7 +225,6 @@ function buildHtml(title, subtitle, mermaidCode) {
     }
     .mermaid svg {
       width: 100% !important;
-      max-width: 1500px !important;
       height: auto !important;
       font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
@@ -245,7 +246,7 @@ function buildHtml(title, subtitle, mermaidCode) {
     .cluster span.nodeLabel {
       font-family: 'Outfit', sans-serif !important;
       font-weight: 900 !important;
-      font-size: 15px !important;
+      font-size: 14px !important;
       text-transform: uppercase !important;
       color: #000000 !important;
     }
@@ -270,16 +271,16 @@ function buildHtml(title, subtitle, mermaidCode) {
       <div>
         <div class="badge-row">
           <span class="pill pill-yellow">SHIT OR HIT OS</span>
-          <span class="pill pill-green">NEOBRUTALIST BLUEPRINT</span>
-          <span class="pill pill-black">OFFICIAL SPEC</span>
+          <span class="pill pill-green">${badgeText}</span>
+          <span class="pill pill-black">4K LANDSCAPE CINEMATIC</span>
         </div>
         <h1>${title}</h1>
         <p class="subtitle">${subtitle}</p>
       </div>
       <div class="meta-box">
-        <div>TRINNO ENGINEERING</div>
-        <div>RELEASE: D226 • 54/54 PASS</div>
-        <div>FORMAT: HIGH-RES 4K PNG</div>
+        <div>TRINNO ENGINEERING CORE</div>
+        <div>SPECIFICATION: D226 • AUDIT GATE: 54/54 PASSED</div>
+        <div>RESOLUTION: 4K HIGH-DPI LANDSCAPE</div>
       </div>
     </div>
 
@@ -310,66 +311,75 @@ function buildHtml(title, subtitle, mermaidCode) {
 }
 
 async function generatePosters() {
-  console.log('🎨 Initializing Playwright Chromium for 4K Poster Rendering...');
+  console.log('🎬 Initializing Playwright Chromium for Movie-Grade Landscape 4K Posters...');
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
-    viewport: { width: 1720, height: 2100 },
-    deviceScaleFactor: 2 // High-DPI crisp 4K rendering
+    viewport: { width: 2600, height: 1600 },
+    deviceScaleFactor: 2 // Crisp 4K retina
   });
   const page = await context.newPage();
 
-  // Poster 1
-  const html1 = buildHtml(
-    'Poster 1: User Experience, 5 Life Modes & Behavioral Trilogy',
-    'Complete operational flow from daily verdict check-in, habit math, stasis resets, to AI mentorship.',
+  // -------------------------------------------------------------
+  // POSTER 1
+  // -------------------------------------------------------------
+  const html1 = buildLandscapeHtml(
+    'Poster 1: User Modes, Life Stasis & Behavioral Intelligence',
+    'Cinematic Left-to-Right operational flow: user onboarding, 5 core modes, TodayHero cockpit, behavioral trilogy, and export studio.',
+    'OPERATIONAL COMMAND',
     mermaidPoster1
   );
-  const tempHtmlPath1 = path.join(__dirname, 'temp_poster1.html');
+  const tempHtmlPath1 = path.join(__dirname, 'temp_landscape_poster1.html');
   fs.writeFileSync(tempHtmlPath1, html1, 'utf8');
 
-  console.log('📸 Rendering Poster 1: Modes & Experience...');
+  console.log('📸 Rendering Landscape Poster 1...');
   await page.goto('file:///' + tempHtmlPath1.replace(/\\/g, '/'), { waitUntil: 'networkidle' });
-  await page.waitForTimeout(2000); // Allow Mermaid to layout and render fonts
+  await page.waitForTimeout(2500); // Ensure complete layout
 
   const poster1Public = path.join(publicArchDir, 'shit_or_hit_modes_and_experience.png');
   const poster1Artifact = path.join(artifactDir, 'shit_or_hit_modes_and_experience.png');
 
-  await page.screenshot({ path: poster1Public, fullPage: true });
+  // Capture ONLY the exact poster container (ZERO empty space at the bottom!)
+  const container1 = page.locator('.poster-container');
+  await container1.screenshot({ path: poster1Public });
   fs.copyFileSync(poster1Public, poster1Artifact);
-  console.log(`✅ Saved Poster 1 -> ${poster1Public}`);
+  console.log(`✅ Saved Landscape Poster 1 -> ${poster1Public}`);
 
-  // Poster 2
-  const html2 = buildHtml(
-    'Poster 2: Under-The-Hood Security, Data Pipelines & Reliability',
-    'Complete technical architecture covering dual Git sync, AES-GCM encryption, triple snapshots, and PWA self-healing.',
+  // -------------------------------------------------------------
+  // POSTER 2
+  // -------------------------------------------------------------
+  const html2 = buildLandscapeHtml(
+    'Poster 2: Infrastructure Core, Zero-Knowledge Crypto & PWA Resilience',
+    'Cinematic Left-to-Right engineering flow: Git dual-push audit gate, AES-GCM client encryption, 5-layer safety net, and PWA self-healing.',
+    'SECURITY & DATA CORE',
     mermaidPoster2
   );
-  const tempHtmlPath2 = path.join(__dirname, 'temp_poster2.html');
+  const tempHtmlPath2 = path.join(__dirname, 'temp_landscape_poster2.html');
   fs.writeFileSync(tempHtmlPath2, html2, 'utf8');
 
-  console.log('📸 Rendering Poster 2: Tech & Security Architecture...');
+  console.log('📸 Rendering Landscape Poster 2...');
   await page.goto('file:///' + tempHtmlPath2.replace(/\\/g, '/'), { waitUntil: 'networkidle' });
-  await page.waitForTimeout(2000); // Allow Mermaid to layout and render fonts
+  await page.waitForTimeout(2500); // Ensure complete layout
 
   const poster2Public = path.join(publicArchDir, 'shit_or_hit_tech_and_security.png');
   const poster2Artifact = path.join(artifactDir, 'shit_or_hit_tech_and_security.png');
 
-  await page.screenshot({ path: poster2Public, fullPage: true });
+  const container2 = page.locator('.poster-container');
+  await container2.screenshot({ path: poster2Public });
   fs.copyFileSync(poster2Public, poster2Artifact);
-  console.log(`✅ Saved Poster 2 -> ${poster2Public}`);
+  console.log(`✅ Saved Landscape Poster 2 -> ${poster2Public}`);
 
   await browser.close();
 
-  // Cleanup temp HTML files
+  // Cleanup temp files
   try {
     fs.unlinkSync(tempHtmlPath1);
     fs.unlinkSync(tempHtmlPath2);
   } catch (e) {}
 
-  console.log('🎉 All 2 High-Resolution Neobrutalist PNG Posters Generated Successfully!');
+  console.log('🎉 Both 4K Movie-Grade Landscape Posters Rendered with 0 Empty Space!');
 }
 
 generatePosters().catch((err) => {
-  console.error('Fatal poster generation error:', err);
+  console.error('Fatal landscape poster generation error:', err);
   process.exit(1);
 });
