@@ -33,7 +33,7 @@ export default function PWAInstallBanner() {
             });
           }
         });
-      }).catch(() => {});
+      }).catch(() => { });
 
       let refreshing = false;
       const handleControllerChange = () => {
@@ -46,11 +46,11 @@ export default function PWAInstallBanner() {
     }
 
     // 2. Check if already in standalone mode (already installed)
-    const isStandalone = 
-      window.matchMedia('(display-mode: standalone)').matches || 
-      window.navigator.standalone || 
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone ||
       document.referrer.includes('android-app://');
-      
+
     if (isStandalone) {
       setIsInstalled(true);
       return;
@@ -110,7 +110,7 @@ export default function PWAInstallBanner() {
         if (window.Sentry?.captureException) {
           window.Sentry.captureException(err, { extra: { context: 'PWAInstallBanner.handleInstallClick' } });
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   };
 
@@ -140,42 +140,42 @@ export default function PWAInstallBanner() {
             exit={{ y: -50, opacity: 0 }}
             className="w-full bg-[#FDC800] border-b-2 border-black py-2 px-3 select-none z-40 sticky top-0 shadow-[0_3px_0_#000000]"
           >
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center p-0.5 shrink-0 shadow-[1px_1px_0px_#000000]">
-                <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
+            <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center p-0.5 shrink-0 shadow-[1px_1px_0px_#000000]">
+                  <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase leading-tight truncate">
+                    Install SHIT OR HIT App
+                  </h4>
+                  <p className="text-[10px] sm:text-xs font-mono text-neutral-800 font-bold truncate">
+                    1-tap standalone app access & full offline storage
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase leading-tight truncate">
-                  Install SHIT OR HIT App
-                </h4>
-                <p className="text-[10px] sm:text-xs font-mono text-neutral-800 font-bold truncate">
-                  1-tap standalone app access & full offline storage
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleInstallClick}
-                className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white rounded-xl font-display font-black text-xs uppercase border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center gap-1.5 transition-all active:scale-95"
-              >
-                <Download className="w-3.5 h-3.5 text-[#00E599] stroke-[3]" />
-                <span>INSTALL</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="p-1.5 rounded-xl hover:bg-black/10 text-black cursor-pointer transition-all"
-                title="Dismiss banner"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleInstallClick}
+                  className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-white rounded-xl font-display font-black text-xs uppercase border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center gap-1.5 transition-all active:scale-95"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#00E599] stroke-3" />
+                  <span>INSTALL</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDismiss}
+                  className="p-1.5 rounded-xl hover:bg-black/10 text-black cursor-pointer transition-all"
+                  title="Dismiss banner"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+          </motion.div>
+        </AnimatePresence>
       )}
 
       {/* 🚀 Tactile Neobrutalist PWA Update Pill */}
@@ -196,7 +196,7 @@ export default function PWAInstallBanner() {
             onClick={handleApplyUpdate}
             className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-[#00E599] rounded-xl font-mono font-black text-xs uppercase border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
           >
-            <RefreshCw className="w-3.5 h-3.5 stroke-[3]" />
+            <RefreshCw className="w-3.5 h-3.5 stroke-3" />
             <span>TAP TO UPDATE</span>
           </button>
         </aside>
@@ -204,11 +204,11 @@ export default function PWAInstallBanner() {
 
       {/* Visual Installation Guide Modal */}
       {showGuideModal && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
           onClick={() => setShowGuideModal(false)}
         >
-          <div 
+          <div
             className="w-full max-w-sm bg-white border-3 border-black rounded-3xl p-5 shadow-[8px_8px_0px_#000000] space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
@@ -229,7 +229,7 @@ export default function PWAInstallBanner() {
                 onClick={() => setShowGuideModal(false)}
                 className="p-1.5 rounded-xl bg-red-100 hover:bg-red-200 border-2 border-black text-black"
               >
-                <X className="w-4 h-4 stroke-[3]" />
+                <X className="w-4 h-4 stroke-3" />
               </button>
             </div>
 

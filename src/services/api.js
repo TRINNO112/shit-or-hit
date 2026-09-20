@@ -359,6 +359,36 @@ export async function fetchDatabase(userOverride = null) {
   return localData;
 }
 
+/**
+ * 🛡️ Storage Sentinel: Safe localStorage setter with auto-pruning on QuotaExceededError
+ */
+export function safeStorageSetItem(key, value) {
+  if (typeof window === 'undefined') return false;
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    const isQuota = err?.name === 'QuotaExceededError' || err?.code === 22 || err?.name === 'NS_ERROR_DOM_QUOTA_REACHED';
+    if (isQuota) {
+      console.warn('⚠️ [Storage Sentinel] LocalStorage quota limit detected. Pruning non-essential scratch keys...');
+      try {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('shit_or_hit_draft_stash_') || k.startsWith('capsule_triggered_') || k.includes('_temp_'))) {
+            localStorage.removeItem(k);
+          }
+        }
+        localStorage.setItem(key, value);
+        return true;
+      } catch (retryErr) {
+        console.error('❌ [Storage Sentinel] Critical storage exhaustion:', retryErr);
+        return false;
+      }
+    }
+    return false;
+  }
+}
+
 // 🔄 Triple-Tier Rolling Snapshots Engine (Time Machine)
 export function saveRollingSnapshot(storageKey, db) {
   if (typeof window === 'undefined' || !storageKey || !db || !db.entries) return;
@@ -371,10 +401,10 @@ export function saveRollingSnapshot(storageKey, db) {
     const s2 = localStorage.getItem(`${storageKey}_snapshot_2`);
 
     if (s2) {
-      localStorage.setItem(`${storageKey}_snapshot_3`, s2);
+      safeStorageSetItem(`${storageKey}_snapshot_3`, s2);
     }
     if (s1) {
-      localStorage.setItem(`${storageKey}_snapshot_2`, s1);
+      safeStorageSetItem(`${storageKey}_snapshot_2`, s1);
     }
 
     // Save current state as Snapshot 1
@@ -384,7 +414,7 @@ export function saveRollingSnapshot(storageKey, db) {
       startDate: db.startDate,
       entries: db.entries
     };
-    localStorage.setItem(`${storageKey}_snapshot_1`, JSON.stringify(snapshotData));
+    safeStorageSetItem(`${storageKey}_snapshot_1`, JSON.stringify(snapshotData));
   } catch (e) {
     console.warn('Snapshot write warning:', e);
   }
@@ -462,8 +492,9 @@ export async function saveEntry(entryData) {
     let db = dbStr ? JSON.parse(dbStr) : { startDate: new Date().toISOString().slice(0, 10), entries: {} };
     if (!db.entries) db.entries = {};
     db.entries[formatted.date] = formatted;
-    localStorage.setItem(storageKey, JSON.stringify(db));
-    localStorage.setItem('goodness_db', JSON.stringify(db));
+    const serialized = JSON.stringify(db);
+    safeStorageSetItem(storageKey, serialized);
+    safeStorageSetItem('goodness_db', serialized);
     saveRollingSnapshot(storageKey, db);
   } catch (e) {}
 

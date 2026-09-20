@@ -149,6 +149,55 @@ export class ErrorBoundary extends React.Component {
     }
   };
 
+  handleRestoreSnapshot = () => {
+    try {
+      let targetKey = 'goodness_db_guest';
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('goodness_db_') && !k.includes('_snapshot_')) {
+          targetKey = k;
+          break;
+        }
+      }
+
+      let restoredData = null;
+      for (let ring = 1; ring <= 3; ring++) {
+        const raw = localStorage.getItem(`${targetKey}_snapshot_${ring}`);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+              restoredData = parsed.db || parsed;
+              break;
+            }
+          } catch (e) {}
+        }
+      }
+
+      if (restoredData) {
+        localStorage.setItem(targetKey, JSON.stringify(restoredData));
+        sessionStorage.removeItem('daily_verdict_safe_mode');
+        window.location.reload();
+      } else {
+        alert('No valid Time Machine snapshots found. Please use Emergency Rescue to download raw diary JSON.');
+      }
+    } catch (err) {
+      alert('Snapshot restore failed: ' + err.message);
+    }
+  };
+
+  hasAvailableSnapshot = () => {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.includes('_snapshot_')) {
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  };
+
   handleDismiss = () => {
     this.setState({
       hasError: false,
@@ -249,9 +298,30 @@ User Agent: ${navigator.userAgent}
                 onClick={this.handleEmergencyDownload}
                 className="w-full py-3.5 px-4 bg-[#00E599] hover:bg-emerald-400 border-2 border-black font-mono font-black uppercase tracking-wider text-xs rounded-xl shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-2 cursor-pointer text-black"
               >
-                <Download className="w-4 h-4 stroke-[2.5]" />
-                <span>{this.state.rescueDownloaded ? 'DIARY BACKUP DOWNLOADED ✓' : 'EMERGENCY RESCUE: DOWNLOAD MY DIARY (JSON)'}</span>
+                {this.state.rescueDownloaded ? (
+                  <>
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>DIARY BACKUP DOWNLOADED SUCCESSFULLY</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 stroke-[2.5]" />
+                    <span>EMERGENCY RESCUE: DOWNLOAD MY DIARY (JSON)</span>
+                  </>
+                )}
               </button>
+
+              {/* Time Machine Snapshot 1-Tap Recovery Button */}
+              {this.hasAvailableSnapshot() && (
+                <button
+                  type="button"
+                  onClick={this.handleRestoreSnapshot}
+                  className="w-full py-3 px-4 bg-[#FDC800] hover:bg-yellow-400 border-2 border-black font-mono font-black uppercase tracking-wider text-xs rounded-xl shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-2 cursor-pointer text-black"
+                >
+                  <RotateCcw className="w-4 h-4 stroke-[2.5]" />
+                  <span>TIME MACHINE: RESTORE FROM LATEST SNAPSHOT</span>
+                </button>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button

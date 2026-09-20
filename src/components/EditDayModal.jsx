@@ -75,6 +75,38 @@ export default function EditDayModal({
   const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const originalDraft = entryData?.notes || '';
 
+  // 💾 Keystroke Auto-Stash Engine for Past Day Edits
+  const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
+
+  useEffect(() => {
+    if (!dateStr) return;
+    const stashKey = `shit_or_hit_draft_stash_${dateStr}`;
+    const stashed = localStorage.getItem(stashKey);
+    if (stashed && stashed.trim() !== '' && stashed !== (entryData?.notes || '')) {
+      setHasUnsavedDraft(true);
+    }
+  }, [dateStr, entryData]);
+
+  // Keystroke auto-stash debounced at 1.5 seconds
+  useEffect(() => {
+    if (!dateStr || notes === (entryData?.notes || '')) return;
+    const timer = setTimeout(() => {
+      if (notes && notes.trim().length > 0) {
+        localStorage.setItem(`shit_or_hit_draft_stash_${dateStr}`, notes);
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [notes, dateStr, entryData]);
+
+  const handleRestoreDraft = () => {
+    const stashKey = `shit_or_hit_draft_stash_${dateStr}`;
+    const stashed = localStorage.getItem(stashKey);
+    if (stashed) {
+      setNotes(stashed);
+      setHasUnsavedDraft(false);
+    }
+  };
+
   useEffect(() => {
     // Strictly respect the user's active sphere mode setting
     const isGlobalSphereEnabled = isSphereModeEnabled();
@@ -277,6 +309,9 @@ export default function EditDayModal({
       spheres: sphereModeActive ? spheresData : entryData?.spheres,
       calculatedScore: comp ? comp.score : entryData?.calculatedScore
     });
+    try {
+      localStorage.removeItem(`shit_or_hit_draft_stash_${dateStr}`);
+    } catch (e) {}
     setIsSaving(false);
     onClose();
   };
@@ -571,6 +606,43 @@ export default function EditDayModal({
 
                   {/* Single Diary Reflection Textarea */}
                   <div className="flex-1 flex flex-col min-h-0 space-y-2">
+                    {/* 💾 Draft Stash Recovery Notice */}
+                    {hasUnsavedDraft && (
+                      <aside
+                        role="status"
+                        className="p-2 px-3 bg-[#FFE66D] border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-2 select-none"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Shield className="w-3.5 h-3.5 text-black shrink-0 stroke-[2.5]" />
+                          <span className="font-mono text-[10px] font-black uppercase text-black truncate">
+                            UNSAVED DRAFT FOUND
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleRestoreDraft}
+                            className="px-2 py-0.5 bg-black text-[#00E599] rounded-lg border border-black font-mono text-[10px] font-black uppercase cursor-pointer hover:bg-neutral-800 transition-all active:scale-95"
+                          >
+                            RESTORE
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              try {
+                                localStorage.removeItem(`shit_or_hit_draft_stash_${dateStr}`);
+                              } catch (e) {}
+                              setHasUnsavedDraft(false);
+                            }}
+                            className="p-0.5 text-black hover:bg-black/10 rounded-md cursor-pointer"
+                            title="Discard draft"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </aside>
+                    )}
+
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black shrink-0">
                       <span>2. EDIT DIARY REFLECTION NOTE</span>
 
