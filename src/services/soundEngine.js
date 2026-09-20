@@ -70,6 +70,13 @@ class SoundEngine {
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch (e) {}
+      };
+
       osc.start();
       osc.stop(this.ctx.currentTime + 0.04);
     } catch (e) {
@@ -100,6 +107,13 @@ class SoundEngine {
         osc.connect(gain);
         gain.connect(this.ctx.destination);
 
+        osc.onended = () => {
+          try {
+            osc.disconnect();
+            gain.disconnect();
+          } catch (e) {}
+        };
+
         osc.start(now + i * 0.05);
         osc.stop(now + i * 0.05 + 0.45);
       });
@@ -126,6 +140,13 @@ class SoundEngine {
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
+
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch (e) {}
+      };
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.3);

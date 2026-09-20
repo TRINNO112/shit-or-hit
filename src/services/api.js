@@ -389,6 +389,28 @@ export function safeStorageSetItem(key, value) {
   }
 }
 
+/**
+ * 🛡️ Request Permanent Storage Eviction Immunity from Browser (PWA/Mobile Safari/Chrome)
+ */
+export async function requestPersistentStorage() {
+  if (typeof window === 'undefined' || !navigator.storage || !navigator.storage.persist) {
+    return false;
+  }
+  try {
+    const isPersisted = await navigator.storage.persisted();
+    if (!isPersisted) {
+      const granted = await navigator.storage.persist();
+      if (granted) {
+        console.log('🛡️ [Storage Sentinel] Persistent storage granted by browser origin!');
+      }
+      return granted;
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 // 🔄 Triple-Tier Rolling Snapshots Engine (Time Machine)
 export function saveRollingSnapshot(storageKey, db) {
   if (typeof window === 'undefined' || !storageKey || !db || !db.entries) return;

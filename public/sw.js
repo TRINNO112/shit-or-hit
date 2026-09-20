@@ -1,7 +1,7 @@
-// ⚡ High-Performance PWA Service Worker for Daily Verdict (v6)
+// ⚡ High-Performance PWA Service Worker for Daily Verdict (v7)
 // Provides instant Cache-First & Stale-While-Revalidate for static assets & modal chunks,
 // eliminating network latency on mobile devices.
-const CACHE_NAME = 'daily-verdict-v6';
+const CACHE_NAME = 'daily-verdict-v7';
 
 // Assets to precache immediately on install
 const PRECACHE_URLS = [
