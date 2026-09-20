@@ -102,7 +102,7 @@ graph LR
 // =========================================================================
 const mermaidPoster2 = `
 graph LR
-    classDef headerNode fill:#FDC800,stroke:#000,stroke-width:3.5px,color:#000,font-weight:900;
+    classDef coreNode fill:#FDC800,stroke:#000,stroke-width:3.5px,color:#000,font-weight:900;
     classDef sectionNode fill:#00E599,stroke:#000,stroke-width:3px,color:#000,font-weight:900;
     classDef cryptoNode fill:#FEF3C7,stroke:#D97706,stroke-width:2.5px,color:#000,font-weight:800;
     classDef vaultNode fill:#DCFCE7,stroke:#16A34A,stroke-width:2.5px,color:#000,font-weight:800;
@@ -111,102 +111,83 @@ graph LR
     classDef compNode fill:#FFFDF5,stroke:#000,stroke-width:2.5px,color:#000,font-weight:700;
     classDef audioNode fill:#F3E8FF,stroke:#9333EA,stroke-width:2.5px,color:#000,font-weight:800;
 
-    %% =========================================================
-    %% DOMAIN 1: ZERO-KNOWLEDGE CRYPTO & KEY DERIVATION ENGINE
-    %% =========================================================
-    subgraph SEC1["🔒 1. ZERO-KNOWLEDGE CRYPTOGRAPHY & PIN VAULT ENGINE"]
-        UserPIN["VaultPinModal.jsx<br/>• 4-Digit mechanical PIN keypad<br/>• Rate-limiting lock out after 5 tries"]:::cryptoNode
-        
-        UserPIN --> PBKDF["cipherEngine.js (Web Crypto API)<br/>• Step 1: PBKDF2-HMAC-SHA256 (100,000 rounds)<br/>• Step 2: 16-byte cryptographically secure salt<br/>• Step 3: Derives 256-bit AES-GCM symmetric key"]:::cryptoNode
-        
-        PBKDF --> KeyCache["Volatile RAM Key Cache<br/>• Cached only in memory during session<br/>• Auto-purges on lock timeout or tab close"]:::cryptoNode
-
-        KeyCache --> EncEngine["AES-256-GCM Authenticated Encryption<br/>• 12-Byte random IV per record<br/>• 128-Bit GCM authentication tag verifies integrity"]:::cryptoNode
-
-        EncEngine --> CipherStore[("Encrypted Ciphertext Storage<br/>Stored in localStorage & Cloud Firestore<br/>Server admins & hackers have ZERO ability to read diary")]:::vaultNode
+    %% CENTRAL COMMAND HUB
+    subgraph HUB["🏛️ PLATFORM ENGINE & RUNTIME HUB"]
+        PlatformCore["SHIT OR HIT SYSTEM CORE<br/>• React 19 + Express + Firestore<br/>• 54/54 Test Invariant Audit Gate<br/>• Dual-Remote Synchronized (GitHub + GitLab)"]:::coreNode
     end
 
-    %% =========================================================
-    %% DOMAIN 2: SEVEN-TIER DISASTER-PROOF PERSISTENCE
-    %% =========================================================
-    subgraph SEC2["💾 2. SEVEN-TIER DISASTER-PROOF PERSISTENCE & TIME MACHINE"]
-        Keystroke["AutoExpandTextarea.jsx<br/>• Real-time diary note capture"]:::compNode
+    %% CLUSTER 1: ZERO-KNOWLEDGE CRYPTO & PIN VAULT
+    subgraph SEC1["🔒 1. ZERO-KNOWLEDGE CRYPTOGRAPHY & PIN VAULT"]
+        PlatformCore --> UserPIN["VaultPinModal.jsx<br/>• 4-Digit tactile mechanical keypad<br/>• 5-Attempt rate limiting lockout"]:::cryptoNode
         
-        Keystroke --> DraftStash["1.5s Keystroke Auto-Stash<br/>• Stored in shit_or_hit_draft_stash_{date}<br/>• Restores unsaved draft on crash or battery death"]:::vaultNode
+        UserPIN --> PBKDF["cipherEngine.js (Web Crypto API)<br/>• PBKDF2-HMAC-SHA256 (100,000 rounds)<br/>• 16-Byte cryptographically secure salt<br/>• 256-Bit AES-GCM symmetric key derivation"]:::cryptoNode
+        
+        PBKDF --> KeyCache["Volatile RAM Key Cache<br/>• Retained only in browser memory<br/>• Auto-purges on lock timeout or tab close"]:::cryptoNode
 
-        DraftStash --> SaveAPI(["saveEntry() in api.js"]):::headerNode
+        KeyCache --> EncEngine["AES-256-GCM Authenticated Cipher<br/>• Unique 12-byte random IV per entry<br/>• 128-Bit GCM authentication tag"]:::cryptoNode
 
-        SaveAPI --> L1[("Layer 1: Partitioned LocalStorage<br/>• goodness_db_UID / goodness_db_guest<br/>• 0ms synchronous disk commit")]:::compNode
-
-        L1 --> L2[("Layer 2: 3-Tier Rolling Ring Snapshots<br/>• snapshot_1 (newest) • snapshot_2 • snapshot_3<br/>• Rotates automatically on every save<br/>• Time Machine 1-Click Restore in Settings")]:::vaultNode
-
-        L1 -.->|"OS Crash / Storage Corruption"| SafeParse["safeParseDatabase() in api.js<br/>Catches JSON syntax error and auto-heals<br/>data seamlessly from newest snapshot ring"]:::vaultNode
-        SafeParse -.-> L1
-
-        L1 --> L3["Layer 3: OfflineShelterBadge.jsx<br/>• Active write probe verifies disk integrity<br/>• Tactile 'OK' dismiss + 6-second auto-fade"]:::pwaNode
-
-        L1 --> L4[("Layer 4: Firebase Firestore Sync<br/>• Bidirectional cloud sync (firebase.js)<br/>• reconcileEntryItems with timestamp precedence")]:::compNode
-
-        L1 --> L5["Layer 5: Emergency Raw Disaster Extraction<br/>• Embedded in ErrorBoundary.jsx<br/>• Bypasses React: reads raw localStorage keys<br/>• 1-Click download: shit_or_hit_diary_backup.json"]:::alertNode
+        EncEngine --> CipherStore[("Encrypted Ciphertext Storage<br/>Stored in localStorage & Cloud Firestore<br/>Admins & hackers have ZERO read access")]:::vaultNode
     end
 
-    %% =========================================================
-    %% DOMAIN 3: PWA RUNTIME & AUTO-HEALING SERVICE WORKER
-    %% =========================================================
-    subgraph SEC3["⚡ 3. RUNTIME AIRBAGS & PWA AUTO-HEALING PIPELINE"]
-        PrePush["🛡️ Pre-Push Audit Gate (audit-system.js)<br/>• 54 Tests across 33 Components<br/>• 54 PASSED | 0 FAILED mandatory bar"]:::vaultNode
-        
-        PrePush --> DualPush["Dual-Remote Deployment<br/>• git push origin main (GitHub)<br/>• git push gitlab main (GitLab)<br/>• Commit series prefix 'D' enforced"]:::headerNode
+    %% CLUSTER 2: SEVEN-TIER DISASTER-PROOF PERSISTENCE
+    subgraph SEC2["💾 2. SEVEN-TIER DISASTER-PROOF PERSISTENCE"]
+        PlatformCore --> DraftStash["1.5s Keystroke Auto-Stash<br/>• Stored in shit_or_hit_draft_stash_{date}<br/>• Restores unsaved draft on crash or battery death"]:::vaultNode
 
-        DualPush --> SW["Service Worker Engine (public/sw.js)<br/>• Stale-While-Revalidate caching<br/>• Immediate 0ms cache-first asset returns"]:::pwaNode
+        DraftStash --> DiskCommit[("Layer 1: Partitioned LocalStorage<br/>• goodness_db_UID / goodness_db_guest<br/>• 0ms synchronous disk commit")]:::compNode
 
-        SW --> ChunkMismatch{"Stale Tab requests old chunk?"}:::sectionNode
+        DiskCommit --> Snapshots[("Layer 2: 3-Tier Rolling Snapshots<br/>• snapshot_1 (newest) • snapshot_2 • snapshot_3<br/>• Rotates automatically on every save<br/>• Time Machine 1-Click Restore in Settings")]:::vaultNode
 
-        ChunkMismatch -->|"ChunkLoadError detected"| SafeLazy["Self-Healing Dynamic Loader (safeLazy in App.jsx)<br/>• Intercepts chunk mismatch on new code push<br/>• 10s reload lock in sessionStorage<br/>• Silently reloads client once in background"]:::vaultNode
+        Snapshots --> AutoHeal["safeParseDatabase() Auto-Heal<br/>• Intercepts JSON syntax errors silently<br/>• Seamlessly restores data from newest ring"]:::vaultNode
 
-        SafeLazy --> ComponentAirbags["FaultBoundary.jsx (Component Airbags)<br/>• TodayHero Shield: Fallback rating strip<br/>• Modals Shield: Auto-closes safely with toast<br/>• Header, Nav & Calendar stay 100% ALIVE!"]:::vaultNode
+        AutoHeal --> ShelterBadge["Layer 3: OfflineShelterBadge.jsx<br/>• Active write probe verifies disk integrity<br/>• Tactile 'OK' dismiss + 6s auto-fade"]:::pwaNode
 
-        SafeLazy --> RootReactor["ErrorBoundary.jsx (Global Reactor Core)<br/>• Full-screen Neobrutalist emergency console<br/>• 1-Click Safe Mode Reset & JSON backup dump"]:::alertNode
+        ShelterBadge --> CloudSync[("Layer 4: Firebase Firestore Cloud Sync<br/>• Bidirectional sync via reconcileEntryItems<br/>• Silent timeout protection never hangs UI")]:::compNode
+
+        CloudSync --> RescueBtn["Layer 5: Emergency 1-Click Rescue<br/>• Embedded directly in ErrorBoundary.jsx<br/>• Bypasses React to download raw JSON backup"]:::alertNode
     end
 
-    %% =========================================================
-    %% DOMAIN 4: MULTI-TENANT ACCESS & STATUTORY PRIVACY
-    %% =========================================================
-    subgraph SEC4["⚖️ 4. ACCESS CONTROL, DPDPA 2023 & OBSERVABILITY"]
-        AccessRouter{"User Authentication Gate"}:::sectionNode
-        
-        AccessRouter -->|"Verified Google Account"| CloudUser["Tier 1: Whitelisted Owners<br/>• Multi-device Firestore cloud sync<br/>• AI Diary Ghostwriter & Monthly Dossier"]:::compNode
-        
-        AccessRouter -->|"Unauthenticated"| GuestUser["Tier 2: Guest Mode (Local-First)<br/>• goodness_db_guest sandbox<br/>• GuestDisclaimerModal 30-day notice"]:::compNode
+    %% CLUSTER 3: PWA RUNTIME & AUTO-HEALING PIPELINE
+    subgraph SEC3["⚡ 3. RUNTIME AIRBAGS & AUTO-HEALING PWA"]
+        PlatformCore --> ServiceWorker["public/sw.js (Service Worker Engine)<br/>• Stale-While-Revalidate asset caching<br/>• 0ms instant disk cache responses"]:::pwaNode
+
+        ServiceWorker --> PWAUpdatePill["PWA Update Pill (PWAInstallBanner.jsx)<br/>• Real-time ServiceWorker update listener<br/>• 'NEW VERSION AVAILABLE • TAP TO UPDATE'"]:::pwaNode
+
+        PWAUpdatePill --> SafeLazy["Self-Healing Dynamic Loader (safeLazy)<br/>• Intercepts ChunkLoadError on new deploy<br/>• 10s reload lock in sessionStorage<br/>• Silently reloads client once in background"]:::vaultNode
+
+        SafeLazy --> FaultAirbags["FaultBoundary.jsx (Component Airbags)<br/>• TodayHero: Emergency rating strip fallback<br/>• Modals: Auto-closes safely with toast notice<br/>• Navigation, Header & Calendar stay 100% ALIVE!"]:::vaultNode
+
+        FaultAirbags --> GlobalReactor["ErrorBoundary.jsx (Global Reactor Core)<br/>• Full-screen Neobrutalist emergency console<br/>• 1-Click Safe Mode Reset & JSON backup dump"]:::alertNode
+    end
+
+    %% CLUSTER 4: TWO-TIER ACCESS & STATUTORY DPDPA 2023 PRIVACY
+    subgraph SEC4["⚖️ 4. ACCESS CONTROL & DPDPA 2023 COMPLIANCE"]
+        PlatformCore --> AuthGate{"Two-Tier Access Router"}:::sectionNode
+
+        AuthGate -->|"Verified Google Account"| CloudUser["Tier 1: Whitelisted Owners<br/>• Multi-device Firestore cloud sync<br/>• AI Diary Ghostwriter & Monthly Dossier"]:::compNode
+
+        AuthGate -->|"Unauthenticated"| GuestUser["Tier 2: Guest Mode (Local-First)<br/>• goodness_db_guest isolated sandbox<br/>• GuestDisclaimerModal 30-day notice"]:::compNode
 
         CloudUser & GuestUser --> SettingsEngine["SettingsModal.jsx & System Config<br/>• RadialClockPicker.jsx (24h/12h mechanical dial)<br/>• StickerVaultModal.jsx (Reward stickers)"]:::compNode
 
-        SettingsEngine --> DPDPACompliance["Indian DPDPA 2023 Statutory Compliance<br/>• PrivacyPolicyPage.jsx: Grievance officer routing<br/>• Zero-knowledge encrypted storage guarantees"]:::compNode
+        SettingsEngine --> DPDPAStatutory["Indian DPDPA 2023 Statutory Compliance<br/>• PrivacyPolicyPage.jsx: Grievance officer routing<br/>• Zero-knowledge encrypted storage guarantees"]:::compNode
 
-        SettingsEngine --> DataErasure["DataErasurePage.jsx (Right to be Forgotten)<br/>• Instant local database purge<br/>• 7-Day regret-proof cloud cooling-off hold"]:::alertNode
+        SettingsEngine --> RegretErasure["DataErasurePage.jsx (Right to be Forgotten)<br/>• Instant local database purge<br/>• 7-Day regret-proof cloud cooling-off hold"]:::alertNode
 
-        RootReactor & ComponentAirbags --> TelemetryMesh["Sentry React SDK + Winston Logger<br/>• Session replay for error diagnosis<br/>• JSON structured logs (server.log, error.log)"]:::compNode
+        GlobalReactor & FaultAirbags --> TelemetryMesh["Sentry React SDK + Winston Structured Logger<br/>• Session replay for error diagnosis<br/>• server.log & error.log telemetry"]:::compNode
     end
 
-    %% =========================================================
-    %% DOMAIN 5: PROCEDURAL WEB AUDIO SYNTHESIZERS
-    %% =========================================================
+    %% CLUSTER 5: PROCEDURAL WEB AUDIO SYNTHESIZERS
     subgraph SEC5["🔊 5. PROCEDURAL WEB AUDIO SYNTHESIZERS"]
-        AudioMaster["soundEngine.js & soundEffects.js (Web Audio API)"]:::audioNode
-        
-        AudioMaster --> ClickSynth["Mechanical Key Click<br/>• 320Hz -> 80Hz pitch sweep<br/>• 35ms exponential gain envelope"]:::audioNode
-        
-        AudioMaster --> ShutterSynth["Camera Shutter Synthesizer<br/>• Dual 40ms burst white noise<br/>• 1200Hz Band-Pass Filter"]:::audioNode
+        PlatformCore --> AudioEngine["soundEngine.js & soundEffects.js (Web Audio API)"]:::audioNode
 
-        AudioMaster --> ChimeSynth["Harmonic Resonant Chime<br/>• 880Hz pure sine oscillator<br/>• 600ms reverberant decay tail"]:::audioNode
+        AudioEngine --> KeyClick["Mechanical Key Click<br/>• 320Hz -> 80Hz pitch sweep<br/>• 35ms exponential gain envelope"]:::audioNode
 
-        AudioMaster --> BinauralSynth["Sanctuary Binaural Drone<br/>• 432Hz grounding ambient sine wave<br/>• Continuous restorative stasis loop"]:::audioNode
+        AudioEngine --> ShutterSound["Camera Shutter Synthesizer<br/>• Dual 40ms burst white noise<br/>• 1200Hz Band-Pass Filter"]:::audioNode
+
+        AudioEngine --> ChimeSound["Harmonic Resonant Chime<br/>• 880Hz pure sine oscillator<br/>• 600ms reverberant decay tail"]:::audioNode
+
+        AudioEngine --> DroneSound["Sanctuary Binaural Drone<br/>• 432Hz grounding ambient sine wave<br/>• Continuous restorative stasis loop"]:::audioNode
     end
-
-    %% INTER-DOMAIN DATA PIPELINE CONNECTIONS
-    CipherStore -.-> L1
-    L5 -.-> RootReactor
-    SettingsEngine -.-> AudioMaster
 `;
 
 function buildLandscapeHtml(title, subtitle, badgeText, mermaidCode) {
