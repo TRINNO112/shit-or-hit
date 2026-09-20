@@ -279,7 +279,7 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h4 className="font-display font-black text-sm sm:text-base uppercase tracking-tight text-black truncate">
-                {isRehab ? '🌿 Sanctuary Compassion Anchors' : 'Daily Non-Negotiables'}
+                {isRehab ? 'Sanctuary Compassion Anchors' : 'Daily Non-Negotiables'}
               </h4>
               <span className={`px-2 py-0.5 rounded-lg border border-black text-[9px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] ${
                 isRehab ? 'bg-[#00E599] text-black font-black' :
@@ -287,9 +287,9 @@ export default function NonNegotiableCard({ dateStr, onScoreUpdate }) {
                 mode === 'hybrid_50_50' ? 'bg-[#FDC800] text-black' :
                 'bg-neutral-100 text-neutral-800'
               }`}>
-                {isRehab ? '🌿 REHABILITATION (STREAK FROZEN)' :
-                 mode === 'deterministic_100' ? '🔒 100% Task Engine' :
-                 mode === 'hybrid_50_50' ? '⚖️ 50/50 Hybrid' : '📋 Checklist'}
+                {isRehab ? 'REHABILITATION (STREAK FROZEN)' :
+                 mode === 'deterministic_100' ? '100% TASK ENGINE' :
+                 mode === 'hybrid_50_50' ? '50/50 HYBRID' : 'CHECKLIST'}
               </span>
             </div>
             <p className="text-[11px] font-mono text-neutral-600 truncate">

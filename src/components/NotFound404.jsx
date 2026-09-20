@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Calendar, Sparkles, ArrowLeft } from 'lucide-react';
+import { Home, Calendar, Sparkles, ArrowLeft, Zap, Compass, MessageSquare } from 'lucide-react';
 import Blob3DCanvas from './Blob3DCanvas';
 import { soundEngine } from '../services/soundEngine';
 
@@ -58,13 +58,13 @@ const BLOB_THEMES = [
 
 const TRICKY_QUIPS = [
   "Poke the jelly blob to probe the temporal disturbance...",
-  "Hey! Don't take your 404 frustration out on me, you typed the URL! 😅",
-  "⚠️ Paradox Detected: If a day is never recorded, does it judge you in secret?",
+  "Hey! Don't take your 404 frustration out on me, you typed the URL!",
+  "Paradox Detected: If a day is never recorded, does it judge you in secret?",
   "Analyzing cursor trajectory... Verdict: 100% lost, but 100% aesthetic.",
   "Quantum Verdict: This day is simultaneously a Hit and a Shit until observed.",
   "Stop poking! The 'Return to Today' button is literally right below me!",
-  "Are you truly lost, or are you just avoiding logging today's verdict? 🤔",
-  "🎉 Secret Unlocked: Master of Procrastination in the 4th Dimension!",
+  "Are you truly lost, or are you just avoiding logging today's verdict?",
+  "Secret Unlocked: Master of Procrastination in the 4th Dimension!",
 ];
 
 export default function NotFound404({ onGoHome, onGoTimeline }) {
@@ -157,10 +157,10 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-2 border-b-2 border-black pb-4">
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] flex items-center justify-center font-black text-xl transition-colors duration-500"
+            className="w-10 h-10 border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] flex items-center justify-center transition-colors duration-500"
             style={{ backgroundColor: activeTheme.base }}
           >
-            ⚡
+            <Zap size={20} className="text-black" />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-black uppercase tracking-wider font-display">
@@ -196,8 +196,9 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
           <p className="text-sm md:text-base font-mono text-neutral-800 font-bold leading-relaxed">
             Did this day never exist, or did your verdict collapse the continuum? You've stumbled into the unrecorded space between yesterday's hit and tomorrow's shit.
           </p>
-          <p className="text-xs font-mono text-neutral-600 bg-[#FFFDF5] border border-neutral-300 rounded-lg p-2 inline-block">
-            🔮 <span className="font-bold">Void Paradox:</span> If time never stops, why did this page? (Watch out: the 3D jelly sentinel is tracking your cursor's every hesitation.)
+          <p className="text-xs font-mono text-neutral-600 bg-[#FFFDF5] border border-neutral-300 rounded-lg p-2 inline-flex items-center gap-1.5">
+            <Compass size={14} className="text-black shrink-0" />
+            <span><strong className="font-black text-black">VOID PARADOX:</strong> If time never stops, why did this page? (The 3D jelly sentinel tracks your cursor's every hesitation.)</span>
           </p>
         </div>
 
@@ -242,7 +243,7 @@ export default function NotFound404({ onGoHome, onGoTimeline }) {
 
         {/* Interactive Tricky Quip Bubble — re-animates in on every new quip */}
         <div className="w-full max-w-md my-4 p-3 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] flex items-center gap-3">
-          <span className="text-xl select-none">💬</span>
+          <MessageSquare size={18} className="text-black shrink-0" />
           <p key={pokeCount} className="quip-enter text-xs font-mono font-bold text-neutral-800 text-left leading-relaxed">
             {currentQuip}
           </p>

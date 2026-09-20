@@ -1632,10 +1632,10 @@ export const DEFAULT_COMPASSION_ANCHORS = [
 ];
 
 export const DEFAULT_SANCTUARY_INQUIRIES = [
-  { id: 'water', question: 'Have you drank a glass of water today?', icon: '💧', affirmText: 'Yes 💧', deferText: 'Not yet' },
-  { id: 'screens', question: 'Did you step away from screens for a moment?', icon: '🌿', affirmText: 'Yes 🌿', deferText: 'Not yet' },
-  { id: 'nourish', question: 'Have you eaten something nourishing?', icon: '🍲', affirmText: 'Yes 🍲', deferText: 'Later' },
-  { id: 'sigh', question: 'Took a deep physiological sigh (2 inhales, long exhale)?', icon: '🫁', affirmText: 'Done 🫁', deferText: 'Will try' }
+  { id: 'water', question: 'Have you drank a glass of water today?', icon: 'Droplets', affirmText: 'AFFIRMED', deferText: 'Not yet' },
+  { id: 'screens', question: 'Did you step away from screens for a moment?', icon: 'EyeOff', affirmText: 'AFFIRMED', deferText: 'Not yet' },
+  { id: 'nourish', question: 'Have you eaten something nourishing?', icon: 'UtensilsCrossed', affirmText: 'AFFIRMED', deferText: 'Later' },
+  { id: 'sigh', question: 'Took a deep physiological sigh (2 inhales, long exhale)?', icon: 'Wind', affirmText: 'DONE', deferText: 'Will try' }
 ];
 
 export function getRehabilitationConfig() {

@@ -12,7 +12,8 @@ import {
   Flame,
   Zap,
   Star,
-  Layers
+  Layers,
+  Palette
 } from 'lucide-react';
 import {
   getStickerVault,
@@ -193,12 +194,14 @@ export default function StickerVaultModal({
                 Active Sticker:
               </span>
               {activeId === 'auto' ? (
-                <span className="px-2.5 py-0.5 bg-[#00E599] border border-black rounded-lg font-mono text-[11px] sm:text-xs font-black text-black">
-                  ⚡ Auto-Linked to Mood Rating
+                <span className="px-2.5 py-0.5 bg-[#00E599] border border-black rounded-lg font-mono text-[11px] sm:text-xs font-black text-black flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 stroke-3 text-black" />
+                  <span>AUTO-LINKED TO MOOD RATING</span>
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 bg-[#FDC800] border border-black rounded-lg font-mono text-[11px] sm:text-xs font-black text-black truncate max-w-42.5 sm:max-w-xs">
-                  🎨 Fixed Custom Sticker Selected
+                <span className="px-2.5 py-0.5 bg-[#FDC800] border border-black rounded-lg font-mono text-[11px] sm:text-xs font-black text-black truncate max-w-42.5 sm:max-w-xs flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5 stroke-3 text-black shrink-0" />
+                  <span className="truncate">FIXED CUSTOM STICKER SELECTED</span>
                 </span>
               )}
             </div>
@@ -300,16 +303,18 @@ export default function StickerVaultModal({
                       <Sparkles className="w-7 h-7 text-black" />
                     </div>
                     <div className="min-w-0 w-full mb-1">
-                      <span className="font-display font-black text-xs uppercase block text-black truncate leading-tight">
-                        ⚡ Auto Mood
+                      <span className="font-display font-black text-xs uppercase block text-black truncate leading-tight flex items-center justify-center gap-1">
+                        <Zap className="w-3.5 h-3.5 text-black stroke-3" />
+                        <span>AUTO MOOD</span>
                       </span>
                       <span className="text-[10px] font-mono text-neutral-500 block truncate mt-0.5">
                         Dynamic 1★–5★
                       </span>
                     </div>
                     {activeId === 'auto' ? (
-                      <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded-md font-mono text-[9px] font-black text-black shrink-0">
-                        ✓ ACTIVE
+                      <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded-md font-mono text-[9px] font-black text-black shrink-0 flex items-center gap-1">
+                        <Check className="w-2.5 h-2.5 stroke-3" />
+                        <span>ACTIVE</span>
                       </span>
                     ) : (
                       <span className="text-[9px] font-mono text-neutral-400 font-bold shrink-0">
@@ -347,8 +352,9 @@ export default function StickerVaultModal({
                           </span>
                         </div>
                         {isSelected ? (
-                          <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded-md font-mono text-[9px] font-black text-black shrink-0">
-                            ✓ ACTIVE
+                          <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded-md font-mono text-[9px] font-black text-black shrink-0 flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5 stroke-3" />
+                            <span>ACTIVE</span>
                           </span>
                         ) : (
                           <span className="text-[9px] font-mono text-neutral-400 font-bold shrink-0">
@@ -393,8 +399,9 @@ export default function StickerVaultModal({
                           </span>
                         </div>
                         {isSelected ? (
-                          <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded-md font-mono text-[9px] font-black text-black shrink-0">
-                            ✓ ACTIVE
+                          <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded-md font-mono text-[9px] font-black text-black shrink-0 flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5 stroke-3" />
+                            <span>ACTIVE</span>
                           </span>
                         ) : (
                           <span className="text-[9px] font-mono text-neutral-400 font-bold shrink-0">

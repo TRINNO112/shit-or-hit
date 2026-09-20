@@ -286,7 +286,7 @@ export default function RansomCapsuleModal({
   const currentPaletteObj = WAX_SEAL_PALETTES.find(p => p.id === selectedPalette) || WAX_SEAL_PALETTES[0];
 
   return (
-    <div className="fixed inset-0 z-[85] bg-[#14110E]/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto" onClick={onClose}>
+    <div className="fixed inset-0 z-85 bg-[#14110E]/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto" onClick={onClose}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
 

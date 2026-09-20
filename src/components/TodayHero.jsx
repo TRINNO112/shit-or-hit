@@ -1344,8 +1344,9 @@ export default function TodayHero({
                 </div>
               </div>
             ) : (
-              <div className="px-3.5 py-2 bg-neutral-100 border-2 border-dashed border-black/30 rounded-2xl text-xs font-mono font-bold text-neutral-500 self-start md:self-auto">
-                ⚡ Rate spheres below to calculate score
+              <div className="px-3.5 py-2 bg-neutral-100 border-2 border-dashed border-black/30 rounded-2xl text-xs font-mono font-bold text-neutral-500 self-start md:self-auto flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-black shrink-0" />
+                <span>RATE SPHERES BELOW TO CALCULATE SCORE</span>
               </div>
             )}
           </div>
@@ -1433,8 +1434,9 @@ export default function TodayHero({
                       </button>
 
                       {currentSphereData.notes && (
-                        <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-400 font-black">
-                          ✓ Saved
+                        <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-400 font-black flex items-center gap-1">
+                          <Check className="w-3 h-3 stroke-3" />
+                          <span>SAVED</span>
                         </span>
                       )}
                     </div>

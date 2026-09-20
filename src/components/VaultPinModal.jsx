@@ -412,8 +412,9 @@ export function VaultPinSettings({ onPinUpdated }) {
                     <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 stroke-[2.5]" />
                     <span>ZERO-RECOVERY POLICY</span>
                   </div>
-                  <p className="font-mono font-black text-xs leading-relaxed uppercase">
-                    ⚠️ IF YOU FORGET THIS PIN, YOUR VAULT CAN NEVER BE RECOVERED. NOT EVEN VIA FIREBASE OR DEVELOPERS.
+                  <p className="font-mono font-black text-xs leading-relaxed uppercase flex items-start gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 stroke-3 mt-0.5" />
+                    <span>IF YOU FORGET THIS PIN, YOUR VAULT CAN NEVER BE RECOVERED. NOT EVEN VIA FIREBASE OR DEVELOPERS.</span>
                   </p>
                   <p className="font-mono text-[11px] text-neutral-800 leading-relaxed">
                     We do not store your raw PIN on any server. It is protected by salted <strong>SHA-256 cryptographic hashing</strong> directly on your client. There are zero backdoors, zero password-resets, and zero bypass links.

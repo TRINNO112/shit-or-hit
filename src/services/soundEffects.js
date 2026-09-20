@@ -11,11 +11,11 @@ class SoundEngine {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return false;
-      if (!this.ctx || this.ctx.state === 'suspended') {
+      if (!this.ctx) {
         this.ctx = new AudioCtx();
       }
-      if (this.ctx.state === 'suspended') {
-        this.ctx.resume();
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
       }
       return true;
     } catch (e) {

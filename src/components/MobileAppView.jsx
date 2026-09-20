@@ -883,7 +883,7 @@ export default function MobileAppView({
                               : 'bg-white text-neutral-400'
                           }`}
                         >
-                          {isPast ? '✓' : dayNum}
+                          {isPast ? <Check className="w-2.5 h-2.5 stroke-3" /> : dayNum}
                         </div>
                       );
                     })}
@@ -1835,9 +1835,10 @@ export default function MobileAppView({
 
                   <button
                     onClick={() => setShowNoteDrawer(false)}
-                    className="px-3 py-1 rounded-xl bg-neutral-100 hover:bg-neutral-200 border-2 border-black font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer"
+                    className="px-3 py-1 rounded-xl bg-neutral-100 hover:bg-neutral-200 border-2 border-black font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1"
                   >
-                    ✕ CLOSE
+                    <X className="w-3.5 h-3.5 stroke-3" />
+                    <span>CLOSE</span>
                   </button>
                 </div>
               </div>
@@ -1870,7 +1871,7 @@ export default function MobileAppView({
                               : 'bg-white hover:bg-[#FDC800] text-neutral-800 shadow-[1px_1px_0px_#000000]'
                           }`}
                         >
-                          {isSelected && <span>✓</span>}
+                          {isSelected && <Check className="w-2.5 h-2.5 stroke-3" />}
                           <span>{tag}</span>
                         </button>
                       );

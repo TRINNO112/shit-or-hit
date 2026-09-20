@@ -292,7 +292,7 @@ export default function NonNegotiablesStudioModal({ isOpen, onClose, onSettingsC
                         <ul className="text-[11px] sm:text-xs font-mono font-bold text-neutral-600 space-y-0.5">
                           {m.bullets.map((b, bIdx) => (
                             <li key={bIdx} className="flex items-center gap-1.5">
-                              <span className="text-[#00E599] font-black">✔</span>
+                              <Check className="w-3.5 h-3.5 text-[#00E599] stroke-3 shrink-0" />
                               <span>{b}</span>
                             </li>
                           ))}

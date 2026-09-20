@@ -12,7 +12,9 @@ import {
   ShieldCheck,
   Layers,
   Palette,
-  Eye
+  Eye,
+  BarChart2,
+  Zap
 } from 'lucide-react';
 import { ratingMeta } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
@@ -168,7 +170,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
     ctx.textAlign = 'center';
     ctx.fillStyle = accentColor;
     ctx.font = `900 ${22 * scale}px "Plus Jakarta Sans", monospace`;
-    ctx.fillText(`⚡ SHIT OR HIT • 365-DAY LIFE MATRIX`, width / 2, headerY - (45 * scale));
+    ctx.fillText(`SHIT OR HIT • 365-DAY LIFE MATRIX`, width / 2, headerY - (45 * scale));
 
     ctx.fillStyle = textColor;
     ctx.font = `900 ${56 * scale}px "Cabinet Grotesk", "Plus Jakarta Sans", sans-serif`;
@@ -269,7 +271,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
     ctx.textAlign = 'center';
     ctx.fillStyle = subColor;
     ctx.font = `700 ${14 * scale}px monospace`;
-    ctx.fillText(`⚡ GENERATED VIA DAILY VERDICT OS • ZERO PRIVACY LEAKS`, width / 2, height - (40 * scale));
+    ctx.fillText(`GENERATED VIA DAILY VERDICT OS • ZERO PRIVACY LEAKS`, width / 2, height - (40 * scale));
 
     ctx.restore();
   };
@@ -304,9 +306,9 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#FDC800] animate-pulse" />
+            <Calendar className="w-5 h-5 text-[#FDC800] shrink-0" />
             <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-white">
-              🗓️ 365-Day Year in Pixels 4K Wallpaper Engine
+              365-Day Year in Pixels 4K Wallpaper Engine
             </h3>
           </div>
           <p className="text-xs font-mono text-neutral-400 mt-1">
@@ -345,9 +347,9 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
           </span>
           <div className="grid grid-cols-3 gap-1.5">
             {[
-              { id: 'phone', label: '📱 9:16 Phone' },
-              { id: 'desktop', label: '🖥️ 16:9 4K' },
-              { id: 'square', label: '🖨️ 1:1 Poster' }
+              { id: 'phone', label: '9:16 PHONE' },
+              { id: 'desktop', label: '16:9 4K' },
+              { id: 'square', label: '1:1 POSTER' }
             ].map(f => (
               <button
                 key={f.id}
@@ -372,9 +374,9 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
           </span>
           <div className="grid grid-cols-3 gap-1.5">
             {[
-              { id: 'darkroom', label: '🌌 Darkroom' },
-              { id: 'matrix', label: '🖤 Matrix OLED' },
-              { id: 'cream', label: '🍦 Cream Neobrut' }
+              { id: 'darkroom', label: 'DARKROOM' },
+              { id: 'matrix', label: 'MATRIX OLED' },
+              { id: 'cream', label: 'CREAM NEOBRUT' }
             ].map(t => (
               <button
                 key={t.id}
@@ -401,24 +403,26 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
             <button
               type="button"
               onClick={() => setUseDemoData(false)}
-              className={`py-2 px-1 rounded-xl text-xs font-mono font-black text-center cursor-pointer transition-all ${
+              className={`py-2 px-1 rounded-xl text-xs font-mono font-black text-center cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
                 !useDemoData
                   ? 'bg-[#00E599] text-black font-black'
                   : 'bg-white/10 text-neutral-300 hover:bg-white/20'
               }`}
             >
-              📊 My Actual Logs
+              <BarChart2 className="w-3.5 h-3.5 stroke-2" />
+              <span>MY ACTUAL LOGS</span>
             </button>
             <button
               type="button"
               onClick={() => setUseDemoData(true)}
-              className={`py-2 px-1 rounded-xl text-xs font-mono font-black text-center cursor-pointer transition-all ${
+              className={`py-2 px-1 rounded-xl text-xs font-mono font-black text-center cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
                 useDemoData
                   ? 'bg-[#FDC800] text-black font-black'
                   : 'bg-white/10 text-neutral-300 hover:bg-white/20'
               }`}
             >
-              ⚡ Full 365 Demo
+              <Zap className="w-3.5 h-3.5 stroke-3 text-black" />
+              <span>FULL 365 DEMO</span>
             </button>
           </div>
         </div>
