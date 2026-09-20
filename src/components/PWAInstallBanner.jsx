@@ -1,17 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, X, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Download, Smartphone, X, Sparkles, CheckCircle2, RefreshCw } from 'lucide-react';
 import ShieldVoltIcon from './ShieldVoltIcon';
 
 export default function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-
   const [showGuideModal, setShowGuideModal] = useState(false);
 
+  // ⚡ PWA Auto-Update Engine (Tactile 1-Tap Neobrutalist Update Pill)
+  const [hasUpdate, setHasUpdate] = useState(false);
+  const [waitingWorker, setWaitingWorker] = useState(null);
+
   useEffect(() => {
-    // Check if already in standalone mode (already installed)
+    // 1. Service Worker Update Detection
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((reg) => {
+        if (reg.waiting) {
+          setWaitingWorker(reg.waiting);
+          setHasUpdate(true);
+        }
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                setWaitingWorker(newWorker);
+                setHasUpdate(true);
+              }
+            });
+          }
+        });
+      }).catch(() => {});
+
+      let refreshing = false;
+      const handleControllerChange = () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    }
+
+    // 2. Check if already in standalone mode (already installed)
     const isStandalone = 
       window.matchMedia('(display-mode: standalone)').matches || 
       window.navigator.standalone || 
@@ -49,6 +83,13 @@ export default function PWAInstallBanner() {
     };
   }, []);
 
+  const handleApplyUpdate = () => {
+    if (waitingWorker) {
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    }
+    window.location.reload();
+  };
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
       // Open clean interactive visual guide modal instead of browser alert
@@ -85,17 +126,20 @@ export default function PWAInstallBanner() {
     setShowGuideModal(false);
   };
 
-  if (isInstalled || isDismissed) return null;
+  const showInstallPrompt = !isInstalled && !isDismissed;
+
+  if (!showInstallPrompt && !showGuideModal && !hasUpdate) return null;
 
   return (
     <>
-      <AnimatePresence>
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -50, opacity: 0 }}
-          className="w-full bg-[#FDC800] border-b-2 border-black py-2 px-3 select-none z-40 sticky top-0 shadow-[0_3px_0_#000000]"
-        >
+      {showInstallPrompt && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            className="w-full bg-[#FDC800] border-b-2 border-black py-2 px-3 select-none z-40 sticky top-0 shadow-[0_3px_0_#000000]"
+          >
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center p-0.5 shrink-0 shadow-[1px_1px_0px_#000000]">
@@ -132,6 +176,31 @@ export default function PWAInstallBanner() {
           </div>
         </motion.div>
       </AnimatePresence>
+      )}
+
+      {/* 🚀 Tactile Neobrutalist PWA Update Pill */}
+      {hasUpdate && (
+        <aside
+          role="status"
+          aria-label="Application update available"
+          className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-90 flex items-center gap-2.5 p-2 pl-3.5 bg-[#FDC800] border-3 border-black rounded-2xl shadow-[4px_4px_0px_#000000] select-none"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
+            <span className="font-mono font-black text-xs uppercase text-black tracking-tight">
+              NEW VERSION AVAILABLE
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleApplyUpdate}
+            className="px-3 py-1.5 bg-black hover:bg-neutral-800 text-[#00E599] rounded-xl font-mono font-black text-xs uppercase border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
+          >
+            <RefreshCw className="w-3.5 h-3.5 stroke-[3]" />
+            <span>TAP TO UPDATE</span>
+          </button>
+        </aside>
+      )}
 
       {/* Visual Installation Guide Modal */}
       {showGuideModal && (
