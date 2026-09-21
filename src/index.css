@@ -174,3 +174,18 @@ body {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0px #000000 !important;
 }
+
+/* 🚫 Suppress Injected Netlify Drawer, HUD & Feedback Badges */
+#netlify-drawer,
+netlify-drawer,
+[data-netlify-drawer],
+div[class*="netlify-drawer"],
+iframe[src*="netlify"],
+.netlify-badge,
+[data-netlify-feedback] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+

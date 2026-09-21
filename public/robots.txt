@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Host & Sitemap
+Host: https://daily-verdict.netlify.app
+Sitemap: https://daily-verdict.netlify.app/sitemap.xml
