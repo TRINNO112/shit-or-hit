@@ -1,27 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- ⚡ Primary Daily Verdict Engine -->
   <url>
     <loc>https://daily-verdict.netlify.app/</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://daily-verdict.netlify.app/og-preview.jpg</image:loc>
+      <image:title>SHIT OR HIT — Daily Life Verdict OS &amp; Behavioral Forensics</image:title>
+      <image:caption>Unfiltered daily ratings, habit anchors, and zero-knowledge encrypted private diary</image:caption>
+    </image:image>
   </url>
+
+  <!-- 🌿 Life Pause & Tranquility Sanctuary -->
   <url>
-    <loc>https://daily-verdict.netlify.app/sanctuary</loc>
+    <loc>https://daily-verdict.netlify.app/?view=sanctuary</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://daily-verdict.netlify.app/mascots/mascot_sabbatical_summit.webp</image:loc>
+      <image:title>Tranquility Sanctuary &amp; Grand Sabbatical</image:title>
+      <image:caption>Vagus nerve pacing, somatic recovery, and protected streak freezes</image:caption>
+    </image:image>
   </url>
+
+  <!-- 🎨 Curated Neo-Brutalist Icon Laboratory -->
   <url>
-    <loc>https://daily-verdict.netlify.app/privacy</loc>
+    <loc>https://daily-verdict.netlify.app/?view=icons</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 🛡️ Indian DPDPA 2023 Statutory Privacy Policy -->
+  <url>
+    <loc>https://daily-verdict.netlify.app/?view=privacy</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- 🗑️ Section 12 Regret-Proof Data Erasure Holding Pattern -->
+  <url>
+    <loc>https://daily-verdict.netlify.app/?view=erasure</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://daily-verdict.netlify.app/data-erasure</loc>
-    <lastmod>2026-09-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
   </url>
 </urlset>
