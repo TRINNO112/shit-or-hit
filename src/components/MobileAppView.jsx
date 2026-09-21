@@ -988,6 +988,23 @@ export default function MobileAppView({
           ) : (
             /* Single-Verdict Standard 5 Tactile Cards */
             <div className="space-y-2.5">
+              <AnimatePresence>
+                {savedFlash && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                    className="p-2.5 bg-[#00E599] border-2 border-black rounded-xl text-xs font-mono font-black text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Check className="w-4 h-4 stroke-[3]" />
+                      <span>ENTRY SAVED TO THIS DEVICE!</span>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold opacity-80">LOCAL VAULT</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {isDeterministicLockedMobile && (
                 <div className="p-2.5 bg-amber-50 border-2 border-black rounded-xl text-[11px] font-mono font-bold text-amber-950 flex items-center gap-2 shadow-[2px_2px_0px_#000000]">
                   <Lock className="w-4 h-4 text-amber-700 shrink-0" />

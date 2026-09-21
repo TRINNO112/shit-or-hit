@@ -58,6 +58,7 @@ const RehabilitationModal = safeLazy(() => import('./components/RehabilitationMo
 const SanctuaryPage = safeLazy(() => import('./components/SanctuaryPage'));
 const PrivacyPolicyPage = safeLazy(() => import('./components/PrivacyPolicyPage'));
 const DataErasurePage = safeLazy(() => import('./components/DataErasurePage'));
+const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -214,6 +215,7 @@ export default function App() {
   const [autopsyExistingData, setAutopsyExistingData] = useState(null);
   const [isBehavioralLabOpen, setIsBehavioralLabOpen] = useState(false);
   const [simulatedCrash, setSimulatedCrash] = useState(false);
+  const [isP2PSyncOpen, setIsP2PSyncOpen] = useState(false);
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
@@ -285,6 +287,7 @@ export default function App() {
     window.__simulateCrash = () => setSimulatedCrash(true);
     window.__testRecoveryModal = () => setIsMotivationalOpen(true);
     window.__testGuestDisclaimer = () => setIsGuestDisclaimerOpen(true);
+    window.__openP2PSync = () => setIsP2PSyncOpen(true);
 
     let keyBuffer = '';
     const handleKeyDown = (e) => {
@@ -302,6 +305,9 @@ export default function App() {
         keyBuffer = '';
       } else if (keyBuffer.endsWith('disclaimer') || keyBuffer.endsWith('guest')) {
         setIsGuestDisclaimerOpen(prev => !prev);
+        keyBuffer = '';
+      } else if (keyBuffer.endsWith('sync') || keyBuffer.endsWith('beam') || keyBuffer.endsWith('p2p')) {
+        setIsP2PSyncOpen(prev => !prev);
         keyBuffer = '';
       } else if (keyBuffer.endsWith('404')) {
         setShowNotFound(prev => !prev);
@@ -338,6 +344,9 @@ export default function App() {
       }
       if (window.location.search.includes('view=guest') || window.location.search.includes('view=disclaimer')) {
         setIsGuestDisclaimerOpen(true);
+      }
+      if (window.location.search.includes('sync=') || window.location.search.includes('view=sync') || window.location.hash.includes('sync')) {
+        setIsP2PSyncOpen(true);
       }
       if (window.location.search.includes('view=lab') || window.location.search.includes('view=showcase') || window.location.hash.includes('lab')) {
         setIsBehavioralLabOpen(true);
@@ -1162,6 +1171,15 @@ export default function App() {
               isOpen={isGuestDisclaimerOpen}
               onClose={() => setIsGuestDisclaimerOpen(false)}
               onLogin={handleGuestLogin}
+            />
+          )}
+
+          {/* 📡 WebRTC P2P Direct Device-to-Device Sync Modal */}
+          {isP2PSyncOpen && (
+            <P2PDeviceSyncModal
+              isOpen={isP2PSyncOpen}
+              onClose={() => setIsP2PSyncOpen(false)}
+              onSyncComplete={() => loadData()}
             />
           )}
 

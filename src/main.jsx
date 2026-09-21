@@ -16,8 +16,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 initWebVitals();
 
-// ⚡ Lazy Telemetry: Load Sentry asynchronously during idle time post-first-paint
+// ⚡ Lazy Telemetry: Load Sentry asynchronously during idle time post-first-paint (Production Only)
 const initDeferredSentry = () => {
+  // 🔇 Localhost & Dev Isolation: Never initialize or send telemetry events from local dev ports
+  const isLocalHost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.endsWith('.local')
+  );
+  if (isLocalHost || !import.meta.env.PROD) {
+    return;
+  }
+
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN || "https://27e944bed5f1dd7b412afbc72fb939c7@o4512074817011712.ingest.us.sentry.io/4512074829594624";
   if (!sentryDsn) return;
 
@@ -34,11 +44,20 @@ const initDeferredSentry = () => {
 
     Sentry.init({
       dsn: sentryDsn,
+      environment: 'production',
       integrations,
-      tracesSampleRate: isMobileDevice ? 0.2 : 1.0,
-      tracePropagationTargets: ["localhost", /^\/api/],
-      replaysSessionSampleRate: 0.05,
-      replaysOnErrorSampleRate: isMobileDevice ? 0 : 1.0
+      tracesSampleRate: isMobileDevice ? 0.2 : 0.6,
+      tracePropagationTargets: [/^\/api/],
+      replaysSessionSampleRate: 0.0,
+      replaysOnErrorSampleRate: isMobileDevice ? 0 : 0.5,
+      ignoreErrors: [
+        'Failed to fetch dynamically imported module',
+        'ChunkLoadError',
+        'Loading chunk',
+        'NetworkError when attempting to fetch resource',
+        'ResizeObserver loop completed with undelivered notifications',
+        'ResizeObserver loop limit exceeded'
+      ]
     });
     window.Sentry = Sentry;
   }).catch((err) => {

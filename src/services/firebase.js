@@ -177,7 +177,7 @@ let googleProviderInstance = null;
 let authModule = null;
 let firestoreModule = null;
 
-async function getFirebase() {
+export async function getFirebase() {
   if (authInstance && dbInstance) {
     return { 
       auth: authInstance, 

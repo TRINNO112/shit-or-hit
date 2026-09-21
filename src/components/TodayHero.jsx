@@ -776,7 +776,7 @@ export default function TodayHero({
                   <span className="font-mono text-xs font-black uppercase text-neutral-800 tracking-wider block">
                     {breathActive ? breathPhase : 'Tap Orb to Begin Nervous System Reset'}
                   </span>
-                  <p className="text-[11px] font-sans text-neutral-600 max-w-xs mt-1">
+                  <p className="text-[11px] font-sans text-neutral-600 max-w-xs mx-auto mt-1">
                     Slow prolonged exhales stimulate the vagus nerve, dropping cortisol and lowering physiological tension.
                   </p>
                 </div>
@@ -1233,9 +1233,25 @@ export default function TodayHero({
               <h2 className="font-display font-black text-3xl sm:text-4xl text-black tracking-tight uppercase leading-none">
                 {dayName}
               </h2>
-              <p className="text-sm font-mono font-bold text-neutral-700 mt-1.5">
-                {fullDate}
-              </p>
+
+              <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                <p className="text-sm font-mono font-bold text-neutral-700">
+                  {fullDate}
+                </p>
+                <AnimatePresence>
+                  {syncedBadge && (
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0.85, y: -2 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.85, y: -2 }}
+                      className="px-2.5 py-0.5 rounded-md bg-[#00E599] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] inline-flex items-center gap-1"
+                    >
+                      <Check className="w-3 h-3 stroke-[3]" />
+                      ENTRY SAVED LOCALLY!
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
               <p className="text-xs font-mono text-neutral-500 mt-1 font-semibold">
                 {isDeterministicTaskLocked 
                   ? 'Rating governed 100% by your Non-Negotiable Tasks below.' 

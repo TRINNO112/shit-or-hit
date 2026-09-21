@@ -39,7 +39,9 @@ import {
   Download,
   CheckCircle2,
   ArrowRight,
-  Landmark
+  Landmark,
+  QrCode,
+  Radio
 } from 'lucide-react';
 import {
   isNotificationSupported,
@@ -1345,7 +1347,46 @@ export default function SettingsModal({
                 </button>
               </div>
 
-              {/* 13. Time Machine: 3 Rolling Automated Snapshots */}
+              {/* 13. P2P WebRTC Direct Device Sync (Phone to PC) */}
+              <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                      <QrCode className="w-5 h-5 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-display font-black text-sm uppercase text-black truncate">
+                          P2P Direct Sync
+                        </h4>
+                        <span className="px-1.5 py-0.5 bg-[#FDC800] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
+                          WebRTC AirDrop
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                        Direct QR transfer between Phone & PC — zero cloud storage
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (typeof window !== 'undefined' && window.__openP2PSync) {
+                        window.__openP2PSync();
+                      } else {
+                        window.location.href = '/?view=sync';
+                      }
+                    }}
+                    className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
+                  >
+                    <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
+                    OPEN BEAM STUDIO
+                  </button>
+                </div>
+              </div>
+
+              {/* 14. Time Machine: 3 Rolling Automated Snapshots */}
               <div className="p-3.5 bg-amber-50/85 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
