@@ -532,7 +532,8 @@ export default function RansomCapsuleModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Read This When You Feel Like Quitting"
-                className="w-full py-2 px-3 rounded-xl border-2 border-[#2E241E] bg-[#FFFDF8] font-serif font-bold text-sm text-[#2E241E] placeholder:text-[#9E8B7A] focus:outline-none focus:ring-2 focus:ring-[#991B1B]"
+                style={{ color: '#2E241E' }}
+                className="w-full py-2 px-3 rounded-xl border-2 border-[#2E241E] bg-[#FFFDF8] font-serif font-bold text-sm placeholder:text-[#9E8B7A] focus:outline-none focus:ring-2 focus:ring-[#991B1B]"
                 maxLength={60}
               />
             </div>
@@ -557,7 +558,8 @@ export default function RansomCapsuleModal({
                   onChange={(e) => setMessageText(e.target.value)}
                   placeholder="Write from the heart. What must you remember? What standards are non-negotiable? How do you recover when you stumble?"
                   rows={6}
-                  className="w-full p-3 bg-[#FFFDF8] font-mono text-xs text-[#2E241E] placeholder:text-[#9E8B7A] focus:outline-none resize-none leading-relaxed"
+                  style={{ color: '#2E241E' }}
+                  className="w-full p-3 bg-[#FFFDF8] font-mono text-xs placeholder:text-[#9E8B7A] focus:outline-none resize-none leading-relaxed"
                 />
               </div>
             </div>
@@ -746,7 +748,7 @@ export default function RansomCapsuleModal({
                 type="submit"
                 disabled={isSealing}
                 style={{ background: currentPaletteObj.color }}
-                className="w-full py-3 px-4 text-[#FFFDF8] font-mono font-black text-sm uppercase tracking-wider rounded-xl border-2 border-[#2E241E] shadow-[4px_4px_0px_#2E241E] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#2E241E] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 px-4 text-[#FFFDF8] font-mono font-black text-sm uppercase tracking-wider rounded-xl border-2 border-[#2E241E] shadow-[4px_4px_0px_#2E241E] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <Flame className="w-4 h-4 text-[#FDE047]" />
                 <span>{isSealing ? `Melting ${currentPaletteObj.label} Wax...` : `Stamp & Melt ${currentPaletteObj.label} Wax Seal`}</span>
@@ -780,8 +782,8 @@ export default function RansomCapsuleModal({
               </div>
 
               {/* Vintage Typewriter Letter */}
-              <div className="vintage-lined-paper border-2 border-[#2E241E] rounded-2xl p-4 sm:p-5 shadow-[3px_3px_0px_#2E241E] relative flex-1 min-h-[160px]">
-                <div className="font-mono text-xs sm:text-sm text-[#2E241E] whitespace-pre-wrap leading-[28px] font-bold">
+              <div className="vintage-lined-paper border-2 border-[#2E241E] rounded-2xl p-4 sm:p-5 shadow-[3px_3px_0px_#2E241E] relative flex-1 min-h-40">
+                <div className="font-mono text-xs sm:text-sm text-[#2E241E] whitespace-pre-wrap leading-7 font-bold">
                   {displayedText}
                   {isTyping && (
                     <span

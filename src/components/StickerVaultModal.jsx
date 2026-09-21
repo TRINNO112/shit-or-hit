@@ -303,7 +303,7 @@ export default function StickerVaultModal({
                       <Sparkles className="w-7 h-7 text-black" />
                     </div>
                     <div className="min-w-0 w-full mb-1">
-                      <span className="font-display font-black text-xs uppercase block text-black truncate leading-tight flex items-center justify-center gap-1">
+                      <span className="font-display font-black text-xs uppercase text-black truncate leading-tight flex items-center justify-center gap-1">
                         <Zap className="w-3.5 h-3.5 text-black stroke-3" />
                         <span>AUTO MOOD</span>
                       </span>

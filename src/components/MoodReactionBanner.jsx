@@ -229,9 +229,9 @@ export default function MoodReactionBanner({ rating, forceShow = false }) {
 
                 {/* Classical Brass Filigree Divider */}
                 <div className="flex items-center gap-2 py-0.5 max-w-sm">
-                  <div className="h-[1px] w-6" style={{ backgroundColor: BRASS }} />
+                  <div className="h-px w-6" style={{ backgroundColor: BRASS }} />
                   <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: BRASS }} />
-                  <div className="h-[1px] flex-1" style={{ backgroundColor: BRASS }} />
+                  <div className="h-px flex-1" style={{ backgroundColor: BRASS }} />
                 </div>
 
                 {/* Big Rich Hand-Pressed Editorial Title */}

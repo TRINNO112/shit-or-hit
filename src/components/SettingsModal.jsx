@@ -1409,7 +1409,7 @@ export default function SettingsModal({
                           <button
                             type="button"
                             onClick={() => handleRestoreSnapshot(snap.id)}
-                            className="py-1 px-2.5 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none flex items-center gap-1"
+                            className="py-1 px-2.5 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px flex items-center gap-1"
                           >
                             <RotateCcw className="w-3 h-3 stroke-3" />
                             RESTORE

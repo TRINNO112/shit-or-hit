@@ -255,7 +255,8 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
                 placeholder="Add custom restorative habit..."
                 value={newAnchorText}
                 onChange={(e) => setNewAnchorText(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-white border-2 border-black text-xs font-mono text-black placeholder-neutral-400 outline-none focus:ring-1 focus:ring-black"
+                style={{ color: '#000000' }}
+                className="flex-1 px-3 py-1.5 bg-white border-2 border-black text-xs font-mono placeholder:text-neutral-400 outline-none focus:ring-1 focus:ring-black"
               />
               <button
                 type="submit"

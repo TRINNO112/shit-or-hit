@@ -411,7 +411,7 @@ export default function AutopsyChamberModal({
                 type="button"
                 onClick={handleSaveAndSeal}
                 disabled={!allQuestionsAnswered}
-                className="w-full py-3 px-4 bg-[#B91C1C] hover:bg-[#991B1B] text-[#FAF6ED] font-mono font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl border-2 border-[#1C1917] shadow-[3px_3px_0px_#1C1917] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2 enabled:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 bg-[#B91C1C] hover:bg-[#991B1B] text-[#FAF6ED] font-mono font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl border-2 border-[#1C1917] shadow-[3px_3px_0px_#1C1917] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FolderLock className="w-4 h-4" />
                 <span>
