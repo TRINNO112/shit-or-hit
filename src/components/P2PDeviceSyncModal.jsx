@@ -20,7 +20,9 @@ import {
   Wifi,
   LogIn,
   ShieldAlert,
-  HardDrive
+  HardDrive,
+  CheckCircle2,
+  Info
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { generateQRCodeSVG } from '../services/qrGenerator';
@@ -51,8 +53,14 @@ export default function P2PDeviceSyncModal({
   const [receiveInputCode, setReceiveInputCode] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
   const [rawTextPayload, setRawTextPayload] = useState('');
+  const [toast, setToast] = useState(null);
 
   const cleanupRef = useRef(null);
+
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4500);
+  };
 
   // Auto-detect sync parameter in URL
   useEffect(() => {
@@ -103,6 +111,8 @@ export default function P2PDeviceSyncModal({
     setSuccessResult(null);
 
     stopActiveSession();
+    setIsProcessing(true);
+    showToast('Sender antenna active! Awaiting receiver connection...', 'info');
 
     const session = await startSenderSession(
       pairingCode,
@@ -112,12 +122,15 @@ export default function P2PDeviceSyncModal({
         setIsProcessing(false);
         setSuccessResult(result);
         setSyncStatus('Transfer Complete!');
+        showToast('Transfer Complete! Database beamed to receiver.', 'success');
         if (onSyncComplete) onSyncComplete();
       },
       (err) => {
         soundEngine.playRoughTone();
         setIsProcessing(false);
-        setErrorMessage(err.message || 'Peer-to-peer connection timed out.');
+        const msg = err.message || 'Peer-to-peer connection timed out.';
+        setErrorMessage(msg);
+        showToast(`Transfer Failed: ${msg}`, 'error');
       }
     );
 
@@ -128,6 +141,7 @@ export default function P2PDeviceSyncModal({
   const handleStartReceiver = async () => {
     if (!receiveInputCode.trim()) {
       setErrorMessage('Please enter the 6-character code from the sending device.');
+      showToast('Please enter the 6-character code from the sending device.', 'error');
       return;
     }
 
@@ -137,6 +151,8 @@ export default function P2PDeviceSyncModal({
     setSuccessResult(null);
 
     stopActiveSession();
+    setIsProcessing(true);
+    showToast('Locating sending device...', 'info');
 
     const session = await joinReceiverSession(
       receiveInputCode.trim(),
@@ -146,12 +162,15 @@ export default function P2PDeviceSyncModal({
         setIsProcessing(false);
         setSuccessResult(result);
         setSyncStatus('Sync Successful!');
+        showToast(`Sync Successful! Imported ${result.importedCount || 0} entries.`, 'success');
         if (onSyncComplete) onSyncComplete();
       },
       (err) => {
         soundEngine.playRoughTone();
         setIsProcessing(false);
-        setErrorMessage(err.message || 'Failed to connect to sender device.');
+        const msg = err.message || 'Failed to connect to sender device.';
+        setErrorMessage(msg);
+        showToast(`Sync Failed: ${msg}`, 'error');
       }
     );
 
@@ -172,6 +191,7 @@ export default function P2PDeviceSyncModal({
     const roomCode = getAccountRoomId(user.email);
     setIsHostingAccount(true);
     setIsProcessing(true);
+    showToast('Broadcasting started! Keep this browser tab open on your Office PC.', 'info');
 
     const session = await startSenderSession(
       roomCode,
@@ -182,13 +202,16 @@ export default function P2PDeviceSyncModal({
         setIsHostingAccount(false);
         setSuccessResult(result);
         setSyncStatus('Beamed successfully to your remote device!');
+        showToast('Transfer Complete! Beamed successfully to your remote device.', 'success');
         if (onSyncComplete) onSyncComplete();
       },
       (err) => {
         soundEngine.playRoughTone();
         setIsProcessing(false);
         setIsHostingAccount(false);
-        setErrorMessage(err.message || 'Account session timed out.');
+        const msg = err.message || 'Account session timed out.';
+        setErrorMessage(msg);
+        showToast(`Host Session Error: ${msg}`, 'error');
       }
     );
 
@@ -209,6 +232,7 @@ export default function P2PDeviceSyncModal({
 
     const roomCode = getAccountRoomId(user.email);
     setSyncStatus('Contacting your other active device...');
+    showToast('Locating your active office PC...', 'info');
 
     const session = await joinReceiverSession(
       roomCode,
@@ -218,14 +242,15 @@ export default function P2PDeviceSyncModal({
         setIsProcessing(false);
         setSuccessResult(result);
         setSyncStatus('Successfully fetched from your other device!');
+        showToast(`Sync Successful! Imported ${result.importedCount || 0} entries.`, 'success');
         if (onSyncComplete) onSyncComplete();
       },
       (err) => {
         soundEngine.playRoughTone();
         setIsProcessing(false);
-        setErrorMessage(
-          'Could not connect to your other device. Make sure your office computer has Daily Verdict open in an active tab and clicked "Broadcast as Host".'
-        );
+        const errorDetail = 'Could not connect to your other device. Ensure your office computer has Daily Verdict open in an active browser tab with "Broadcast As Host" running.';
+        setErrorMessage(errorDetail);
+        showToast('Sync Failed: Remote device was not reachable or tab was closed.', 'error');
       }
     );
 
@@ -236,6 +261,7 @@ export default function P2PDeviceSyncModal({
     soundEngine.playClick();
     navigator.clipboard.writeText(syncUrl);
     setCopiedLink(true);
+    showToast('Pairing link copied to clipboard!', 'info');
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
@@ -245,6 +271,7 @@ export default function P2PDeviceSyncModal({
     setPairingCode(generatePairingCode());
     setSuccessResult(null);
     setErrorMessage('');
+    showToast('Generated fresh 6-character pairing code.', 'info');
   };
 
   const handleImportRawText = () => {
@@ -254,10 +281,13 @@ export default function P2PDeviceSyncModal({
       const res = importSyncPayload(parsed);
       soundEngine.playSuccessChime();
       setSuccessResult(res);
+      showToast(`Success! Imported ${res.importedCount || 0} entries from JSON.`, 'success');
       if (onSyncComplete) onSyncComplete();
     } catch (e) {
       soundEngine.playRoughTone();
-      setErrorMessage('Invalid JSON payload. Please paste a valid export.');
+      const msg = 'Invalid JSON payload. Please paste a valid export.';
+      setErrorMessage(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -361,6 +391,27 @@ export default function P2PDeviceSyncModal({
               <span>Offline Text</span>
             </button>
           </div>
+
+          {/* ⚡ Live UX Feedback Toast HUD */}
+          <AnimatePresence>
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                className={`p-3 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[2.5px_2.5px_0px_#000000] flex items-center gap-2 ${
+                  toast.type === 'success' ? 'bg-[#00E599] text-black' :
+                  toast.type === 'error' ? 'bg-[#FF4D4D] text-white' :
+                  'bg-[#FFF5C2] text-black'
+                }`}
+              >
+                {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0 stroke-[2.5]" /> :
+                 toast.type === 'error' ? <AlertTriangle className="w-4 h-4 shrink-0 stroke-[2.5]" /> :
+                 <Info className="w-4 h-4 shrink-0 stroke-[2.5]" />}
+                <span className="truncate">{toast.message}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* TAB 1: ACCOUNT-BASED 1-TAP REMOTE FETCH */}
           {mode === 'account' && (
@@ -611,6 +662,7 @@ export default function P2PDeviceSyncModal({
                       setRawTextPayload(JSON.stringify(payload, null, 2));
                       navigator.clipboard.writeText(JSON.stringify(payload));
                       soundEngine.playSuccessChime();
+                      showToast('Database copied to clipboard!', 'info');
                     }}
                     className="px-2.5 py-1 bg-black text-white rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer"
                   >
@@ -647,27 +699,59 @@ export default function P2PDeviceSyncModal({
             </div>
           )}
 
-          {/* Success Box */}
+          {/* Detailed Success Box */}
           {successResult && (
-            <div className="p-3.5 bg-[#F0FDF4] border-2 border-emerald-600 rounded-xl font-mono text-xs font-black text-emerald-950 flex items-center gap-2.5 shadow-[2px_2px_0px_#000000]">
-              <ShieldCheck className="w-5 h-5 text-emerald-700 stroke-[2.5] shrink-0" />
-              <div>
-                <span>DIARY TRANSFERRED DIRECTLY VIA P2P TUNNEL!</span>
-                <p className="text-[11px] font-medium text-emerald-800 mt-0.5">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.96, y: 5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="p-4 bg-[#00E599] border-3 border-black rounded-2xl shadow-[4px_4px_0px_#000000] space-y-1.5"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 stroke-[3]" />
+                </div>
+                <span className="font-display font-black text-sm uppercase tracking-wider text-black">
+                  TRANSFER SUCCESSFUL!
+                </span>
+              </div>
+              <div className="pl-9 space-y-1 font-mono text-xs font-black text-black">
+                <p>
                   {successResult.importedCount !== undefined 
-                    ? `Synchronized ${successResult.importedCount} entries into local storage.`
-                    : 'Entries synchronized safely.'} Zero records were uploaded or stored in the cloud.
+                    ? `Successfully synchronized and verified ${successResult.importedCount} entries into local storage.`
+                    : 'All diary records synchronized successfully.'}
+                </p>
+                <p className="text-[11px] font-bold text-emerald-950/80">
+                  Zero records were uploaded to the cloud. Direct encrypted WebRTC tunnel closed.
                 </p>
               </div>
-            </div>
+            </motion.div>
           )}
 
-          {/* Error Box */}
+          {/* Detailed Error / Failure Box */}
           {errorMessage && (
-            <div className="p-3.5 bg-red-100 border-2 border-red-500 rounded-xl font-mono text-xs font-black text-red-950 flex items-center gap-2 shadow-[2px_2px_0px_#000000]">
-              <AlertTriangle className="w-4 h-4 text-red-700 stroke-[2.5] shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.96, y: 5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="p-4 bg-[#FF4D4D] border-3 border-black rounded-2xl shadow-[4px_4px_0px_#000000] space-y-2 text-white"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-white stroke-[2.5]" />
+                </div>
+                <span className="font-display font-black text-sm uppercase tracking-wider text-white">
+                  TRANSFER FAILED
+                </span>
+              </div>
+              <div className="pl-9 space-y-2 font-mono text-xs font-bold text-white">
+                <p className="font-black text-white text-xs">{errorMessage}</p>
+                <div className="p-2.5 bg-black/35 rounded-xl text-[11px] font-mono leading-relaxed space-y-1">
+                  <span className="font-black text-amber-300 block uppercase">HOW TO FIX THIS:</span>
+                  <p>1. Ensure <strong>both devices</strong> are actively connected to the internet.</p>
+                  <p>2. Keep Daily Verdict open in a visible browser tab on the sending device (do not allow the computer to sleep).</p>
+                  <p>3. If using strict corporate Wi-Fi or VPN, switch to the <strong>Offline Text</strong> tab to copy/paste directly.</p>
+                </div>
+              </div>
+            </motion.div>
           )}
 
           {/* Footer Safety Notice */}
