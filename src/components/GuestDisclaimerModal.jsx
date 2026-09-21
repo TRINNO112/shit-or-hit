@@ -157,8 +157,8 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
                 <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
                 DATA ARCHITECTURE & SAFETY
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-[#FDC800] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
-                TWO-TIER ACCESS MATRIX
+              <span className="px-2 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
+                STATUS: NOT WHITELISTED
               </span>
               {storageState.persisted ? (
                 <span className="px-2 py-0.5 rounded-md bg-[#00E599] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] inline-flex items-center gap-1">
@@ -167,7 +167,7 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
                 </span>
               ) : (
                 <span className="px-2 py-0.5 rounded-md bg-neutral-200 text-neutral-800 border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
-                  STORAGE: BEST-EFFORT
+                  STORAGE: LOCAL BEST-EFFORT
                 </span>
               )}
             </div>
@@ -183,6 +183,48 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
                 <p className="text-[11px] font-mono font-bold text-neutral-600 mt-0.5">
                   100% on-device privacy • Zero server harvesting • What is implemented in code
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 🚨 PROMINENT TOP ALERT: WHITELIST RESTRICTION & LOCAL STORAGE REALITY */}
+          <div className="p-4 rounded-2xl bg-[#FFF5C2] border-3 border-black shadow-[4px_4px_0px_#000000] space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#FF4D4D] border-2 border-black flex items-center justify-center text-white shrink-0 shadow-[1px_1px_0px_#000000]">
+                <ShieldAlert className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <span className="font-mono text-xs font-black uppercase tracking-wider text-black">
+                IMPORTANT: YOU ARE CURRENTLY NOT A WHITELISTED USER
+              </span>
+            </div>
+            
+            <div className="space-y-2 font-mono text-xs text-neutral-900 font-bold leading-relaxed">
+              <div className="p-2 bg-white/80 rounded-xl border border-black/20">
+                <span className="underline decoration-2 decoration-red-500 font-black text-black block mb-0.5">
+                  1. ALL YOUR DATA IS STORED ONLY ON THIS DEVICE
+                </span>
+                Because your account is not whitelisted, 100% of your diary entries, ratings, and habit checks are saved exclusively in your local browser sandbox (<code className="bg-amber-200 px-1 py-0.5 rounded border border-black/30 font-black text-[11px]">localStorage</code>). No cloud backup exists for your account.
+              </div>
+
+              <div className="p-2 bg-white/80 rounded-xl border border-black/20">
+                <span className="underline decoration-2 decoration-amber-500 font-black text-black block mb-0.5">
+                  2. LOGGING IN DOES NOT AUTOMATICALLY WHITELIST YOU
+                </span>
+                Even if you sign in with your Google account, you will still NOT be whitelisted. Standard users remain strictly in local storage mode after logging in.
+              </div>
+
+              <div className="p-2 bg-white/80 rounded-xl border border-black/20">
+                <span className="underline decoration-2 decoration-emerald-600 font-black text-black block mb-0.5">
+                  3. HOW TO BECOME A WHITELISTED USER
+                </span>
+                Cloud synchronization and AI Ghostwriting incur continuous real-time API and server costs. To become a whitelisted user, you must <strong>contact and message the developer directly</strong>. The developer will review your request, explain the operational constraints, and manually whitelist your account email.
+              </div>
+
+              <div className="p-2 bg-red-100 rounded-xl border border-red-400 text-red-950">
+                <span className="font-black uppercase block mb-0.5">
+                  4. ZERO BACKDOOR RECOVERY
+                </span>
+                If you clear your browser cache/cookies or use incognito, your local diary will be permanently wiped. There is no backdoor to recover deleted local data.
               </div>
             </div>
           </div>
