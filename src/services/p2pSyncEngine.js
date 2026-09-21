@@ -4,7 +4,7 @@
  * Zero diary data is ever stored on Firebase or remote cloud databases.
  */
 
-import { getFirebase } from './firebase';
+import { getFirebase, sha256Sync } from './firebase';
 import { getDbStorageKey } from './api';
 
 const STUN_SERVERS = {
@@ -16,6 +16,37 @@ const STUN_SERVERS = {
 };
 
 const SYNC_COLLECTION = 'p2p_ephemeral_handshakes';
+
+/**
+ * Derives a zero-knowledge deterministic room ID for authenticated account-to-account P2P pairing.
+ * Zero email addresses or PII are exposed in the room identifier.
+ */
+export function getAccountRoomId(email) {
+  if (!email) return null;
+  const hash = sha256Sync(email.toLowerCase().trim());
+  return 'ACC-' + hash.slice(0, 10).toUpperCase();
+}
+
+/**
+ * Checks if a remote host device is actively broadcasting for this account
+ */
+export async function checkAccountHostActive(email) {
+  if (!email) return false;
+  try {
+    const fb = await getFirebase();
+    if (!fb || !fb.db) return false;
+    const { doc, getDoc } = fb.firestoreMod;
+    const roomCode = getAccountRoomId(email);
+    const snap = await getDoc(doc(fb.db, SYNC_COLLECTION, roomCode));
+    if (!snap.exists()) return false;
+    const data = snap.data();
+    const isRecent = (Date.now() - (data.createdAt || 0)) < 15 * 60 * 1000;
+    return isRecent && data.status === 'waiting';
+  } catch (e) {
+    console.warn('Could not check remote host status:', e);
+    return false;
+  }
+}
 
 /**
  * Generates a memorable 6-character pairing code (e.g. SHIT-482)
@@ -244,7 +275,7 @@ export async function joinReceiverSession(code, onStatus, onSuccess, onError) {
       throw new Error('Signaling service unavailable.');
     }
 
-    const { doc, getDoc, updateDoc } = fb.firestoreMod;
+    const { doc, getDoc, updateDoc, deleteDoc } = fb.firestoreMod;
     const sessionDocRef = doc(fb.db, SYNC_COLLECTION, code.toUpperCase().trim());
     const snapshot = await getDoc(sessionDocRef);
 
@@ -280,6 +311,7 @@ export async function joinReceiverSession(code, onStatus, onSuccess, onError) {
           // Send confirmation ACK back to sender
           receiveChannel.send(JSON.stringify({ type: 'ACK', status: 'OK' }));
           onStatus('Success! Local database synchronized.');
+          try { setTimeout(() => deleteDoc(sessionDocRef), 1200); } catch (e) {}
           if (onSuccess) onSuccess(result);
         } catch (e) {
           console.error('Failed to import payload over data channel:', e);
