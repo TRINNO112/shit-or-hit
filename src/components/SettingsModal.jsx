@@ -43,7 +43,9 @@ import {
   QrCode,
   Radio,
   HardDrive,
-  Lock
+  Lock,
+  Database,
+  Copy
 } from 'lucide-react';
 import {
   getStorageStatus,
@@ -61,7 +63,7 @@ import {
   showInstantReminderNotification
 } from '../services/notifications';
 import { soundEngine } from '../services/soundEngine';
-import { VaultPinSettings } from './VaultPinModal';
+import { VaultPinSettings, isVaultPinActive } from './VaultPinModal';
 import { isNonNegotiablesActive } from './NonNegotiableCard';
 import { isBannerEnabled, setBannerEnabled } from './MoodReactionBanner';
 import NonNegotiablesStudioModal from './NonNegotiablesStudioModal';
@@ -91,7 +93,8 @@ import {
   getRehabilitationConfig,
   getRollingSnapshots,
   restoreSnapshot,
-  exportDatabaseBackup
+  exportDatabaseBackup,
+  getDbStorageKey
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
@@ -203,6 +206,34 @@ export default function SettingsModal({
       setStorageTierMsg('Browser deferred persistent storage. Installing as PWA will lock persistence.');
     }
     setTimeout(() => setStorageTierMsg(''), 4500);
+  };
+
+  // 📂 Raw Database & Disk Inspector State
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+  const [rawDbData, setRawDbData] = useState(null);
+  const [copiedDb, setCopiedDb] = useState(false);
+
+  const handleToggleInspector = () => {
+    soundEngine.playClick();
+    if (!isInspectorOpen) {
+      try {
+        const key = getDbStorageKey(user);
+        const raw = localStorage.getItem(key);
+        setRawDbData(raw ? JSON.parse(raw) : { entries: {} });
+      } catch (e) {
+        setRawDbData({ error: 'Failed to parse database records' });
+      }
+    }
+    setIsInspectorOpen(!isInspectorOpen);
+  };
+
+  const handleCopyRawDb = () => {
+    soundEngine.playClick();
+    if (rawDbData) {
+      navigator.clipboard.writeText(JSON.stringify(rawDbData, null, 2));
+      setCopiedDb(true);
+      setTimeout(() => setCopiedDb(false), 2500);
+    }
   };
 
   const [editSphereColor, setEditSphereColor] = useState('#FDC800');
@@ -1514,6 +1545,82 @@ export default function SettingsModal({
                     <span>{storageTierMsg}</span>
                   </div>
                 )}
+
+                {/* 📂 Raw Database & Disk Entries Inspector Toggle */}
+                <div className="pt-1 border-t border-black/15">
+                  <button
+                    type="button"
+                    onClick={handleToggleInspector}
+                    className="w-full py-2 px-3 bg-neutral-100 hover:bg-neutral-200 border border-black rounded-xl font-mono text-[11px] font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[1px_1px_0px_#000000] active:translate-x-px"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Database className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                      <span>{isInspectorOpen ? 'Hide Database Inspector' : 'Inspect Raw Disk Entries & Folder Space'}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-neutral-500">
+                      {isInspectorOpen ? '▲ COLLAPSE' : '▼ EXPAND'}
+                    </span>
+                  </button>
+
+                  {/* Expandable Inspector Panel */}
+                  <AnimatePresence>
+                    {isInspectorOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-2 p-3 bg-[#FFFDF8] border-2 border-black rounded-xl space-y-2.5 shadow-[2px_2px_0px_#000000] overflow-hidden"
+                      >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-mono">
+                          <div className="p-2 bg-white border border-black/20 rounded-lg">
+                            <span className="text-neutral-500 font-bold block">STORAGE SANDBOX:</span>
+                            <span className="font-black text-black">Browser Origin Sandbox (IndexedDB/localStorage)</span>
+                          </div>
+                          <div className="p-2 bg-white border border-black/20 rounded-lg">
+                            <span className="text-neutral-500 font-bold block">INTERNAL STORAGE KEY:</span>
+                            <code className="font-black text-black">{getDbStorageKey(user)}</code>
+                          </div>
+                          <div className="p-2 bg-white border border-black/20 rounded-lg">
+                            <span className="text-neutral-500 font-bold block">TOTAL STORED DAYS:</span>
+                            <span className="font-black text-black">
+                              {Object.keys(rawDbData?.entries || {}).length} recorded days
+                            </span>
+                          </div>
+                          <div className="p-2 bg-white border border-black/20 rounded-lg">
+                            <span className="text-neutral-500 font-bold block">ENCRYPTION STATE:</span>
+                            <span className="font-black text-black">
+                              {isVaultPinActive() ? 'AES-256 GCM (PIN Vault Active)' : 'Standard Readable JSON (Unencrypted)'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-2 bg-amber-50 border border-amber-300 rounded-lg font-mono text-[10px] text-amber-950 font-bold leading-relaxed">
+                          <strong>Browser Sandbox Security:</strong> For user safety, web browsers prevent web pages from viewing private OS filesystem folders (e.g. C:\Users\... or Android root). All entries are held in your browser's dedicated storage sandbox. Click Copy or Export to save directly to your physical hard drive.
+                        </div>
+
+                        {/* Raw JSON Viewport */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-[10px] font-black uppercase text-neutral-600">
+                              Live Raw JSON Database:
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleCopyRawDb}
+                              className="px-2 py-0.5 bg-white hover:bg-neutral-100 border border-black rounded font-mono text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer"
+                            >
+                              <Copy className="w-3 h-3 stroke-[2.5]" />
+                              <span>{copiedDb ? 'COPIED!' : 'COPY JSON'}</span>
+                            </button>
+                          </div>
+                          <pre className="p-2.5 bg-neutral-900 text-[#00E599] border-2 border-black rounded-xl font-mono text-[10px] max-h-36 overflow-y-auto overflow-x-auto select-all leading-tight">
+                            {rawDbData ? JSON.stringify(rawDbData, null, 2) : 'Loading records...'}
+                          </pre>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               {/* 15. Time Machine: 3 Rolling Automated Snapshots */}

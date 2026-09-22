@@ -649,7 +649,7 @@ export default function MobileAppView({
   const daysIn = Math.max(1, Math.floor((todayMs - startMs) / (1000 * 60 * 60 * 24)) + 1);
 
   const handleExitSanctuaryMobile = () => {
-    soundFx.playSuccess();
+    try { soundEngine.playSuccessChime(); } catch (e) {}
     exitRehabilitation();
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('demo=')) {

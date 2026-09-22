@@ -169,6 +169,11 @@ class SoundEngine {
     });
   }
 
+  // Celebratory Success / Victory Chime Alias
+  playSuccess() {
+    this.playPeak();
+  }
+
   // Standard tactile UI tap
   playClick() {
     if (!this.init()) return;

@@ -84,6 +84,10 @@ class SoundEngine {
     }
   }
 
+  playSuccess() {
+    return this.playSuccessChime();
+  }
+
   // 2. High-Performance Glass Resonance Chime (Used for Good / Peak verdicts)
   playSuccessChime() {
     this.triggerHaptic([20, 30, 40]);
