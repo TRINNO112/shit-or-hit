@@ -17,7 +17,8 @@ import {
   Sliders,
   CheckCircle2,
   ChevronRight,
-  Info
+  Info,
+  Sun
 } from 'lucide-react';
 import { 
   getRehabilitationConfig, 
@@ -532,17 +533,21 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
               <div className="space-y-4">
                 
                 {/* Visual Haven Artwork */}
-                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] h-48 sm:h-56">
+                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/10] max-h-96">
                   <img
                     src={mascotSanctuaryRain}
                     alt="Sanctuary Veranda Rest"
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover object-top"
+                    className="w-full h-full object-cover object-[center_45%]"
                   />
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[10px] font-black uppercase">
+                  {/* Floating Top Badges (Preserves Cat, Tea & Foreground Artwork) */}
+                  <div className="absolute top-3 left-3 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000]">
+                    <Droplets className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5]" />
                     <span>Tranquility Sanctuary • Calm Japanese Veranda</span>
-                    <span className="text-[#00E599]">Rest & Recovery</span>
+                  </div>
+                  <div className="absolute top-3 right-3 bg-[#00E599] text-black px-2.5 py-1 rounded-lg border border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000]">
+                    <span>Rest & Recovery</span>
                   </div>
                 </div>
 
@@ -646,17 +651,21 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
               <div className="bg-white border-3 border-black rounded-3xl p-6 sm:p-7 shadow-[6px_6px_0px_#000000] space-y-6">
                 
                 {/* Sabbatical Mountain Summit Artwork */}
-                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] h-48 sm:h-56">
+                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/10] max-h-96">
                   <img
                     src={mascotSabbaticalSummit}
                     alt="Sabbatical Mountain Horizon"
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover object-center"
+                    className="w-full h-full object-cover object-[center_45%]"
                   />
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[10px] font-black uppercase">
+                  {/* Floating Top Badges (Preserves Cat, Journal & Sunset Panorama) */}
+                  <div className="absolute top-3 left-3 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000]">
+                    <Sun className="w-3.5 h-3.5 text-[#FFB800] stroke-[2.5]" />
                     <span>Grand Sabbatical Horizon • Sovereign Exploration</span>
-                    <span className="text-[#FFB800]">Unplugged Horizon</span>
+                  </div>
+                  <div className="absolute top-3 right-3 bg-[#FFB800] text-black px-2.5 py-1 rounded-lg border border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000]">
+                    <span>Unplugged Horizon</span>
                   </div>
                 </div>
 

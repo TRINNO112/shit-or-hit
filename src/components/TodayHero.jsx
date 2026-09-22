@@ -812,17 +812,21 @@ export default function TodayHero({
               </div>
 
               {/* Sacred Rest Anime Artwork */}
-              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] h-44 sm:h-48">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/11] max-h-80">
                 <img 
                   src={mascotSanctuaryRain} 
                   alt="Zen Veranda Sanctuary" 
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover object-top"
+                  className="w-full h-full object-cover object-[center_45%]"
                 />
-                <div className="absolute bottom-2 left-2 right-2 bg-black/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[9px] font-black uppercase">
+                {/* Floating Top Badges (Preserves Cat, Tea & Foreground Artwork) */}
+                <div className="absolute top-2.5 left-2.5 bg-black/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000]">
+                  <Droplets className="w-3 h-3 text-[#00E599] stroke-[2.5]" />
                   <span>Zen Porch • Warm Tea & Soft Rain</span>
-                  <span className="text-[#00E599]">Rest Active</span>
+                </div>
+                <div className="absolute top-2.5 right-2.5 bg-[#00E599] text-black px-2.5 py-0.5 rounded-lg border border-black font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000]">
+                  <span>Rest Active</span>
                 </div>
               </div>
 
@@ -1075,17 +1079,21 @@ export default function TodayHero({
               </div>
 
               {/* Grand Sabbatical Anime Artwork */}
-              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] h-44 sm:h-48">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/11] max-h-80">
                 <img 
                   src={mascotSabbaticalSummit} 
                   alt="Mountain Summit Grand Sabbatical" 
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover object-center"
+                  className="w-full h-full object-cover object-[center_45%]"
                 />
-                <div className="absolute bottom-2 left-2 right-2 bg-black/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-xl border border-white/20 flex items-center justify-between font-mono text-[9px] font-black uppercase">
+                {/* Floating Top Badges (Preserves Cat, Journal & Sunset Panorama) */}
+                <div className="absolute top-2.5 left-2.5 bg-black/85 backdrop-blur-xs text-white px-2.5 py-1 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000]">
+                  <Sun className="w-3 h-3 text-[#FFB800] stroke-[2.5]" />
                   <span>Mountain Overlook • Journaling In Freedom</span>
-                  <span className="text-[#FFB800]">Unplugged</span>
+                </div>
+                <div className="absolute top-2.5 right-2.5 bg-[#FFB800] text-black px-2.5 py-0.5 rounded-lg border border-black font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000]">
+                  <span>Unplugged</span>
                 </div>
               </div>
             </div>
