@@ -1206,7 +1206,7 @@ export default function App() {
             <P2PDeviceSyncModal
               isOpen={isP2PSyncOpen}
               onClose={() => setIsP2PSyncOpen(false)}
-              user={user}
+              user={currentUser}
               onLogin={handleGuestLogin}
               onSyncComplete={() => loadData()}
             />
