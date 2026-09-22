@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, FileSpreadsheet, BookOpen, Code, CheckCircle2, Sparkles, ShieldCheck } from 'lucide-react';
-import { exportEntriesToCsv, exportEntriesToDiaryDigest, exportDatabaseBackup } from '../services/api';
+import { exportEntriesToCsv, exportEntriesToExcel, exportEntriesToDiaryDigest, exportDatabaseBackup } from '../services/api';
 
 /**
  * 📦 Neobrutalist Multi-Format Export Studio Modal
@@ -12,6 +12,12 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
   const totalEntries = Object.keys(entries || {}).length;
 
   if (!isOpen) return null;
+
+  const handleExportExcel = () => {
+    setDownloadState('excel');
+    exportEntriesToExcel(entries, startDate);
+    setTimeout(() => setDownloadState(null), 1800);
+  };
 
   const handleExportCsv = () => {
     setDownloadState('csv');
@@ -72,7 +78,38 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
           {/* Export Options Grid */}
           <div className="space-y-3">
             
-            {/* 1. Excel / CSV */}
+            {/* 1. Styled Microsoft Excel Spreadsheet (.XLS) - RECOMMENDED */}
+            <button
+              onClick={handleExportExcel}
+              disabled={downloadState !== null}
+              className="w-full text-left p-4 bg-[#FFF9E6] hover:bg-[#FDC800]/30 border-3 border-black shadow-[4px_4px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0px_#000000] transition-all flex items-start gap-3 cursor-pointer group"
+            >
+              <div className="p-2.5 bg-[#FDC800] border-2 border-black shrink-0 mt-0.5 shadow-[1px_1px_0px_#000000]">
+                <FileSpreadsheet className="w-5 h-5 text-black stroke-[2.5]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-black text-sm text-black uppercase tracking-wide">
+                      Styled Excel Workbook (.XLS)
+                    </span>
+                    <span className="text-[9px] font-mono font-black bg-[#00E599] text-black px-1.5 py-0.2 border border-black">
+                      RECOMMENDED
+                    </span>
+                  </div>
+                  {downloadState === 'excel' && (
+                    <span className="text-[10px] font-mono font-black bg-[#00E599] text-black px-1.5 py-0.5 border border-black flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 stroke-3" /> DOWNLOADED
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs font-mono text-black/80 mt-1">
+                  Custom auto-fitted column widths (never shows <code className="bg-white px-1 py-0.5 border border-black/30 font-bold">########</code>), Gold headers, styled verdict badges, and formatted star ratings.
+                </p>
+              </div>
+            </button>
+
+            {/* 2. Excel Compatible CSV */}
             <button
               onClick={handleExportCsv}
               disabled={downloadState !== null}
@@ -84,7 +121,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="font-black text-sm text-black uppercase tracking-wide">
-                    Excel Spreadsheet (.CSV)
+                    Standard CSV (.CSV)
                   </span>
                   {downloadState === 'csv' && (
                     <span className="text-[10px] font-mono font-black bg-[#00E599] text-black px-1.5 py-0.5 border border-black flex items-center gap-1">
@@ -93,7 +130,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
                   )}
                 </div>
                 <p className="text-xs font-mono text-black/70 mt-1">
-                  Formatted spreadsheet with columns for date, verdict, rating, habits, and notes. Compatible with Microsoft Excel & Google Sheets.
+                  Plain RFC 4180 CSV with UTF-8 BOM and text-formatted dates. Compatible with all spreadsheet tools.
                 </p>
               </div>
             </button>

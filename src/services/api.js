@@ -518,6 +518,19 @@ export async function saveEntry(entryData) {
     safeStorageSetItem(storageKey, serialized);
     safeStorageSetItem('goodness_db', serialized);
     saveRollingSnapshot(storageKey, db);
+
+    // 1b. Background auto-sync to physical Device File Mirror if connected
+    if (typeof window !== 'undefined') {
+      import('./fileMirrorEngine.js').then(async ({ getPersistedFileHandle, writeToFileHandle, getFileMirrorFormatPreference }) => {
+        try {
+          const handle = await getPersistedFileHandle();
+          if (handle) {
+            const format = getFileMirrorFormatPreference();
+            writeToFileHandle(handle, db, format, '0000').catch(() => {});
+          }
+        } catch (err) {}
+      }).catch(() => {});
+    }
   } catch (e) {}
 
   // 2. Cloud save with 4s timeout protection against slow connections
@@ -1156,22 +1169,43 @@ Return ONLY a valid JSON object matching:
   };
 }
 
-export function exportDatabaseBackup(startDate, entries) {
+export function exportDatabaseBackup(startDate = null, entries = null) {
+  let finalEntries = entries;
+  let finalStartDate = startDate;
+
+  if (!finalEntries || typeof finalEntries !== 'object' || Object.keys(finalEntries).length === 0) {
+    try {
+      const u = getCurrentUser();
+      const storageKey = getDbStorageKey(u);
+      const raw = localStorage.getItem(storageKey) || localStorage.getItem('goodness_db');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        finalEntries = parsed.entries || {};
+        finalStartDate = finalStartDate || parsed.startDate;
+      }
+    } catch (e) {}
+  }
+  if (!finalEntries) finalEntries = {};
+  if (!finalStartDate) finalStartDate = new Date().toISOString().slice(0, 10);
+
   const payload = {
     version: '1.0',
     exportDate: new Date().toISOString(),
-    startDate,
-    totalEntries: Object.keys(entries).length,
-    entries
+    startDate: finalStartDate,
+    totalEntries: Object.keys(finalEntries).length,
+    entries: finalEntries
   };
 
-  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
   const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute('href', dataStr);
+  downloadAnchor.setAttribute('href', url);
   downloadAnchor.setAttribute('download', `daily_verdict_backup_${new Date().toISOString().slice(0, 10)}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 // ============================================================================
@@ -1932,40 +1966,63 @@ export function saveCompassionAnchors(anchors) {
 // ============================================================================
 
 export function exportEntriesToCsv(entries = {}, startDate = '') {
-  const dates = Object.keys(entries || {}).sort().reverse();
+  let finalEntries = entries;
+  if (!finalEntries || typeof finalEntries !== 'object' || Object.keys(finalEntries).length === 0) {
+    try {
+      const u = getCurrentUser();
+      const storageKey = getDbStorageKey(u);
+      const raw = localStorage.getItem(storageKey) || localStorage.getItem('goodness_db');
+      if (raw) finalEntries = JSON.parse(raw).entries || {};
+    } catch (e) {}
+  }
+  if (!finalEntries) finalEntries = {};
+
+  const dates = Object.keys(finalEntries).sort().reverse();
   const rows = [
-    ['Date', 'Verdict', 'Star Rating', 'Rehabilitation', 'Habits Completed', 'Reflection Notes', 'Life Spheres']
+    ['Date', 'Verdict', 'Star Rating', 'Rehabilitation / Sanctuary', 'Habits Completed', 'Reflection Notes', 'Life Spheres']
   ];
 
   dates.forEach(ds => {
-    const item = entries[ds];
+    const item = finalEntries[ds];
     if (!item) return;
 
-    const rating = item.rating || '';
-    const verdict = item.verdict || (ratingMeta[rating]?.title) || '';
-    const isRehab = item.isRehabilitation || item.isStreakFreeze ? 'YES' : 'NO';
+    const ratingNum = Number(item.rating) || 0;
+    const ratingStr = item.rating || '';
+    const verdict = item.verdict || (ratingMeta[ratingStr]?.title) || (ratingNum > 0 ? `Rating ${ratingNum}` : 'Unrated');
+    const isRehab = item.isRehabilitation || item.isStreakFreeze ? 'YES (Frozen)' : 'NO';
+
+    // Format stars as clean visual text
+    const stars = ratingNum > 0 
+      ? `${ratingNum}★ (${'★'.repeat(ratingNum)}${'☆'.repeat(Math.max(0, 5 - ratingNum))})` 
+      : 'Unrated';
 
     // Format anchors / habits
-    let habitsStr = '';
+    let habitsStr = 'None';
     if (item.anchors && typeof item.anchors === 'object') {
-      habitsStr = Object.entries(item.anchors)
-        .filter(([_, val]) => !!val)
-        .map(([key]) => key)
-        .join('; ');
+      const completed = Object.entries(item.anchors).filter(([_, val]) => !!val).map(([key]) => key);
+      if (completed.length > 0) habitsStr = completed.join('; ');
     }
 
     // Notes
-    const notesStr = item.notes ? item.notes.replace(/\r?\n/g, ' ') : '';
+    const notesStr = item.notes ? item.notes.replace(/\r?\n/g, ' ') : '-';
 
-    // Spheres
-    let spheresStr = '';
+    // Spheres (clean human formatting, strip empty colons)
+    let spheresStr = '-';
     if (item.spheres && typeof item.spheres === 'object') {
-      spheresStr = Object.entries(item.spheres)
-        .map(([id, s]) => `${id}:${s.rating || ''}`)
-        .join('; ');
+      const parsed = Object.entries(item.spheres)
+        .map(([id, s]) => {
+          const ratingVal = typeof s === 'object' ? (s.rating || s.score || '') : s;
+          const cleanName = id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          return ratingVal ? `${cleanName}: ${ratingVal}★` : null;
+        })
+        .filter(Boolean);
+      if (parsed.length > 0) spheresStr = parsed.join(' | ');
     }
 
-    rows.push([ds, verdict, rating, isRehab, habitsStr, notesStr, spheresStr]);
+    // Format date as text string formula so Excel never shrinks to ########
+    const excelSafeDate = `="${ds}"`;
+
+    rows.push([excelSafeDate, verdict, stars, isRehab, habitsStr, notesStr, spheresStr]);
   });
 
   // RFC 4180 CSV serialization
@@ -1979,11 +2036,158 @@ export function exportEntriesToCsv(entries = {}, startDate = '') {
     }).join(',')
   ).join('\r\n');
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  // Prepend UTF-8 BOM (\uFEFF) for 100% native Microsoft Excel compatibility
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
   link.setAttribute('download', `daily_verdict_export_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * 📊 Rich Styled Microsoft Excel Spreadsheet (.XLS)
+ * Pre-defines column widths (No '########' ever), styled Neobrutalist gold headers,
+ * colored verdict cells, and formatted star ratings.
+ */
+export function exportEntriesToExcel(entries = {}, startDate = '') {
+  let finalEntries = entries;
+  if (!finalEntries || typeof finalEntries !== 'object' || Object.keys(finalEntries).length === 0) {
+    try {
+      const u = getCurrentUser();
+      const storageKey = getDbStorageKey(u);
+      const raw = localStorage.getItem(storageKey) || localStorage.getItem('goodness_db');
+      if (raw) finalEntries = JSON.parse(raw).entries || {};
+    } catch (e) {}
+  }
+  if (!finalEntries) finalEntries = {};
+
+  const dates = Object.keys(finalEntries).sort().reverse();
+  const exportDate = new Date().toISOString().slice(0, 10);
+
+  let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]>
+<xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name>Daily Verdicts</x:Name>
+    <x:WorksheetOptions>
+     <x:DisplayGridlines/>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+ </x:ExcelWorkbook>
+</xml>
+<![endif]-->
+<style>
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background-color: #FDC800; color: #000000; font-family: 'Segoe UI', monospace; font-size: 13px; font-weight: 900; border: 2px solid #000000; padding: 12px 10px; text-transform: uppercase; text-align: left; }
+  td { font-family: 'Segoe UI', Calibri, Arial, sans-serif; font-size: 12px; border: 1px solid #D1D5DB; padding: 10px 8px; vertical-align: top; mso-number-format:"\\@"; }
+  .date-col { font-weight: bold; font-family: monospace; font-size: 12px; }
+  .peak { background-color: #D1FAE5; color: #065F46; font-weight: bold; }
+  .good { background-color: #ECFDF5; color: #047857; font-weight: bold; }
+  .okay { background-color: #FEF9C3; color: #854D0E; font-weight: bold; }
+  .down { background-color: #FEE2E2; color: #991B1B; font-weight: bold; }
+  .rough { background-color: #FEE2E2; color: #7F1D1D; font-weight: bold; }
+  .stars { color: #D97706; font-weight: bold; }
+</style>
+</head>
+<body>
+<h2>SHIT OR HIT — Master Daily Dossier &amp; Behavioral Verdicts</h2>
+<p style="font-size: 11px; color: #666;">Exported on: ${exportDate} • Total Entries: ${dates.length}</p>
+<table border="1">
+  <colgroup>
+    <col width="130">
+    <col width="120">
+    <col width="160">
+    <col width="140">
+    <col width="220">
+    <col width="380">
+    <col width="280">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Verdict</th>
+      <th>Star Rating</th>
+      <th>Stasis / Rehab</th>
+      <th>Habits Completed</th>
+      <th>Reflection Notes</th>
+      <th>Life Spheres</th>
+    </tr>
+  </thead>
+  <tbody>`;
+
+  dates.forEach(ds => {
+    const item = finalEntries[ds];
+    if (!item) return;
+
+    const ratingNum = Number(item.rating) || 0;
+    const ratingStr = item.rating || '';
+    const verdict = item.verdict || (ratingMeta[ratingStr]?.title) || (ratingNum > 0 ? `Rating ${ratingNum}` : 'Unrated');
+    const isRehab = item.isRehabilitation || item.isStreakFreeze ? 'YES (Frozen)' : 'NO';
+
+    const stars = ratingNum > 0 
+      ? `${ratingNum}★ (${'★'.repeat(ratingNum)}${'☆'.repeat(Math.max(0, 5 - ratingNum))})` 
+      : 'Unrated';
+
+    let habitsStr = 'None';
+    if (item.anchors && typeof item.anchors === 'object') {
+      const completed = Object.entries(item.anchors).filter(([_, val]) => !!val).map(([key]) => key);
+      if (completed.length > 0) habitsStr = completed.join('; ');
+    }
+
+    const notesStr = item.notes ? item.notes.replace(/\r?\n/g, '<br/>') : '-';
+
+    let spheresStr = '-';
+    if (item.spheres && typeof item.spheres === 'object') {
+      const parsed = Object.entries(item.spheres)
+        .map(([id, s]) => {
+          const ratingVal = typeof s === 'object' ? (s.rating || s.score || '') : s;
+          const cleanName = id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          return ratingVal ? `${cleanName}: ${ratingVal}★` : null;
+        })
+        .filter(Boolean);
+      if (parsed.length > 0) spheresStr = parsed.join(' | ');
+    }
+
+    const verdictLower = verdict.toLowerCase();
+    const verdictClass = verdictLower.includes('peak') ? 'peak' 
+      : verdictLower.includes('good') ? 'good' 
+      : verdictLower.includes('okay') ? 'okay' 
+      : verdictLower.includes('down') ? 'down' 
+      : verdictLower.includes('rough') ? 'rough' : '';
+
+    html += `
+    <tr>
+      <td class="date-col">${ds}</td>
+      <td class="${verdictClass}">${verdict}</td>
+      <td class="stars">${stars}</td>
+      <td>${isRehab}</td>
+      <td>${habitsStr}</td>
+      <td>${notesStr}</td>
+      <td>${spheresStr}</td>
+    </tr>`;
+  });
+
+  html += `
+  </tbody>
+</table>
+</body>
+</html>`;
+
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `daily_verdict_master_sheet_${exportDate}.xls`);
   document.body.appendChild(link);
   link.click();
   link.remove();

@@ -1151,6 +1151,7 @@ export default function App() {
               onOpenPrivacyPage={() => setShowPrivacy(true)}
               onOpenErasurePage={() => setShowErasure(true)}
               onOpenStoragePage={() => setShowStoragePage(true)}
+              onOpenExportStudio={() => setIsExportStudioOpen(true)}
             />
           )}
 

@@ -111,7 +111,8 @@ export default function SettingsModal({
   onOpenSanctuaryPage,
   onOpenPrivacyPage,
   onOpenErasurePage,
-  onOpenStoragePage
+  onOpenStoragePage,
+  onOpenExportStudio
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('22:00');
@@ -185,29 +186,6 @@ export default function SettingsModal({
     getStorageStatus().then(status => {
       setStorageTierState(status);
     });
-  };
-
-  const handleSwitchToLocalStorage = () => {
-    soundEngine.playClick();
-    setStandardLocalStorageMode();
-    setStorageTierState(prev => ({ ...prev, userPref: 'local', persisted: false }));
-    setStorageTierMsg('Switched to Standard Local Storage (Maximum Freedom).');
-    setTimeout(() => setStorageTierMsg(''), 3500);
-  };
-
-  const handleSwitchToPersistentStorage = async () => {
-    soundEngine.playClick();
-    setStorageTierMsg('Requesting browser eviction protection...');
-    const res = await requestPersistentStorage();
-    setStorageTierState(res);
-    if (res.persisted) {
-      soundEngine.playSuccessChime();
-      setStorageTierMsg('Persistent Storage Active! Eviction protection locked.');
-    } else {
-      soundEngine.playRoughTone();
-      setStorageTierMsg('Browser deferred persistent storage. Installing as PWA will lock persistence.');
-    }
-    setTimeout(() => setStorageTierMsg(''), 4500);
   };
 
   // 📂 Raw Database & Disk Inspector State
@@ -1478,78 +1456,29 @@ export default function SettingsModal({
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-display font-black text-sm uppercase text-black">
-                          On-Device Storage Tier
+                          On-Device Storage & Mirror
                         </h4>
-                        {storageTierState.persisted && storageTierState.userPref === 'persistent' ? (
+                        {storageTierState.persisted ? (
                           <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
-                            PERSISTENT SHIELD ACTIVE
+                            EVICTION-PROOF SHIELD ACTIVE
                           </span>
                         ) : (
                           <span className="px-2 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-800">
-                            LOCAL STORAGE (DEFAULT)
+                            BROWSER SANDBOX
                           </span>
                         )}
                       </div>
                       <p className="text-[11px] font-mono text-neutral-600">
-                        Choose between zero-permission Local Storage or Eviction-Proof Persistent Storage
+                        {storageTierState.quotaMb > 0 
+                          ? `Device Quota: ~${storageTierState.usageKb} KB used of ~${storageTierState.quotaMb} MB available`
+                          : 'Your diary entries are preserved securely on your local device.'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Educational Freedom Disclosure */}
-                <div className="p-3 bg-[#FFFDF5] border border-black/20 rounded-xl space-y-1.5 font-mono text-xs leading-relaxed text-neutral-800">
-                  <p>
-                    • <strong className="text-black">Standard Local Storage (Default / Freedom):</strong> Zero browser permission prompts. Data is saved purely in your local browser sandbox. If device storage is critically full (&lt;5%), your OS or browser may clean up site cache.
-                  </p>
-                  <p>
-                    • <strong className="text-black">Persistent Storage (Eviction Shield):</strong> Explicitly requests browser immunity (<code className="bg-amber-100 px-1 py-0.5 rounded font-black text-[10px]">navigator.storage.persist</code>) guaranteeing your diary will never be auto-evicted by the browser.
-                  </p>
-                  {storageTierState.quotaMb > 0 && (
-                    <span className="block text-[10px] text-neutral-500 font-bold pt-0.5">
-                      Device Quota: ~{storageTierState.usageKb} KB used of ~{storageTierState.quotaMb} MB available
-                    </span>
-                  )}
-                </div>
-
-                {/* Freedom Selector Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleSwitchToLocalStorage}
-                    className={`p-2.5 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-2 active:scale-98 ${
-                      storageTierState.userPref !== 'persistent'
-                        ? 'bg-[#FDC800] text-black ring-2 ring-black'
-                        : 'bg-white hover:bg-neutral-50 text-neutral-700'
-                    }`}
-                  >
-                    <HardDrive className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Standard Local (Freedom)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleSwitchToPersistentStorage}
-                    className={`p-2.5 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-2 active:scale-98 ${
-                      storageTierState.userPref === 'persistent' && storageTierState.persisted
-                        ? 'bg-[#00E599] text-black ring-2 ring-black'
-                        : 'bg-white hover:bg-neutral-50 text-neutral-700'
-                    }`}
-                  >
-                    <Lock className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Enable Persistent Shield</span>
-                  </button>
-                </div>
-
-                {storageTierMsg && (
-                  <div className="p-2 bg-[#FFF5C2] border border-black rounded-xl font-mono text-xs font-black text-black flex items-center gap-1.5 shadow-[1px_1px_0px_#000000]">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                    <span>{storageTierMsg}</span>
-                  </div>
-                )}
-
                 {/* 🪞 Dedicated Storage Sovereignty & Device File Mirror Portal Launcher */}
-                <div className="pt-2">
+                <div className="pt-1">
                   <button
                     type="button"
                     onClick={() => {
@@ -1569,6 +1498,26 @@ export default function SettingsModal({
                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                   </button>
                 </div>
+
+                {/* 📊 Multi-Format Data Export Studio Launcher */}
+                {onOpenExportStudio && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenExportStudio();
+                      }}
+                      className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:translate-x-px"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Download className="w-4 h-4 stroke-[2.5]" />
+                        <span>Data Export Studio (CSV, Digest & JSON)</span>
+                      </div>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                )}
 
                 {/* 📂 Raw Database & Disk Entries Inspector Toggle */}
                 <div className="pt-1 border-t border-black/15">
@@ -1665,8 +1614,11 @@ export default function SettingsModal({
                   </div>
                   <button
                     type="button"
-                    onClick={() => exportDatabaseBackup()}
-                    className="py-1 px-2.5 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-[10px] font-black uppercase text-black flex items-center gap-1 shadow-[1px_1px_0px_#000000] cursor-pointer"
+                    onClick={() => {
+                      soundEngine.playClick();
+                      exportDatabaseBackup();
+                    }}
+                    className="py-1 px-2.5 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-[10px] font-black uppercase text-black flex items-center gap-1 shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px"
                   >
                     <Download className="w-3.5 h-3.5" />
                     EXPORT JSON
