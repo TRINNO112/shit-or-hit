@@ -201,6 +201,7 @@ export default function MobileAppView({
   const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const [activeDirective, setActiveDirective] = useState('auto');
   const [selectedTags, setSelectedTags] = useState([]);
+  const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
 
   // Embedded Calendar State
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -352,6 +353,7 @@ export default function MobileAppView({
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
     setIsEnhancing(true);
+    setAiFeedback(null);
     try {
       const comp = calculateCompositeScore(spheresData);
       const enhanced = await enhanceReflectionWithAI(
@@ -361,7 +363,7 @@ export default function MobileAppView({
         sphereModeActive ? spheresData : null,
         activePrompt
       );
-      if (enhanced && enhanced !== currentVal) {
+      if (enhanced) {
         triggerHaptic('success');
         soundFx.playPeak();
         confetti({ particleCount: 35, spread: 55, origin: { y: 0.6 }, colors: ['#FDC800', '#00E599', '#000000'] });
@@ -370,9 +372,20 @@ export default function MobileAppView({
         setHistoryStack(newStack);
         setHistoryIdx(newStack.length - 1);
         setNoteText(enhanced);
+        setAiFeedback({
+          type: 'success',
+          message: 'Diary reflection polished with AI.'
+        });
+        setTimeout(() => setAiFeedback(null), 5000);
       }
     } catch (err) {
       console.error('AI Enhance error:', err);
+      triggerHaptic('warning');
+      soundFx.playRough();
+      setAiFeedback({
+        type: 'error',
+        message: err.message || 'AI Enhancement failed. Check connection or API key.'
+      });
     } finally {
       setIsEnhancing(false);
     }
@@ -1897,6 +1910,48 @@ export default function MobileAppView({
                 </div>
 
                 {/* Textarea with Enhanced Text Size & Line Height */}
+                {/* AI Polish Success / Error Feedback Banner */}
+                {aiFeedback && (
+                  <div className={`p-2.5 rounded-xl border-2 border-black flex items-center justify-between gap-2 text-xs font-mono font-bold shadow-[2px_2px_0px_#000000] shrink-0 ${
+                    aiFeedback.type === 'success' ? 'bg-[#E8FAF0] text-black' : 'bg-[#FFEBEB] text-black'
+                  }`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      {aiFeedback.type === 'success' ? (
+                        <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
+                      )}
+                      <span className="truncate">{aiFeedback.message}</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {aiFeedback.type === 'success' ? (
+                        <button
+                          type="button"
+                          onClick={handleUndo}
+                          className="px-2 py-0.5 bg-white border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
+                        >
+                          UNDO
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleAIEnhance()}
+                          className="px-2 py-0.5 bg-[#FDC800] border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
+                        >
+                          RETRY
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setAiFeedback(null)}
+                        className="p-0.5 text-black border border-black hover:bg-black hover:text-white"
+                      >
+                        <X className="w-3 h-3 stroke-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}

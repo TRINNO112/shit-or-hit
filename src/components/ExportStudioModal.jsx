@@ -45,7 +45,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
 
   return (
     <AnimatePresence>
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-xs overflow-hidden"
         onClick={onClose}
       >
@@ -55,20 +55,20 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
           exit={{ scale: 0.95, opacity: 0, y: 15 }}
           transition={{ duration: 0.18 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-xl bg-[#FFFDF8] border-3 border-black shadow-[8px_8px_0px_#000000] flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden"
+          className="relative w-full max-w-xl bg-[#FFFDF8] border-3 border-black shadow-[8px_8px_0px_#000000] flex flex-col max-h-[88vh] sm:max-h-[85vh] overflow-hidden"
         >
           {/* Pinned Header (Guaranteed Never Cut Off) */}
-          <div className="flex items-start justify-between gap-4 border-b-3 border-black p-5 sm:p-6 pb-4 bg-[#FFFDF8] shrink-0">
+          <div className="flex items-start justify-between gap-4 border-b-3 border-black p-4 sm:p-5 pb-3 sm:pb-4 bg-[#FFFDF8] shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="p-2.5 sm:p-3 bg-[#FDC800] border-2 border-black shadow-[3px_3px_0px_#000000] shrink-0">
-                <Download className="w-6 h-6 text-black stroke-[2.5]" />
+                <Download className="w-5 h-5 sm:w-6 sm:h-6 text-black stroke-[2.5]" />
               </div>
               <div className="min-w-0">
                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-black text-white font-mono text-[10px] sm:text-[11px] font-black uppercase tracking-wider mb-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5]" />
                   <span>DATA SOVEREIGNTY • {totalEntries} RECORDED {totalEntries === 1 ? 'DAY' : 'DAYS'}</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-black tracking-tight leading-snug py-0.5 truncate">
+                <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight leading-snug py-0.5 truncate">
                   Export Studio
                 </h2>
               </div>
@@ -78,17 +78,17 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
                 soundEngine.playClick();
                 onClose();
               }}
-              className="p-2 bg-[#FF4D4D] text-black border-2 border-black hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none shrink-0 cursor-pointer"
+              className="p-1.5 sm:p-2 bg-[#FF4D4D] text-black border-2 border-black hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none shrink-0 cursor-pointer"
               aria-label="Close Export Studio"
             >
-              <X className="w-5 h-5 stroke-3" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-3" />
             </button>
           </div>
 
           {/* Scrollable Export Options Core (DevTools-Proof & Mobile-Optimized) */}
-          <div className="flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6 space-y-3.5">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5 space-y-3">
             {/* Context Notice */}
-            <div className="bg-[#FFF9E6] border-2 border-black p-3 text-xs sm:text-sm font-mono text-black leading-relaxed flex items-center gap-2.5 shadow-[2px_2px_0px_#000000]">
+            <div className="bg-[#FFF9E6] border-2 border-black p-2.5 sm:p-3 text-xs sm:text-sm font-mono text-black leading-relaxed flex items-center gap-2.5 shadow-[2px_2px_0px_#000000]">
               <Sparkles className="w-4 h-4 text-black shrink-0 stroke-[2.5]" />
               <span>
                 Export your diary records directly from browser sandbox memory. Zero server telemetry.

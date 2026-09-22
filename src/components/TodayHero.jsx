@@ -37,7 +37,9 @@ import {
   PhoneOff,
   ArrowRight,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Save,
+  RotateCw
 } from 'lucide-react';
 import { 
   ratingMeta, 
@@ -198,6 +200,8 @@ export default function TodayHero({
       return true;
     }
   })();
+  const [justSavedNote, setJustSavedNote] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
   const [companionArtworkOverride, setCompanionArtworkOverride] = useState(null);
   const activeCompanionMascot = companionArtworkOverride === 'rain' 
     ? mascotSanctuaryRain 
@@ -495,6 +499,8 @@ export default function TodayHero({
   };
 
   const handleSaveNote = async () => {
+    soundEngine.playSuccess();
+    setJustSavedNote(true);
     const comp = calculateCompositeScore(spheresData);
     const ratingToUse = comp ? comp.rating : (selectedRating || 3);
     const verdictToUse = comp ? comp.verdict : (ratingMeta[ratingToUse]?.title || 'Verdict');
@@ -514,7 +520,10 @@ export default function TodayHero({
       setHasUnsavedDraft(false);
     } catch (e) {}
     setSyncedBadge(true);
-    setTimeout(() => setSyncedBadge(false), 2500);
+    setTimeout(() => {
+      setSyncedBadge(false);
+      setJustSavedNote(false);
+    }, 2500);
   };
 
   const handleNoteChange = (newVal) => {
@@ -533,6 +542,7 @@ export default function TodayHero({
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
     setIsEnhancing(true);
+    setAiFeedback(null);
     try {
       const enhanced = await enhanceReflectionWithAI(
         currentVal, 
@@ -549,9 +559,18 @@ export default function TodayHero({
       setNoteText(enhanced);
       setShowNote(true);
       soundEngine.playSuccessChime();
+      setAiFeedback({
+        type: 'success',
+        message: 'Reflection polished with AI ghostwriter co-pilot.'
+      });
+      setTimeout(() => setAiFeedback(null), 6000);
     } catch (err) {
       console.error('AI Enhance error:', err);
       soundEngine.playRoughTone();
+      setAiFeedback({
+        type: 'error',
+        message: err.message || 'AI Enhancement failed. Check your API key or connection.'
+      });
     } finally {
       setIsEnhancing(false);
     }
@@ -1621,30 +1640,30 @@ export default function TodayHero({
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
             className="mt-5 pt-5 pb-3 border-t-2 border-dashed border-black/20 text-left space-y-3.5"
           >
-            {/* Daily Companion Visual Horizon Strip */}
-            <div className="p-3 bg-linear-to-r from-neutral-100 to-amber-50 rounded-2xl border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[2px_2px_0px_#000000]">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="w-13 h-13 rounded-xl border-2 border-black overflow-hidden shadow-[1.5px_1.5px_0px_#000000] shrink-0 bg-neutral-900">
+            {/* Daily Companion Visual Horizon Card */}
+            <div className="p-3.5 bg-linear-to-r from-[#FFFDF5] to-[#FFF9E6] rounded-2xl border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-3.5 shadow-[3px_3px_0px_#000000]">
+              <div className="flex items-center gap-3.5 w-full sm:w-auto">
+                <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000] shrink-0 bg-neutral-900 relative group">
                   <img
                     src={activeCompanionMascot}
                     alt={activeCompanionTitle}
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-black uppercase text-black">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-mono text-xs sm:text-sm font-black uppercase text-black">
                       {activeCompanionTitle}
                     </span>
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-black text-white font-bold">
-                      {companionArtworkOverride ? 'PINNED' : isEvenDay ? 'DAILY ZEN A' : 'DAILY ZEN B'}
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-black text-[#FDC800] font-black uppercase">
+                      {companionArtworkOverride ? 'PINNED HORIZON' : isEvenDay ? 'DAILY ZEN • VERANDA' : 'DAILY ZEN • SUMMIT'}
                     </span>
                   </div>
-                  <p className="text-[11px] font-sans text-neutral-600 mt-0.5 font-medium">
+                  <p className="text-xs font-mono text-neutral-700 leading-snug">
                     {activeCompanionMascot === mascotSanctuaryRain 
-                      ? "Gentle rain & warm tea on the veranda. Take your time writing."
+                      ? "Gentle rain & warm tea on the veranda. Take your time writing without hurry."
                       : "Standing on the mountain summit. Look how far you have climbed."}
                   </p>
                 </div>
@@ -1659,9 +1678,10 @@ export default function TodayHero({
                     return current === 'rain' ? 'summit' : 'rain';
                   });
                 }}
-                className="self-end sm:self-center px-3 py-1 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px transition-all shrink-0"
+                className="self-end sm:self-center px-3 py-1.5 bg-[#FDC800] hover:bg-amber-300 text-black border-2 border-black rounded-lg font-mono text-[10px] sm:text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center gap-1.5 shrink-0"
               >
-                Switch Horizon Art
+                <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Switch Horizon Art</span>
               </button>
             </div>
 
@@ -1764,6 +1784,51 @@ export default function TodayHero({
               </div>
             )}
 
+            {/* AI Polish Success / Error Feedback Banner */}
+            {aiFeedback && (
+              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold ${
+                aiFeedback.type === 'success' 
+                  ? 'bg-[#E8FAF0] text-black' 
+                  : 'bg-[#FFEBEB] text-black'
+              }`}>
+                <div className="flex items-center gap-2 min-w-0">
+                  {aiFeedback.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
+                  )}
+                  <span className="truncate">{aiFeedback.message}</span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {aiFeedback.type === 'success' ? (
+                    <button
+                      type="button"
+                      onClick={handleUndo}
+                      className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
+                    >
+                      UNDO
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleAIEnhance()}
+                      className="px-2.5 py-1 bg-[#FDC800] hover:bg-amber-300 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
+                    >
+                      RETRY
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAiFeedback(null)}
+                    className="p-1 text-black hover:bg-black hover:text-white border border-black transition-colors cursor-pointer"
+                    aria-label="Dismiss feedback"
+                  >
+                    <X className="w-3 h-3 stroke-3" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <textarea
               rows={6}
               placeholder="Write your raw diary thoughts here... (what went wrong, what went right, real struggles)"
@@ -1782,9 +1847,23 @@ export default function TodayHero({
               <button
                 type="button"
                 onClick={handleSaveNote}
-                className="px-6 py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black text-xs font-mono font-black border-2 border-black rounded-xl cursor-pointer shadow-[3px_3px_0px_#000000] transition-all hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0px_#000000] active:translate-x-px active:translate-y-px"
+                className={`px-6 py-2.5 text-black text-xs font-mono font-black border-2 border-black rounded-xl cursor-pointer shadow-[3px_3px_0px_#000000] transition-all hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-2 ${
+                  justSavedNote 
+                    ? 'bg-[#00E599] ring-2 ring-black scale-102' 
+                    : 'bg-[#FDC800] hover:bg-amber-300'
+                }`}
               >
-                SAVE DIARY ENTRY
+                {justSavedNote ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-black stroke-3" />
+                    <span>DIARY ENTRY SAVED!</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 text-black stroke-2" />
+                    <span>SAVE DIARY ENTRY</span>
+                  </>
+                )}
               </button>
             </div>
           </motion.div>

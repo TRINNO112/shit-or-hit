@@ -13,8 +13,10 @@ import {
   Sparkles,
   Undo2,
   Redo2,
-  Shield
+  Shield,
+  CheckCircle2
 } from 'lucide-react';
+import { soundEngine } from '../services/soundEngine';
 import {
   ratingMeta,
   enhanceReflectionWithAI,
@@ -59,6 +61,7 @@ export default function EditDayModal({
   const [notes, setNotes] = useState(entryData?.notes || '');
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
 
   // Sphere mode states
   const [sphereModeActive, setSphereModeActive] = useState(false);
@@ -254,6 +257,7 @@ export default function EditDayModal({
     const activePrompt = savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null);
     
     setIsEnhancing(true);
+    setAiFeedback(null);
     try {
       const comp = calculateCompositeScore(spheresData);
       const enhanced = await enhanceReflectionWithAI(
@@ -268,8 +272,19 @@ export default function EditDayModal({
       setHistoryStack(newStack);
       setHistoryIdx(newStack.length - 1);
       setNotes(enhanced);
+      soundEngine.playSuccessChime();
+      setAiFeedback({
+        type: 'success',
+        message: 'Diary reflection enhanced successfully with AI co-pilot.'
+      });
+      setTimeout(() => setAiFeedback(null), 6000);
     } catch (err) {
       console.error('AI Enhance error:', err);
+      soundEngine.playRoughTone();
+      setAiFeedback({
+        type: 'error',
+        message: err.message || 'AI Enhancement failed. Check your API key or connection.'
+      });
     } finally {
       setIsEnhancing(false);
     }
@@ -698,6 +713,48 @@ export default function EditDayModal({
                         </button>
                       </div>
                     </div>
+
+                    {/* AI Polish Success / Error Feedback Banner */}
+                    {aiFeedback && (
+                      <div className={`p-2.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold shrink-0 ${
+                        aiFeedback.type === 'success' ? 'bg-[#E8FAF0] text-black' : 'bg-[#FFEBEB] text-black'
+                      }`}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          {aiFeedback.type === 'success' ? (
+                            <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
+                          )}
+                          <span className="truncate">{aiFeedback.message}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {aiFeedback.type === 'success' ? (
+                            <button
+                              type="button"
+                              onClick={handleUndo}
+                              className="px-2 py-0.5 bg-white hover:bg-neutral-100 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
+                            >
+                              UNDO
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleAIEnhance}
+                              className="px-2 py-0.5 bg-[#FDC800] hover:bg-amber-300 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
+                            >
+                              RETRY
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setAiFeedback(null)}
+                            className="p-0.5 text-black hover:bg-black hover:text-white border border-black transition-colors cursor-pointer"
+                          >
+                            <X className="w-3 h-3 stroke-3" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     <textarea
                       placeholder="Type your reflection, thoughts, or wins for this day..."

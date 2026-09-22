@@ -55,6 +55,7 @@ const AutopsyChamberModal = safeLazy(() => import('./components/AutopsyChamberMo
 const BehavioralLabModal = safeLazy(() => import('./components/BehavioralLabModal'));
 const ExportStudioModal = safeLazy(() => import('./components/ExportStudioModal'));
 const RehabilitationModal = safeLazy(() => import('./components/RehabilitationModal'));
+const SanctuaryInvitationModal = safeLazy(() => import('./components/SanctuaryInvitationModal'));
 const SanctuaryPage = safeLazy(() => import('./components/SanctuaryPage'));
 const PrivacyPolicyPage = safeLazy(() => import('./components/PrivacyPolicyPage'));
 const DataErasurePage = safeLazy(() => import('./components/DataErasurePage'));
@@ -75,7 +76,9 @@ import {
   getRansomCapsules,
   hydrateTimeCapsulesFromCloud,
   isGuestDisclaimerDismissed,
-  autoActivateSanctuaryIfEligible,
+  checkSanctuaryInvitationNeeded,
+  declineSanctuaryInvitation,
+  acceptSanctuaryInvitation,
   getPendingDeletionStatus,
   cancelAccountDeletion
 } from './services/api';
@@ -221,6 +224,8 @@ export default function App() {
   const [isBehavioralLabOpen, setIsBehavioralLabOpen] = useState(false);
   const [simulatedCrash, setSimulatedCrash] = useState(false);
   const [isP2PSyncOpen, setIsP2PSyncOpen] = useState(false);
+  const [isSanctuaryInvitationOpen, setIsSanctuaryInvitationOpen] = useState(false);
+  const [sanctuaryInvitationRoughCount, setSanctuaryInvitationRoughCount] = useState(2);
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
@@ -379,14 +384,18 @@ export default function App() {
     };
   }, []);
 
-  // 🤖 Auto-Sanctuary Assumption Engine: Safeguard streak automatically on load
+  // 🧘 Sanctuary Stasis Consent Engine: Prompt user with invitation dialog if eligible (NEVER auto-transfer silently)
   useEffect(() => {
     try {
       if (entries && Object.keys(entries).length > 0) {
-        autoActivateSanctuaryIfEligible(entries);
+        const invCheck = checkSanctuaryInvitationNeeded(entries);
+        if (invCheck.needed) {
+          setSanctuaryInvitationRoughCount(invCheck.roughCount || 2);
+          setIsSanctuaryInvitationOpen(true);
+        }
       }
     } catch (e) {
-      console.warn('Auto-sanctuary trigger check note:', e);
+      console.warn('Sanctuary invitation check note:', e);
     }
   }, [entries]);
 
@@ -1262,6 +1271,23 @@ export default function App() {
               onOpenCapsule={handleOpenCapsuleFromLab}
               onOpenAutopsy={handleOpenAutopsyFromLab}
               onTriggerErrorTest={handleTriggerErrorTest}
+            />
+          )}
+
+          {/* 🧘 Burnout Radar Sanctuary Invitation Dialog (Explicit Consent Required) */}
+          {isSanctuaryInvitationOpen && (
+            <SanctuaryInvitationModal
+              isOpen={isSanctuaryInvitationOpen}
+              roughDaysCount={sanctuaryInvitationRoughCount}
+              onAccept={() => {
+                acceptSanctuaryInvitation(7);
+                setIsSanctuaryInvitationOpen(false);
+                loadData();
+              }}
+              onDecline={() => {
+                declineSanctuaryInvitation();
+                setIsSanctuaryInvitationOpen(false);
+              }}
             />
           )}
 

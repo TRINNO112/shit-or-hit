@@ -567,6 +567,8 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
 
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
 
+  let lastError = null;
+
   // 1. Try local dev backend if running (and not on static host)
   if (!isStaticHost) {
     try {
@@ -578,8 +580,12 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
       if (res.ok) {
         const data = await res.json();
         if (data.enhancedText) return data.enhancedText;
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        if (errData?.error) lastError = new Error(errData.error);
       }
     } catch (err) {
+      lastError = err;
       // Backend offline (e.g. GitHub Pages static deployment)
     }
   }
@@ -666,13 +672,19 @@ Return ONLY the complete polished diary entry text without quotes or preamble.`;
         const result = await response.json();
         const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text && text.trim()) return text.trim();
+      } else {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message || `Gemini API returned status ${response.status}`);
       }
+    } else {
+      throw new Error(lastError?.message || 'No Gemini API key found. Please configure your key in Settings or connect to the backend server.');
     }
   } catch (err) {
     console.error('Direct Gemini Polish error:', err);
+    throw err;
   }
 
-  return notes;
+  throw new Error('AI ghostwriter service unavailable. Check your connection or API key.');
 }
 
 export async function getSavedMonthlyReport(year, month) {
@@ -1871,30 +1883,86 @@ export function checkAutoSanctuaryEligible(entries = {}) {
   return { eligible: false, roughCount: consecutiveRoughCount, reason: 'insufficient_consecutive_rough' };
 }
 
-export function autoActivateSanctuaryIfEligible(entries = {}) {
-  if (typeof window === 'undefined') return { autoActivated: false };
-  try {
-    const check = checkAutoSanctuaryEligible(entries);
-    if (!check.eligible) return { autoActivated: false, check };
+export const SANCTUARY_DECLINED_DATE_KEY = 'daily_verdict_sanctuary_declined_date';
 
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const lastAssumedDate = localStorage.getItem(AUTO_SANCTUARY_ASSUMED_KEY);
-    if (lastAssumedDate === todayStr) {
-      return { autoActivated: false, reason: 'already_assumed_today' };
-    }
+/**
+ * 🧘 Sanctuary Stasis Consent Engine
+ * Evaluates whether a user should be prompted with an invitation to enter Sanctuary Mode.
+ * NEVER activates stasis automatically without explicit dialog consent.
+ * If user declined, respects a strict 7-day cooldown.
+ */
+export function checkSanctuaryInvitationNeeded(entries = {}) {
+  if (typeof window === 'undefined') return { needed: false };
+  if (!entries || typeof entries !== 'object') return { needed: false };
 
-    const payload = activateRehabilitation(7);
-    if (payload) {
-      payload.autoSanctuaryAssumed = true;
-      payload.roughCount = check.roughCount;
-      localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
-      localStorage.setItem(AUTO_SANCTUARY_ASSUMED_KEY, todayStr);
-      return { autoActivated: true, roughCount: check.roughCount };
+  // If sanctuary is already active, do not prompt
+  if (isRehabilitationActive()) return { needed: false };
+
+  // Check if user previously declined within 7 days
+  const declinedDateStr = localStorage.getItem(SANCTUARY_DECLINED_DATE_KEY);
+  if (declinedDateStr) {
+    const declinedDate = new Date(declinedDateStr);
+    const now = new Date();
+    const diffDays = (now - declinedDate) / (1000 * 60 * 60 * 24);
+    if (diffDays < 7) {
+      return { needed: false, reason: 'declined_within_7_days', cooldownDaysRemaining: Math.ceil(7 - diffDays) };
     }
-  } catch (e) {
-    console.warn('Auto-sanctuary trigger note:', e);
   }
-  return { autoActivated: false };
+
+  // 1. Check if missed yesterday after 2+ consecutive rough days (<=2 stars)
+  const checkAuto = checkAutoSanctuaryEligible(entries);
+  if (checkAuto.eligible) {
+    return { needed: true, roughCount: checkAuto.roughCount, reason: 'chronic_friction_before_missed_day' };
+  }
+
+  // 2. Check if user has 3+ consecutive recent rough days (<= 2 stars)
+  const sortedDates = Object.keys(entries).sort().reverse();
+  let consecutiveRough = 0;
+  for (const d of sortedDates) {
+    const r = entries[d]?.rating;
+    if (r && Number(r) <= 2) {
+      consecutiveRough++;
+    } else if (r && Number(r) > 2) {
+      break;
+    }
+  }
+
+  if (consecutiveRough >= 3) {
+    return { needed: true, roughCount: consecutiveRough, reason: 'prolonged_rough_streak' };
+  }
+
+  return { needed: false };
+}
+
+/**
+ * User declines Sanctuary invitation: sets 7-day cooldown timestamp in localStorage
+ */
+export function declineSanctuaryInvitation() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(SANCTUARY_DECLINED_DATE_KEY, new Date().toISOString());
+  } catch (e) {
+    console.warn('Could not save sanctuary decline date:', e);
+  }
+}
+
+/**
+ * User accepts Sanctuary invitation: clears cooldown and activates 7-day stasis
+ */
+export function acceptSanctuaryInvitation(freezeDays = 7) {
+  if (typeof window === 'undefined') return null;
+  try {
+    localStorage.removeItem(SANCTUARY_DECLINED_DATE_KEY);
+  } catch (e) {}
+  return activateRehabilitation(freezeDays);
+}
+
+/**
+ * @deprecated Silent auto-activation is permanently disabled to respect user sovereignty.
+ * Always prompts the user with SanctuaryInvitationModal instead.
+ */
+export function autoActivateSanctuaryIfEligible(entries = {}) {
+  return { autoActivated: false, check: checkSanctuaryInvitationNeeded(entries) };
 }
 
 export function isAutoSanctuaryAssumed() {
