@@ -58,6 +58,7 @@ const RehabilitationModal = safeLazy(() => import('./components/RehabilitationMo
 const SanctuaryPage = safeLazy(() => import('./components/SanctuaryPage'));
 const PrivacyPolicyPage = safeLazy(() => import('./components/PrivacyPolicyPage'));
 const DataErasurePage = safeLazy(() => import('./components/DataErasurePage'));
+const StorageSovereigntyPage = safeLazy(() => import('./components/StorageSovereigntyPage'));
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 import { soundEngine } from './services/soundEngine';
 import {
@@ -129,6 +130,10 @@ export default function App() {
   const [showErasure, setShowErasure] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.location.search.includes('view=erasure') || window.location.hash.includes('erasure');
+  });
+  const [showStoragePage, setShowStoragePage] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.search.includes('view=storage') || window.location.hash.includes('storage');
   });
   const [pendingDeletion, setPendingDeletion] = useState(() => getPendingDeletionStatus());
   const [showNotFound, setShowNotFound] = useState(() => {
@@ -846,6 +851,26 @@ export default function App() {
     );
   }
 
+  if (showStoragePage) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[#FFFDF8] flex items-center justify-center font-mono text-sm font-black">LOADING STORAGE SOVEREIGNTY PORTAL...</div>}>
+          <StorageSovereigntyPage
+            onBack={() => {
+              setShowStoragePage(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+            user={currentUser}
+            entries={entries}
+            onDataRestored={(restoredEntries) => {
+              setEntries(restoredEntries);
+            }}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   if (isInitialLoading) {
     return <SkeletonLoader isMobile={isMobile} />;
   }
@@ -1125,6 +1150,7 @@ export default function App() {
               onOpenSanctuaryPage={() => setShowSanctuary(true)}
               onOpenPrivacyPage={() => setShowPrivacy(true)}
               onOpenErasurePage={() => setShowErasure(true)}
+              onOpenStoragePage={() => setShowStoragePage(true)}
             />
           )}
 

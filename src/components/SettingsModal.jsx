@@ -45,7 +45,8 @@ import {
   HardDrive,
   Lock,
   Database,
-  Copy
+  Copy,
+  FolderSync
 } from 'lucide-react';
 import {
   getStorageStatus,
@@ -109,7 +110,8 @@ export default function SettingsModal({
   onSettingsChanged,
   onOpenSanctuaryPage,
   onOpenPrivacyPage,
-  onOpenErasurePage
+  onOpenErasurePage,
+  onOpenStoragePage
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('22:00');
@@ -1545,6 +1547,28 @@ export default function SettingsModal({
                     <span>{storageTierMsg}</span>
                   </div>
                 )}
+
+                {/* 🪞 Dedicated Storage Sovereignty & Device File Mirror Portal Launcher */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (onOpenStoragePage) {
+                        onOpenStoragePage();
+                      } else if (typeof window !== 'undefined') {
+                        window.location.href = '/?view=storage';
+                      }
+                    }}
+                    className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:translate-x-px"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FolderSync className="w-4 h-4 stroke-[2.5]" />
+                      <span>Open Storage Sovereignty & File Mirror Portal</span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
 
                 {/* 📂 Raw Database & Disk Entries Inspector Toggle */}
                 <div className="pt-1 border-t border-black/15">

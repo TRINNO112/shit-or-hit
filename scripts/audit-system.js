@@ -342,6 +342,10 @@ assert(privacyPageCode.includes('kaushtubh457@gmail.com') && privacyPageCode.inc
 assert(erasurePageCode.includes('COOLING-OFF') && erasurePageCode.includes('scheduleAccountDeletion'), 'DataErasurePage: 7-day regret-proof cooling-off holding pattern operational');
 assert(apiCode.includes('autoActivateSanctuaryIfEligible') && apiCode.includes('scheduleAccountDeletion'), 'api.js: Auto-Sanctuary assumption engine & 7-day cooling-off schedule operational');
 
+const storagePageCode = readSrc('components/StorageSovereigntyPage.jsx');
+const fileMirrorCode = readSrc('services/fileMirrorEngine.js');
+assert(storagePageCode.includes('kaushtubh457@gmail.com') && fileMirrorCode.includes('AES-256-GCM'), 'StorageSovereigntyPage: Whitelist enlistment & AES-256 Device File Mirror operational');
+
 // ----------------------------------------------------------------------
 // COMPILER VERIFICATION
 // ----------------------------------------------------------------------
