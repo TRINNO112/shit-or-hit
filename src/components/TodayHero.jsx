@@ -520,10 +520,12 @@ export default function TodayHero({
       setHasUnsavedDraft(false);
     } catch (e) {}
     setSyncedBadge(true);
+    // Smooth animation: show saved state on the button, then smoothly close the writing box
     setTimeout(() => {
-      setSyncedBadge(false);
+      setShowNote(false);
       setJustSavedNote(false);
-    }, 2500);
+      setSyncedBadge(false);
+    }, 900);
   };
 
   const handleNoteChange = (newVal) => {
@@ -1621,8 +1623,17 @@ export default function TodayHero({
                 onClick={() => setShowNote(true)}
                 className="text-xs font-mono font-bold text-black bg-white hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer"
               >
-                <PenLine className="w-3.5 h-3.5" />
-                <span>{currentEntry?.notes ? 'Edit Master Reflection' : '+ Unified Day Journal'}</span>
+                {noteText || currentEntry?.notes ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00E599] stroke-3" />
+                    <span>Edit Master Reflection</span>
+                  </>
+                ) : (
+                  <>
+                    <PenLine className="w-3.5 h-3.5" />
+                    <span>+ Unified Day Journal</span>
+                  </>
+                )}
               </MagneticButton>
             </div>
           )}
