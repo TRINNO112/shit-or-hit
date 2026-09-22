@@ -76,9 +76,9 @@ import {
   isGuestDisclaimerDismissed,
   autoActivateSanctuaryIfEligible,
   getPendingDeletionStatus,
-  cancelAccountDeletion,
-  requestPersistentStorage
+  cancelAccountDeletion
 } from './services/api';
+import { syncStoragePersistenceWithPreference } from './services/storageManager';
 import { scheduleLocalEveningReminder } from './services/notifications';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser, loginWithGoogle } from './services/firebase';
 import { decryptVaultPin, hashPinWithSalt } from './services/cipherEngine';
@@ -393,7 +393,7 @@ export default function App() {
 
   const loadData = useCallback(async (userOverride = null) => {
     try {
-      requestPersistentStorage();
+      syncStoragePersistenceWithPreference();
       const db = await fetchDatabase(userOverride);
       if (db.startDate) setStartDate(db.startDate);
       if (db.entries) {
