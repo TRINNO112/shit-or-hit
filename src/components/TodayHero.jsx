@@ -684,8 +684,8 @@ export default function TodayHero({
           {/* Row 1: The Breathing Lotus Orb (Left) & The Sacred Momentum Shelter (Right) */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
             
-            {/* Left Card (6 cols): The Vagus Breathing Lotus Orb */}
-            <div className="md:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+            {/* Left Card (6 cols): The Vagus Breathing Lotus Orb & Somatic Grounding */}
+            <div className="md:col-span-6 border-3 border-black rounded-[28px] p-5 sm:p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
@@ -713,9 +713,9 @@ export default function TodayHero({
                 </button>
               </div>
 
-              {/* Center Meditative Lotus Orb with Concentric Ripples */}
-              <div className="py-6 flex flex-col items-center justify-center relative overflow-hidden bg-linear-to-b from-[#F0FDF4] to-[#E6F8ED] rounded-2xl border-2 border-emerald-300">
-                <div className="relative w-40 h-40 flex items-center justify-center">
+              {/* Meditative Lotus Orb with Live Cadence Bar */}
+              <div className="py-5 px-4 flex flex-col items-center justify-center relative overflow-hidden bg-linear-to-b from-[#F0FDF4] to-[#E6F8ED] rounded-2xl border-2 border-emerald-300 shadow-[1.5px_1.5px_0px_#000000]">
+                <div className="relative w-36 h-36 flex items-center justify-center">
                   {breathActive && (
                     <>
                       <motion.div
@@ -760,11 +760,11 @@ export default function TodayHero({
                       duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6, 
                       ease: 'easeInOut' 
                     }}
-                    className="w-24 h-24 rounded-full border-3 border-black flex flex-col items-center justify-center shadow-[3px_3px_0px_#000000] cursor-pointer active:scale-95 transition-transform z-10"
+                    className="w-22 h-22 rounded-full border-3 border-black flex flex-col items-center justify-center shadow-[3px_3px_0px_#000000] cursor-pointer active:scale-95 transition-transform z-10"
                     title="Tap to toggle breathing pacer"
                   >
-                    <Wind className="w-7 h-7 text-black stroke-[2.5]" />
-                    <span className="font-mono text-[10px] font-black uppercase tracking-wider text-black mt-1">
+                    <Wind className="w-6 h-6 text-black stroke-[2.5]" />
+                    <span className="font-mono text-[9px] font-black uppercase tracking-wider text-black mt-0.5">
                       {breathActive 
                         ? (breathPhase.includes('Inhale') ? 'INHALE' : breathPhase.includes('Hold') ? 'HOLD' : 'EXHALE') 
                         : 'BREATHE'}
@@ -772,19 +772,94 @@ export default function TodayHero({
                   </motion.button>
                 </div>
 
-                <div className="mt-3 text-center px-4">
+                <div className="mt-2 text-center px-2">
                   <span className="font-mono text-xs font-black uppercase text-neutral-800 tracking-wider block">
                     {breathActive ? breathPhase : 'Tap Orb to Begin Nervous System Reset'}
                   </span>
-                  <p className="text-[11px] font-sans text-neutral-600 max-w-xs mx-auto mt-1">
-                    Slow prolonged exhales stimulate the vagus nerve, dropping cortisol and lowering physiological tension.
+                  <p className="text-[10px] font-sans text-neutral-600 max-w-xs mx-auto mt-0.5">
+                    Slow prolonged exhales stimulate the vagus nerve, dropping cortisol and lowering tension.
                   </p>
+                </div>
+
+                {/* 3-Phase Cadence Pill Strip */}
+                <div className="grid grid-cols-3 gap-2 w-full max-w-sm mt-2.5 pt-2 border-t border-emerald-300/60 font-mono text-[10px] text-center">
+                  <div className={`p-1 rounded-lg border border-black/30 transition-colors ${breathPhase.includes('Inhale') ? 'bg-[#00E599] font-black text-black shadow-xs' : 'bg-white/80 text-neutral-600'}`}>
+                    <span className="block font-black text-[9px]">4S INHALE</span>
+                    <span className="text-[8px] opacity-75">O2 Surge</span>
+                  </div>
+                  <div className={`p-1 rounded-lg border border-black/30 transition-colors ${breathPhase.includes('Hold') ? 'bg-[#FDC800] font-black text-black shadow-xs' : 'bg-white/80 text-neutral-600'}`}>
+                    <span className="block font-black text-[9px]">2S HOLD</span>
+                    <span className="text-[8px] opacity-75">Equilibrium</span>
+                  </div>
+                  <div className={`p-1 rounded-lg border border-black/30 transition-colors ${breathPhase.includes('Exhale') ? 'bg-[#00E599] font-black text-black shadow-xs' : 'bg-white/80 text-neutral-600'}`}>
+                    <span className="block font-black text-[9px]">6S EXHALE</span>
+                    <span className="text-[8px] opacity-75">Vagus Drop</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Somatic Grounding Garden 2x2 Grid (Integrated to balance height) */}
+              <div className="space-y-2 pt-0.5">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-1.5 font-black uppercase text-black text-[11px]">
+                    <Heart className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
+                    <span>Somatic Grounding Garden</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-neutral-500 bg-[#F4F9F5] px-2 py-0.5 rounded-full border border-neutral-300">
+                    {nourishedCount} of 4 Nourished
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+                  {[
+                    { key: 'water', icon: Droplets, label: 'Hydration Well', blurb: 'Tall glass of water', doneLabel: 'Hydrated' },
+                    { key: 'walk', icon: Footprints, label: 'Fresh Air Step', blurb: 'Stepped outside', doneLabel: 'Breathed Air' },
+                    { key: 'rest', icon: Moon, label: 'Quiet Horizon', blurb: 'Rested eyes 10m', doneLabel: 'Eyes Rested' },
+                    { key: 'screens', icon: PhoneOff, label: 'Digital Boundary', blurb: 'Put down devices', doneLabel: 'Unplugged' }
+                  ].map((stone) => {
+                    const IconComp = stone.icon;
+                    const isDone = somaticCare[stone.key];
+                    return (
+                      <button
+                        key={stone.key}
+                        type="button"
+                        onClick={() => {
+                          try { soundEngine.playClick(); } catch (e) {}
+                          setSomaticCare(prev => ({ ...prev, [stone.key]: !prev[stone.key] }));
+                        }}
+                        className={`p-2.5 rounded-xl border-2 border-black flex items-center justify-between text-left cursor-pointer transition-all duration-150 ${
+                          isDone 
+                            ? 'bg-[#DCFCE7] shadow-[2px_2px_0px_#000000] translate-y-px' 
+                            : 'bg-[#F9FBFA] hover:bg-neutral-100 hover:shadow-[2px_2px_0px_#000000] text-neutral-700 shadow-[1px_1px_0px_#000000]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-7 h-7 rounded-lg bg-white border border-black flex items-center justify-center shrink-0">
+                            <IconComp className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                          </div>
+                          <div className="min-w-0 truncate">
+                            <span className="font-black text-[11px] uppercase block text-black truncate">
+                              {isDone ? stone.doneLabel : stone.label}
+                            </span>
+                            <span className="text-[9px] text-neutral-500 font-sans block truncate">
+                              {stone.blurb}
+                            </span>
+                          </div>
+                        </div>
+                        <span className={`w-4 h-4 rounded-full border border-black flex items-center justify-center text-[8px] shrink-0 ml-1.5 ${
+                          isDone ? 'bg-black text-[#00E599]' : 'bg-white text-transparent'
+                        }`}>
+                          <Check className="w-2.5 h-2.5 stroke-3" />
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
             {/* Right Card (6 cols): The Sacred Momentum Shelter */}
-            <div className="md:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+            <div className="md:col-span-6 border-3 border-black rounded-[28px] p-5 sm:p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
@@ -802,7 +877,7 @@ export default function TodayHero({
               </div>
 
               {/* Reassurance Lead */}
-              <div className="p-4 bg-[#F2FBF5] border-2 border-black/80 rounded-2xl space-y-1.5">
+              <div className="p-3.5 bg-[#F2FBF5] border-2 border-black/80 rounded-2xl space-y-1">
                 <p className="text-xs sm:text-sm font-sans text-neutral-800 leading-relaxed font-medium">
                   Your <span className="font-mono font-black text-black underline decoration-[#00E599] decoration-2">{dayCount}-day streak</span> is sealed in safe stasis. Daily grading is suspended, and missed days cannot break your momentum.
                 </p>
@@ -831,7 +906,7 @@ export default function TodayHero({
               </div>
 
               {/* Visual 7-Day Cycle Pebble Beads */}
-              <div className="space-y-2.5 pt-1">
+              <div className="space-y-2 pt-0.5">
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="font-bold text-neutral-600 uppercase text-[11px]">{freezeDays === 14 ? '14-Day Rest Arc' : '7-Day Rest Arc'}</span>
                   <span className="font-black text-black">Day {daysIn} of {freezeDays || 7}</span>
@@ -845,7 +920,7 @@ export default function TodayHero({
                     return (
                       <div
                         key={i}
-                        className={`h-9 rounded-xl border-2 border-black flex items-center justify-center font-mono text-xs font-black transition-all ${
+                        className={`h-8.5 rounded-xl border-2 border-black flex items-center justify-center font-mono text-xs font-black transition-all ${
                           isPast 
                             ? 'bg-[#00E599] text-black shadow-[1.5px_1.5px_0px_#000000]' 
                             : isCurrent 
@@ -868,67 +943,6 @@ export default function TodayHero({
               </div>
             </div>
 
-          </div>
-
-          {/* Row 2: Somatic Grounding Garden • Tactile Talismans (Full Width) */}
-          <div className="border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-emerald-600 fill-emerald-600" />
-                <h4 className="font-display font-black text-sm uppercase text-black">
-                  Somatic Grounding Garden • Tactile Talismans
-                </h4>
-              </div>
-              <span className="text-[11px] font-mono font-bold text-neutral-600 bg-[#F4F9F5] px-3 py-1 rounded-full border border-neutral-300">
-                {nourishedCount} of 4 Nourished Today • Zero Pressure
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
-              {[
-                { key: 'water', icon: Droplets, label: 'Hydration Well', blurb: 'Drank a tall glass of water', doneLabel: 'Hydrated' },
-                { key: 'walk', icon: Footprints, label: 'Fresh Air Step', blurb: 'Stepped outside for breeze', doneLabel: 'Breathed Fresh Air' },
-                { key: 'rest', icon: Moon, label: 'Quiet Horizon', blurb: 'Rested eyes for 10 minutes', doneLabel: 'Eyes Rested' },
-                { key: 'screens', icon: PhoneOff, label: 'Digital Boundary', blurb: 'Put down feeds & devices', doneLabel: 'Screen Unplugged' }
-              ].map((stone) => {
-                const IconComp = stone.icon;
-                const isDone = somaticCare[stone.key];
-                return (
-                  <button
-                    key={stone.key}
-                    type="button"
-                    onClick={() => {
-                      try { soundEngine.playClick(); } catch (e) {}
-                      setSomaticCare(prev => ({ ...prev, [stone.key]: !prev[stone.key] }));
-                    }}
-                    className={`p-4 rounded-2xl border-2 border-black flex flex-col justify-between text-left cursor-pointer transition-all duration-150 relative overflow-hidden ${
-                      isDone 
-                        ? 'bg-[#DCFCE7] border-black shadow-[3px_3px_0px_#000000] translate-y-px' 
-                        : 'bg-[#F9FBFA] hover:bg-neutral-100 hover:shadow-[3px_3px_0px_#000000] text-neutral-700 shadow-[1.5px_1.5px_0px_#000000]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
-                        <IconComp className="w-4 h-4 text-black stroke-[2.5]" />
-                      </div>
-                      <span className={`w-5 h-5 rounded-full border border-black flex items-center justify-center text-[10px] ${
-                        isDone ? 'bg-black text-[#00E599]' : 'bg-white text-transparent'
-                      }`}>
-                        <Check className="w-3.5 h-3.5 stroke-3" />
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-black text-xs uppercase block text-black">
-                        {isDone ? stone.doneLabel : stone.label}
-                      </span>
-                      <span className="text-[10px] text-neutral-500 font-sans block mt-0.5 leading-snug">
-                        {stone.blurb}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           {/* Row 3: Field of Unburdened Thoughts (Full Width) */}
@@ -1098,8 +1112,8 @@ export default function TodayHero({
               </div>
             </div>
 
-            {/* Right Card (6 cols): Sabbatical Horizon Metrics */}
-            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
+            {/* Right Card (6 cols): Sabbatical Horizon Metrics & Field Chronicles */}
+            <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-5 sm:p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-200 pb-3 font-mono text-xs">
                 <span className="font-black text-black uppercase flex items-center gap-2">
                   <Sun className="w-5 h-5 text-[#FFB800]" />
@@ -1110,63 +1124,64 @@ export default function TodayHero({
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 font-mono text-center">
-                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[2px_2px_0px_#000000]">
-                  <span className="text-[10px] text-neutral-500 uppercase block font-bold">STREAK SHELTER</span>
-                  <span className="text-2xl font-black text-black block mt-1">{dayCount}d Safe</span>
-                  <span className="text-[9px] text-amber-800 uppercase block font-black mt-1">UNTOUCHABLE</span>
+              {/* 3 Metrics Cards */}
+              <div className="grid grid-cols-3 gap-2.5 font-mono text-center">
+                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000000]">
+                  <span className="text-[9px] text-neutral-500 uppercase block font-bold">STREAK SHELTER</span>
+                  <span className="text-xl sm:text-2xl font-black text-black block mt-0.5">{dayCount}d Safe</span>
+                  <span className="text-[8px] text-amber-800 uppercase block font-black mt-0.5">UNTOUCHABLE</span>
                 </div>
 
-                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[2px_2px_0px_#000000]">
-                  <span className="text-[10px] text-neutral-500 uppercase block font-bold">DURATION</span>
-                  <span className="text-2xl font-black text-black block mt-1">Day {daysIn}</span>
-                  <span className="text-[9px] text-neutral-600 uppercase block font-bold mt-1">IN THE FIELD</span>
+                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000000]">
+                  <span className="text-[9px] text-neutral-500 uppercase block font-bold">DURATION</span>
+                  <span className="text-xl sm:text-2xl font-black text-black block mt-0.5">Day {daysIn}</span>
+                  <span className="text-[8px] text-neutral-600 uppercase block font-bold mt-0.5">IN THE FIELD</span>
                 </div>
 
-                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-4 shadow-[2px_2px_0px_#000000]">
-                  <span className="text-[10px] text-neutral-500 uppercase block font-bold">EXPECTATIONS</span>
-                  <span className="text-2xl font-black text-emerald-700 block mt-1">0%</span>
-                  <span className="text-[9px] text-neutral-600 uppercase block font-bold mt-1">PURE FREEDOM</span>
+                <div className="bg-[#FFFDF0] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000000]">
+                  <span className="text-[9px] text-neutral-500 uppercase block font-bold">EXPECTATIONS</span>
+                  <span className="text-xl sm:text-2xl font-black text-emerald-700 block mt-0.5">0%</span>
+                  <span className="text-[8px] text-neutral-600 uppercase block font-bold mt-0.5">PURE FREEDOM</span>
                 </div>
               </div>
 
-              <div className="p-3 bg-neutral-50 border border-neutral-300 rounded-xl text-center text-xs font-mono text-neutral-600">
+              {/* Integrated Sabbatical Field Chronicles */}
+              <div className="space-y-2 border-2 border-black/80 rounded-2xl p-4 bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
+                <div className="flex items-center justify-between flex-wrap gap-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-mono font-black text-black uppercase">
+                    <PenLine className="w-3.5 h-3.5 text-black" />
+                    <span>Field Notes & Chronicles</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-neutral-500 font-bold">
+                    Auto-saves
+                  </span>
+                </div>
+
+                <AutoExpandTextarea
+                  minHeight={65}
+                  maxHeight={140}
+                  placeholder="Observations from the road, book excerpts, ideas, creative brainstorms, or reflections from this season of life..."
+                  value={noteText}
+                  onChange={(e) => handleNoteChange(e.target.value)}
+                  onBlur={handleSaveNote}
+                  className="w-full p-3 text-xs font-mono bg-white border border-black rounded-xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
+                />
+
+                <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+                  <span>Saved without scores or quotas.</span>
+                  {syncedBadge && (
+                    <span className="text-amber-800 font-black flex items-center gap-1">
+                      <Check className="w-3 h-3 stroke-3" /> Saved
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-center text-xs font-mono text-neutral-600">
                 You are on an open path with no checklist. Live today fully without judging it.
               </div>
             </div>
 
-          </div>
-
-          {/* Row 2: Sabbatical Field Chronicles (Full Width) */}
-          <div className="border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2 text-xs font-mono font-black text-black uppercase">
-                <PenLine className="w-4 h-4 text-black" />
-                <span>Sabbatical Field Notes & Chronicles</span>
-              </div>
-              <span className="text-[10px] font-mono text-neutral-500 font-bold">
-                Freeform • Auto-saves to your private diary
-              </span>
-            </div>
-
-            <AutoExpandTextarea
-              minHeight={70}
-              maxHeight={220}
-              placeholder="Observations from the road, book excerpts, ideas, creative brainstorms, or reflections from this season of life..."
-              value={noteText}
-              onChange={(e) => handleNoteChange(e.target.value)}
-              onBlur={handleSaveNote}
-              className="w-full p-4 text-xs font-mono bg-[#FFFDF5] border-2 border-black rounded-2xl placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed"
-            />
-
-            <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-neutral-500">
-              <span>Stored safely in your private journal without assigning numbers or scores.</span>
-              {syncedBadge && (
-                <span className="text-amber-800 font-black flex items-center gap-1">
-                  <Check className="w-3 h-3 stroke-3" /> Saved
-                </span>
-              )}
-            </div>
           </div>
 
           {/* Row 3: Switch to Short-Term Sanctuary */}
