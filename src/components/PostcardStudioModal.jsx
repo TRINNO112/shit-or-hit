@@ -19,6 +19,7 @@ import {
 import { soundEngine } from '../services/soundEngine';
 import mascotSanctuaryRain from '../assets/mascots/mascot_sanctuary_rain.webp';
 import mascotSabbaticalSummit from '../assets/mascots/mascot_sabbatical_summit.webp';
+import { ClassicPolaroidPostcard } from './ClassicPolaroidPostcard';
 
 export default function PostcardStudioModal({
   isOpen,
@@ -195,56 +196,18 @@ export default function PostcardStudioModal({
           <div className="flex-1 overflow-y-auto p-5 sm:p-8 bg-[#F4EFE6] flex items-center justify-center min-h-[420px]">
 
             {/* ========================================================= */}
-            {/* DESIGN A: CLASSIC NEOBRUTALIST POLAROID */}
+            {/* DESIGN A: CLASSIC ARCHIVE POLAROID KEEPSAKE */}
             {/* ========================================================= */}
             {activeDesign === 'polaroid' && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.18 }}
-                className="w-full max-w-sm bg-white border-3 border-black shadow-[8px_8px_0px_#000000] p-4 pb-6 flex flex-col gap-3 relative"
-              >
-                {/* Top Tape Accent */}
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#FDC800]/90 border border-black/40 rotate-[-1.5deg] shadow-[1px_1px_0px_rgba(0,0,0,0.15)] pointer-events-none" />
-
-                {/* Polaroid Photographic Window */}
-                <div className="w-full aspect-[4/3] bg-neutral-900 border-2 border-black overflow-hidden relative shadow-[inset_0_0_12px_rgba(0,0,0,0.4)]">
-                  <img 
-                    src={currentArt} 
-                    alt={currentArtTitle}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Stamp Cancellation Overlay */}
-                  <div className="absolute top-2.5 right-2.5 px-2 py-0.5 bg-black/85 backdrop-blur-xs text-white border border-white/40 font-mono text-[9px] font-black tracking-widest uppercase rotate-2">
-                    POSTMARK • {dateStr}
-                  </div>
-                  {/* Rating Tag */}
-                  <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-[#FDC800] text-black border-2 border-black font-mono text-[10px] font-black tracking-wider shadow-[2px_2px_0px_#000000]">
-                    {'★'.repeat(previewRating)}{'☆'.repeat(5 - previewRating)} {previewRating}/5
-                  </div>
-                </div>
-
-                {/* Polaroid Bezel Bottom Section */}
-                <div className="pt-2 px-1 space-y-2">
-                  <div className="flex items-center justify-between border-b-2 border-black/15 pb-1.5">
-                    <span className="font-mono text-xs font-black text-black uppercase tracking-tight">
-                      {currentArtTitle}
-                    </span>
-                    <span className="text-[10px] font-mono font-black bg-[#00E599] text-black px-1.5 py-0.5 border border-black">
-                      DAY {activeStreak} STREAK
-                    </span>
-                  </div>
-
-                  <p className="text-xs font-mono text-black leading-relaxed italic line-clamp-3">
-                    "{entryNote}"
-                  </p>
-
-                  <div className="pt-1 flex items-center justify-between text-[10px] font-mono text-neutral-500 font-bold">
-                    <span>{formattedDate}</span>
-                    <span>SHIT OR HIT • DAILY ARCHIVE</span>
-                  </div>
-                </div>
-              </motion.div>
+              <ClassicPolaroidPostcard
+                artImage={currentArt}
+                artTitle={currentArtTitle}
+                rating={previewRating}
+                dateStr={dateStr}
+                formattedDate={formattedDate}
+                streakCount={activeStreak}
+                noteText={entryNote}
+              />
             )}
 
             {/* ========================================================= */}

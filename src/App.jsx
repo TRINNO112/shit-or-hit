@@ -462,7 +462,7 @@ export default function App() {
               localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
             }
             if (cloudSettings.vaultPinEncrypted) {
-              const decrypted = decryptVaultPin(cloudSettings.vaultPinEncrypted);
+              const decrypted = await decryptVaultPin(cloudSettings.vaultPinEncrypted);
               if (decrypted) {
                 const salt = Math.floor(100000 + Math.random() * 900000).toString();
                 const hash = hashPinWithSalt(decrypted, salt);

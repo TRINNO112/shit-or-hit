@@ -6,12 +6,46 @@
 
 import { saveCloudUserSettings, fetchCloudUserSettings, getCurrentUser, getEffectiveUserId, sha256Sync } from './firebase.js';
 
-const getMasterCipherSecret = () => {
-  if (typeof process !== 'undefined' && process.env && process.env.TRINNO_VAULT_SECRET) {
-    return process.env.TRINNO_VAULT_SECRET;
+/**
+ * Derives a 256-bit AES-GCM CryptoKey using native Web Crypto PBKDF2 (100,000 rounds).
+ * Dynamic key material derived from user identity and dynamic cryptographically secure salt.
+ */
+async function deriveAesGcmKey(saltBytes, info = 'vault') {
+  const subtle = (typeof window !== 'undefined' && window.crypto?.subtle) ||
+                 (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle);
+  if (!subtle) return null;
+
+  try {
+    const currentUser = getCurrentUser();
+    const identity = currentUser?.uid || getEffectiveUserId(currentUser) || 'trinno_secure_vault';
+    const customSecret = (typeof process !== 'undefined' && process.env?.TRINNO_VAULT_SECRET) || '';
+    const rawKey = new TextEncoder().encode(`TRINNO_SECURE_${info}_${identity}_${customSecret}`);
+
+    const baseKey = await subtle.importKey(
+      'raw',
+      rawKey,
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+
+    return await subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: saltBytes,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      baseKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  } catch (e) {
+    console.warn('PBKDF2 key derivation note:', e);
+    return null;
   }
-  return 'TRINNO_SHIT_OR_HIT_MASTER_SECRET_KEY_2026';
-};
+}
 
 /**
  * Computes a salted cryptographic hash for local PIN storage.
@@ -25,47 +59,78 @@ export function hashPinWithSalt(pin, salt) {
 
 /**
  * Encrypts a string (e.g. 4-digit PIN) into an authenticated encrypted cipher token for cloud transit.
+ * Uses native Web Crypto API (AES-GCM with PBKDF2 100,000 iterations).
  * @param {string} text - Plain text PIN (e.g. "4829")
- * @returns {string} - Encrypted cipher token (e.g. "TRINNO_ENC_V2:...")
+ * @returns {Promise<string>} - Encrypted cipher token (e.g. "TRINNO_AES_V3:...")
  */
-export function encryptVaultPin(text) {
+export async function encryptVaultPin(text) {
   if (!text) return null;
   try {
-    const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
-    
-    // High-entropy dynamic salt prefix for forward secrecy
-    const salt = Math.floor(100000 + Math.random() * 900000).toString();
-    const timestamp = Date.now().toString(36);
-    const saltedInput = `${salt}:${timestamp}:${text}`;
-    const inputBytes = new TextEncoder().encode(saltedInput);
-    
-    // Rotating multi-byte XOR cipher with position-dependent diffusion
-    const encrypted = inputBytes.map((byte, i) => {
-      const k = keyBytes[i % keyBytes.length];
-      const shift = (i * 7 + 13) % 256;
-      return (byte ^ k ^ shift) & 255;
-    });
-    
-    const hex = Array.from(encrypted).map(b => b.toString(16).padStart(2, '0')).join('');
-    return `TRINNO_ENC_V2:${hex}`;
+    const subtle = (typeof window !== 'undefined' && window.crypto?.subtle) ||
+                   (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle);
+    if (subtle && typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveAesGcmKey(salt, 'pin');
+      if (key) {
+        const encoded = new TextEncoder().encode(text);
+        const ciphertext = await subtle.encrypt(
+          { name: 'AES-GCM', iv },
+          key,
+          encoded
+        );
+        const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+        const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join('');
+        const cipherHex = Array.from(new Uint8Array(ciphertext)).map(b => b.toString(16).padStart(2, '0')).join('');
+        return `TRINNO_AES_V3:${saltHex}:${ivHex}:${cipherHex}`;
+      }
+    }
   } catch (err) {
-    console.warn('Cipher encryption fallback:', err);
-    return `TRINNO_ENC_RAW:${btoa(text)}`;
+    console.warn('Web Crypto AES-GCM encryption fallback:', err);
   }
+
+  // Graceful fallback for non-WebCrypto test harnesses
+  return `TRINNO_ENC_RAW:${btoa(text)}`;
 }
 
 /**
  * Decrypts an encrypted cipher token back to the original plain text PIN.
+ * Supports modern TRINNO_AES_V3 (AES-GCM) with seamless backward-compatibility for legacy tokens.
  * @param {string} cipherToken - The encrypted token from Firestore/LocalStorage
- * @returns {string|null} - Decrypted plain text (e.g. "4829")
+ * @returns {Promise<string|null>} - Decrypted plain text (e.g. "4829")
  */
-export function decryptVaultPin(cipherToken) {
+export async function decryptVaultPin(cipherToken) {
   if (!cipherToken) return null;
   try {
+    // 1. Native Web Crypto AES-GCM (V3)
+    if (cipherToken.startsWith('TRINNO_AES_V3:')) {
+      const subtle = (typeof window !== 'undefined' && window.crypto?.subtle) ||
+                     (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle);
+      if (subtle) {
+        const parts = cipherToken.split(':');
+        if (parts.length >= 4) {
+          const salt = new Uint8Array(parts[1].match(/.{1,2}/g).map(b => parseInt(b, 16)));
+          const iv = new Uint8Array(parts[2].match(/.{1,2}/g).map(b => parseInt(b, 16)));
+          const cipherBytes = new Uint8Array(parts[3].match(/.{1,2}/g).map(b => parseInt(b, 16)));
+          const key = await deriveAesGcmKey(salt, 'pin');
+          if (key) {
+            const decrypted = await subtle.decrypt(
+              { name: 'AES-GCM', iv },
+              key,
+              cipherBytes
+            );
+            return new TextDecoder().decode(decrypted);
+          }
+        }
+      }
+    }
+
+    // 2. Backward-Compatible Legacy TRINNO_ENC_V2 Decryption
     if (cipherToken.startsWith('TRINNO_ENC_V2:')) {
       const hex = cipherToken.replace('TRINNO_ENC_V2:', '');
       const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-      const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
+      const secret = (typeof process !== 'undefined' && process.env?.TRINNO_VAULT_SECRET) || 'TRINNO_SHIT_OR_HIT_MASTER_SECRET_KEY_2026';
+      const keyBytes = new TextEncoder().encode(secret);
       
       const decryptedBytes = bytes.map((byte, i) => {
         const k = keyBytes[i % keyBytes.length];
@@ -81,10 +146,12 @@ export function decryptVaultPin(cipherToken) {
       return decryptedStr;
     }
 
+    // 3. Backward-Compatible Legacy TRINNO_ENC_V1 Decryption
     if (cipherToken.startsWith('TRINNO_ENC_V1:')) {
       const hex = cipherToken.replace('TRINNO_ENC_V1:', '');
       const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-      const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
+      const secret = (typeof process !== 'undefined' && process.env?.TRINNO_VAULT_SECRET) || 'TRINNO_SHIT_OR_HIT_MASTER_SECRET_KEY_2026';
+      const keyBytes = new TextEncoder().encode(secret);
       
       const decryptedBytes = bytes.map((byte, i) => byte ^ keyBytes[i % keyBytes.length]);
       const decryptedStr = new TextDecoder().decode(decryptedBytes);
@@ -99,7 +166,7 @@ export function decryptVaultPin(cipherToken) {
       return atob(cipherToken.replace('TRINNO_ENC_RAW:', ''));
     }
 
-    // Fallback for legacy 4-digit plain pins
+    // Fallback for plain pins
     if (/^\d{4,6}$/.test(cipherToken)) {
       return cipherToken;
     }
@@ -179,7 +246,7 @@ export async function saveVaultPinDualLayer(pin, customUserId = null) {
   
   if (effectiveId && effectiveId !== 'guest') {
     try {
-      const encryptedToken = encryptVaultPin(pin);
+      const encryptedToken = await encryptVaultPin(pin);
       await saveCloudUserSettings(effectiveId, {
         vaultPinEncrypted: encryptedToken,
         vaultSecurityActive: true,
@@ -212,7 +279,7 @@ export async function fetchVaultPinDualLayer(customUserId = null) {
     try {
       const cloudSettings = await fetchCloudUserSettings(effectiveId);
       if (cloudSettings && cloudSettings.vaultPinEncrypted) {
-        const decrypted = decryptVaultPin(cloudSettings.vaultPinEncrypted);
+        const decrypted = await decryptVaultPin(cloudSettings.vaultPinEncrypted);
         if (decrypted && typeof window !== 'undefined') {
           localStorage.setItem('daily_verdict_vault_pin', decrypted);
           return decrypted;
@@ -265,8 +332,18 @@ export async function verifyPinViaCloudMediator(token, pin) {
   } catch (e) {
     // Offline fallback to client decryption
   }
-  const localDecrypted = decryptVaultPin(token);
+  const localDecrypted = await decryptVaultPin(token);
   return localDecrypted === pin;
+}
+
+/**
+ * Derives a dynamic key for capsule messages without static hardcoded strings
+ */
+function getCapsuleKeyBytes() {
+  const currentUser = getCurrentUser();
+  const id = currentUser?.uid || getEffectiveUserId(currentUser) || 'trinno_capsule_vault';
+  const customSecret = (typeof process !== 'undefined' && process.env?.TRINNO_VAULT_SECRET) || '';
+  return new TextEncoder().encode(sha256Sync(`CAPSULE_${id}_${customSecret}`));
 }
 
 /**
@@ -276,7 +353,7 @@ export async function verifyPinViaCloudMediator(token, pin) {
 export function encryptCapsuleMessage(plaintext) {
   if (!plaintext) return '';
   try {
-    const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
+    const keyBytes = getCapsuleKeyBytes();
     const salt = Math.floor(100000 + Math.random() * 900000).toString();
     const timestamp = Date.now().toString(36);
     // Prefix with metadata envelope
@@ -306,7 +383,7 @@ export function decryptCapsuleMessage(cipherToken) {
     if (cipherToken.startsWith('TRINNO_CAPSULE_V1:')) {
       const hex = cipherToken.replace('TRINNO_CAPSULE_V1:', '');
       const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-      const keyBytes = new TextEncoder().encode(getMasterCipherSecret());
+      const keyBytes = getCapsuleKeyBytes();
 
       const decryptedBytes = bytes.map((byte, i) => {
         const k = keyBytes[i % keyBytes.length];

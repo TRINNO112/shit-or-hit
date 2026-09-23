@@ -99,11 +99,16 @@ export function getLocalSyncPayload() {
 }
 
 /**
- * Imports received P2P payload safely into local device storage
+ * Imports received P2P payload safely into local device storage.
+ * Hardened with strict prototype pollution protection and input validation.
  */
 export function importSyncPayload(payload) {
-  if (!payload || !payload.entries) {
+  if (!payload || typeof payload !== 'object' || payload.type !== 'P2P_BEAM') {
     throw new Error('Invalid P2P Sync Payload received.');
+  }
+
+  if (!payload.entries || typeof payload.entries !== 'object' || Array.isArray(payload.entries)) {
+    throw new Error('Malformed entries in sync payload.');
   }
 
   const storageKey = getDbStorageKey();
@@ -113,33 +118,67 @@ export function importSyncPayload(payload) {
     if (raw) currentLocal = JSON.parse(raw);
   } catch (e) {}
 
-  const mergedEntries = { ...currentLocal.entries };
+  const mergedEntries = { ...(currentLocal.entries || {}) };
   let importedCount = 0;
+  const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+  const DANGEROUS_KEYS = ['__proto__', 'constructor', 'prototype'];
 
-  // Merge entries preserving latest updates
+  // Merge entries preserving latest updates with prototype pollution guard
   Object.entries(payload.entries).forEach(([dateStr, incomingEntry]) => {
+    if (DANGEROUS_KEYS.includes(dateStr) || !DATE_REGEX.test(dateStr)) {
+      return;
+    }
+
+    if (!incomingEntry || typeof incomingEntry !== 'object' || Array.isArray(incomingEntry)) {
+      return;
+    }
+
+    // Sanitize entry fields
+    const sanitized = {
+      rating: (typeof incomingEntry.rating === 'number' && incomingEntry.rating >= 1 && incomingEntry.rating <= 5) ? incomingEntry.rating : null,
+      note: typeof incomingEntry.note === 'string' ? incomingEntry.note.slice(0, 50000) : '',
+      timestamp: typeof incomingEntry.timestamp === 'string' ? incomingEntry.timestamp : new Date().toISOString()
+    };
+
+    if (incomingEntry.spheres && typeof incomingEntry.spheres === 'object' && !Array.isArray(incomingEntry.spheres)) {
+      const sanitizedSpheres = {};
+      Object.entries(incomingEntry.spheres).forEach(([sId, sVal]) => {
+        if (!DANGEROUS_KEYS.includes(sId) && sVal && typeof sVal === 'object') {
+          sanitizedSpheres[sId] = {
+            rating: typeof sVal.rating === 'number' ? sVal.rating : null,
+            note: typeof sVal.note === 'string' ? sVal.note.slice(0, 10000) : ''
+          };
+        }
+      });
+      sanitized.spheres = sanitizedSpheres;
+    }
+
+    if (Array.isArray(incomingEntry.anchors)) {
+      sanitized.anchors = incomingEntry.anchors.filter(a => a && typeof a === 'object' && !Array.isArray(a)).slice(0, 20);
+    }
+
     if (!mergedEntries[dateStr]) {
-      mergedEntries[dateStr] = incomingEntry;
+      mergedEntries[dateStr] = sanitized;
       importedCount++;
     } else {
-      // If both exist, preserve the incoming if it has notes or updated rating
       mergedEntries[dateStr] = {
         ...mergedEntries[dateStr],
-        ...incomingEntry
+        ...sanitized
       };
       importedCount++;
     }
   });
 
   const updatedDb = {
-    startDate: payload.startDate || currentLocal.startDate || new Date().toISOString().slice(0, 10),
+    startDate: (typeof payload.startDate === 'string' && DATE_REGEX.test(payload.startDate)) ? payload.startDate : (currentLocal.startDate || new Date().toISOString().slice(0, 10)),
     entries: mergedEntries
   };
 
   localStorage.setItem(storageKey, JSON.stringify(updatedDb));
 
   if (Array.isArray(payload.spheresConfig) && payload.spheresConfig.length > 0) {
-    localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(payload.spheresConfig));
+    const sanitizedSpheresConfig = payload.spheresConfig.filter(s => s && typeof s === 'object' && !DANGEROUS_KEYS.includes(s.id));
+    localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(sanitizedSpheresConfig));
   }
 
   return {
@@ -152,7 +191,7 @@ export function importSyncPayload(payload) {
 /**
  * SENDER: Initiates a WebRTC connection and awaits receiver
  */
-export async function startSenderSession(code, onStatus, onSuccess, onError) {
+export async function startSenderSession(code, onStatus, onSuccess, onError, onPeerConnected) {
   let peerConnection = null;
   let dataChannel = null;
   let unsubSnapshot = () => {};
@@ -165,11 +204,25 @@ export async function startSenderSession(code, onStatus, onSuccess, onError) {
       ordered: true
     });
 
+    const beamPayload = () => {
+      if (dataChannel && dataChannel.readyState === 'open') {
+        onStatus('Direct peer tunnel open! Beaming entries...');
+        const payload = getLocalSyncPayload();
+        const serialized = JSON.stringify(payload);
+        dataChannel.send(serialized);
+      }
+    };
+
     dataChannel.onopen = () => {
-      onStatus('Direct peer tunnel open! Beaming entries...');
-      const payload = getLocalSyncPayload();
-      const serialized = JSON.stringify(payload);
-      dataChannel.send(serialized);
+      onStatus('Direct peer tunnel open! Ready to beam entries.');
+      if (onPeerConnected) {
+        onPeerConnected({
+          code,
+          approve: beamPayload
+        });
+      } else {
+        beamPayload();
+      }
     };
 
     dataChannel.onmessage = (event) => {
@@ -255,10 +308,10 @@ export async function startSenderSession(code, onStatus, onSuccess, onError) {
       }
     };
 
-    return { cleanup };
+    return { cleanup, approveTransfer: beamPayload };
   } catch (err) {
     if (onError) onError(err);
-    return { cleanup: () => {} };
+    return { cleanup: () => {}, approveTransfer: () => {} };
   }
 }
 

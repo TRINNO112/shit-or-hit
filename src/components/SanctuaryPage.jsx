@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  ShieldCheck, 
-  Sparkles, 
-  Clock, 
-  Droplets, 
-  EyeOff, 
-  UtensilsCrossed, 
-  Wind, 
-  Check, 
-  Compass, 
+import {
+  ArrowLeft,
+  ShieldCheck,
+  Sparkles,
+  Clock,
+  Droplets,
+  EyeOff,
+  UtensilsCrossed,
+  Wind,
+  Check,
+  Compass,
   RefreshCw,
   Activity,
   HeartPulse,
@@ -20,10 +20,10 @@ import {
   Info,
   Sun
 } from 'lucide-react';
-import { 
-  getRehabilitationConfig, 
-  activateRehabilitation, 
-  extendRehabilitation, 
+import {
+  getRehabilitationConfig,
+  activateRehabilitation,
+  extendRehabilitation,
   activateSabbatical,
   exitRehabilitation,
   getSanctuaryInquiryResponses,
@@ -36,8 +36,8 @@ import mascotSabbaticalSummit from '../assets/mascots/mascot_sabbatical_summit.w
 import { soundEngine } from '../services/soundEngine';
 
 export const SANCTUARY_VECTOR_INQUIRIES = [
-  { 
-    id: 'water', 
+  {
+    id: 'water',
     title: 'Hydration & Cellular Replenishment',
     question: 'Have you replenished with clean water or herbal infusion today?',
     category: 'VITAL_HOMEOSTASIS',
@@ -46,8 +46,8 @@ export const SANCTUARY_VECTOR_INQUIRIES = [
     affirmLabel: 'AFFIRMED',
     deferLabel: 'DEFER — NO RUSH'
   },
-  { 
-    id: 'screens', 
+  {
+    id: 'screens',
     title: 'Retinal & Prefrontal Decompression',
     question: 'Did you step away from glowing screens to gaze at a distant horizon?',
     category: 'OPTIC_RECOVERY',
@@ -56,8 +56,8 @@ export const SANCTUARY_VECTOR_INQUIRIES = [
     affirmLabel: 'AFFIRMED',
     deferLabel: 'DEFER — NO RUSH'
   },
-  { 
-    id: 'nourish', 
+  {
+    id: 'nourish',
     title: 'Metabolic Sustenance',
     question: 'Have you provided your body with wholesome, unhurried nourishment?',
     category: 'NUTRITIVE_FUEL',
@@ -66,8 +66,8 @@ export const SANCTUARY_VECTOR_INQUIRIES = [
     affirmLabel: 'AFFIRMED',
     deferLabel: 'DEFER — NO RUSH'
   },
-  { 
-    id: 'sigh', 
+  {
+    id: 'sigh',
     title: 'Stanford Physiological Sigh',
     question: 'Performed two rapid nasal inhales followed by one prolonged oral exhale?',
     category: 'AUTONOMIC_REGULATION',
@@ -109,13 +109,13 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
   const isAutoAssumed = isSandboxDemo ? Boolean(demoConfig.autoSanctuaryAssumed) : isAutoSanctuaryAssumed();
 
   const showFeedback = (msg) => {
-    try { soundEngine.playClick(); } catch (e) {}
+    try { soundEngine.playClick(); } catch (e) { }
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3200);
   };
 
   const handleBack = () => {
-    try { soundEngine.playClick(); } catch (e) {}
+    try { soundEngine.playClick(); } catch (e) { }
     if (onBack) {
       onBack();
     } else if (typeof window !== 'undefined') {
@@ -152,7 +152,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
   }, [breathingActive]);
 
   const handleInquiryResponse = (inquiryId, answer) => {
-    try { soundEngine.playSuccess(); } catch (e) {}
+    try { soundEngine.playSuccess(); } catch (e) { }
     if (isSandboxDemo) {
       setDemoResponses(prev => ({
         ...prev,
@@ -236,7 +236,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
     }
   };
 
-  const answeredCount = Object.keys(activeResponses).filter(k => 
+  const answeredCount = Object.keys(activeResponses).filter(k =>
     activeResponses[k]?.answer?.includes('AFFIRMED') || activeResponses[k]?.answer?.includes('COMPLETED')
   ).length;
 
@@ -301,15 +301,15 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
 
       {/* Architectural Panoramic Body */}
       <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
-        
+
         {/* Row 1: The Asymmetric Command Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* ========================================================= */}
           {/* LEFT RAIL: THE RESTORATIVE MONOLITH (5 Columns)           */}
           {/* ========================================================= */}
           <section aria-label="Restorative status" className="lg:col-span-5 space-y-6">
-            
+
             {/* The Sanctuary Chassis */}
             <div className="bg-white border-3 border-black rounded-3xl p-6 sm:p-7 shadow-[6px_6px_0px_#000000] relative overflow-hidden">
               <div className="flex items-center justify-between border-b-2 border-black/10 pb-4 mb-5">
@@ -490,39 +490,36 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
           {/* RIGHT DECK: ARCHITECTURAL RESTORATIVE SYSTEM (7 Columns)  */}
           {/* ========================================================= */}
           <section aria-label="Restorative anchors and clinical blueprint" className="lg:col-span-7 space-y-6">
-            
+
             {/* Architectural Navigation Tabs */}
             <div className="flex flex-wrap items-center gap-2 border-b-3 border-black pb-3">
               <button
                 type="button"
                 onClick={() => setActiveTab('anchors')}
-                className={`px-4 py-2 rounded-xl font-mono text-xs font-black border-2 border-black cursor-pointer transition-all ${
-                  activeTab === 'anchors'
-                    ? 'bg-black text-[#00E599] shadow-[3px_3px_0px_#000000]'
-                    : 'bg-white text-black hover:bg-[#F0FAF4]'
-                }`}
+                className={`px-4 py-2 rounded-xl font-mono text-xs font-black border-2 border-black cursor-pointer transition-all ${activeTab === 'anchors'
+                  ? 'bg-black text-[#00E599] shadow-[3px_3px_0px_#000000]'
+                  : 'bg-white text-black hover:bg-[#F0FAF4]'
+                  }`}
               >
                 01 // RESTORATIVE INQUIRIES
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('sabbatical')}
-                className={`px-4 py-2 rounded-xl font-mono text-xs font-black border-2 border-black cursor-pointer transition-all ${
-                  activeTab === 'sabbatical'
-                    ? 'bg-black text-[#00E599] shadow-[3px_3px_0px_#000000]'
-                    : 'bg-white text-black hover:bg-[#F0FAF4]'
-                }`}
+                className={`px-4 py-2 rounded-xl font-mono text-xs font-black border-2 border-black cursor-pointer transition-all ${activeTab === 'sabbatical'
+                  ? 'bg-black text-[#00E599] shadow-[3px_3px_0px_#000000]'
+                  : 'bg-white text-black hover:bg-[#F0FAF4]'
+                  }`}
               >
                 02 // SABBATICAL PROTOCOL
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('neuroscience')}
-                className={`px-4 py-2 rounded-xl font-mono text-xs font-black border-2 border-black cursor-pointer transition-all ${
-                  activeTab === 'neuroscience'
-                    ? 'bg-black text-[#00E599] shadow-[3px_3px_0px_#000000]'
-                    : 'bg-white text-black hover:bg-[#F0FAF4]'
-                }`}
+                className={`px-4 py-2 rounded-xl font-mono text-xs font-black border-2 border-black cursor-pointer transition-all ${activeTab === 'neuroscience'
+                  ? 'bg-black text-[#00E599] shadow-[3px_3px_0px_#000000]'
+                  : 'bg-white text-black hover:bg-[#F0FAF4]'
+                  }`}
               >
                 03 // CLINICAL BLUEPRINT
               </button>
@@ -531,9 +528,9 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
             {/* TAB 1: Restorative Inquiries */}
             {activeTab === 'anchors' && (
               <div className="space-y-4">
-                
+
                 {/* Visual Haven Artwork */}
-                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/10] max-h-96">
+                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-4/3 sm:aspect-16/10 max-h-96">
                   <img
                     src={mascotSanctuaryRain}
                     alt="Sanctuary Veranda Rest"
@@ -581,13 +578,13 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                     const isDeferred = recorded?.answer?.includes(inq.deferLabel);
 
                     return (
-                      <div 
+                      <div
                         key={inq.id}
                         className="bg-white border-3 border-black rounded-2xl p-5 shadow-[4px_4px_0px_#000000] space-y-3"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-3.5">
-                            <div 
+                            <div
                               className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#000000]"
                               style={{ backgroundColor: inq.color }}
                             >
@@ -617,11 +614,10 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                           <button
                             type="button"
                             onClick={() => handleInquiryResponse(inq.id, inq.affirmLabel)}
-                            className={`flex-1 py-2.5 px-3 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
-                              isAffirmed
-                                ? 'bg-[#00E599] text-black shadow-[2px_2px_0px_#000000]'
-                                : 'bg-neutral-50 hover:bg-[#F0FAF4] text-neutral-800'
-                            }`}
+                            className={`flex-1 py-2.5 px-3 rounded-xl border-2 border-black font-mono font-black text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5 ${isAffirmed
+                              ? 'bg-[#00E599] text-black shadow-[2px_2px_0px_#000000]'
+                              : 'bg-neutral-50 hover:bg-[#F0FAF4] text-neutral-800'
+                              }`}
                           >
                             <Check className="w-3.5 h-3.5" />
                             <span>{inq.affirmLabel}</span>
@@ -630,11 +626,10 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                           <button
                             type="button"
                             onClick={() => handleInquiryResponse(inq.id, inq.deferLabel)}
-                            className={`flex-1 py-2.5 px-3 rounded-xl border-2 border-black font-mono font-bold text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
-                              isDeferred
-                                ? 'bg-black text-white shadow-[2px_2px_0px_#000000]'
-                                : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600'
-                            }`}
+                            className={`flex-1 py-2.5 px-3 rounded-xl border-2 border-black font-mono font-bold text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5 ${isDeferred
+                              ? 'bg-black text-white shadow-[2px_2px_0px_#000000]'
+                              : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600'
+                              }`}
                           >
                             <span>{inq.deferLabel}</span>
                           </button>
@@ -649,7 +644,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
             {/* TAB 2: Sabbatical Protocol */}
             {activeTab === 'sabbatical' && (
               <div className="bg-white border-3 border-black rounded-3xl p-6 sm:p-7 shadow-[6px_6px_0px_#000000] space-y-6">
-                
+
                 {/* Sabbatical Mountain Summit Artwork */}
                 <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/10] max-h-96">
                   <img

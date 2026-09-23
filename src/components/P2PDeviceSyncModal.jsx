@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Radio, 
-  QrCode, 
-  Smartphone, 
-  Laptop, 
-  Check, 
-  X, 
-  Copy, 
-  Download, 
-  Upload, 
-  ShieldCheck, 
-  AlertTriangle, 
-  RefreshCw, 
-  Zap, 
-  ArrowRight, 
+import {
+  Radio,
+  QrCode,
+  Smartphone,
+  Laptop,
+  Check,
+  X,
+  Copy,
+  Download,
+  Upload,
+  ShieldCheck,
+  AlertTriangle,
+  RefreshCw,
+  Zap,
+  ArrowRight,
   Sparkles,
   Monitor,
   Wifi,
@@ -26,9 +26,9 @@ import {
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { generateQRCodeSVG } from '../services/qrGenerator';
-import { 
-  generatePairingCode, 
-  startSenderSession, 
+import {
+  generatePairingCode,
+  startSenderSession,
   joinReceiverSession,
   getLocalSyncPayload,
   importSyncPayload,
@@ -36,12 +36,12 @@ import {
   checkAccountHostActive
 } from '../services/p2pSyncEngine';
 
-export default function P2PDeviceSyncModal({ 
-  isOpen, 
-  onClose, 
-  user = null, 
-  onLogin = null, 
-  onSyncComplete 
+export default function P2PDeviceSyncModal({
+  isOpen,
+  onClose,
+  user = null,
+  onLogin = null,
+  onSyncComplete
 }) {
   const [mode, setMode] = useState(() => (user?.email ? 'account' : 'send'));
   const [pairingCode, setPairingCode] = useState(() => generatePairingCode());
@@ -54,6 +54,7 @@ export default function P2PDeviceSyncModal({
   const [copiedLink, setCopiedLink] = useState(false);
   const [rawTextPayload, setRawTextPayload] = useState('');
   const [toast, setToast] = useState(null);
+  const [pendingApproval, setPendingApproval] = useState(null);
 
   const cleanupRef = useRef(null);
 
@@ -86,7 +87,7 @@ export default function P2PDeviceSyncModal({
 
   if (!isOpen) return null;
 
-  const syncUrl = typeof window !== 'undefined' 
+  const syncUrl = typeof window !== 'undefined'
     ? `${window.location.origin}${window.location.pathname}?sync=${pairingCode}`
     : `https://daily-verdict.netlify.app/?sync=${pairingCode}`;
 
@@ -100,6 +101,7 @@ export default function P2PDeviceSyncModal({
     }
     setIsProcessing(false);
     setIsHostingAccount(false);
+    setPendingApproval(null);
     setSyncStatus('Idle');
   };
 
@@ -109,6 +111,7 @@ export default function P2PDeviceSyncModal({
     setIsProcessing(true);
     setErrorMessage('');
     setSuccessResult(null);
+    setPendingApproval(null);
 
     stopActiveSession();
     setIsProcessing(true);
@@ -120,6 +123,7 @@ export default function P2PDeviceSyncModal({
       (result) => {
         soundEngine.playSuccessChime();
         setIsProcessing(false);
+        setPendingApproval(null);
         setSuccessResult(result);
         setSyncStatus('Transfer Complete!');
         showToast('Transfer Complete! Database beamed to receiver.', 'success');
@@ -128,9 +132,16 @@ export default function P2PDeviceSyncModal({
       (err) => {
         soundEngine.playRoughTone();
         setIsProcessing(false);
+        setPendingApproval(null);
         const msg = err.message || 'Peer-to-peer connection timed out.';
         setErrorMessage(msg);
         showToast(`Transfer Failed: ${msg}`, 'error');
+      },
+      (conn) => {
+        soundEngine.playSuccessChime();
+        setPendingApproval(conn);
+        setSyncStatus('Receiver connected! Awaiting your approval...');
+        showToast('Receiver connected! Tap Approve to beam diary.', 'info');
       }
     );
 
@@ -342,11 +353,10 @@ export default function P2PDeviceSyncModal({
             <button
               type="button"
               onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('account'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${
-                mode === 'account' 
-                  ? 'bg-[#00E599] text-black' 
+              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'account'
+                  ? 'bg-[#00E599] text-black'
                   : 'bg-white hover:bg-neutral-50 text-neutral-700'
-              }`}
+                }`}
             >
               <Monitor className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Account Fetch</span>
@@ -355,11 +365,10 @@ export default function P2PDeviceSyncModal({
             <button
               type="button"
               onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('send'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${
-                mode === 'send' 
-                  ? 'bg-[#FDC800] text-black' 
+              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'send'
+                  ? 'bg-[#FDC800] text-black'
                   : 'bg-white hover:bg-neutral-50 text-neutral-700'
-              }`}
+                }`}
             >
               <Upload className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>QR Beam</span>
@@ -368,11 +377,10 @@ export default function P2PDeviceSyncModal({
             <button
               type="button"
               onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('receive'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${
-                mode === 'receive' 
-                  ? 'bg-[#00E599] text-black' 
+              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'receive'
+                  ? 'bg-[#00E599] text-black'
                   : 'bg-white hover:bg-neutral-50 text-neutral-700'
-              }`}
+                }`}
             >
               <Download className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Receive Code</span>
@@ -381,11 +389,10 @@ export default function P2PDeviceSyncModal({
             <button
               type="button"
               onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('raw'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${
-                mode === 'raw' 
-                  ? 'bg-neutral-900 text-white' 
+              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'raw'
+                  ? 'bg-neutral-900 text-white'
                   : 'bg-white hover:bg-neutral-50 text-neutral-700'
-              }`}
+                }`}
             >
               <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Offline Text</span>
@@ -399,15 +406,14 @@ export default function P2PDeviceSyncModal({
                 initial={{ opacity: 0, y: -10, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.96 }}
-                className={`p-3 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[2.5px_2.5px_0px_#000000] flex items-center gap-2 ${
-                  toast.type === 'success' ? 'bg-[#00E599] text-black' :
-                  toast.type === 'error' ? 'bg-[#FF4D4D] text-white' :
-                  'bg-[#FFF5C2] text-black'
-                }`}
+                className={`p-3 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[2.5px_2.5px_0px_#000000] flex items-center gap-2 ${toast.type === 'success' ? 'bg-[#00E599] text-black' :
+                    toast.type === 'error' ? 'bg-[#FF4D4D] text-white' :
+                      'bg-[#FFF5C2] text-black'
+                  }`}
               >
                 {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0 stroke-[2.5]" /> :
-                 toast.type === 'error' ? <AlertTriangle className="w-4 h-4 shrink-0 stroke-[2.5]" /> :
-                 <Info className="w-4 h-4 shrink-0 stroke-[2.5]" />}
+                  toast.type === 'error' ? <AlertTriangle className="w-4 h-4 shrink-0 stroke-[2.5]" /> :
+                    <Info className="w-4 h-4 shrink-0 stroke-[2.5]" />}
                 <span className="truncate">{toast.message}</span>
               </motion.div>
             )}
@@ -561,7 +567,7 @@ export default function P2PDeviceSyncModal({
             <div className="space-y-3.5 pt-1">
               <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000]">
                 {/* QR Code Container */}
-                <div 
+                <div
                   className="w-44 h-44 bg-[#FFFDF8] p-2 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-center shrink-0"
                   dangerouslySetInnerHTML={{ __html: qrSvgHtml }}
                 />
@@ -600,6 +606,32 @@ export default function P2PDeviceSyncModal({
                   </div>
                 </div>
               </div>
+
+              {/* Approval Gate Banner */}
+              {pendingApproval && (
+                <div className="p-4 bg-[#00E599] rounded-2xl border-3 border-black shadow-[4px_4px_0px_#000000] space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-black stroke-2" />
+                    <h4 className="font-display font-black text-xs uppercase text-black">
+                      Receiver Connected — Approve Egress?
+                    </h4>
+                  </div>
+                  <p className="font-mono text-[11px] text-black leading-snug">
+                    A peer device with code <strong>{pairingCode}</strong> has paired over WebRTC. Confirm to beam your local entries.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playClick();
+                      pendingApproval.approve();
+                      setPendingApproval(null);
+                    }}
+                    className="w-full py-2.5 bg-black text-[#00E599] hover:bg-neutral-800 border-2 border-black rounded-xl font-mono text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_#000000] cursor-pointer"
+                  >
+                    Approve & Beam Diary
+                  </button>
+                </div>
+              )}
 
               {/* Action Button */}
               <button
@@ -701,14 +733,14 @@ export default function P2PDeviceSyncModal({
 
           {/* Detailed Success Box */}
           {successResult && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               className="p-4 bg-[#00E599] border-3 border-black rounded-2xl shadow-[4px_4px_0px_#000000] space-y-1.5"
             >
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-4 h-4 stroke-[3]" />
+                  <CheckCircle2 className="w-4 h-4 stroke-3" />
                 </div>
                 <span className="font-display font-black text-sm uppercase tracking-wider text-black">
                   TRANSFER SUCCESSFUL!
@@ -716,7 +748,7 @@ export default function P2PDeviceSyncModal({
               </div>
               <div className="pl-9 space-y-1 font-mono text-xs font-black text-black">
                 <p>
-                  {successResult.importedCount !== undefined 
+                  {successResult.importedCount !== undefined
                     ? `Successfully synchronized and verified ${successResult.importedCount} entries into local storage.`
                     : 'All diary records synchronized successfully.'}
                 </p>
@@ -729,7 +761,7 @@ export default function P2PDeviceSyncModal({
 
           {/* Detailed Error / Failure Box */}
           {errorMessage && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               className="p-4 bg-[#FF4D4D] border-3 border-black rounded-2xl shadow-[4px_4px_0px_#000000] space-y-2 text-white"

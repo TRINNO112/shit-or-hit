@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  AlertCircle, 
-  CloudRain, 
-  MinusCircle, 
-  Zap, 
-  Sparkles, 
-  Check, 
-  PenLine, 
+import {
+  AlertCircle,
+  CloudRain,
+  MinusCircle,
+  Zap,
+  Sparkles,
+  Check,
+  PenLine,
   X,
   Wand2,
   Loader2,
@@ -41,8 +41,8 @@ import {
   Save,
   RotateCw
 } from 'lucide-react';
-import { 
-  ratingMeta, 
+import {
+  ratingMeta,
   enhanceReflectionWithAI,
   isSphereModeEnabled,
   getSphereConfig,
@@ -98,11 +98,11 @@ const moodSvgPaths = {
   5: "M12,1.5 L15,8 L22,8.5 L16.5,13.5 L18.5,20.5 L12,16.5 L5.5,20.5 L7.5,13.5 L2,8.5 L9,8 Z"
 };
 
-export default function TodayHero({ 
-  todayStr, 
-  currentEntry, 
+export default function TodayHero({
+  todayStr,
+  currentEntry,
   todayEntry,
-  onSaveToday, 
+  onSaveToday,
   onSave,
   dayCount,
   onOpenWallpaper,
@@ -122,12 +122,12 @@ export default function TodayHero({
   const [syncedBadge, setSyncedBadge] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [sadSettle, setSadSettle] = useState(false);
-  
+
   // Behavioral Trilogy Modal States
   const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(false);
   const [isAutopsyModalOpen, setIsAutopsyModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-  
+
   // History stack for Undo / Redo / Revert to Original
   const [historyStack, setHistoryStack] = useState([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
@@ -147,7 +147,7 @@ export default function TodayHero({
         setHasUnsavedDraft(true);
         setUnsavedDraftText(stashed);
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [draftKey, activeEntry]);
 
   // Auto-debounce stash every 1.5 seconds while typing
@@ -161,7 +161,7 @@ export default function TodayHero({
           localStorage.removeItem(draftKey);
           setHasUnsavedDraft(false);
         }
-      } catch (e) {}
+      } catch (e) { }
     }, 1500);
     return () => clearTimeout(t);
   }, [noteText, draftKey, activeEntry]);
@@ -203,11 +203,11 @@ export default function TodayHero({
   const [justSavedNote, setJustSavedNote] = useState(false);
   const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
   const [companionArtworkOverride, setCompanionArtworkOverride] = useState(null);
-  const activeCompanionMascot = companionArtworkOverride === 'rain' 
-    ? mascotSanctuaryRain 
-    : companionArtworkOverride === 'summit' 
-    ? mascotSabbaticalSummit 
-    : (isEvenDay ? mascotSanctuaryRain : mascotSabbaticalSummit);
+  const activeCompanionMascot = companionArtworkOverride === 'rain'
+    ? mascotSanctuaryRain
+    : companionArtworkOverride === 'summit'
+      ? mascotSabbaticalSummit
+      : (isEvenDay ? mascotSanctuaryRain : mascotSabbaticalSummit);
   const activeCompanionTitle = activeCompanionMascot === mascotSanctuaryRain
     ? 'Rainy Veranda Sanctuary'
     : 'Mountain Summit Sabbatical';
@@ -368,7 +368,7 @@ export default function TodayHero({
       setTimeout(() => {
         setIsCapsuleModalOpen(true);
       }, 700);
-    } 
+    }
     // 📉 The Autopsy Chamber Trigger (1★ or 2★)
     else if (val <= 2 && isAutopsyChamberEnabled()) {
       setTimeout(() => {
@@ -476,7 +476,7 @@ export default function TodayHero({
     const comp = calculateCompositeScore(updatedSpheres);
     const ratingToUse = comp ? comp.rating : (selectedRating || 3);
     const verdictToUse = comp ? comp.verdict : (ratingMeta[ratingToUse]?.title || 'Verdict');
-    
+
     if (saveHandler) {
       await saveHandler({
         date: todayStr,
@@ -504,7 +504,7 @@ export default function TodayHero({
     const comp = calculateCompositeScore(spheresData);
     const ratingToUse = comp ? comp.rating : (selectedRating || 3);
     const verdictToUse = comp ? comp.verdict : (ratingMeta[ratingToUse]?.title || 'Verdict');
-    
+
     if (saveHandler) {
       await saveHandler({
         date: todayStr,
@@ -518,7 +518,7 @@ export default function TodayHero({
     try {
       localStorage.removeItem(draftKey);
       setHasUnsavedDraft(false);
-    } catch (e) {}
+    } catch (e) { }
     setSyncedBadge(true);
     // Smooth animation: show saved state on the button, then smoothly close the writing box
     setTimeout(() => {
@@ -535,11 +535,11 @@ export default function TodayHero({
   const handleAIEnhance = async (overridePrompt = null) => {
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
     if ((!noteText || noteText.trim() === '') && !hasSphereNotes) return;
-    
+
     // Pull active preferences directly from SettingsModal / localStorage
     const savedDirective = localStorage.getItem('daily_verdict_default_directive') || 'auto';
     const savedCustomPrompt = localStorage.getItem('daily_verdict_custom_prompt') || '';
-    
+
     const currentVal = noteText;
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
@@ -547,13 +547,13 @@ export default function TodayHero({
     setAiFeedback(null);
     try {
       const enhanced = await enhanceReflectionWithAI(
-        currentVal, 
-        compositeStats?.rating || selectedRating || 3, 
+        currentVal,
+        compositeStats?.rating || selectedRating || 3,
         todayStr,
         sphereModeActive ? spheresData : null,
         activePrompt
       );
-      
+
       const newStack = historyStack.slice(0, historyIdx + 1);
       newStack.push(enhanced);
       setHistoryStack(newStack);
@@ -618,7 +618,7 @@ export default function TodayHero({
   const daysIn = Math.max(1, Math.floor((todayMs - startMs) / (1000 * 60 * 60 * 24)) + 1);
 
   const handleExitSanctuary = () => {
-    try { soundEngine.playSuccessChime(); } catch (e) {}
+    try { soundEngine.playSuccessChime(); } catch (e) { }
     exitRehabilitation();
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('demo=')) {
@@ -629,7 +629,7 @@ export default function TodayHero({
   };
 
   const handleActivateSabbatical = () => {
-    try { soundEngine.playClick(); } catch (e) {}
+    try { soundEngine.playClick(); } catch (e) { }
     activateSabbatical();
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('demo=')) {
@@ -640,7 +640,7 @@ export default function TodayHero({
   };
 
   const handleActivate7Day = () => {
-    try { soundEngine.playClick(); } catch (e) {}
+    try { soundEngine.playClick(); } catch (e) { }
     activateRehabilitation(7);
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('demo=')) {
@@ -701,10 +701,10 @@ export default function TodayHero({
 
         {/* Bento Content Architecture */}
         <div className="relative z-10 space-y-6 pt-6">
-          
+
           {/* Row 1: The Breathing Lotus Orb (Left) & The Sacred Momentum Shelter (Right) */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-            
+
             {/* Left Card (6 cols): The Vagus Breathing Lotus Orb & Somatic Grounding */}
             <div className="md:col-span-6 border-3 border-black rounded-[28px] p-5 sm:p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between">
@@ -723,12 +723,11 @@ export default function TodayHero({
                 <button
                   type="button"
                   onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
+                    try { soundEngine.playClick(); } catch (e) { }
                     setBreathActive(!breathActive);
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all ${
-                    breathActive ? 'bg-[#FF4D4D] text-black' : 'bg-[#00E599] text-black'
-                  }`}
+                  className={`px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all ${breathActive ? 'bg-[#FF4D4D] text-black' : 'bg-[#00E599] text-black'
+                    }`}
                 >
                   {breathActive ? 'Pause Breath' : 'Start Pacer'}
                 </button>
@@ -740,26 +739,26 @@ export default function TodayHero({
                   {breathActive && (
                     <>
                       <motion.div
-                        animate={{ 
-                          scale: breathPhase.includes('Inhale') ? [1, 1.45] : breathPhase.includes('Hold') ? 1.45 : [1.45, 1], 
-                          opacity: [0.3, 0.6, 0.3] 
+                        animate={{
+                          scale: breathPhase.includes('Inhale') ? [1, 1.45] : breathPhase.includes('Hold') ? 1.45 : [1.45, 1],
+                          opacity: [0.3, 0.6, 0.3]
                         }}
-                        transition={{ 
-                          duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6, 
-                          ease: 'easeInOut', 
-                          repeat: Infinity 
+                        transition={{
+                          duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6,
+                          ease: 'easeInOut',
+                          repeat: Infinity
                         }}
                         className="absolute inset-0 rounded-full border-2 border-[#00E599]/60 pointer-events-none"
                       />
                       <motion.div
-                        animate={{ 
-                          scale: breathPhase.includes('Inhale') ? [1.1, 1.7] : breathPhase.includes('Hold') ? 1.7 : [1.7, 1.1], 
-                          opacity: [0.15, 0.35, 0.15] 
+                        animate={{
+                          scale: breathPhase.includes('Inhale') ? [1.1, 1.7] : breathPhase.includes('Hold') ? 1.7 : [1.7, 1.1],
+                          opacity: [0.15, 0.35, 0.15]
                         }}
-                        transition={{ 
-                          duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6, 
-                          ease: 'easeInOut', 
-                          repeat: Infinity 
+                        transition={{
+                          duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6,
+                          ease: 'easeInOut',
+                          repeat: Infinity
                         }}
                         className="absolute inset-0 rounded-full border-2 border-emerald-400/40 pointer-events-none"
                       />
@@ -770,24 +769,24 @@ export default function TodayHero({
                   <motion.button
                     type="button"
                     onClick={() => {
-                      try { soundEngine.playClick(); } catch (e) {}
+                      try { soundEngine.playClick(); } catch (e) { }
                       setBreathActive(!breathActive);
                     }}
                     animate={breathActive ? {
                       scale: breathPhase.includes('Inhale') ? [1, 1.25] : breathPhase.includes('Hold') ? 1.25 : [1.25, 0.95],
                       backgroundColor: breathPhase.includes('Inhale') ? '#00E599' : breathPhase.includes('Hold') ? '#FDC800' : '#86EFAC'
                     } : { scale: 1, backgroundColor: '#00E599' }}
-                    transition={{ 
-                      duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6, 
-                      ease: 'easeInOut' 
+                    transition={{
+                      duration: breathPhase.includes('Inhale') ? 4 : breathPhase.includes('Hold') ? 2 : 6,
+                      ease: 'easeInOut'
                     }}
                     className="w-22 h-22 rounded-full border-3 border-black flex flex-col items-center justify-center shadow-[3px_3px_0px_#000000] cursor-pointer active:scale-95 transition-transform z-10"
                     title="Tap to toggle breathing pacer"
                   >
                     <Wind className="w-6 h-6 text-black stroke-[2.5]" />
                     <span className="font-mono text-[9px] font-black uppercase tracking-wider text-black mt-0.5">
-                      {breathActive 
-                        ? (breathPhase.includes('Inhale') ? 'INHALE' : breathPhase.includes('Hold') ? 'HOLD' : 'EXHALE') 
+                      {breathActive
+                        ? (breathPhase.includes('Inhale') ? 'INHALE' : breathPhase.includes('Hold') ? 'HOLD' : 'EXHALE')
                         : 'BREATHE'}
                     </span>
                   </motion.button>
@@ -845,14 +844,13 @@ export default function TodayHero({
                         key={stone.key}
                         type="button"
                         onClick={() => {
-                          try { soundEngine.playClick(); } catch (e) {}
+                          try { soundEngine.playClick(); } catch (e) { }
                           setSomaticCare(prev => ({ ...prev, [stone.key]: !prev[stone.key] }));
                         }}
-                        className={`p-2.5 rounded-xl border-2 border-black flex items-center justify-between text-left cursor-pointer transition-all duration-150 ${
-                          isDone 
-                            ? 'bg-[#DCFCE7] shadow-[2px_2px_0px_#000000] translate-y-px' 
-                            : 'bg-[#F9FBFA] hover:bg-neutral-100 hover:shadow-[2px_2px_0px_#000000] text-neutral-700 shadow-[1px_1px_0px_#000000]'
-                        }`}
+                        className={`p-2.5 rounded-xl border-2 border-black flex items-center justify-between text-left cursor-pointer transition-all duration-150 ${isDone
+                          ? 'bg-[#DCFCE7] shadow-[2px_2px_0px_#000000] translate-y-px'
+                          : 'bg-[#F9FBFA] hover:bg-neutral-100 hover:shadow-[2px_2px_0px_#000000] text-neutral-700 shadow-[1px_1px_0px_#000000]'
+                          }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <div className="w-7 h-7 rounded-lg bg-white border border-black flex items-center justify-center shrink-0">
@@ -867,9 +865,8 @@ export default function TodayHero({
                             </span>
                           </div>
                         </div>
-                        <span className={`w-4 h-4 rounded-full border border-black flex items-center justify-center text-[8px] shrink-0 ml-1.5 ${
-                          isDone ? 'bg-black text-[#00E599]' : 'bg-white text-transparent'
-                        }`}>
+                        <span className={`w-4 h-4 rounded-full border border-black flex items-center justify-center text-[8px] shrink-0 ml-1.5 ${isDone ? 'bg-black text-[#00E599]' : 'bg-white text-transparent'
+                          }`}>
                           <Check className="w-2.5 h-2.5 stroke-3" />
                         </span>
                       </button>
@@ -909,9 +906,9 @@ export default function TodayHero({
 
               {/* Sacred Rest Anime Artwork */}
               <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/11] max-h-80">
-                <img 
-                  src={mascotSanctuaryRain} 
-                  alt="Zen Veranda Sanctuary" 
+                <img
+                  src={mascotSanctuaryRain}
+                  alt="Zen Veranda Sanctuary"
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover object-[center_45%]"
@@ -941,13 +938,12 @@ export default function TodayHero({
                     return (
                       <div
                         key={i}
-                        className={`h-8.5 rounded-xl border-2 border-black flex items-center justify-center font-mono text-xs font-black transition-all ${
-                          isPast 
-                            ? 'bg-[#00E599] text-black shadow-[1.5px_1.5px_0px_#000000]' 
-                            : isCurrent 
-                            ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-105 ring-2 ring-black' 
+                        className={`h-8.5 rounded-xl border-2 border-black flex items-center justify-center font-mono text-xs font-black transition-all ${isPast
+                          ? 'bg-[#00E599] text-black shadow-[1.5px_1.5px_0px_#000000]'
+                          : isCurrent
+                            ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] scale-105 ring-2 ring-black'
                             : 'bg-neutral-100 text-neutral-400'
-                        }`}
+                          }`}
                         title={`Sanctuary Day ${dayNum}`}
                       >
                         {isPast ? <Check className="w-3.5 h-3.5 stroke-3" /> : dayNum}
@@ -1056,7 +1052,7 @@ export default function TodayHero({
             <button
               type="button"
               onClick={() => {
-                try { soundEngine.playClick(); } catch (e) {}
+                try { soundEngine.playClick(); } catch (e) { }
                 if (onOpenRehab) onOpenRehab();
                 else if (typeof window !== 'undefined') window.location.href = '/?view=sanctuary';
               }}
@@ -1080,10 +1076,10 @@ export default function TodayHero({
 
         {/* Bento Content Architecture */}
         <div className="relative z-10 space-y-6 pt-6">
-          
+
           {/* Row 1: The Astrolabe Centerpiece (Left) & The Unbounded Life Horizon (Right) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            
+
             {/* Left Card (6 cols): Sabbatical Compass Narrative */}
             <div className="lg:col-span-6 border-3 border-black rounded-[28px] p-6 bg-white/95 shadow-[5px_5px_0px_#000000] flex flex-col justify-between space-y-5">
               <div className="flex items-center gap-3">
@@ -1115,9 +1111,9 @@ export default function TodayHero({
 
               {/* Grand Sabbatical Anime Artwork */}
               <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/11] max-h-80">
-                <img 
-                  src={mascotSabbaticalSummit} 
-                  alt="Mountain Summit Grand Sabbatical" 
+                <img
+                  src={mascotSabbaticalSummit}
+                  alt="Mountain Summit Grand Sabbatical"
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover object-[center_45%]"
@@ -1228,22 +1224,22 @@ export default function TodayHero({
   // ⚡ STANDARD DAILY VERDICT FLOW
   // =========================================================================
   return (
-    <motion.div 
+    <motion.div
       animate={sadSettle ? { y: [0, 4, 1, 0] } : {}}
       transition={{ duration: 0.7, ease: 'easeInOut' }}
-      className="neo-card w-full mb-8 bg-white relative overflow-hidden" 
+      className="neo-card w-full mb-8 bg-white relative overflow-hidden"
       style={{ padding: '36px 40px' }}
     >
       {/* Top Panoramic Grid or Segmented Matrix Header */}
       {!sphereModeActive ? (
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          
+
           {/* Left Side: Date, Heading & Prominent Emblem Box */}
           <div className="text-left w-full lg:w-5/12 flex items-start gap-4">
-            
+
             {/* Prominent Dynamic Vector Emblem Box with Crisp Icons & Spring Morph */}
             <motion.div
-              animate={{ 
+              animate={{
                 scale: [1, 1.06, 1],
                 rotate: (activeRatingForVisual - 3) * 4
               }}
@@ -1297,8 +1293,8 @@ export default function TodayHero({
                 </AnimatePresence>
               </div>
               <p className="text-xs font-mono text-neutral-500 mt-1 font-semibold">
-                {isDeterministicTaskLocked 
-                  ? 'Rating governed 100% by your Non-Negotiable Tasks below.' 
+                {isDeterministicTaskLocked
+                  ? 'Rating governed 100% by your Non-Negotiable Tasks below.'
                   : 'Hover & punch an icon to log your verdict.'}
               </p>
             </div>
@@ -1306,68 +1302,68 @@ export default function TodayHero({
 
           {/* Right Side: 5 Chunky Tactile 1-Tap Buttons */}
           <div className="w-full lg:w-7/12">
-              <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 relative">
-                {[1, 2, 3, 4, 5].map((val) => {
-                  const m = ratingMeta[val];
-                  const SvgIcon = IconMap[m.icon];
-                  const isSelected = selectedRating === val;
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 relative">
+              {[1, 2, 3, 4, 5].map((val) => {
+                const m = ratingMeta[val];
+                const SvgIcon = IconMap[m.icon];
+                const isSelected = selectedRating === val;
 
-                  return (
-                    <motion.button
-                      key={val}
-                      type="button"
-                      whileHover={!isDeterministicTaskLocked ? { 
-                        scale: 1.06, 
-                        y: -4, 
-                        boxShadow: '4px 4px 0px #000000' 
-                      } : {}}
-                      whileTap={!isDeterministicTaskLocked ? { 
-                        scale: 0.88, 
-                        rotate: (val - 3) * -2.5 
-                      } : {}}
-                      transition={{ type: 'spring', stiffness: 450, damping: 16 }}
-                      onClick={(e) => handleRate(val, e)}
-                      className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
-                      style={{ 
-                        minHeight: '82px',
-                        backgroundColor: isSelected ? m.bg : '#FFFFFF'
-                      }}
-                      title={isDeterministicTaskLocked ? 'Locked by 100% Task Engine' : `Log ${m.title} (${val}/5)`}
+                return (
+                  <motion.button
+                    key={val}
+                    type="button"
+                    whileHover={!isDeterministicTaskLocked ? {
+                      scale: 1.06,
+                      y: -4,
+                      boxShadow: '4px 4px 0px #000000'
+                    } : {}}
+                    whileTap={!isDeterministicTaskLocked ? {
+                      scale: 0.88,
+                      rotate: (val - 3) * -2.5
+                    } : {}}
+                    transition={{ type: 'spring', stiffness: 450, damping: 16 }}
+                    onClick={(e) => handleRate(val, e)}
+                    className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
+                    style={{
+                      minHeight: '82px',
+                      backgroundColor: isSelected ? m.bg : '#FFFFFF'
+                    }}
+                    title={isDeterministicTaskLocked ? 'Locked by 100% Task Engine' : `Log ${m.title} (${val}/5)`}
+                  >
+                    {/* Seamless Active Selection Highlight */}
+                    {isSelected && (
+                      <motion.div
+                        layoutId="active-cyber-box"
+                        className="absolute -inset-0.5 rounded-2xl border-[3px] border-black pointer-events-none"
+                        transition={{ type: 'spring', stiffness: 480, damping: 26 }}
+                      />
+                    )}
+
+                    <div
+                      className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 shadow-[1.5px_1.5px_0px_#000000]"
+                      style={{ backgroundColor: m.bg }}
                     >
-                      {/* Seamless Active Selection Highlight */}
-                      {isSelected && (
-                        <motion.div
-                          layoutId="active-cyber-box"
-                          className="absolute -inset-0.5 rounded-2xl border-[3px] border-black pointer-events-none"
-                          transition={{ type: 'spring', stiffness: 480, damping: 26 }}
-                        />
-                      )}
+                      <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
+                    </div>
 
-                      <div 
-                        className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 shadow-[1.5px_1.5px_0px_#000000]"
-                        style={{ backgroundColor: m.bg }}
-                      >
-                        <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
-                      </div>
+                    <span className="font-display font-black text-[10px] sm:text-xs uppercase tracking-tight leading-none truncate max-w-full">
+                      {m.title}
+                    </span>
 
-                      <span className="font-display font-black text-[10px] sm:text-xs uppercase tracking-tight leading-none truncate max-w-full">
-                        {m.title}
-                      </span>
-
-                      <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neutral-600 mt-0.5 sm:mt-1">
-                        {val}/5
-                      </span>
-                    </motion.button>
-                  );
-                })}
-              </div>
+                    <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neutral-600 mt-0.5 sm:mt-1">
+                      {val}/5
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
 
         </div>
       ) : (
         /* Multi-Sphere Segmented Day Matrix Layout */
         <div className="space-y-6">
-          
+
           {/* Header & Composite Velocity Gauge */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black/10 pb-5">
             <div>
@@ -1387,7 +1383,7 @@ export default function TodayHero({
 
             {/* Composite Blended Score Pill */}
             {compositeStats ? (
-              <div 
+              <div
                 className="px-4 py-2.5 rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] flex items-center gap-3 self-start md:self-auto"
                 style={{ backgroundColor: ratingMeta[compositeStats.rating]?.bg || '#FDC800' }}
               >
@@ -1426,7 +1422,7 @@ export default function TodayHero({
                   {/* Sphere Card Header: Large Infographic Box & Bold Label */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div 
+                      <div
                         className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl border-2.5 border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0"
                         style={{ backgroundColor: sphere.color || '#FDC800' }}
                       >
@@ -1443,7 +1439,7 @@ export default function TodayHero({
                     </div>
 
                     {sphereRating ? (
-                      <span 
+                      <span
                         className="px-2.5 py-1 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0"
                         style={{ backgroundColor: ratingMeta[sphereRating]?.bg }}
                       >
@@ -1466,11 +1462,10 @@ export default function TodayHero({
                           key={val}
                           type="button"
                           onClick={() => handleRateSphere(sphere.id, val)}
-                          className={`py-2.5 px-1.5 rounded-xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all active:scale-95 ${
-                            isSelected 
-                              ? 'shadow-[2.5px_2.5px_0px_#000000] ring-2 ring-black font-black scale-[1.02]' 
-                              : 'bg-white hover:bg-neutral-100 text-neutral-800 hover:shadow-[1.5px_1.5px_0px_#000000]'
-                          }`}
+                          className={`py-2.5 px-1.5 rounded-xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all active:scale-95 ${isSelected
+                            ? 'shadow-[2.5px_2.5px_0px_#000000] ring-2 ring-black font-black scale-[1.02]'
+                            : 'bg-white hover:bg-neutral-100 text-neutral-800 hover:shadow-[1.5px_1.5px_0px_#000000]'
+                            }`}
                           style={{ backgroundColor: isSelected ? m.bg : '#FFFFFF' }}
                         >
                           <SvgIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-black stroke-[2.5]" />
@@ -1547,10 +1542,10 @@ export default function TodayHero({
 
       {/* Bottom Bar: Status Verdict + Expandable Note */}
       <div className="mt-6 pt-5 border-t-2 border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        
+
         {/* Active Verdict Pill with Crisp Icon */}
         {(sphereModeActive ? (compositeStats || selectedRating) : selectedRating) ? (
-          <motion.div 
+          <motion.div
             layout
             initial={{ opacity: 0, y: 8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1644,7 +1639,7 @@ export default function TodayHero({
       {/* Expanded Note Area with Smooth Spring Physics */}
       <AnimatePresence>
         {showNote && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -1673,7 +1668,7 @@ export default function TodayHero({
                     </span>
                   </div>
                   <p className="text-xs font-mono text-neutral-700 leading-snug">
-                    {activeCompanionMascot === mascotSanctuaryRain 
+                    {activeCompanionMascot === mascotSanctuaryRain
                       ? "Gentle rain & warm tea on the veranda. Take your time writing without hurry."
                       : "Standing on the mountain summit. Look how far you have climbed."}
                   </p>
@@ -1751,14 +1746,14 @@ export default function TodayHero({
                     <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
                   )}
                   <span>
-                    {isEnhancing 
-                      ? 'SYNTHESIZING...' 
+                    {isEnhancing
+                      ? 'SYNTHESIZING...'
                       : 'AI POLISH'
                     }
                   </span>
                 </button>
 
-                <button 
+                <button
                   onClick={() => setShowNote(false)}
                   className="hover:bg-red-200 border-2 border-black p-1.5 rounded-xl cursor-pointer ml-1 shadow-[1px_1px_0px_#000000]"
                 >
@@ -1797,11 +1792,10 @@ export default function TodayHero({
 
             {/* AI Polish Success / Error Feedback Banner */}
             {aiFeedback && (
-              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold ${
-                aiFeedback.type === 'success' 
-                  ? 'bg-[#E8FAF0] text-black' 
-                  : 'bg-[#FFEBEB] text-black'
-              }`}>
+              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold ${aiFeedback.type === 'success'
+                ? 'bg-[#E8FAF0] text-black'
+                : 'bg-[#FFEBEB] text-black'
+                }`}>
                 <div className="flex items-center gap-2 min-w-0">
                   {aiFeedback.type === 'success' ? (
                     <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
@@ -1858,11 +1852,10 @@ export default function TodayHero({
               <button
                 type="button"
                 onClick={handleSaveNote}
-                className={`px-6 py-2.5 text-black text-xs font-mono font-black border-2 border-black rounded-xl cursor-pointer shadow-[3px_3px_0px_#000000] transition-all hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-2 ${
-                  justSavedNote 
-                    ? 'bg-[#00E599] ring-2 ring-black scale-102' 
-                    : 'bg-[#FDC800] hover:bg-amber-300'
-                }`}
+                className={`px-6 py-2.5 text-black text-xs font-mono font-black border-2 border-black rounded-xl cursor-pointer shadow-[3px_3px_0px_#000000] transition-all hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center gap-2 ${justSavedNote
+                  ? 'bg-[#00E599] ring-2 ring-black scale-102'
+                  : 'bg-[#FDC800] hover:bg-amber-300'
+                  }`}
               >
                 {justSavedNote ? (
                   <>

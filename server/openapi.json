@@ -282,7 +282,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "action": { "type": "string", "enum": ["health", "verify-token", "verify-pin", "decrypt-token"] },
+                  "action": { "type": "string", "enum": ["health", "verify-token", "verify-pin"] },
                   "token": { "type": "string" },
                   "pin": { "type": "string" }
                 }

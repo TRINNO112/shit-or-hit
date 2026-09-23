@@ -35,7 +35,33 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
-app.use(cors());
+// CORS Whitelist Protection
+const ALLOWED_ORIGINS = [
+  'http://localhost:5888',
+  'http://localhost:5173',
+  'http://127.0.0.1:5888',
+  'http://127.0.0.1:5173',
+  'https://shit-or-hit.netlify.app'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow non-browser requests (mobile, server-to-server, curl)
+    if (!origin) return callback(null, true);
+    const isAllowed = ALLOWED_ORIGINS.includes(origin) ||
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
+      /^https:\/\/.*--shit-or-hit\.netlify\.app$/.test(origin);
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for unauthorized origin: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-test-sandbox', 'playwright']
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(requestLogger);
 
@@ -86,12 +112,46 @@ if (!fs.existsSync(REPORTS_FILE)) {
 }
 
 function isTestSandbox(req) {
+  // Prevent sandbox override in production environments
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
   return (
     process.env.IS_PLAYWRIGHT === 'true' ||
     process.env.NODE_ENV === 'test' ||
     req?.headers?.['x-test-sandbox'] === 'true' ||
     req?.headers?.['playwright'] === 'true'
   );
+}
+
+// In-Memory Rate Limiter for PIN Verification (5 attempts per 15 minutes)
+const pinAttemptStore = new Map();
+
+function checkPinRateLimit(key) {
+  const now = Date.now();
+  const record = pinAttemptStore.get(key);
+  if (!record) return { allowed: true, remaining: 5 };
+  if (now > record.resetAt) {
+    pinAttemptStore.delete(key);
+    return { allowed: true, remaining: 5 };
+  }
+  if (record.count >= 5) {
+    const waitMinutes = Math.ceil((record.resetAt - now) / 60000);
+    return { allowed: false, waitMinutes };
+  }
+  return { allowed: true, remaining: 5 - record.count };
+}
+
+function recordPinFailure(key) {
+  const now = Date.now();
+  const record = pinAttemptStore.get(key) || { count: 0, resetAt: now + 15 * 60 * 1000 };
+  record.count += 1;
+  record.resetAt = Math.max(record.resetAt, now + 15 * 60 * 1000);
+  pinAttemptStore.set(key, record);
+}
+
+function resetPinAttempts(key) {
+  pinAttemptStore.delete(key);
 }
 
 function getDataFilePath(req) {
@@ -191,34 +251,14 @@ app.post(['/.netlify/functions/decrypt-mediator', '/api/decrypt-mediator'], asyn
       return res.status(400).json({ error: 'Missing token or PIN' });
     }
 
-    let decryptedPin = null;
-    try {
-      const keyBytes = new TextEncoder().encode(secret);
-      if (token.startsWith('TRINNO_ENC_V2:')) {
-        const hex = token.replace('TRINNO_ENC_V2:', '');
-        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-        const decryptedBytes = bytes.map((byte, i) => {
-          const k = keyBytes[i % keyBytes.length];
-          const shift = (i * 7 + 13) % 256;
-          return (byte ^ shift ^ k) & 255;
-        });
-        const decryptedStr = new TextDecoder().decode(decryptedBytes);
-        const parts = decryptedStr.split(':');
-        if (parts.length >= 3) {
-          decryptedPin = parts.slice(2).join(':');
-        }
-      }
-    } catch (e) {}
-
-    return res.json({
-      matched: decryptedPin === pin,
-      timestamp: new Date().toISOString()
-    });
-  }
-
-  if (action === 'decrypt-token') {
-    if (!token) {
-      return res.status(400).json({ error: 'Missing token' });
+    // Rate Limiting Guard
+    const clientKey = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'local_client';
+    const rateCheck = checkPinRateLimit(clientKey);
+    if (!rateCheck.allowed) {
+      return res.status(429).json({
+        error: `Too many failed PIN attempts. Locked out for ${rateCheck.waitMinutes} minutes.`,
+        retryAfterMinutes: rateCheck.waitMinutes
+      });
     }
 
     let decryptedPin = null;
@@ -240,14 +280,20 @@ app.post(['/.netlify/functions/decrypt-mediator', '/api/decrypt-mediator'], asyn
       }
     } catch (e) {}
 
+    const isMatched = decryptedPin === pin;
+    if (isMatched) {
+      resetPinAttempts(clientKey);
+    } else {
+      recordPinFailure(clientKey);
+    }
+
     return res.json({
-      success: !!decryptedPin,
-      decryptedPin: decryptedPin || null,
+      matched: isMatched,
       timestamp: new Date().toISOString()
     });
   }
 
-  return res.status(400).json({ error: 'Unknown action' });
+  return res.status(400).json({ error: 'Unknown or unsupported action' });
 });
 
 // Routes
