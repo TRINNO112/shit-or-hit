@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DOMPurify from 'dompurify';
 import {
   Flame, Crown, Skull, Crosshair, Swords, Target, Terminal,
   Zap, Sparkles, Ghost, ShieldAlert, Cpu, Activity,
@@ -406,7 +407,11 @@ export default function IconLab({ onBack }) {
                       {customSvgInput ? (
                         <div
                           className="w-14 h-14 flex items-center justify-center"
-                          dangerouslySetInnerHTML={{ __html: customSvgInput }}
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(customSvgInput, {
+                              USE_PROFILES: { svg: true, svgFilters: true }
+                            })
+                          }}
                         />
                       ) : (
                         <IconComponent

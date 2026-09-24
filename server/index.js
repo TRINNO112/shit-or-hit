@@ -116,11 +116,15 @@ function isTestSandbox(req) {
   if (process.env.NODE_ENV === 'production') {
     return false;
   }
+  // Sandbox headers are only permitted from loopback/localhost during local testing
+  const ip = req?.ip || req?.socket?.remoteAddress || '';
+  const isLoopback = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip.includes('localhost') || !ip;
+  const hasTestHeader = isLoopback && (req?.headers?.['x-test-sandbox'] === 'true' || req?.headers?.['playwright'] === 'true');
+
   return (
     process.env.IS_PLAYWRIGHT === 'true' ||
     process.env.NODE_ENV === 'test' ||
-    req?.headers?.['x-test-sandbox'] === 'true' ||
-    req?.headers?.['playwright'] === 'true'
+    hasTestHeader
   );
 }
 
