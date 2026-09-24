@@ -1,0 +1,56 @@
+name: Feature Request
+description: Propose a new feature, habit tracking tool, or Neobrutalist design enhancement
+title: "[FEATURE]: "
+labels: ["enhancement", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make SHIT OR HIT even better? We'd love to hear it!
+        Please review our [Contributing Guidelines](../../CONTRIBUTING.md) to understand our Neobrutalist design standards and Zero-Emoji rule.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem or friction point?
+      placeholder: I am always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution / Feature
+      description: Describe the solution you'd like to see.
+      placeholder: Add a new mode / modal / tool that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: neobrutalism_design
+    attributes:
+      label: Neobrutalist UI Concept & Mockup
+      description: How does this align with the Neobrutalist aesthetic (border-2 border-black, hard shadows, Lucide vector icons)?
+      placeholder: Describe the visual layout, color palette tokens, or button states...
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or features?
+      placeholder: A clear description of any alternative solutions you considered.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checkboxes
+    attributes:
+      label: Feature Checklist
+      options:
+        - label: I confirmed this feature adheres to the Absolute Zero Emoji rule (Lucide SVG icons only).
+          required: true
+        - label: I searched existing issues and feature requests to prevent duplicates.
+          required: true

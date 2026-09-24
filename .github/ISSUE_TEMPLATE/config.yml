@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability Reporting
+    url: https://github.com/TRINNO112/shit-or-hit/blob/main/SECURITY.md
+    about: Please report security vulnerabilities privately according to our security policy.
+  - name: 💬 Community Discussions & Questions
+    url: https://github.com/TRINNO112/shit-or-hit/discussions
+    about: Ask questions, share your habit workflows, and discuss ideas with the community.

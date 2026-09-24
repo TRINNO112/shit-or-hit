@@ -571,6 +571,15 @@ npm run dev
 
 ---
 
+## 🏛️ Community & Contributing
+
+- **[Code of Conduct](CODE_OF_CONDUCT.md)** — Contributor Covenant v2.1 standards.
+- **[Contributing Guidelines](CONTRIBUTING.md)** — Development setup, 55-point audit gate, and Neobrutalism UI rules.
+- **[Security Policy](SECURITY.md)** — Vulnerability reporting and responsible disclosure.
+- **[Bug Report Form](.github/ISSUE_TEMPLATE/bug_report.yml)** & **[Feature Request Form](.github/ISSUE_TEMPLATE/feature_request.yml)**
+
+---
+
 ## 📄 License
 
-MIT License © 2026. Built with grit, brutal honesty, and neobrutalist precision.
+Distributed under the [MIT License](LICENSE) © 2026 TRINNO. Built with grit, brutal honesty, and neobrutalist precision.
