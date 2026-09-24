@@ -87,7 +87,7 @@ export default function SanctuaryInvitationModal({
             <div className="pt-2 flex flex-col gap-2.5">
               <button
                 onClick={handleAccept}
-                className="w-full py-3 px-4 bg-[#00E599] hover:bg-[#00c985] text-black font-mono font-black text-xs sm:text-sm uppercase tracking-wide border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 px-4 bg-[#00E599] hover:bg-[#00c985] text-black font-mono font-black text-xs sm:text-sm uppercase tracking-wide border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
                 <span>YES, FREEZE STREAK (7-DAY RESET)</span>
@@ -95,7 +95,7 @@ export default function SanctuaryInvitationModal({
 
               <button
                 onClick={handleDecline}
-                className="w-full py-2.5 px-4 bg-white hover:bg-neutral-100 text-black font-mono font-bold text-xs uppercase tracking-wide border-2 border-black shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-4 bg-white hover:bg-neutral-100 text-black font-mono font-bold text-xs uppercase tracking-wide border-2 border-black shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Flame className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>NOT NOW, KEEP TRACKING MY DAYS</span>

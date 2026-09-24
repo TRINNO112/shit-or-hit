@@ -1010,7 +1010,7 @@ export default function MobileAppView({
                     className="p-2.5 bg-[#00E599] border-2 border-black rounded-xl text-xs font-mono font-black text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
                   >
                     <div className="flex items-center gap-1.5">
-                      <Check className="w-4 h-4 stroke-[3]" />
+                      <Check className="w-4 h-4 stroke-3" />
                       <span>ENTRY SAVED TO THIS DEVICE!</span>
                     </div>
                     <span className="text-[10px] uppercase font-bold opacity-80">LOCAL VAULT</span>

@@ -914,7 +914,7 @@ export default function TodayHero({
               </div>
 
               {/* Sacred Rest Anime Artwork */}
-              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/11] max-h-80">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-4/3 sm:aspect-16/11 max-h-80">
                 <img
                   src={mascotSanctuaryRain}
                   alt="Zen Veranda Sanctuary"
@@ -1119,7 +1119,7 @@ export default function TodayHero({
               </div>
 
               {/* Grand Sabbatical Anime Artwork */}
-              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/11] max-h-80">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-4/3 sm:aspect-16/11 max-h-80">
                 <img
                   src={mascotSabbaticalSummit}
                   alt="Mountain Summit Grand Sabbatical"
@@ -1295,7 +1295,7 @@ export default function TodayHero({
                       exit={{ opacity: 0, scale: 0.85, y: -2 }}
                       className="px-2.5 py-0.5 rounded-md bg-[#00E599] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] inline-flex items-center gap-1"
                     >
-                      <Check className="w-3 h-3 stroke-[3]" />
+                      <Check className="w-3 h-3 stroke-3" />
                       ENTRY SAVED LOCALLY!
                     </motion.span>
                   )}
@@ -1770,7 +1770,7 @@ export default function TodayHero({
                     </button>
                   </div>
 
-                  <div className="w-full aspect-[4/3] rounded-2xl border-2.5 border-black overflow-hidden bg-neutral-900 shadow-[inset_0_0_12px_rgba(0,0,0,0.5)]">
+                  <div className="w-full aspect-4/3 rounded-2xl border-2.5 border-black overflow-hidden bg-neutral-900 shadow-[inset_0_0_12px_rgba(0,0,0,0.5)]">
                     <img
                       src={activeCompanionMascot}
                       alt={activeCompanionTitle}

@@ -78,7 +78,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
                 soundEngine.playClick();
                 onClose();
               }}
-              className="p-1.5 sm:p-2 bg-[#FF4D4D] text-black border-2 border-black hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none shrink-0 cursor-pointer"
+              className="p-1.5 sm:p-2 bg-[#FF4D4D] text-black border-2 border-black hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px shrink-0 cursor-pointer"
               aria-label="Close Export Studio"
             >
               <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-3" />

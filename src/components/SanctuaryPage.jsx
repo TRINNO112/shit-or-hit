@@ -646,7 +646,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
               <div className="bg-white border-3 border-black rounded-3xl p-6 sm:p-7 shadow-[6px_6px_0px_#000000] space-y-6">
 
                 {/* Sabbatical Mountain Summit Artwork */}
-                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-[4/3] sm:aspect-[16/10] max-h-96">
+                <div className="relative overflow-hidden rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] w-full aspect-4/3 sm:aspect-16/10 max-h-96">
                   <img
                     src={mascotSabbaticalSummit}
                     alt="Sabbatical Mountain Horizon"
