@@ -765,7 +765,7 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
       const cached = localStorage.getItem(langKey) || localStorage.getItem(baseKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed && parsed.executiveSummary) return parsed;
+        if (parsed && parsed.executiveSummary && parsed.dominoChains && parsed.dominoChains.length > 0) return parsed;
       }
     } catch (e) {}
 
@@ -773,7 +773,7 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
       try {
         const cloudReport = await fetchCloudReport(effectiveId, `${cloudKey}_${preferredLanguage}`) || 
                             await fetchCloudReport(effectiveId, cloudKey);
-        if (cloudReport && cloudReport.executiveSummary) {
+        if (cloudReport && cloudReport.executiveSummary && cloudReport.dominoChains && cloudReport.dominoChains.length > 0) {
           try {
             localStorage.setItem(baseKey, JSON.stringify(cloudReport));
             localStorage.setItem(langKey, JSON.stringify(cloudReport));

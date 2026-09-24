@@ -167,8 +167,8 @@ export default function MonthlyReportModal({
     if (report.dominoChains?.length > 0) {
       dominoText = `\n## Behavioral Domino Map (Cross-Day Causal Chains)\n` +
         report.dominoChains.map(chain => 
-          `### ${chain.title} (${chain.frictionPattern || 'Causal Loop'})\n` +
-          chain.nodes.map(n => `- **[${n.stage}] ${n.date} (${n.rating || '?'}★)**: ${n.summary}`).join('\n') +
+          `### ${chain.title || chain.chainTitle} (${chain.frictionPattern || chain.rootTrigger || 'Causal Loop'})\n` +
+          (chain.nodes || chain.links || []).map(n => `- **[${n.stage}] ${n.date} (${n.rating || '?'}★)**: ${n.summary}`).join('\n') +
           (chain.circuitBreaker ? `\n> **Circuit Breaker:** ${chain.circuitBreaker}\n` : '\n')
         ).join('\n') + '\n';
     }
@@ -509,19 +509,19 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                           {/* Chain Title & Friction Tag */}
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black">
-                              {chain.title}
+                              {chain.title || chain.chainTitle}
                             </h5>
-                            {chain.frictionPattern && (
+                            {(chain.frictionPattern || chain.rootTrigger) && (
                               <span className="px-2 py-0.5 rounded bg-black text-white font-mono text-[9px] font-bold uppercase">
-                                {chain.frictionPattern}
+                                {chain.frictionPattern || chain.rootTrigger}
                               </span>
                             )}
                           </div>
 
                           {/* Domino Nodes Sequence */}
                           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 overflow-x-auto py-1">
-                            {chain.nodes?.map((node, nIdx) => {
-                              const isLast = nIdx === chain.nodes.length - 1;
+                            {(chain.nodes || chain.links || []).map((node, nIdx, arr) => {
+                              const isLast = nIdx === arr.length - 1;
                               const stageColors = {
                                 'ROOT TRIGGER': 'bg-[#FF4D4D] text-white',
                                 'RIPPLE EFFECT': 'bg-[#FF8A00] text-black',

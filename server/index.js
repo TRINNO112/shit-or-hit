@@ -351,7 +351,14 @@ app.post('/api/entries', validateBody(entrySchema), (req, res) => {
 // High-Resilience Gemini Multi-Model Cascade
 async function callGeminiApi({ prompt, apiKey, temperature = 0.7, maxTokens = 2048, responseMimeType = null }) {
   if (!apiKey) return { ok: false, error: 'GEMINI_API_KEY missing' };
-  const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash'];
+  const candidateModels = [
+    'gemini-flash-lite-latest',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-flash-latest',
+    'gemini-3.7-flash',
+    'gemini-3.8-flash'
+  ];
   let lastError = null;
 
   for (const model of candidateModels) {
@@ -448,12 +455,12 @@ User's raw journal inputs and domain ratings:
 CRITICAL INSTRUCTIONS:
 - You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
 - NEVER use "You" or "Your" under any circumstances.
-- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Do NOT summarize, compress, or shorten the entry. Synthesize the domain events into a unified, chronological, vivid personal diary reflection (from morning through night).
+- Elevate and expand raw thoughts into a vivid, deeply authentic, and well-written personal diary reflection.
+- DO NOT just echo or return the input back with minor punctuation. If the user provided brief bullets or rough sentences, flesh out the physical sensations, emotional context, and mental reality of what that day felt like based on the rating (${rating || 3}/5).
+- Structure the reflection with natural narrative flow: the morning inertia or momentum, the core frictions or breakthroughs of the day, and an honest closing reflection on holding the line.
 - ${languageRule}
-- Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic, passionate voice.
-- Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
-
-Return ONLY the complete, uncompressed polished diary entry text without quotes or preamble.`;
+- Preserve all facts, names, and specific events mentioned by the user. Do not invent contradictory events.
+- Return ONLY the polished, immersive diary reflection text without quotes, markdown headers, or preambles.`;
 
   try {
     const geminiResult = await callGeminiApi({
@@ -662,7 +669,7 @@ app.get('/api/monthly-report', validateQuery(monthlyReportQuerySchema), (req, re
     }
   }
 
-  if (matchedReport) {
+  if (matchedReport && matchedReport.dominoChains && matchedReport.dominoChains.length > 0) {
     return res.json({
       success: true,
       isSaved: true,
@@ -686,10 +693,10 @@ app.post('/api/monthly-report', validateBody(monthlyReportBodySchema), async (re
   const reportKey = `${baseKey}_${preferredLanguage}`;
   const reportsMap = readReports();
 
-  // If already evaluated and user did not request force re-evaluation, return saved report instantly!
+  // If already evaluated and user did not request force re-evaluation, return saved report instantly ONLY if modern schema with dominoChains exists!
   if (!forceReevaluate) {
     const existing = reportsMap[reportKey] || reportsMap[baseKey];
-    if (existing) {
+    if (existing && existing.dominoChains && existing.dominoChains.length > 0) {
       return res.json({
         success: true,
         isSaved: true,
