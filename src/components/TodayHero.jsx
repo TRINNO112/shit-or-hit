@@ -39,7 +39,10 @@ import {
   Clock,
   CheckCircle2,
   Save,
-  RotateCw
+  RotateCw,
+  Eye,
+  EyeOff,
+  Maximize2
 } from 'lucide-react';
 import {
   ratingMeta,
@@ -203,6 +206,12 @@ export default function TodayHero({
   const [justSavedNote, setJustSavedNote] = useState(false);
   const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
   const [companionArtworkOverride, setCompanionArtworkOverride] = useState(null);
+  const [showCompanionArt, setShowCompanionArt] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('daily_verdict_show_companion_art') !== 'false';
+  });
+  const [viewingFullArtwork, setViewingFullArtwork] = useState(false);
+
   const activeCompanionMascot = companionArtworkOverride === 'rain'
     ? mascotSanctuaryRain
     : companionArtworkOverride === 'summit'
@@ -1646,50 +1655,153 @@ export default function TodayHero({
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
             className="mt-5 pt-5 pb-3 border-t-2 border-dashed border-black/20 text-left space-y-3.5"
           >
-            {/* Daily Companion Visual Horizon Card */}
-            <div className="p-3.5 bg-linear-to-r from-[#FFFDF5] to-[#FFF9E6] rounded-2xl border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-3.5 shadow-[3px_3px_0px_#000000]">
-              <div className="flex items-center gap-3.5 w-full sm:w-auto">
-                <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000] shrink-0 bg-neutral-900 relative group">
-                  <img
-                    src={activeCompanionMascot}
-                    alt={activeCompanionTitle}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-mono text-xs sm:text-sm font-black uppercase text-black">
-                      {activeCompanionTitle}
-                    </span>
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-black text-[#FDC800] font-black uppercase">
-                      {companionArtworkOverride ? 'PINNED HORIZON' : isEvenDay ? 'DAILY ZEN • VERANDA' : 'DAILY ZEN • SUMMIT'}
-                    </span>
+            {/* Daily Companion Visual Horizon Card (Toggleable) */}
+            {showCompanionArt ? (
+              <div className="p-3.5 bg-linear-to-r from-[#FFFDF5] to-[#FFF9E6] rounded-2xl border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-3.5 shadow-[3px_3px_0px_#000000]">
+                <div className="flex items-center gap-3.5 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playClick();
+                      setViewingFullArtwork(true);
+                    }}
+                    title="Click to view full image"
+                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000] shrink-0 bg-neutral-900 relative group cursor-pointer"
+                  >
+                    <img
+                      src={activeCompanionMascot}
+                      alt={activeCompanionTitle}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                      <Maximize2 className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                  </button>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="font-mono text-xs sm:text-sm font-black uppercase text-black">
+                        {activeCompanionTitle}
+                      </span>
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-black text-[#FDC800] font-black uppercase">
+                        {companionArtworkOverride ? 'PINNED HORIZON' : isEvenDay ? 'DAILY ZEN • VERANDA' : 'DAILY ZEN • SUMMIT'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-mono text-neutral-700 leading-snug">
+                      {activeCompanionMascot === mascotSanctuaryRain
+                        ? "Gentle rain & warm tea on the veranda. Take your time writing without hurry."
+                        : "Standing on the mountain summit. Look how far you have climbed."}
+                    </p>
                   </div>
-                  <p className="text-xs font-mono text-neutral-700 leading-snug">
-                    {activeCompanionMascot === mascotSanctuaryRain
-                      ? "Gentle rain & warm tea on the veranda. Take your time writing without hurry."
-                      : "Standing on the mountain summit. Look how far you have climbed."}
-                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playClick();
+                      setCompanionArtworkOverride(prev => {
+                        const current = prev || (isEvenDay ? 'rain' : 'summit');
+                        return current === 'rain' ? 'summit' : 'rain';
+                      });
+                    }}
+                    className="px-3 py-1.5 bg-[#FDC800] hover:bg-amber-300 text-black border-2 border-black rounded-lg font-mono text-[10px] sm:text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center gap-1.5"
+                  >
+                    <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Switch Art</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playClick();
+                      setShowCompanionArt(false);
+                      localStorage.setItem('daily_verdict_show_companion_art', 'false');
+                    }}
+                    title="Hide companion artwork"
+                    className="p-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-2 border-black rounded-lg cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px"
+                  >
+                    <EyeOff className="w-4 h-4 stroke-[2.5]" />
+                  </button>
                 </div>
               </div>
+            ) : (
+              <div className="flex items-center justify-between p-2.5 bg-[#FFFDF5] border-2 border-dashed border-black/30 rounded-xl">
+                <span className="font-mono text-xs font-bold text-neutral-600 uppercase flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Horizon Artwork Hidden</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setShowCompanionArt(true);
+                    localStorage.setItem('daily_verdict_show_companion_art', 'true');
+                  }}
+                  className="px-2.5 py-1 bg-[#FDC800] hover:bg-amber-300 text-black border border-black rounded-md font-mono text-[10px] font-black uppercase cursor-pointer shadow-[1px_1px_0px_#000000]"
+                >
+                  Turn On Image
+                </button>
+              </div>
+            )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  soundEngine.playClick();
-                  setCompanionArtworkOverride(prev => {
-                    const current = prev || (isEvenDay ? 'rain' : 'summit');
-                    return current === 'rain' ? 'summit' : 'rain';
-                  });
-                }}
-                className="self-end sm:self-center px-3 py-1.5 bg-[#FDC800] hover:bg-amber-300 text-black border-2 border-black rounded-lg font-mono text-[10px] sm:text-xs font-black uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center gap-1.5 shrink-0"
+            {/* Fullscreen Art Lightbox Modal */}
+            {viewingFullArtwork && (
+              <div 
+                className="fixed inset-0 z-100 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none"
+                onClick={() => setViewingFullArtwork(false)}
               >
-                <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Switch Horizon Art</span>
-              </button>
-            </div>
+                <div 
+                  className="relative max-w-2xl w-full bg-[#FFFDF8] border-3 border-black rounded-3xl shadow-[8px_8px_0px_#000000] p-4 sm:p-6 space-y-4 my-auto"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between border-b-2 border-black/15 pb-3">
+                    <div>
+                      <span className="text-[10px] font-mono font-black uppercase text-neutral-500">HORIZON ZEN COMPANION</span>
+                      <h3 className="font-display font-black text-lg sm:text-xl uppercase text-black">{activeCompanionTitle}</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setViewingFullArtwork(false)}
+                      className="p-1.5 bg-[#FF4D4D] text-black border-2 border-black rounded-xl hover:bg-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
+                    >
+                      <X className="w-5 h-5 stroke-[2.5]" />
+                    </button>
+                  </div>
+
+                  <div className="w-full aspect-[4/3] rounded-2xl border-2.5 border-black overflow-hidden bg-neutral-900 shadow-[inset_0_0_12px_rgba(0,0,0,0.5)]">
+                    <img
+                      src={activeCompanionMascot}
+                      alt={activeCompanionTitle}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <p className="text-xs font-mono text-neutral-700">
+                      {activeCompanionMascot === mascotSanctuaryRain
+                        ? "Gentle rain & warm tea on the veranda. Take your time writing without hurry."
+                        : "Standing on the mountain summit. Look how far you have climbed."}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEngine.playClick();
+                        setCompanionArtworkOverride(prev => {
+                          const current = prev || (isEvenDay ? 'rain' : 'summit');
+                          return current === 'rain' ? 'summit' : 'rain';
+                        });
+                      }}
+                      className="px-3 py-1.5 bg-[#FDC800] text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center gap-1.5 shrink-0"
+                    >
+                      <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Switch Art</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black">
               <span className="flex items-center gap-1.5">

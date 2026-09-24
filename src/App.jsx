@@ -56,7 +56,6 @@ const BehavioralLabModal = safeLazy(() => import('./components/BehavioralLabModa
 const ExportStudioModal = safeLazy(() => import('./components/ExportStudioModal'));
 const RehabilitationModal = safeLazy(() => import('./components/RehabilitationModal'));
 const SanctuaryInvitationModal = safeLazy(() => import('./components/SanctuaryInvitationModal'));
-const PostcardStudioModal = safeLazy(() => import('./components/PostcardStudioModal'));
 const SanctuaryPage = safeLazy(() => import('./components/SanctuaryPage'));
 const PrivacyPolicyPage = safeLazy(() => import('./components/PrivacyPolicyPage'));
 const DataErasurePage = safeLazy(() => import('./components/DataErasurePage'));
@@ -227,7 +226,6 @@ export default function App() {
   const [isP2PSyncOpen, setIsP2PSyncOpen] = useState(false);
   const [isSanctuaryInvitationOpen, setIsSanctuaryInvitationOpen] = useState(false);
   const [sanctuaryInvitationRoughCount, setSanctuaryInvitationRoughCount] = useState(2);
-  const [isPostcardStudioOpen, setIsPostcardStudioOpen] = useState(false);
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
@@ -300,7 +298,6 @@ export default function App() {
     window.__testRecoveryModal = () => setIsMotivationalOpen(true);
     window.__testGuestDisclaimer = () => setIsGuestDisclaimerOpen(true);
     window.__openP2PSync = () => setIsP2PSyncOpen(true);
-    window.__openPostcardStudio = () => setIsPostcardStudioOpen(true);
 
     let keyBuffer = '';
     const handleKeyDown = (e) => {
@@ -338,15 +335,6 @@ export default function App() {
       } else if (keyBuffer.endsWith('autopsy')) {
         setIsAutopsyOpen(prev => !prev);
         keyBuffer = '';
-      } else if (keyBuffer.endsWith('postcard') || keyBuffer.endsWith('polaroid') || keyBuffer.endsWith('post')) {
-        setIsPostcardStudioOpen(prev => !prev);
-        keyBuffer = '';
-      }
-
-      // Quick hotkey: Shift + P (when not typing in an input)
-      if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
-        e.preventDefault();
-        setIsPostcardStudioOpen(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -379,9 +367,6 @@ export default function App() {
       if (window.location.search.includes('view=capsule') || window.location.hash.includes('capsule')) {
         setCapsuleModalMode('vault');
         setIsCapsuleModalOpen(true);
-      }
-      if (window.location.search.includes('view=postcard') || window.location.hash.includes('postcard')) {
-        setIsPostcardStudioOpen(true);
       }
       if (window.location.search.includes('view=autopsy') || window.location.hash.includes('autopsy')) {
         setIsAutopsyOpen(true);
@@ -1303,17 +1288,6 @@ export default function App() {
                 declineSanctuaryInvitation();
                 setIsSanctuaryInvitationOpen(false);
               }}
-            />
-          )}
-
-          {/* 🎴 Dev Lab: Postcard Memory Studio Showcase */}
-          {isPostcardStudioOpen && (
-            <PostcardStudioModal
-              isOpen={isPostcardStudioOpen}
-              onClose={() => setIsPostcardStudioOpen(false)}
-              entry={entries[todayStr] || null}
-              dateStr={todayStr}
-              activeStreak={currentStreak || 1}
             />
           )}
 
