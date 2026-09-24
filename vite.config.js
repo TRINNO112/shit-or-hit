@@ -15,6 +15,16 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5001',
         changeOrigin: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, res) => {
+            if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
+              if (res && !res.headersSent && typeof res.writeHead === 'function') {
+                res.writeHead(503, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Backend server temporarily unavailable or restarting', code: err.code }));
+              }
+            }
+          });
+        }
       },
       '/.netlify/functions': {
         target: 'http://localhost:5001',

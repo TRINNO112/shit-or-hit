@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertCircle,
+  AlertTriangle,
   CloudRain,
   MinusCircle,
   Zap,
@@ -569,17 +570,29 @@ export default function TodayHero({
       setHistoryIdx(newStack.length - 1);
       setNoteText(enhanced);
       setShowNote(true);
-      soundEngine.playSuccessChime();
-      setAiFeedback({
-        type: 'success',
-        message: 'Reflection polished with AI ghostwriter co-pilot.'
-      });
-      setTimeout(() => setAiFeedback(null), 6000);
+
+      if (enhanced?.isLocalFallback) {
+        soundEngine.playClick();
+        setAiFeedback({
+          type: 'warning',
+          isFallback: true,
+          message: 'Gemini server high demand (503). Local sharpener applied.'
+        });
+      } else {
+        soundEngine.playSuccessChime();
+        setAiFeedback({
+          type: 'success',
+          isFallback: false,
+          message: `Reflection polished with Gemini AI (${enhanced?.modelUsed || '3.5-flash-lite'}).`
+        });
+        setTimeout(() => setAiFeedback(null), 6000);
+      }
     } catch (err) {
       console.error('AI Enhance error:', err);
       soundEngine.playRoughTone();
       setAiFeedback({
         type: 'error',
+        isFallback: false,
         message: err.message || 'AI Enhancement failed. Check your API key or connection.'
       });
     } finally {
@@ -1902,22 +1915,36 @@ export default function TodayHero({
               </div>
             )}
 
-            {/* AI Polish Success / Error Feedback Banner */}
+            {/* AI Polish Success / Fallback / Error Feedback Banner */}
             {aiFeedback && (
-              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold ${aiFeedback.type === 'success'
-                ? 'bg-[#E8FAF0] text-black'
-                : 'bg-[#FFEBEB] text-black'
-                }`}>
+              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold ${
+                aiFeedback.type === 'success'
+                  ? 'bg-[#E8FAF0] text-black'
+                  : aiFeedback.type === 'warning'
+                  ? 'bg-[#FFF9E6] text-black'
+                  : 'bg-[#FFEBEB] text-black'
+              }`}>
                 <div className="flex items-center gap-2 min-w-0">
                   {aiFeedback.type === 'success' ? (
                     <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
+                  ) : aiFeedback.type === 'warning' ? (
+                    <AlertTriangle className="w-4 h-4 text-[#FDC800] stroke-[2.5] shrink-0" />
                   ) : (
                     <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
                   )}
                   <span className="truncate">{aiFeedback.message}</span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {aiFeedback.type === 'success' ? (
+                  {aiFeedback.isFallback ? (
+                    <button
+                      type="button"
+                      onClick={() => handleAIEnhance()}
+                      className="px-2.5 py-1 bg-[#FDC800] hover:bg-amber-300 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px flex items-center gap-1"
+                    >
+                      <RotateCw className="w-3 h-3 stroke-3" />
+                      RETRY GEMINI
+                    </button>
+                  ) : aiFeedback.type === 'success' ? (
                     <button
                       type="button"
                       onClick={handleUndo}

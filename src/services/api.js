@@ -230,7 +230,7 @@ export async function fetchDatabase(userOverride = null) {
   if (!isStaticHost) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 900);
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
       const res = await fetch(`${API_BASE}/entries`, { signal: controller.signal });
       clearTimeout(timeoutId);
       if (res.ok) {
@@ -579,7 +579,13 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.enhancedText) return data.enhancedText;
+        if (data.enhancedText) {
+          const resultStr = new String(data.enhancedText);
+          resultStr.isLocalFallback = Boolean(data.isLocalFallback);
+          resultStr.fallbackReason = data.fallbackReason || null;
+          resultStr.modelUsed = data.modelUsed || null;
+          return resultStr;
+        }
       } else {
         const errData = await res.json().catch(() => ({}));
         if (errData?.error) lastError = new Error(errData.error);
