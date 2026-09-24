@@ -1917,14 +1917,14 @@ export default function TodayHero({
 
             {/* AI Polish Success / Fallback / Error Feedback Banner */}
             {aiFeedback && (
-              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold ${
+              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs font-mono font-bold ${
                 aiFeedback.type === 'success'
                   ? 'bg-[#E8FAF0] text-black'
                   : aiFeedback.type === 'warning'
                   ? 'bg-[#FFF9E6] text-black'
                   : 'bg-[#FFEBEB] text-black'
               }`}>
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   {aiFeedback.type === 'success' ? (
                     <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
                   ) : aiFeedback.type === 'warning' ? (
@@ -1932,9 +1932,9 @@ export default function TodayHero({
                   ) : (
                     <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
                   )}
-                  <span className="truncate">{aiFeedback.message}</span>
+                  <span className="text-xs break-words sm:truncate">{aiFeedback.message}</span>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   {aiFeedback.isFallback ? (
                     <button
                       type="button"

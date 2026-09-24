@@ -478,23 +478,23 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                 {/* BEHAVIORAL DOMINO MAP • CROSS-DAY CAUSAL CHAINS */}
                 {report.dominoChains && report.dominoChains.length > 0 && (
-                  <div className="p-4 sm:p-6 rounded-2xl border-3 border-black bg-white shadow-[4px_4px_0px_#000000] space-y-4">
+                  <div className="p-3.5 sm:p-6 rounded-2xl border-2 sm:border-3 border-black bg-white shadow-[3px_3px_0px_#000000] sm:shadow-[4px_4px_0px_#000000] space-y-4">
                     {/* Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-black/10">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-black text-[#FDC800] flex items-center justify-center border-2 border-black shadow-[2px_2px_0px_#000000]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b-2 border-black/10">
+                      <div className="flex items-start sm:items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-black text-[#FDC800] flex items-center justify-center border-2 border-black shadow-[2px_2px_0px_#000000] shrink-0">
                           <GitBranch className="w-4 h-4 stroke-[2.5]" />
                         </div>
-                        <div>
-                          <h4 className="font-display font-black text-xs sm:text-sm uppercase tracking-tight text-black flex items-center gap-1.5">
+                        <div className="min-w-0">
+                          <h4 className="font-display font-black text-xs sm:text-sm uppercase tracking-tight text-black flex items-center gap-1.5 leading-tight">
                             BEHAVIORAL DOMINO MAP • CROSS-DAY CAUSAL CHAINS
                           </h4>
-                          <p className="text-[10px] font-mono text-neutral-500 font-bold">
+                          <p className="text-[10px] font-mono text-neutral-500 font-bold leading-tight mt-0.5">
                             How friction points compounded across consecutive days into major outcomes
                           </p>
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-[#FDC800] text-black border-2 border-black font-mono text-[9px] font-black uppercase shadow-[1px_1px_0px_#000000]">
+                      <span className="self-start sm:self-auto px-2 py-0.5 rounded bg-[#FDC800] text-black border-2 border-black font-mono text-[9px] font-black uppercase shadow-[1px_1px_0px_#000000] shrink-0">
                         {report.dominoChains.length} {report.dominoChains.length === 1 ? 'CHAIN DETECTED' : 'CHAINS DETECTED'}
                       </span>
                     </div>
@@ -504,40 +504,41 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       {report.dominoChains.map((chain, cIdx) => (
                         <div 
                           key={cIdx}
-                          className="p-3.5 sm:p-4 rounded-xl border-2 border-black bg-[#FFFDF8] shadow-[3px_3px_0px_#000000] space-y-3"
+                          className="p-3 sm:p-4 rounded-xl border-2 border-black bg-[#FFFDF8] shadow-[2px_2px_0px_#000000] sm:shadow-[3px_3px_0px_#000000] space-y-3"
                         >
                           {/* Chain Title & Friction Tag */}
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+                            <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black break-words leading-snug">
                               {chain.title || chain.chainTitle}
                             </h5>
                             {(chain.frictionPattern || chain.rootTrigger) && (
-                              <span className="px-2 py-0.5 rounded bg-black text-white font-mono text-[9px] font-bold uppercase">
+                              <span className="self-start sm:self-auto max-w-full px-2 py-0.5 rounded bg-black text-white font-mono text-[9px] font-bold uppercase truncate sm:whitespace-normal">
                                 {chain.frictionPattern || chain.rootTrigger}
                               </span>
                             )}
                           </div>
 
                           {/* Domino Nodes Sequence */}
-                          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 overflow-x-auto py-1">
+                          <div className="flex flex-col md:flex-row items-stretch gap-2.5 overflow-x-auto py-1">
                             {(chain.nodes || chain.links || []).map((node, nIdx, arr) => {
                               const isLast = nIdx === arr.length - 1;
                               const stageColors = {
                                 'ROOT TRIGGER': 'bg-[#FF4D4D] text-white',
                                 'RIPPLE EFFECT': 'bg-[#FF8A00] text-black',
                                 'COMPOUNDING DRAG': 'bg-[#FDC800] text-black',
-                                'COLLAPSE / RESET': 'bg-black text-[#FF4D4D]'
+                                'COLLAPSE / RESET': 'bg-black text-[#FF4D4D]',
+                                'COLLAPSE / RECOVERY': 'bg-black text-[#FF4D4D]'
                               };
                               const badgeClass = stageColors[node.stage] || 'bg-neutral-800 text-white';
 
                               return (
                                 <React.Fragment key={nIdx}>
-                                  <div className="flex-1 min-w-[200px] p-3 rounded-lg border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2">
+                                  <div className="w-full min-w-0 md:min-w-[210px] md:max-w-[320px] md:flex-1 p-3 rounded-lg border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5">
                                     <div className="flex items-center justify-between gap-1">
                                       <span className={`text-[8px] font-mono font-black px-1.5 py-0.5 rounded border border-black/30 uppercase ${badgeClass}`}>
                                         {node.stage || `STAGE ${nIdx + 1}`}
                                       </span>
-                                      <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-1 shrink-0">
                                         <span className="font-mono text-[9px] font-black text-neutral-500">
                                           {node.date}
                                         </span>
@@ -550,17 +551,17 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                         )}
                                       </div>
                                     </div>
-                                    <p className="text-[11px] font-mono font-bold text-neutral-800 leading-snug">
+                                    <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-snug break-words">
                                       {node.summary}
                                     </p>
                                     {node.frictionTag && (
-                                      <span className="text-[8px] font-mono font-black text-neutral-500 uppercase">
+                                      <span className="text-[8px] font-mono font-black text-neutral-500 uppercase truncate">
                                         TAG: {node.frictionTag}
                                       </span>
                                     )}
                                   </div>
                                   {!isLast && (
-                                    <div className="flex items-center justify-center py-0.5 md:px-0.5">
+                                    <div className="flex items-center justify-center py-1 md:py-0 md:px-0.5 shrink-0 self-center">
                                       <ArrowRight className="hidden md:block w-4 h-4 text-black stroke-[3]" />
                                       <ArrowDown className="block md:hidden w-4 h-4 text-black stroke-[3]" />
                                     </div>
@@ -572,15 +573,15 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                           {/* Tactical Circuit Breaker */}
                           {chain.circuitBreaker && (
-                            <div className="p-3 rounded-lg border-2 border-[#00A86B] bg-[#00E599]/15 flex items-start gap-2.5">
-                              <div className="w-5 h-5 rounded bg-[#00E599] border border-black flex items-center justify-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#000000]">
-                                <ShieldCheck className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                            <div className="p-3 sm:p-4 rounded-lg border-2 border-[#00A86B] bg-[#00E599]/15 flex items-start gap-2.5 sm:gap-3">
+                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-[#00E599] border border-black flex items-center justify-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#000000]">
+                                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black stroke-[2.5]" />
                               </div>
-                              <div className="space-y-0.5 text-left">
-                                <span className="block text-[9px] font-mono font-black uppercase text-[#007038] tracking-wider">
+                              <div className="space-y-0.5 text-left min-w-0">
+                                <span className="block text-[9px] font-mono font-black uppercase text-[#007038] tracking-wider leading-tight">
                                   TACTICAL CIRCUIT BREAKER • HOW TO SEVER THIS CHAIN
                                 </span>
-                                <p className="text-xs font-mono font-bold text-neutral-900 leading-relaxed">
+                                <p className="text-xs sm:text-sm font-mono font-bold text-neutral-900 leading-relaxed break-words mt-0.5">
                                   {chain.circuitBreaker}
                                 </p>
                               </div>
