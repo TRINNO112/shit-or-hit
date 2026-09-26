@@ -377,7 +377,7 @@ export default function MobileAppView({
           type: 'success',
           message: 'Diary reflection polished with AI.'
         });
-        setTimeout(() => setAiFeedback(null), 5000);
+        setTimeout(() => setAiFeedback(null), 2500);
       }
     } catch (err) {
       console.error('AI Enhance error:', err);
@@ -1939,49 +1939,44 @@ export default function MobileAppView({
                       <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH'}</span>
                     </button>
 
-                    {/* Inline Micro-Affirmation */}
-                    {aiFeedback && (
-                      <div
-                        className={`flex items-center gap-1 px-2 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 animate-in fade-in ${
-                          aiFeedback.type === 'success'
-                            ? 'bg-[#00E599] text-black'
-                            : 'bg-[#FFEBEB] text-black'
-                        }`}
-                      >
-                        {aiFeedback.type === 'success' ? (
-                          <>
-                            <Check className="w-3 h-3 stroke-3 text-black" />
-                            <span>POLISHED</span>
-                            <button
-                              type="button"
-                              onClick={handleUndo}
-                              className="ml-0.5 px-1 py-0 bg-white border border-black rounded text-[9px] uppercase font-mono font-black"
-                            >
-                              UNDO
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <AlertCircle className="w-3 h-3 text-red-600 stroke-2" />
-                            <span className="truncate max-w-[70px]">ERR</span>
-                            <button
-                              type="button"
-                              onClick={() => handleAIEnhance()}
-                              className="ml-0.5 px-1 py-0 bg-[#FDC800] border border-black rounded text-[9px] uppercase font-mono font-black"
-                            >
-                              RETRY
-                            </button>
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setAiFeedback(null)}
-                          className="p-0.5 hover:bg-black/10 rounded cursor-pointer"
+                    {/* Pure Micro-Affirmation: Pure floating tick icon with no container box */}
+                    <AnimatePresence>
+                      {aiFeedback && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8, x: -4 }}
+                          animate={{ opacity: 1, scale: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.8, x: -4 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center gap-1.5 shrink-0"
                         >
-                          <X className="w-2.5 h-2.5 stroke-3" />
-                        </button>
-                      </div>
-                    )}
+                          {aiFeedback.type === 'success' ? (
+                            <>
+                              <Check className="w-4 h-4 text-[#00E599] stroke-[3.5] drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]" />
+                              <span className="font-mono text-xs font-bold text-neutral-600">Polished</span>
+                              <button
+                                type="button"
+                                onClick={handleUndo}
+                                className="text-[10px] font-mono font-bold text-neutral-400 hover:text-black underline cursor-pointer ml-0.5"
+                              >
+                                Undo
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="w-3.5 h-3.5 text-red-500 stroke-[2.5]" />
+                              <span className="font-mono text-[11px] font-bold text-red-600">Failed</span>
+                              <button
+                                type="button"
+                                onClick={() => handleAIEnhance()}
+                                className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer ml-0.5"
+                              >
+                                Retry
+                              </button>
+                            </>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* History controls (Undo, Redo, Revert) */}

@@ -585,7 +585,7 @@ export default function TodayHero({
           isFallback: false,
           message: `Reflection polished with Gemini AI (${enhanced?.modelUsed || '3.5-flash-lite'}).`
         });
-        setTimeout(() => setAiFeedback(null), 6000);
+        setTimeout(() => setAiFeedback(null), 2500);
       }
     } catch (err) {
       console.error('AI Enhance error:', err);
@@ -1857,65 +1857,56 @@ export default function TodayHero({
                   )}
                 </div>
 
-                {/* AI Polish Inline Micro-Affirmation */}
-                {aiFeedback && (
-                  <div
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 animate-in fade-in duration-150 ${
-                      aiFeedback.type === 'success'
-                        ? 'bg-[#00E599] text-black'
-                        : aiFeedback.type === 'warning'
-                        ? 'bg-[#FFF9E6] text-black'
-                        : 'bg-[#FFEBEB] text-black'
-                    }`}
-                  >
-                    {aiFeedback.type === 'success' ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 stroke-3 text-black shrink-0" />
-                        <span className="tracking-tight">POLISHED</span>
-                        <button
-                          type="button"
-                          onClick={handleUndo}
-                          className="ml-1 px-1.5 py-0.5 bg-white hover:bg-neutral-100 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer shadow-[0.5px_0.5px_0px_#000000] active:translate-x-px active:translate-y-px"
-                        >
-                          UNDO
-                        </button>
-                      </>
-                    ) : aiFeedback.isFallback ? (
-                      <>
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-700 stroke-[2.5] shrink-0" />
-                        <span className="tracking-tight">LOCAL 503</span>
-                        <button
-                          type="button"
-                          onClick={() => handleAIEnhance()}
-                          className="ml-1 px-1.5 py-0.5 bg-[#FDC800] hover:bg-amber-300 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer flex items-center gap-0.5 shadow-[0.5px_0.5px_0px_#000000] active:translate-x-px active:translate-y-px"
-                        >
-                          <RotateCw className="w-2.5 h-2.5 stroke-3" />
-                          RETRY
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="w-3.5 h-3.5 text-red-600 stroke-[2.5] shrink-0" />
-                        <span className="tracking-tight truncate max-w-[110px]" title={aiFeedback.message}>ERROR</span>
-                        <button
-                          type="button"
-                          onClick={() => handleAIEnhance()}
-                          className="ml-1 px-1.5 py-0.5 bg-[#FDC800] hover:bg-amber-300 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer shadow-[0.5px_0.5px_0px_#000000] active:translate-x-px active:translate-y-px"
-                        >
-                          RETRY
-                        </button>
-                      </>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setAiFeedback(null)}
-                      className="p-0.5 hover:bg-black/10 rounded cursor-pointer ml-0.5"
-                      aria-label="Dismiss feedback"
+                {/* Pure Micro-Affirmation: Pure floating tick icon with no container box */}
+                <AnimatePresence>
+                  {aiFeedback && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8, x: -4 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.8, x: -4 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center gap-1.5 shrink-0"
                     >
-                      <X className="w-2.5 h-2.5 stroke-3" />
-                    </button>
-                  </div>
-                )}
+                      {aiFeedback.type === 'success' ? (
+                        <>
+                          <Check className="w-4 h-4 text-[#00E599] stroke-[3.5] drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]" />
+                          <span className="font-mono text-xs font-bold text-neutral-600">Polished</span>
+                          <button
+                            type="button"
+                            onClick={handleUndo}
+                            className="text-[10px] font-mono font-bold text-neutral-400 hover:text-black underline cursor-pointer ml-0.5"
+                          >
+                            Undo
+                          </button>
+                        </>
+                      ) : aiFeedback.isFallback ? (
+                        <>
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
+                          <span className="font-mono text-[11px] font-bold text-amber-800">Local</span>
+                          <button
+                            type="button"
+                            onClick={() => handleAIEnhance()}
+                            className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer ml-0.5"
+                          >
+                            Retry
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-3.5 h-3.5 text-red-500 stroke-[2.5]" />
+                          <span className="font-mono text-[11px] font-bold text-red-600">Failed</span>
+                          <button
+                            type="button"
+                            onClick={() => handleAIEnhance()}
+                            className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer ml-0.5"
+                          >
+                            Retry
+                          </button>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* AI Polish Button (Directly powered by Settings preferences) */}
                 <button
