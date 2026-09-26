@@ -45,6 +45,7 @@ Thumbs.db
 # AI Agent Local Context
 AGENTS.md
 CLAUDE.md
+HANDOFF*.md
 
 # Local Architecture Posters & Render Artifacts
 public/architecture/

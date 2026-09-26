@@ -1857,6 +1857,66 @@ export default function TodayHero({
                   )}
                 </div>
 
+                {/* AI Polish Inline Micro-Affirmation */}
+                {aiFeedback && (
+                  <div
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[11px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 animate-in fade-in duration-150 ${
+                      aiFeedback.type === 'success'
+                        ? 'bg-[#00E599] text-black'
+                        : aiFeedback.type === 'warning'
+                        ? 'bg-[#FFF9E6] text-black'
+                        : 'bg-[#FFEBEB] text-black'
+                    }`}
+                  >
+                    {aiFeedback.type === 'success' ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 stroke-3 text-black shrink-0" />
+                        <span className="tracking-tight">POLISHED</span>
+                        <button
+                          type="button"
+                          onClick={handleUndo}
+                          className="ml-1 px-1.5 py-0.5 bg-white hover:bg-neutral-100 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer shadow-[0.5px_0.5px_0px_#000000] active:translate-x-px active:translate-y-px"
+                        >
+                          UNDO
+                        </button>
+                      </>
+                    ) : aiFeedback.isFallback ? (
+                      <>
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-700 stroke-[2.5] shrink-0" />
+                        <span className="tracking-tight">LOCAL 503</span>
+                        <button
+                          type="button"
+                          onClick={() => handleAIEnhance()}
+                          className="ml-1 px-1.5 py-0.5 bg-[#FDC800] hover:bg-amber-300 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer flex items-center gap-0.5 shadow-[0.5px_0.5px_0px_#000000] active:translate-x-px active:translate-y-px"
+                        >
+                          <RotateCw className="w-2.5 h-2.5 stroke-3" />
+                          RETRY
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-3.5 h-3.5 text-red-600 stroke-[2.5] shrink-0" />
+                        <span className="tracking-tight truncate max-w-[110px]" title={aiFeedback.message}>ERROR</span>
+                        <button
+                          type="button"
+                          onClick={() => handleAIEnhance()}
+                          className="ml-1 px-1.5 py-0.5 bg-[#FDC800] hover:bg-amber-300 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer shadow-[0.5px_0.5px_0px_#000000] active:translate-x-px active:translate-y-px"
+                        >
+                          RETRY
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setAiFeedback(null)}
+                      className="p-0.5 hover:bg-black/10 rounded cursor-pointer ml-0.5"
+                      aria-label="Dismiss feedback"
+                    >
+                      <X className="w-2.5 h-2.5 stroke-3" />
+                    </button>
+                  </div>
+                )}
+
                 {/* AI Polish Button (Directly powered by Settings preferences) */}
                 <button
                   type="button"
@@ -1915,63 +1975,7 @@ export default function TodayHero({
               </div>
             )}
 
-            {/* AI Polish Success / Fallback / Error Feedback Banner */}
-            {aiFeedback && (
-              <div className={`p-3 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs font-mono font-bold ${
-                aiFeedback.type === 'success'
-                  ? 'bg-[#E8FAF0] text-black'
-                  : aiFeedback.type === 'warning'
-                  ? 'bg-[#FFF9E6] text-black'
-                  : 'bg-[#FFEBEB] text-black'
-              }`}>
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  {aiFeedback.type === 'success' ? (
-                    <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
-                  ) : aiFeedback.type === 'warning' ? (
-                    <AlertTriangle className="w-4 h-4 text-[#FDC800] stroke-[2.5] shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
-                  )}
-                  <span className="text-xs break-words sm:truncate">{aiFeedback.message}</span>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                  {aiFeedback.isFallback ? (
-                    <button
-                      type="button"
-                      onClick={() => handleAIEnhance()}
-                      className="px-2.5 py-1 bg-[#FDC800] hover:bg-amber-300 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px flex items-center gap-1"
-                    >
-                      <RotateCw className="w-3 h-3 stroke-3" />
-                      RETRY GEMINI
-                    </button>
-                  ) : aiFeedback.type === 'success' ? (
-                    <button
-                      type="button"
-                      onClick={handleUndo}
-                      className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
-                    >
-                      UNDO
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleAIEnhance()}
-                      className="px-2.5 py-1 bg-[#FDC800] hover:bg-amber-300 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px"
-                    >
-                      RETRY
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setAiFeedback(null)}
-                    className="p-1 text-black hover:bg-black hover:text-white border border-black transition-colors cursor-pointer"
-                    aria-label="Dismiss feedback"
-                  >
-                    <X className="w-3 h-3 stroke-3" />
-                  </button>
-                </div>
-              </div>
-            )}
+
 
             <textarea
               rows={6}
@@ -1998,8 +2002,8 @@ export default function TodayHero({
               >
                 {justSavedNote ? (
                   <>
-                    <CheckCircle2 className="w-4 h-4 text-black stroke-3" />
-                    <span>DIARY ENTRY SAVED!</span>
+                    <Check className="w-4 h-4 text-black stroke-3" />
+                    <span>SAVED</span>
                   </>
                 ) : (
                   <>

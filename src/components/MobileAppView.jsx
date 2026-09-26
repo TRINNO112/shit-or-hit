@@ -202,6 +202,7 @@ export default function MobileAppView({
   const [activeDirective, setActiveDirective] = useState('auto');
   const [selectedTags, setSelectedTags] = useState([]);
   const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
+  const [justSavedNote, setJustSavedNote] = useState(false);
 
   // Embedded Calendar State
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -547,6 +548,7 @@ export default function MobileAppView({
   const handleSaveNote = async () => {
     triggerHaptic('success');
     playSound('click');
+    setJustSavedNote(true);
     const comp = calculateCompositeScore(spheresData);
     const ratingToUse = comp ? comp.rating : (selectedRating || 3);
     await onSaveToday({
@@ -557,9 +559,12 @@ export default function MobileAppView({
       spheres: spheresData,
       calculatedScore: comp?.score
     });
-    setShowNoteDrawer(false);
     setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 2000);
+    setTimeout(() => {
+      setShowNoteDrawer(false);
+      setJustSavedNote(false);
+      setSavedFlash(false);
+    }, 450);
   };
 
   const handleAnchorScoreUpdateMobile = async (scoreInfo) => {
@@ -1910,47 +1915,6 @@ export default function MobileAppView({
                 </div>
 
                 {/* Textarea with Enhanced Text Size & Line Height */}
-                {/* AI Polish Success / Error Feedback Banner */}
-                {aiFeedback && (
-                  <div className={`p-2.5 rounded-xl border-2 border-black flex items-center justify-between gap-2 text-xs font-mono font-bold shadow-[2px_2px_0px_#000000] shrink-0 ${
-                    aiFeedback.type === 'success' ? 'bg-[#E8FAF0] text-black' : 'bg-[#FFEBEB] text-black'
-                  }`}>
-                    <div className="flex items-center gap-2 min-w-0">
-                      {aiFeedback.type === 'success' ? (
-                        <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
-                      )}
-                      <span className="truncate">{aiFeedback.message}</span>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {aiFeedback.type === 'success' ? (
-                        <button
-                          type="button"
-                          onClick={handleUndo}
-                          className="px-2 py-0.5 bg-white border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
-                        >
-                          UNDO
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleAIEnhance()}
-                          className="px-2 py-0.5 bg-[#FDC800] border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
-                        >
-                          RETRY
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setAiFeedback(null)}
-                        className="p-0.5 text-black border border-black hover:bg-black hover:text-white"
-                      >
-                        <X className="w-3 h-3 stroke-3" />
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 <textarea
                   value={noteText}
@@ -1966,14 +1930,58 @@ export default function MobileAppView({
                       type="button"
                       onClick={() => handleAIEnhance()}
                       disabled={isEnhancing || !noteText || !noteText.trim()}
-                      className={`px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
+                      className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
                         isEnhancing ? 'bg-amber-100 opacity-70 animate-pulse' : 'bg-[#FDC800] hover:bg-amber-400'
                       } disabled:opacity-40 disabled:cursor-not-allowed`}
                       title="Polish and organize your diary entry with Gemini AI using your Settings directive (maintains 1st person)"
                     >
                       <Wand2 className={`w-3.5 h-3.5 ${isEnhancing ? 'animate-spin' : ''}`} />
-                      <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH DIARY'}</span>
+                      <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH'}</span>
                     </button>
+
+                    {/* Inline Micro-Affirmation */}
+                    {aiFeedback && (
+                      <div
+                        className={`flex items-center gap-1 px-2 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 animate-in fade-in ${
+                          aiFeedback.type === 'success'
+                            ? 'bg-[#00E599] text-black'
+                            : 'bg-[#FFEBEB] text-black'
+                        }`}
+                      >
+                        {aiFeedback.type === 'success' ? (
+                          <>
+                            <Check className="w-3 h-3 stroke-3 text-black" />
+                            <span>POLISHED</span>
+                            <button
+                              type="button"
+                              onClick={handleUndo}
+                              className="ml-0.5 px-1 py-0 bg-white border border-black rounded text-[9px] uppercase font-mono font-black"
+                            >
+                              UNDO
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-3 h-3 text-red-600 stroke-2" />
+                            <span className="truncate max-w-[70px]">ERR</span>
+                            <button
+                              type="button"
+                              onClick={() => handleAIEnhance()}
+                              className="ml-0.5 px-1 py-0 bg-[#FDC800] border border-black rounded text-[9px] uppercase font-mono font-black"
+                            >
+                              RETRY
+                            </button>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setAiFeedback(null)}
+                          className="p-0.5 hover:bg-black/10 rounded cursor-pointer"
+                        >
+                          <X className="w-2.5 h-2.5 stroke-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* History controls (Undo, Redo, Revert) */}
@@ -2025,10 +2033,15 @@ export default function MobileAppView({
                 <button
                   type="button"
                   onClick={handleSaveNote}
-                  className="w-full py-3.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-sm uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                  disabled={justSavedNote}
+                  className={`w-full py-3.5 text-black font-display font-black text-sm uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    justSavedNote
+                      ? 'bg-[#00E599] ring-2 ring-black scale-[1.01]'
+                      : 'bg-[#00E599] hover:bg-emerald-400'
+                  }`}
                 >
                   <Check className="w-4 h-4 stroke-3" />
-                  <span>SAVE REFLECTION NOTE</span>
+                  <span>{justSavedNote ? 'SAVED!' : 'SAVE REFLECTION NOTE'}</span>
                 </button>
               </div>
             </motion.div>

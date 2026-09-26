@@ -61,6 +61,7 @@ export default function EditDayModal({
   const [notes, setNotes] = useState(entryData?.notes || '');
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
 
   // Sphere mode states
@@ -328,7 +329,11 @@ export default function EditDayModal({
       localStorage.removeItem(`shit_or_hit_draft_stash_${dateStr}`);
     } catch (e) {}
     setIsSaving(false);
-    onClose();
+    setJustSaved(true);
+    try { soundEngine.playSuccess(); } catch (e) {}
+    setTimeout(() => {
+      onClose();
+    }, 450);
   };
 
   return (
@@ -696,6 +701,51 @@ export default function EditDayModal({
                           )}
                         </div>
 
+                        {/* AI Polish Inline Micro-Affirmation */}
+                        {aiFeedback && (
+                          <div
+                            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border border-black font-mono text-[10px] font-black shadow-[1px_1px_0px_#000000] shrink-0 animate-in fade-in ${
+                              aiFeedback.type === 'success'
+                                ? 'bg-[#00E599] text-black'
+                                : 'bg-[#FFEBEB] text-black'
+                            }`}
+                          >
+                            {aiFeedback.type === 'success' ? (
+                              <>
+                                <Check className="w-3 h-3 stroke-3 text-black shrink-0" />
+                                <span>POLISHED</span>
+                                <button
+                                  type="button"
+                                  onClick={handleUndo}
+                                  className="ml-1 px-1.5 py-0 bg-white hover:bg-neutral-100 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer shadow-[0.5px_0.5px_0px_#000000]"
+                                >
+                                  UNDO
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <AlertCircle className="w-3 h-3 text-red-600 stroke-[2.5] shrink-0" />
+                                <span className="truncate max-w-[90px]" title={aiFeedback.message}>ERROR</span>
+                                <button
+                                  type="button"
+                                  onClick={handleAIEnhance}
+                                  className="ml-1 px-1.5 py-0 bg-[#FDC800] hover:bg-amber-300 border border-black rounded text-[9px] uppercase font-mono font-black cursor-pointer shadow-[0.5px_0.5px_0px_#000000]"
+                                >
+                                  RETRY
+                                </button>
+                              </>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setAiFeedback(null)}
+                              className="p-0.5 hover:bg-black/10 rounded cursor-pointer"
+                              aria-label="Dismiss feedback"
+                            >
+                              <X className="w-2.5 h-2.5 stroke-3" />
+                            </button>
+                          </div>
+                        )}
+
                         {/* AI Polish Button */}
                         <button
                           type="button"
@@ -713,48 +763,6 @@ export default function EditDayModal({
                         </button>
                       </div>
                     </div>
-
-                    {/* AI Polish Success / Error Feedback Banner */}
-                    {aiFeedback && (
-                      <div className={`p-2.5 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-3 text-xs font-mono font-bold shrink-0 ${
-                        aiFeedback.type === 'success' ? 'bg-[#E8FAF0] text-black' : 'bg-[#FFEBEB] text-black'
-                      }`}>
-                        <div className="flex items-center gap-2 min-w-0">
-                          {aiFeedback.type === 'success' ? (
-                            <CheckCircle2 className="w-4 h-4 text-[#00E599] stroke-[2.5] shrink-0" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
-                          )}
-                          <span className="truncate">{aiFeedback.message}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {aiFeedback.type === 'success' ? (
-                            <button
-                              type="button"
-                              onClick={handleUndo}
-                              className="px-2 py-0.5 bg-white hover:bg-neutral-100 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
-                            >
-                              UNDO
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={handleAIEnhance}
-                              className="px-2 py-0.5 bg-[#FDC800] hover:bg-amber-300 border border-black text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer"
-                            >
-                              RETRY
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => setAiFeedback(null)}
-                            className="p-0.5 text-black hover:bg-black hover:text-white border border-black transition-colors cursor-pointer"
-                          >
-                            <X className="w-3 h-3 stroke-3" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
 
                     <textarea
                       placeholder="Type your reflection, thoughts, or wins for this day..."
@@ -797,11 +805,29 @@ export default function EditDayModal({
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-5 py-2 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:scale-95"
+                  disabled={isSaving || justSaved}
+                  className={`px-5 py-2 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:scale-95 transition-all ${
+                    justSaved
+                      ? 'bg-[#00E599] ring-2 ring-black scale-102'
+                      : 'bg-[#00E599] hover:bg-emerald-400'
+                  }`}
                 >
-                  <Check className="w-4 h-4 stroke-3" />
-                  <span>{isSaving ? 'SAVING...' : 'SAVE CHANGES'}</span>
+                  {justSaved ? (
+                    <>
+                      <Check className="w-4 h-4 stroke-3 text-black" />
+                      <span>SAVED!</span>
+                    </>
+                  ) : isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-black" />
+                      <span>SAVING...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 stroke-3 text-black" />
+                      <span>SAVE CHANGES</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
