@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, startTransition } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Zap, Calendar, FlaskConical, Clock, Layers } from 'lucide-react';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
@@ -1090,211 +1091,230 @@ export default function App() {
       {/* Shared Modals with Suspense Code Splitting */}
       <ErrorBoundary>
         <Suspense fallback={null}>
-          {isCalendarOpen && (
-            <CalendarModal
-              isOpen={isCalendarOpen}
-              onClose={() => setIsCalendarOpen(false)}
-              entries={entries}
-              startDate={startDate}
-              todayStr={todayStr}
-              onEditDay={(dayInfo) => setEditingDay(dayInfo)}
-              onOpenMonthlyReport={(target) => handleOpenMonthlyReport(target)}
-            />
-          )}
+          <AnimatePresence>
+            {isCalendarOpen && (
+              <CalendarModal
+                key="calendar-modal"
+                isOpen={isCalendarOpen}
+                onClose={() => setIsCalendarOpen(false)}
+                entries={entries}
+                startDate={startDate}
+                todayStr={todayStr}
+                onEditDay={(dayInfo) => setEditingDay(dayInfo)}
+                onOpenMonthlyReport={(target) => handleOpenMonthlyReport(target)}
+              />
+            )}
 
-          {Boolean(editingDay) && (
-            <EditDayModal
-              isOpen={Boolean(editingDay)}
-              onClose={() => setEditingDay(null)}
-              entryData={editingDay?.entry || entries[editingDay?.dateStr] || null}
-              dateStr={editingDay?.dateStr}
-              dayIndex={editingDay?.dayIndex || 1}
-              onSave={handleSaveEntry}
-              onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
-              sphereSettingsVer={sphereSettingsVer}
-            />
-          )}
+            {Boolean(editingDay) && (
+              <EditDayModal
+                key="edit-day-modal"
+                isOpen={Boolean(editingDay)}
+                onClose={() => setEditingDay(null)}
+                entryData={editingDay?.entry || entries[editingDay?.dateStr] || null}
+                dateStr={editingDay?.dateStr}
+                dayIndex={editingDay?.dayIndex || 1}
+                onSave={handleSaveEntry}
+                onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
+                sphereSettingsVer={sphereSettingsVer}
+              />
+            )}
 
-          {isMonthlyReportOpen && (
-            <MonthlyReportModal
-              isOpen={isMonthlyReportOpen}
-              onClose={() => setIsMonthlyReportOpen(false)}
-              initialYear={reportTargetMonth.year}
-              initialMonth={reportTargetMonth.month}
-            />
-          )}
+            {isMonthlyReportOpen && (
+              <MonthlyReportModal
+                key="monthly-report-modal"
+                isOpen={isMonthlyReportOpen}
+                onClose={() => setIsMonthlyReportOpen(false)}
+                initialYear={reportTargetMonth.year}
+                initialMonth={reportTargetMonth.month}
+              />
+            )}
 
-          {/* 🖼️ Aesthetic Wallpaper & Social Card Export Modal */}
-          {isWallpaperModalOpen && (
-            <AestheticCardExportModal
-              isOpen={isWallpaperModalOpen}
-              onClose={() => setIsWallpaperModalOpen(false)}
-              entry={wallpaperTarget?.entry || entries[todayStr] || null}
-              dateStr={wallpaperTarget?.dateStr || todayStr}
-              dayCount={dayCount}
-              entries={entries}
-              startDate={startDate}
-              displayName={userDisplayName}
-            />
-          )}
+            {/* 🖼️ Aesthetic Wallpaper & Social Card Export Modal */}
+            {isWallpaperModalOpen && (
+              <AestheticCardExportModal
+                key="wallpaper-modal"
+                isOpen={isWallpaperModalOpen}
+                onClose={() => setIsWallpaperModalOpen(false)}
+                entry={wallpaperTarget?.entry || entries[todayStr] || null}
+                dateStr={wallpaperTarget?.dateStr || todayStr}
+                dayCount={dayCount}
+                entries={entries}
+                startDate={startDate}
+                displayName={userDisplayName}
+              />
+            )}
 
-          {/* ⚡ Forensic Telemetry & Analytics Modal */}
-          {isTelemetryOpen && (
-            <ForensicStatsModal
-              isOpen={isTelemetryOpen}
-              onClose={() => setIsTelemetryOpen(false)}
-              entries={entries}
-              startDate={startDate}
-              todayStr={todayStr}
-            />
-          )}
+            {/* ⚡ Forensic Telemetry & Analytics Modal */}
+            {isTelemetryOpen && (
+              <ForensicStatsModal
+                key="telemetry-modal"
+                isOpen={isTelemetryOpen}
+                onClose={() => setIsTelemetryOpen(false)}
+                entries={entries}
+                startDate={startDate}
+                todayStr={todayStr}
+              />
+            )}
 
-          {/* ⚙️ App Settings & Notification Hub Modal */}
-          {isSettingsOpen && (
-            <SettingsModal
-              isOpen={isSettingsOpen}
-              onClose={() => setIsSettingsOpen(false)}
-              user={currentUser}
-              onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
-              onOpenSanctuaryPage={() => setShowSanctuary(true)}
-              onOpenPrivacyPage={() => setShowPrivacy(true)}
-              onOpenErasurePage={() => setShowErasure(true)}
-              onOpenStoragePage={() => setShowStoragePage(true)}
-              onOpenExportStudio={() => setIsExportStudioOpen(true)}
-            />
-          )}
+            {/* ⚙️ App Settings & Notification Hub Modal */}
+            {isSettingsOpen && (
+              <SettingsModal
+                key="settings-modal"
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                user={currentUser}
+                onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
+                onOpenSanctuaryPage={() => setShowSanctuary(true)}
+                onOpenPrivacyPage={() => setShowPrivacy(true)}
+                onOpenErasurePage={() => setShowErasure(true)}
+                onOpenStoragePage={() => setShowStoragePage(true)}
+                onOpenExportStudio={() => setIsExportStudioOpen(true)}
+              />
+            )}
 
-          {/* 🎭 Sticker & Mascot Vault Modal */}
-          {isStickerVaultOpen && (
-            <StickerVaultModal
-              isOpen={isStickerVaultOpen}
-              onClose={() => setIsStickerVaultOpen(false)}
-            />
-          )}
+            {/* 🎭 Sticker & Mascot Vault Modal */}
+            {isStickerVaultOpen && (
+              <StickerVaultModal
+                key="sticker-vault-modal"
+                isOpen={isStickerVaultOpen}
+                onClose={() => setIsStickerVaultOpen(false)}
+              />
+            )}
 
-          {/* 📊 Multi-Format Data Export Studio Modal */}
-          {isExportStudioOpen && (
-            <ExportStudioModal
-              isOpen={isExportStudioOpen}
-              onClose={() => setIsExportStudioOpen(false)}
-              entries={entries}
-              startDate={startDate}
-            />
-          )}
+            {/* 📊 Multi-Format Data Export Studio Modal */}
+            {isExportStudioOpen && (
+              <ExportStudioModal
+                key="export-studio-modal"
+                isOpen={isExportStudioOpen}
+                onClose={() => setIsExportStudioOpen(false)}
+                entries={entries}
+                startDate={startDate}
+              />
+            )}
 
-          {/* 🌿 Anti-Burnout Rehabilitation Sanctuary Modal */}
-          {isRehabModalOpen && (
-            <RehabilitationModal
-              isOpen={isRehabModalOpen}
-              onClose={() => {
-                setIsRehabModalOpen(false);
-                setSphereSettingsVer(v => v + 1);
-              }}
-            />
-          )}
+            {/* 🌿 Anti-Burnout Rehabilitation Sanctuary Modal */}
+            {isRehabModalOpen && (
+              <RehabilitationModal
+                key="rehab-modal"
+                isOpen={isRehabModalOpen}
+                onClose={() => {
+                  setIsRehabModalOpen(false);
+                  setSphereSettingsVer(v => v + 1);
+                }}
+              />
+            )}
 
-          {/* 🛡️ 2-Consecutive Rough Days Motivational Recovery Modal */}
-          {isMotivationalOpen && (
-            <MotivationalRecoveryModal
-              isOpen={isMotivationalOpen}
-              onClose={() => setIsMotivationalOpen(false)}
-            />
-          )}
+            {/* 🛡️ 2-Consecutive Rough Days Motivational Recovery Modal */}
+            {isMotivationalOpen && (
+              <MotivationalRecoveryModal
+                key="motivational-modal"
+                isOpen={isMotivationalOpen}
+                onClose={() => setIsMotivationalOpen(false)}
+              />
+            )}
 
-          {/* ⚠️ Neobrutalist Guest Mode & Two-Tier Safety Disclaimer */}
-          {isGuestDisclaimerOpen && (
-            <GuestDisclaimerModal
-              isOpen={isGuestDisclaimerOpen}
-              onClose={() => setIsGuestDisclaimerOpen(false)}
-              onLogin={handleGuestLogin}
-            />
-          )}
+            {/* ⚠️ Neobrutalist Guest Mode & Two-Tier Safety Disclaimer */}
+            {isGuestDisclaimerOpen && (
+              <GuestDisclaimerModal
+                key="guest-disclaimer-modal"
+                isOpen={isGuestDisclaimerOpen}
+                onClose={() => setIsGuestDisclaimerOpen(false)}
+                onLogin={handleGuestLogin}
+              />
+            )}
 
-          {/* 📡 WebRTC P2P Direct Device-to-Device Sync Modal */}
-          {isP2PSyncOpen && (
-            <P2PDeviceSyncModal
-              isOpen={isP2PSyncOpen}
-              onClose={() => setIsP2PSyncOpen(false)}
-              user={currentUser}
-              onLogin={handleGuestLogin}
-              onSyncComplete={() => loadData()}
-            />
-          )}
+            {/* 📡 WebRTC P2P Direct Device-to-Device Sync Modal */}
+            {isP2PSyncOpen && (
+              <P2PDeviceSyncModal
+                key="p2p-sync-modal"
+                isOpen={isP2PSyncOpen}
+                onClose={() => setIsP2PSyncOpen(false)}
+                user={currentUser}
+                onLogin={handleGuestLogin}
+                onSyncComplete={() => loadData()}
+              />
+            )}
 
-          {/* 🩸 Time & Mood Capsule Modal */}
-          {isCapsuleModalOpen && (
-            <RansomCapsuleModal
-              isOpen={isCapsuleModalOpen}
-              onClose={handleCapsuleDismissed}
-              mode={capsuleModalMode}
-              targetCapsule={capsuleTarget}
-              activeDate={todayStr}
-              activeStreak={currentStreak}
-              onCapsuleDismissed={handleCapsuleDismissed}
-            />
-          )}
+            {/* 🩸 Time & Mood Capsule Modal */}
+            {isCapsuleModalOpen && (
+              <RansomCapsuleModal
+                key="ransom-capsule-modal"
+                isOpen={isCapsuleModalOpen}
+                onClose={handleCapsuleDismissed}
+                mode={capsuleModalMode}
+                targetCapsule={capsuleTarget}
+                activeDate={todayStr}
+                activeStreak={currentStreak}
+                onCapsuleDismissed={handleCapsuleDismissed}
+              />
+            )}
 
-          {/* 🧾 Global Receipt of Truth Thermal Slip Modal */}
-          {isGlobalReceiptOpen && (
-            <ReceiptOfTruthModal
-              isOpen={isGlobalReceiptOpen}
-              onClose={() => {
-                setIsGlobalReceiptOpen(false);
-                setReceiptPreviewEntries(null);
-              }}
-              entry={entries[todayStr] || null}
-              dateStr={todayStr}
-              dayCount={dayCount}
-              entries={receiptPreviewEntries || entries}
-              displayName={userDisplayName}
-            />
-          )}
+            {/* 🧾 Global Receipt of Truth Thermal Slip Modal */}
+            {isGlobalReceiptOpen && (
+              <ReceiptOfTruthModal
+                key="receipt-modal"
+                isOpen={isGlobalReceiptOpen}
+                onClose={() => {
+                  setIsGlobalReceiptOpen(false);
+                  setReceiptPreviewEntries(null);
+                }}
+                entry={entries[todayStr] || null}
+                dateStr={todayStr}
+                dayCount={dayCount}
+                entries={receiptPreviewEntries || entries}
+                displayName={userDisplayName}
+              />
+            )}
 
-          {/* 🔬 AI Forensic Autopsy Chamber Modal */}
-          {isAutopsyOpen && (
-            <AutopsyChamberModal
-              isOpen={isAutopsyOpen}
-              onClose={() => setIsAutopsyOpen(false)}
-              entryDate={autopsyDate}
-              rating={autopsyRating}
-              existingAutopsy={autopsyExistingData}
-              onSaveAutopsy={() => setIsAutopsyOpen(false)}
-            />
-          )}
+            {/* 🔬 AI Forensic Autopsy Chamber Modal */}
+            {isAutopsyOpen && (
+              <AutopsyChamberModal
+                key="autopsy-modal"
+                isOpen={isAutopsyOpen}
+                onClose={() => setIsAutopsyOpen(false)}
+                entryDate={autopsyDate}
+                rating={autopsyRating}
+                existingAutopsy={autopsyExistingData}
+                onSaveAutopsy={() => setIsAutopsyOpen(false)}
+              />
+            )}
 
-          {/* 🧪 Behavioral Trilogy State Inspector & Dev Lab */}
-          {isBehavioralLabOpen && (
-            <BehavioralLabModal
-              isOpen={isBehavioralLabOpen}
-              onClose={() => setIsBehavioralLabOpen(false)}
-              onOpenReceipt={handleOpenReceiptFromLab}
-              onOpenCapsule={handleOpenCapsuleFromLab}
-              onOpenAutopsy={handleOpenAutopsyFromLab}
-              onTriggerErrorTest={handleTriggerErrorTest}
-            />
-          )}
+            {/* 🧪 Behavioral Trilogy State Inspector & Dev Lab */}
+            {isBehavioralLabOpen && (
+              <BehavioralLabModal
+                key="behavioral-lab-modal"
+                isOpen={isBehavioralLabOpen}
+                onClose={() => setIsBehavioralLabOpen(false)}
+                onOpenReceipt={handleOpenReceiptFromLab}
+                onOpenCapsule={handleOpenCapsuleFromLab}
+                onOpenAutopsy={handleOpenAutopsyFromLab}
+                onTriggerErrorTest={handleTriggerErrorTest}
+              />
+            )}
 
-          {/* 🧘 Burnout Radar Sanctuary Invitation Dialog (Explicit Consent Required) */}
-          {isSanctuaryInvitationOpen && (
-            <SanctuaryInvitationModal
-              isOpen={isSanctuaryInvitationOpen}
-              roughDaysCount={sanctuaryInvitationRoughCount}
-              onAccept={() => {
-                acceptSanctuaryInvitation(7);
-                setIsSanctuaryInvitationOpen(false);
-                loadData();
-              }}
-              onDecline={() => {
-                declineSanctuaryInvitation();
-                setIsSanctuaryInvitationOpen(false);
-              }}
-            />
-          )}
+            {/* 🧘 Burnout Radar Sanctuary Invitation Dialog (Explicit Consent Required) */}
+            {isSanctuaryInvitationOpen && (
+              <SanctuaryInvitationModal
+                key="sanctuary-invitation-modal"
+                isOpen={isSanctuaryInvitationOpen}
+                roughDaysCount={sanctuaryInvitationRoughCount}
+                onAccept={() => {
+                  acceptSanctuaryInvitation(7);
+                  setIsSanctuaryInvitationOpen(false);
+                  loadData();
+                }}
+                onDecline={() => {
+                  declineSanctuaryInvitation();
+                  setIsSanctuaryInvitationOpen(false);
+                }}
+              />
+            )}
 
-          {/* Simulated Crash Harness for ErrorBoundary */}
-          {simulatedCrash && (
-            <SimulatedCrashTrigger shouldCrash={simulatedCrash} />
-          )}
+            {/* Simulated Crash Harness for ErrorBoundary */}
+            {simulatedCrash && (
+              <SimulatedCrashTrigger shouldCrash={simulatedCrash} />
+            )}
+          </AnimatePresence>
         </Suspense>
       </ErrorBoundary>
 

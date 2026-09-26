@@ -83,10 +83,14 @@ export default function CalendarModal({
     });
   }
 
-  if (!isOpen) return null;
+  if (!isOpen && !isEmbedded) return null;
 
   const contentJSX = (
-    <div 
+    <motion.div 
+      initial={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 15 }}
+      animate={isEmbedded ? undefined : { opacity: 1, scale: 1, y: 0 }}
+      exit={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 12 }}
+      transition={isEmbedded ? undefined : { type: 'spring', damping: 26, stiffness: 360, mass: 0.8 }}
       className={`neo-card w-full ${isEmbedded ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] p-5 sm:p-6' : 'max-w-3xl my-auto max-h-[92vh] p-6'} bg-white flex flex-col justify-between overflow-hidden`} 
       onClick={(e) => e.stopPropagation()}
     >
@@ -230,7 +234,7 @@ export default function CalendarModal({
               </div>
             </div>
 
-    </div>
+    </motion.div>
   );
 
   if (isEmbedded) {
@@ -238,20 +242,16 @@ export default function CalendarModal({
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/65 backdrop-blur-xs overflow-y-auto"
-          onClick={onClose}
-        >
-          {contentJSX}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/65 backdrop-blur-xs overflow-y-auto"
+      onClick={onClose}
+    >
+      {contentJSX}
+    </motion.div>
   );
 }
 
