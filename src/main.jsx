@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { initWebVitals } from './services/vitals.js';
+import { initPwaAutoUpdate } from './services/pwaAutoUpdate.js';
 import './index.css';
 
 // ⚡ Instant Critical Path Render: Paint UI immediately without waiting for heavy monitoring SDKs
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 );
 
 initWebVitals();
+initPwaAutoUpdate();
 
 // ⚡ Lazy Telemetry: Load Sentry asynchronously during idle time post-first-paint (Production Only)
 const initDeferredSentry = () => {
