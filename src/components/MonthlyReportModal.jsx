@@ -202,10 +202,14 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
     setTimeout(() => setCopied(false), 2200);
   };
 
-  if (!isOpen) return null;
+  if (isOpen === false && !isEmbedded) return null;
 
   const contentJSX = (
-    <div 
+    <motion.div 
+      initial={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 15 }}
+      animate={isEmbedded ? undefined : { opacity: 1, scale: 1, y: 0 }}
+      exit={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 12 }}
+      transition={isEmbedded ? undefined : { type: 'spring', damping: 26, stiffness: 360, mass: 0.8 }}
       className={`w-full ${
         isEmbedded 
           ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] bg-[#FFFDF5] flex flex-col overflow-hidden relative' 
@@ -1167,7 +1171,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             ) : null}
           </div>
 
-        </div>
+        </motion.div>
   );
 
   if (isEmbedded) {
@@ -1175,18 +1179,16 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
   }
 
   return (
-    <AnimatePresence>
-      <motion.div 
-        key="dossier-backdrop"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/75 backdrop-blur-xs"
-        onClick={handleClose}
-      >
-        {contentJSX}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div 
+      key="dossier-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/75 backdrop-blur-xs"
+      onClick={handleClose}
+    >
+      {contentJSX}
+    </motion.div>
   );
 }

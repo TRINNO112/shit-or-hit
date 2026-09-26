@@ -1095,7 +1095,7 @@ export default function App() {
             {isCalendarOpen && (
               <CalendarModal
                 key="calendar-modal"
-                isOpen={isCalendarOpen}
+                isOpen={true}
                 onClose={() => setIsCalendarOpen(false)}
                 entries={entries}
                 startDate={startDate}
@@ -1108,7 +1108,7 @@ export default function App() {
             {Boolean(editingDay) && (
               <EditDayModal
                 key="edit-day-modal"
-                isOpen={Boolean(editingDay)}
+                isOpen={true}
                 onClose={() => setEditingDay(null)}
                 entryData={editingDay?.entry || entries[editingDay?.dateStr] || null}
                 dateStr={editingDay?.dateStr}
@@ -1122,7 +1122,7 @@ export default function App() {
             {isMonthlyReportOpen && (
               <MonthlyReportModal
                 key="monthly-report-modal"
-                isOpen={isMonthlyReportOpen}
+                isOpen={true}
                 onClose={() => setIsMonthlyReportOpen(false)}
                 initialYear={reportTargetMonth.year}
                 initialMonth={reportTargetMonth.month}
@@ -1133,7 +1133,7 @@ export default function App() {
             {isWallpaperModalOpen && (
               <AestheticCardExportModal
                 key="wallpaper-modal"
-                isOpen={isWallpaperModalOpen}
+                isOpen={true}
                 onClose={() => setIsWallpaperModalOpen(false)}
                 entry={wallpaperTarget?.entry || entries[todayStr] || null}
                 dateStr={wallpaperTarget?.dateStr || todayStr}
@@ -1148,7 +1148,7 @@ export default function App() {
             {isTelemetryOpen && (
               <ForensicStatsModal
                 key="telemetry-modal"
-                isOpen={isTelemetryOpen}
+                isOpen={true}
                 onClose={() => setIsTelemetryOpen(false)}
                 entries={entries}
                 startDate={startDate}
@@ -1160,7 +1160,7 @@ export default function App() {
             {isSettingsOpen && (
               <SettingsModal
                 key="settings-modal"
-                isOpen={isSettingsOpen}
+                isOpen={true}
                 onClose={() => setIsSettingsOpen(false)}
                 user={currentUser}
                 onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
@@ -1176,7 +1176,7 @@ export default function App() {
             {isStickerVaultOpen && (
               <StickerVaultModal
                 key="sticker-vault-modal"
-                isOpen={isStickerVaultOpen}
+                isOpen={true}
                 onClose={() => setIsStickerVaultOpen(false)}
               />
             )}
@@ -1185,7 +1185,7 @@ export default function App() {
             {isExportStudioOpen && (
               <ExportStudioModal
                 key="export-studio-modal"
-                isOpen={isExportStudioOpen}
+                isOpen={true}
                 onClose={() => setIsExportStudioOpen(false)}
                 entries={entries}
                 startDate={startDate}
@@ -1196,7 +1196,7 @@ export default function App() {
             {isRehabModalOpen && (
               <RehabilitationModal
                 key="rehab-modal"
-                isOpen={isRehabModalOpen}
+                isOpen={true}
                 onClose={() => {
                   setIsRehabModalOpen(false);
                   setSphereSettingsVer(v => v + 1);
@@ -1208,7 +1208,7 @@ export default function App() {
             {isMotivationalOpen && (
               <MotivationalRecoveryModal
                 key="motivational-modal"
-                isOpen={isMotivationalOpen}
+                isOpen={true}
                 onClose={() => setIsMotivationalOpen(false)}
               />
             )}
@@ -1217,7 +1217,7 @@ export default function App() {
             {isGuestDisclaimerOpen && (
               <GuestDisclaimerModal
                 key="guest-disclaimer-modal"
-                isOpen={isGuestDisclaimerOpen}
+                isOpen={true}
                 onClose={() => setIsGuestDisclaimerOpen(false)}
                 onLogin={handleGuestLogin}
               />
@@ -1227,7 +1227,7 @@ export default function App() {
             {isP2PSyncOpen && (
               <P2PDeviceSyncModal
                 key="p2p-sync-modal"
-                isOpen={isP2PSyncOpen}
+                isOpen={true}
                 onClose={() => setIsP2PSyncOpen(false)}
                 user={currentUser}
                 onLogin={handleGuestLogin}
@@ -1239,7 +1239,7 @@ export default function App() {
             {isCapsuleModalOpen && (
               <RansomCapsuleModal
                 key="ransom-capsule-modal"
-                isOpen={isCapsuleModalOpen}
+                isOpen={true}
                 onClose={handleCapsuleDismissed}
                 mode={capsuleModalMode}
                 targetCapsule={capsuleTarget}
@@ -1253,7 +1253,7 @@ export default function App() {
             {isGlobalReceiptOpen && (
               <ReceiptOfTruthModal
                 key="receipt-modal"
-                isOpen={isGlobalReceiptOpen}
+                isOpen={true}
                 onClose={() => {
                   setIsGlobalReceiptOpen(false);
                   setReceiptPreviewEntries(null);

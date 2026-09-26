@@ -56,12 +56,26 @@
     <script type="module" src="/src/main.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          const swPath = new URL('sw.js', window.location.href).pathname;
-          navigator.serviceWorker.register(swPath).catch(() => {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration skipped:', err));
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          // ⚡ Local Dev Mode: Unregister service workers and purge SW cache so Vite HMR is never hijacked
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            for (const registration of registrations) {
+              registration.unregister();
+            }
           });
-        });
+          if (window.caches) {
+            caches.keys().then((keys) => {
+              keys.forEach((k) => caches.delete(k));
+            });
+          }
+        } else {
+          window.addEventListener('load', () => {
+            const swPath = new URL('sw.js', window.location.href).pathname;
+            navigator.serviceWorker.register(swPath).catch(() => {
+              navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration skipped:', err));
+            });
+          });
+        }
       }
     </script>
   </body>

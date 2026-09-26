@@ -400,7 +400,7 @@ export default function SettingsModal({
     localStorage.setItem('daily_verdict_ai_language', lang);
   };
 
-  if (!isOpen) return null;
+  if (isOpen === false) return null;
 
   const handleToggleNotifications = async () => {
     if (notificationsOn) {

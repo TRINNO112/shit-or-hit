@@ -83,7 +83,7 @@ export default function CalendarModal({
     });
   }
 
-  if (!isOpen && !isEmbedded) return null;
+  if (isOpen === false && !isEmbedded) return null;
 
   const contentJSX = (
     <motion.div 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass } from 'lucide-react';
 import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
@@ -263,35 +263,43 @@ export default function Header({
                 <span className="truncate max-w-24">{activeDisplayName}</span>
               </button>
 
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-60 bg-white border-2 border-black rounded-xl p-3 shadow-[4px_4px_0px_#000000] z-50 space-y-2 text-left">
-                  <div className="text-[11px] font-mono font-bold text-black border-b border-black/10 pb-2">
-                    <div className="font-black truncate">{activeDisplayName}</div>
-                    <div className="text-neutral-500 text-[10px] truncate">
-                      {isOwner ? 'trinno@cloud.sync' : user.email}
-                    </div>
-                    <div className="mt-1">
-                      {isWhitelisted ? (
-                        <span className="px-1.5 py-0.5 rounded bg-[#00E599] text-black text-[9px] font-black uppercase inline-flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> Whitelisted Cloud Sync
-                        </span>
-                      ) : (
-                        <span className="px-1.5 py-0.5 rounded bg-neutral-200 text-neutral-700 text-[9px] font-bold uppercase">
-                          Local Storage Mode
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleLogout}
-                    className="w-full neo-btn py-1.5 px-3 bg-[#FF4D4D] text-black text-xs font-mono font-black rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+              <AnimatePresence>
+                {showUserMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
+                    className="absolute right-0 mt-2 w-60 bg-white border-2 border-black rounded-xl p-3 shadow-[4px_4px_0px_#000000] z-50 space-y-2 text-left"
                   >
-                    <LogOut className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              )}
+                    <div className="text-[11px] font-mono font-bold text-black border-b border-black/10 pb-2">
+                      <div className="font-black truncate">{activeDisplayName}</div>
+                      <div className="text-neutral-500 text-[10px] truncate">
+                        {isOwner ? 'trinno@cloud.sync' : user.email}
+                      </div>
+                      <div className="mt-1">
+                        {isWhitelisted ? (
+                          <span className="px-1.5 py-0.5 rounded bg-[#00E599] text-black text-[9px] font-black uppercase inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Whitelisted Cloud Sync
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 rounded bg-neutral-200 text-neutral-700 text-[9px] font-bold uppercase">
+                            Local Storage Mode
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full neo-btn py-1.5 px-3 bg-[#FF4D4D] text-black text-xs font-mono font-black rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                    >
+                      <LogOut className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Sign Out</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         })() : (

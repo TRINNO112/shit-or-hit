@@ -1,7 +1,7 @@
 // ⚡ High-Performance PWA Service Worker for Daily Verdict (v7)
 // Provides instant Cache-First & Stale-While-Revalidate for static assets & modal chunks,
 // eliminating network latency on mobile devices.
-const CACHE_NAME = 'daily-verdict-v7';
+const CACHE_NAME = 'daily-verdict-v8';
 
 // Assets to precache immediately on install
 const PRECACHE_URLS = [
@@ -46,6 +46,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // ⚡ DEV BYPASS: NEVER intercept Vite dev server, HMR, or local development modules!
+  if (
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    url.port === '5888' ||
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/src/') ||
+    url.pathname.startsWith('/node_modules/') ||
+    url.search.includes('?t=')
+  ) {
+    return;
+  }
+
   // 1. API Requests & Cloud endpoints: Network-first, never cache dynamic state
   if (url.pathname.startsWith('/api') || url.pathname.includes('/.netlify/functions') || url.hostname.includes('firestore.googleapis.com')) {
     event.respondWith(
@@ -76,15 +89,24 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
         const cachedResponse = await cache.match(request);
-        const networkFetch = fetch(request).then((networkResponse) => {
+        if (cachedResponse) {
+          fetch(request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(request, networkResponse.clone()).catch(() => {});
+            }
+          }).catch(() => {});
+          return cachedResponse;
+        }
+
+        try {
+          const networkResponse = await fetch(request);
           if (networkResponse && networkResponse.status === 200) {
             cache.put(request, networkResponse.clone()).catch(() => {});
           }
           return networkResponse;
-        }).catch(() => cachedResponse);
-
-        // If cached response exists, return it instantly in < 2ms!
-        return cachedResponse || networkFetch;
+        } catch (fetchErr) {
+          return new Response('Network error', { status: 503, statusText: 'Service Unavailable' });
+        }
       })
     );
     return;
