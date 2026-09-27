@@ -958,7 +958,7 @@ export default function App() {
       ) : (
         <div className="flex flex-col min-h-screen">
           <div className="border-b-3 border-black bg-white sticky top-0 z-30">
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="w-full max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto px-4 sm:px-6 3xl:px-8 4k:px-12">
               <Header
                 startDate={startDate}
                 entries={entries}
@@ -975,7 +975,7 @@ export default function App() {
             </div>
           </div>
 
-          <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+          <main className="flex-1 w-full max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto p-4 sm:p-6 3xl:p-8 4k:p-12 space-y-6 3xl:space-y-8">
             {/* VIEW 1: TODAY ACTIVE WORKSPACE & STATS */}
             {activeDesktopTab === 'today' && (
               <div className="space-y-6">
@@ -1077,7 +1077,7 @@ export default function App() {
             )}
           </main>
 
-          <footer className="w-full max-w-7xl mx-auto text-center text-xs font-mono font-bold text-neutral-600 py-10 px-6 border-t-2 border-black/10 mt-14 mb-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+          <footer className="w-full max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto text-center text-xs 3xl:text-sm font-mono font-bold text-neutral-600 py-10 3xl:py-14 px-6 3xl:px-8 border-t-2 border-black/10 mt-14 mb-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <span className="px-3 py-1 bg-black text-[#FDC800] rounded-lg text-[11px] font-black uppercase shadow-[2px_2px_0px_#000000]">
               DAILY QUALITY
             </span>

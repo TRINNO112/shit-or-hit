@@ -195,7 +195,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
       {/* Sandbox Isolation Header */}
       {isSandboxDemo && (
         <aside aria-label="Demo notice" className="bg-[#FFB800] text-black border-b-3 border-black py-2.5 px-4 sticky top-0 z-50 shadow-[0_2px_0px_#000000]">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono font-black">
+          <div className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono font-black">
             <div className="flex items-center gap-2">
               <FlaskConical className="w-4 h-4 text-black" />
               <span>ISOLATED VISUAL DEMO SANDBOX — ZERO PERSISTENT MUTATIONS OR DELETIONS OCCUR</span>
@@ -209,7 +209,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
 
       {/* Structural Industrial Header */}
       <header className="border-b-3 border-black bg-[#12141A] px-4 sm:px-8 py-3.5 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -255,8 +255,8 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
 
       {/* Panoramic Industrial Headline */}
       <section className="border-b-3 border-black bg-[#161821] px-4 sm:px-8 py-10 sm:py-12">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          <div className="space-y-3 max-w-3xl">
+        <div className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+          <div className="space-y-3 max-w-3xl 3xl:max-w-4xl">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="px-3 py-1 bg-[#FF4D4D] text-black border-2 border-black rounded-lg text-xs font-mono font-black uppercase shadow-[2px_2px_0px_#000000]">
                 SECTION 12 RIGHT TO ERASURE
@@ -269,11 +269,11 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-display font-black tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-5xl 3xl:text-6xl font-display font-black tracking-tight text-white leading-tight">
               Air-Gapped Sovereign Decommissioning Terminal
             </h1>
 
-            <p className="text-sm sm:text-base text-neutral-400 font-sans leading-relaxed">
+            <p className="text-sm sm:text-base 3xl:text-lg text-neutral-400 font-sans leading-relaxed">
               Under DPDPA 2023 Section 12, you hold the unconditional right to permanent data erasure. To safeguard against emotional burnout or accidental deletion, all requests enter a mandatory <strong>7-Day Regret-Proof Holding Pattern</strong> before physical cryptographic wipe.
             </p>
           </div>
@@ -309,7 +309,7 @@ export default function DataErasurePage({ onBack, isDemo = false, entries = {} }
       </section>
 
       {/* Main Full-Screen Asymmetric Terminal Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-10">
+      <main className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto px-4 sm:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Column A (Left): Mandatory Sovereign Data Salvage Bay (5 cols) */}
           <div className="lg:col-span-5 space-y-6">

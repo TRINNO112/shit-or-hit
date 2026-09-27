@@ -33,82 +33,89 @@ export default function StatsWidget({ entries, dayCount, onOpenTelemetry }) {
   const avgScore = total > 0 ? (entryList.reduce((acc, e) => acc + Number(e.rating || 0), 0) / total).toFixed(1) : '-';
 
   return (
-    <div className="neo-card bg-white flex flex-col justify-between h-full" style={{ padding: '32px 36px' }}>
+    <div className="neo-card bg-white flex flex-col justify-between h-full p-6 sm:p-8 3xl:p-10 4k:p-12">
       
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-2 border-b-2 border-black/10">
           <div className="flex items-center gap-2.5">
-            <BarChart2 className="w-5 h-5 text-black stroke-[2.5]" />
-            <h3 className="font-display font-black text-lg text-black uppercase tracking-wider">
+            <BarChart2 className="w-5 h-5 3xl:w-6 3xl:h-6 text-black stroke-[2.5]" />
+            <h3 className="font-display font-black text-lg 3xl:text-xl text-black uppercase tracking-wider">
               LIFETIME METRICS
             </h3>
           </div>
-          <span className="text-xs font-mono font-black px-3 py-1 bg-[#FDC800] border-2 border-black rounded-md shadow-[2px_2px_0px_#000000]">
+          <span className="text-xs 3xl:text-sm font-mono font-black px-3 py-1 bg-[#FDC800] border-2 border-black rounded-md shadow-[2px_2px_0px_#000000]">
             STATS
           </span>
         </div>
 
-        {/* Top 2 Metric Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="p-4 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
-            <span className="text-xs font-mono font-black text-neutral-600 uppercase block">
-              HIT RATE %
-            </span>
-            <div className="font-display font-black text-3xl text-black mt-1">
-              {hitRate}%
-            </div>
-            <span className="text-[11px] font-mono font-bold text-neutral-500 mt-0.5 block">
-              {hitCount}/{total} logged days
-            </span>
-          </div>
-
-          <div className="p-4 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
-            <span className="text-xs font-mono font-black text-neutral-600 uppercase block">
-              AVG QUALITY
-            </span>
-            <div className="font-display font-black text-3xl text-black mt-1">
-              {avgScore} <span className="text-sm font-mono text-neutral-500">/ 5.0</span>
-            </div>
-            <span className="text-[11px] font-mono font-bold text-neutral-500 mt-0.5 block">
-              Overall score
-            </span>
-          </div>
-        </div>
-
-        {/* Verdict Distribution Bars */}
-        <div className="space-y-3">
-          <span className="text-xs font-mono font-black text-neutral-800 uppercase block tracking-wider">
-            VERDICT BREAKDOWN
-          </span>
-
-          {[5, 4, 3, 2, 1].map((val) => {
-            const m = ratingMeta[val];
-            const SvgIcon = IconMap[m.icon];
-            const count = counts[val] || 0;
-            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-
-            return (
-              <div key={val} className="space-y-1">
-                <div className="flex items-center justify-between text-xs font-mono font-bold">
-                  <span className="flex items-center gap-1.5 text-black uppercase font-bold">
-                    <SvgIcon className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>{m.title}</span>
-                  </span>
-                  <span className="text-neutral-700 font-bold">{count}d ({pct}%)</span>
+        {/* 4K/3XL Multi-Column Dashboard Layout */}
+        <div className="grid grid-cols-1 3xl:grid-cols-12 gap-6 3xl:gap-10 items-start">
+          
+          {/* Top 2 Metric Cards */}
+          <div className="3xl:col-span-5">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 3xl:p-6 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
+                <span className="text-xs 3xl:text-sm font-mono font-black text-neutral-600 uppercase block">
+                  HIT RATE %
+                </span>
+                <div className="font-display font-black text-3xl 3xl:text-4xl text-black mt-1">
+                  {hitRate}%
                 </div>
-                <div className="w-full h-3.5 bg-neutral-100 border-2 border-black rounded-lg overflow-hidden">
-                  <div
-                    className="h-full border-r border-black transition-all duration-500"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: m.bg
-                    }}
-                  />
-                </div>
+                <span className="text-[11px] 3xl:text-xs font-mono font-bold text-neutral-500 mt-0.5 block">
+                  {hitCount}/{total} logged days
+                </span>
               </div>
-            );
-          })}
+
+              <div className="p-4 3xl:p-6 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
+                <span className="text-xs 3xl:text-sm font-mono font-black text-neutral-600 uppercase block">
+                  AVG QUALITY
+                </span>
+                <div className="font-display font-black text-3xl 3xl:text-4xl text-black mt-1">
+                  {avgScore} <span className="text-sm font-mono text-neutral-500">/ 5.0</span>
+                </div>
+                <span className="text-[11px] 3xl:text-xs font-mono font-bold text-neutral-500 mt-0.5 block">
+                  Overall score
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Verdict Distribution Bars */}
+          <div className="3xl:col-span-7 space-y-3">
+            <span className="text-xs 3xl:text-sm font-mono font-black text-neutral-800 uppercase block tracking-wider">
+              VERDICT BREAKDOWN
+            </span>
+
+            {[5, 4, 3, 2, 1].map((val) => {
+              const m = ratingMeta[val];
+              const SvgIcon = IconMap[m.icon];
+              const count = counts[val] || 0;
+              const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+
+              return (
+                <div key={val} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs 3xl:text-sm font-mono font-bold">
+                    <span className="flex items-center gap-1.5 text-black uppercase font-bold">
+                      <SvgIcon className="w-3.5 h-3.5 3xl:w-4 3xl:h-4 stroke-[2.5]" />
+                      <span>{m.title}</span>
+                    </span>
+                    <span className="text-neutral-700 font-bold">{count}d ({pct}%)</span>
+                  </div>
+                  <div className="w-full h-3.5 3xl:h-4 bg-neutral-100 border-2 border-black rounded-lg overflow-hidden">
+                    <div
+                      className="h-full border-r border-black transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: m.bg
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
         </div>
       </div>
 

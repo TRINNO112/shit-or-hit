@@ -352,7 +352,7 @@ export default function EditDayModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`w-full ${sphereModeActive ? 'max-w-6xl' : 'max-w-3xl'} min-h-125 sm:min-h-140 max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-5 sm:p-7`}
+            className={`w-full ${sphereModeActive ? 'max-w-6xl 3xl:max-w-7xl 4k:max-w-[1920px]' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl'} min-h-125 sm:min-h-140 max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-5 sm:p-7 3xl:p-9 4k:p-12`}
             onClick={(e) => e.stopPropagation()}
           >
 
@@ -418,7 +418,7 @@ export default function EditDayModal({
                   </div>
 
                   {/* Wide Grid of Life Spheres (Standard + Special Day Events) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 4k:grid-cols-5 gap-5 3xl:gap-6 items-stretch">
                     {Object.values(spheresData).map((sphere) => {
                       const sRating = sphere.rating;
                       const isDayEvent = !!sphere.isDayEvent;

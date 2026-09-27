@@ -81,7 +81,7 @@ export default function PrivacyPolicyPage({ onBack }) {
     <div className="min-h-screen bg-[#FFFDF9] text-black font-sans selection:bg-[#FDC800] selection:text-black">
       {/* Statutory Header Bar */}
       <header className="border-b-3 border-black bg-white/95 backdrop-blur-md px-4 sm:px-8 py-3.5 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -112,8 +112,8 @@ export default function PrivacyPolicyPage({ onBack }) {
 
       {/* Hero Panoramic Banner */}
       <section className="border-b-3 border-black bg-[#111622] text-white px-4 sm:px-8 py-10 sm:py-12">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          <div className="space-y-3 max-w-3xl">
+        <div className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+          <div className="space-y-3 max-w-3xl 3xl:max-w-4xl">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="px-3 py-1 bg-[#FDC800] text-black border-2 border-black rounded-lg text-xs font-mono font-black uppercase shadow-[2px_2px_0px_#000000]">
                 STATUTORY COMPLIANCE ARCHIVE
@@ -126,11 +126,11 @@ export default function PrivacyPolicyPage({ onBack }) {
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-display font-black tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-5xl 3xl:text-6xl font-display font-black tracking-tight text-white leading-tight">
               Statutory Privacy Policy & Cryptographic Architecture Charter
             </h1>
 
-            <p className="text-sm sm:text-base text-neutral-300 font-sans leading-relaxed">
+            <p className="text-sm sm:text-base 3xl:text-lg text-neutral-300 font-sans leading-relaxed">
               This charter governs how <strong>SHIT OR HIT</strong> enforces cryptographic sovereignty, zero-knowledge isolation, and statutory user rights under the <em>Digital Personal Data Protection Act, 2023</em>. Your reflections belong solely to you.
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function PrivacyPolicyPage({ onBack }) {
       </section>
 
       {/* Main Full-Screen Split Architecture */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-10">
+      <main className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto px-4 sm:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ========================================================= */}

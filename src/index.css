@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-3xl: 1920px;
+  --breakpoint-4k: 2560px;
+  --breakpoint-ultra: 3440px;
+}
+
 :root {
   --bg-canvas: #FFFDF5;
   --bg-card: #FFFFFF;
@@ -84,6 +90,28 @@ body {
 @media (max-width: 768px) {
   .neo-card {
     padding: 24px 20px !important;
+  }
+}
+
+@media (min-width: 1920px) {
+  .neo-card {
+    padding: 44px 48px !important;
+  }
+}
+
+@media (min-width: 2560px) {
+  :root {
+    --border-width: 3px;
+    --shadow-offset: 6px 6px 0px #000000;
+    --shadow-offset-hover: 8px 8px 0px #000000;
+  }
+  .neo-card {
+    padding: 52px 56px !important;
+    border-radius: 28px;
+  }
+  .neo-btn {
+    padding: 18px 20px;
+    border-radius: 20px;
   }
 }
 

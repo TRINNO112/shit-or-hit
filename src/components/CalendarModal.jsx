@@ -91,7 +91,7 @@ export default function CalendarModal({
       animate={isEmbedded ? undefined : { opacity: 1, scale: 1, y: 0 }}
       exit={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 12 }}
       transition={isEmbedded ? undefined : { type: 'spring', damping: 26, stiffness: 360, mass: 0.8 }}
-      className={`neo-card w-full ${isEmbedded ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] p-5 sm:p-6' : 'max-w-3xl my-auto max-h-[92vh] p-6'} bg-white flex flex-col justify-between overflow-hidden`} 
+      className={`neo-card w-full ${isEmbedded ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] p-5 sm:p-6 3xl:p-8 4k:p-10' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl my-auto max-h-[92vh] p-6 3xl:p-8 4k:p-10'} bg-white flex flex-col justify-between overflow-hidden`} 
       onClick={(e) => e.stopPropagation()}
     >
       
@@ -164,9 +164,9 @@ export default function CalendarModal({
               </div>
 
               {/* Days Grid with responsive height */}
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-2 3xl:gap-3">
                 {Array.from({ length: leadingBlanks }).map((_, i) => (
-                  <div key={`blank-${i}`} className="min-h-14.5 sm:min-h-17 rounded-xl bg-neutral-50 border border-neutral-200/50 opacity-20" />
+                  <div key={`blank-${i}`} className="min-h-14.5 sm:min-h-17 3xl:min-h-24 4k:min-h-28 rounded-xl bg-neutral-50 border border-neutral-200/50 opacity-20" />
                 ))}
 
                 {days.map(({ dayNumber, dayIndex, dateStr, isToday, isBeforeStart, isFuture, entry }) => {
@@ -184,7 +184,7 @@ export default function CalendarModal({
                           onEditDay({ dateStr, dayIndex, entry });
                         }
                       }}
-                      className={`min-h-14.5 sm:min-h-17 p-2 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
+                      className={`min-h-14.5 sm:min-h-17 3xl:min-h-24 4k:min-h-28 p-2 3xl:p-3 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
                         isToday ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000000]' : 'bg-white'
                       } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
                       style={{ backgroundColor: meta ? meta.bg : inStasis ? (isSabbatical ? '#FEF3C7' : '#E8F5E9') : undefined }}

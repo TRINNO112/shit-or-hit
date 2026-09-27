@@ -245,7 +245,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
       {/* Sandbox Isolation Header */}
       {isSandboxDemo && (
         <aside aria-label="Demo notice" className="bg-[#111622] text-[#00E599] border-b-3 border-black py-2 px-4 sticky top-0 z-50 shadow-[0_2px_0px_#000000]">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono font-black">
+          <div className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono font-black">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00E599] animate-ping" />
               <span>ISOLATED VISUAL SANDBOX // ZERO PERSISTENT MUTATIONS</span>
@@ -259,7 +259,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
 
       {/* Main Structural Navbar */}
       <header className="border-b-3 border-black bg-white/95 backdrop-blur-md px-4 sm:px-8 py-3.5 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -300,7 +300,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
       </AnimatePresence>
 
       {/* Architectural Panoramic Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+      <main className="max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto px-4 sm:px-8 py-8 space-y-8">
 
         {/* Row 1: The Asymmetric Command Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

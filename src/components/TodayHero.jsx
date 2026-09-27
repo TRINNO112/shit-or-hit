@@ -1249,15 +1249,14 @@ export default function TodayHero({
     <motion.div
       animate={sadSettle ? { y: [0, 4, 1, 0] } : {}}
       transition={{ duration: 0.7, ease: 'easeInOut' }}
-      className="neo-card w-full mb-8 bg-white relative overflow-hidden"
-      style={{ padding: '36px 40px' }}
+      className="neo-card w-full mb-8 bg-white relative overflow-hidden p-6 sm:p-9 3xl:p-12 4k:p-14"
     >
       {/* Top Panoramic Grid or Segmented Matrix Header */}
       {!sphereModeActive ? (
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 3xl:gap-12">
 
           {/* Left Side: Date, Heading & Prominent Emblem Box */}
-          <div className="text-left w-full lg:w-5/12 flex items-start gap-4">
+          <div className="text-left w-full lg:w-5/12 flex items-start gap-4 3xl:gap-6">
 
             {/* Prominent Dynamic Vector Emblem Box with Crisp Icons & Spring Morph */}
             <motion.div
@@ -1266,7 +1265,7 @@ export default function TodayHero({
                 rotate: (activeRatingForVisual - 3) * 4
               }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="w-16 h-16 rounded-2xl border-[2.5px] border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0 mt-1"
+              className="w-16 h-16 3xl:w-20 3xl:h-20 4k:w-24 4k:h-24 rounded-2xl border-[2.5px] border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] shrink-0 mt-1"
               style={{ backgroundColor: ratingMeta[activeRatingForVisual]?.bg }}
             >
               <AnimatePresence mode="wait">
@@ -1276,28 +1275,28 @@ export default function TodayHero({
                   animate={{ scale: 1, rotate: 0, opacity: 1 }}
                   exit={{ scale: 0.4, rotate: 30, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 450, damping: 20 }}
-                  className="w-8 h-8 flex items-center justify-center"
+                  className="w-8 h-8 3xl:w-10 3xl:h-10 4k:w-12 4k:h-12 flex items-center justify-center"
                 >
                   {React.createElement(IconMap[ratingMeta[activeRatingForVisual]?.icon] || Sparkles, {
-                    className: "w-8 h-8 text-black stroke-[2.5]"
+                    className: "w-8 h-8 3xl:w-10 3xl:h-10 4k:w-12 4k:h-12 text-black stroke-[2.5]"
                   })}
                 </motion.div>
               </AnimatePresence>
             </motion.div>
 
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black text-white text-xs font-mono font-black mb-3 shadow-[2px_2px_0px_#FDC800]">
+              <div className="inline-flex items-center gap-2 px-3 py-1 3xl:px-4 3xl:py-1.5 rounded-full bg-black text-white text-xs 3xl:text-sm font-mono font-black mb-3 shadow-[2px_2px_0px_#FDC800]">
                 <span>TODAY</span>
                 <span>•</span>
                 <span>DAY {dayCount}</span>
               </div>
 
-              <h2 className="font-display font-black text-3xl sm:text-4xl text-black tracking-tight uppercase leading-none">
+              <h2 className="font-display font-black text-3xl sm:text-4xl 3xl:text-5xl 4k:text-6xl text-black tracking-tight uppercase leading-none">
                 {dayName}
               </h2>
 
-              <div className="flex items-center gap-2 flex-wrap mt-1.5">
-                <p className="text-sm font-mono font-bold text-neutral-700">
+              <div className="flex items-center gap-2 flex-wrap mt-1.5 3xl:mt-2.5">
+                <p className="text-sm 3xl:text-base font-mono font-bold text-neutral-700">
                   {fullDate}
                 </p>
                 <AnimatePresence>
@@ -1306,7 +1305,7 @@ export default function TodayHero({
                       initial={{ opacity: 0, scale: 0.85, y: -2 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.85, y: -2 }}
-                      className="px-2.5 py-0.5 rounded-md bg-[#00E599] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] inline-flex items-center gap-1"
+                      className="px-2.5 py-0.5 rounded-md bg-[#00E599] text-black border border-black font-mono text-[10px] 3xl:text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] inline-flex items-center gap-1"
                     >
                       <Check className="w-3 h-3 stroke-3" />
                       ENTRY SAVED LOCALLY!
@@ -1314,7 +1313,7 @@ export default function TodayHero({
                   )}
                 </AnimatePresence>
               </div>
-              <p className="text-xs font-mono text-neutral-500 mt-1 font-semibold">
+              <p className="text-xs 3xl:text-sm font-mono text-neutral-500 mt-1 font-semibold">
                 {isDeterministicTaskLocked
                   ? 'Rating governed 100% by your Non-Negotiable Tasks below.'
                   : 'Hover & punch an icon to log your verdict.'}
@@ -1324,7 +1323,7 @@ export default function TodayHero({
 
           {/* Right Side: 5 Chunky Tactile 1-Tap Buttons */}
           <div className="w-full lg:w-7/12">
-            <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 relative">
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-3.5 3xl:gap-5 relative">
               {[1, 2, 3, 4, 5].map((val) => {
                 const m = ratingMeta[val];
                 const SvgIcon = IconMap[m.icon];
@@ -1345,9 +1344,8 @@ export default function TodayHero({
                     } : {}}
                     transition={{ type: 'spring', stiffness: 450, damping: 16 }}
                     onClick={(e) => handleRate(val, e)}
-                    className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 relative ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
+                    className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 3xl:p-4 4k:p-5 relative min-h-[82px] 3xl:min-h-[110px] 4k:min-h-[130px] ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
                     style={{
-                      minHeight: '82px',
                       backgroundColor: isSelected ? m.bg : '#FFFFFF'
                     }}
                     title={isDeterministicTaskLocked ? 'Locked by 100% Task Engine' : `Log ${m.title} (${val}/5)`}
@@ -1362,17 +1360,17 @@ export default function TodayHero({
                     )}
 
                     <div
-                      className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 shadow-[1.5px_1.5px_0px_#000000]"
+                      className="w-7 h-7 sm:w-10 sm:h-10 3xl:w-12 3xl:h-12 4k:w-14 4k:h-14 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 3xl:mb-2 shadow-[1.5px_1.5px_0px_#000000]"
                       style={{ backgroundColor: m.bg }}
                     >
-                      <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 text-black stroke-[2.5]" />
+                      <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 3xl:w-6 3xl:h-6 4k:w-7 4k:h-7 text-black stroke-[2.5]" />
                     </div>
 
-                    <span className="font-display font-black text-[10px] sm:text-xs uppercase tracking-tight leading-none truncate max-w-full">
+                    <span className="font-display font-black text-[10px] sm:text-xs 3xl:text-sm 4k:text-base uppercase tracking-tight leading-none truncate max-w-full">
                       {m.title}
                     </span>
 
-                    <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neutral-600 mt-0.5 sm:mt-1">
+                    <span className="text-[8px] sm:text-[10px] 3xl:text-xs font-mono font-bold text-neutral-600 mt-0.5 sm:mt-1 3xl:mt-1.5">
                       {val}/5
                     </span>
                   </motion.button>
@@ -1430,7 +1428,7 @@ export default function TodayHero({
           </div>
 
           {/* Spheres Grid Matrix */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 4k:grid-cols-5 gap-5 3xl:gap-6">
             {activeSpheresConfig.map((sphere) => {
               const currentSphereData = spheresData[sphere.id] || {};
               const sphereRating = currentSphereData.rating;
@@ -1572,7 +1570,7 @@ export default function TodayHero({
             initial={{ opacity: 0, y: 8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 450, damping: 25 }}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl border-2 border-black text-xs font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
+            className="inline-flex items-center gap-2.5 px-4 3xl:px-5 py-2 3xl:py-2.5 rounded-xl border-2 border-black text-xs 3xl:text-sm font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
             style={{ backgroundColor: ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.bg }}
           >
             {React.createElement(IconMap[ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.icon] || Sparkles, {

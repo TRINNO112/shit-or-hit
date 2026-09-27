@@ -94,20 +94,20 @@ export default function Header({
   ];
 
   return (
-    <header className="w-full max-w-7xl mx-auto py-3 sm:py-4 flex flex-col xl:flex-row items-center justify-between gap-3 sm:gap-4">
+    <header className="w-full max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto py-3 sm:py-4 3xl:py-5 flex flex-col xl:flex-row items-center justify-between gap-3 sm:gap-4 3xl:gap-6">
       
       {/* Top / Left Row: Brand + Right Controls on Tablet */}
       <div className="w-full xl:w-auto flex items-center justify-between gap-3 shrink-0">
         {/* 1. Brand */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-1">
+        <div className="flex items-center gap-3 3xl:gap-4 shrink-0">
+          <div className="w-10 h-10 3xl:w-12 3xl:h-12 4k:w-14 4k:h-14 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-1">
             <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
           </div>
           <div>
-            <h1 className="font-display font-black text-lg sm:text-xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
+            <h1 className="font-display font-black text-lg sm:text-xl 3xl:text-2xl 4k:text-3xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
               SHIT OR HIT
             </h1>
-            <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
+            <span className="text-[10px] 3xl:text-xs font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
               {isWhitelisted ? `Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Daily Verdict OS'}
             </span>
           </div>
@@ -185,7 +185,7 @@ export default function Header({
       </div>
 
       {/* 2. Center: Segmented Navigation Tabs */}
-      <nav className="w-full xl:w-auto flex items-center justify-center bg-[#F4F2E6] p-1 rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] gap-1 overflow-x-auto no-scrollbar shrink-0">
+      <nav className="w-full xl:w-auto flex items-center justify-center bg-[#F4F2E6] p-1 3xl:p-1.5 rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] gap-1 3xl:gap-2 overflow-x-auto no-scrollbar shrink-0">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -196,7 +196,7 @@ export default function Header({
                 soundEngine.playClick();
                 if (onTabChange) onTabChange(tab.id);
               }}
-              className={`relative flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer whitespace-nowrap shrink-0 transition-colors z-10 ${
+              className={`relative flex items-center justify-center gap-1.5 3xl:gap-2 px-3 3xl:px-4.5 py-1.5 3xl:py-2.5 rounded-xl font-display font-black text-xs 3xl:text-sm uppercase cursor-pointer whitespace-nowrap shrink-0 transition-colors z-10 ${
                 isActive
                   ? 'text-black'
                   : 'text-neutral-700 hover:text-black hover:bg-black/5'
@@ -209,7 +209,7 @@ export default function Header({
                   className="absolute inset-0 bg-[#FDC800] border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000] -z-10"
                 />
               )}
-              <Icon className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
+              <Icon className="w-3.5 h-3.5 3xl:w-4 3xl:h-4 stroke-[2.5] shrink-0" />
               <span className="hidden 2xl:inline">{tab.label}</span>
               <span className="2xl:hidden">{tab.shortLabel}</span>
             </button>
@@ -218,10 +218,10 @@ export default function Header({
       </nav>
 
       {/* 3. Right: Prominent Day Counter, Cloud Status, Backup & Settings (Visible on xl+ desktop) */}
-      <div className="hidden xl:flex items-center gap-2 shrink-0">
+      <div className="hidden xl:flex items-center gap-2 3xl:gap-3 shrink-0">
         
         {/* Prominent Day Streak Counter Pill */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00E599] border-2 border-black text-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+        <div className="flex items-center gap-1.5 3xl:gap-2 px-3 3xl:px-4 py-1.5 3xl:py-2 rounded-xl bg-[#00E599] border-2 border-black text-black font-mono text-xs 3xl:text-sm font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
           <Flame className="w-4 h-4 text-black fill-black" />
           <span>DAY {dayCount}</span>
         </div>
@@ -229,7 +229,7 @@ export default function Header({
         {/* Sanctuary / Sabbatical Active Indicator (Desktop) */}
         {isSanctuaryActive && (
           <div 
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 ${
+            className={`flex items-center gap-1.5 3xl:gap-2 px-3 3xl:px-4 py-1.5 3xl:py-2 rounded-xl border-2 border-black font-mono text-xs 3xl:text-sm font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0 ${
               isSabbatical 
                 ? 'bg-[#FEF3C7] text-amber-950' 
                 : 'bg-[#E8F5E9] text-[#1B5E20]'
