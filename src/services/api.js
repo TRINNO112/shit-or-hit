@@ -101,8 +101,11 @@ export function setSphereModeEnabled(enabled) {
   localStorage.setItem('daily_verdict_sphere_mode_enabled', enabled ? 'true' : 'false');
   try {
     const user = getCurrentUser();
-    if (user?.uid) {
-      saveCloudUserSettings(user.uid, { sphereModeEnabled: enabled });
+    if (user) {
+      const effectiveId = getEffectiveUserId(user) || user.uid;
+      if (effectiveId) {
+        saveCloudUserSettings(effectiveId, { sphereModeEnabled: enabled });
+      }
     }
   } catch (e) {}
 }
@@ -124,8 +127,11 @@ export function saveSphereConfig(config) {
   localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(config));
   try {
     const user = getCurrentUser();
-    if (user?.uid) {
-      saveCloudUserSettings(user.uid, { spheresConfig: config });
+    if (user) {
+      const effectiveId = getEffectiveUserId(user) || user.uid;
+      if (effectiveId) {
+        saveCloudUserSettings(effectiveId, { spheresConfig: config });
+      }
     }
   } catch (e) {}
 }
@@ -1314,8 +1320,11 @@ export function setRansomCapsuleEnabled(enabled) {
   localStorage.setItem(RANSOM_CAPSULE_ENABLED_KEY, enabled ? 'true' : 'false');
   try {
     const user = getCurrentUser();
-    if (user?.uid) {
-      saveCloudUserSettings(user.uid, { enableRansomCapsule: enabled });
+    if (user) {
+      const effectiveId = getEffectiveUserId(user) || user.uid;
+      if (effectiveId) {
+        saveCloudUserSettings(effectiveId, { enableRansomCapsule: enabled });
+      }
     }
   } catch (e) {}
 }
@@ -1332,8 +1341,11 @@ export function setRansomCapsuleSensitivity(days) {
   localStorage.setItem(RANSOM_CAPSULE_SENSITIVITY_KEY, cleanDays.toString());
   try {
     const user = getCurrentUser();
-    if (user?.uid) {
-      saveCloudUserSettings(user.uid, { ransomCapsuleSensitivity: cleanDays });
+    if (user) {
+      const effectiveId = getEffectiveUserId(user) || user.uid;
+      if (effectiveId) {
+        saveCloudUserSettings(effectiveId, { ransomCapsuleSensitivity: cleanDays });
+      }
     }
   } catch (e) {}
 }
@@ -1635,8 +1647,11 @@ export function setAutopsyChamberEnabled(enabled) {
   localStorage.setItem(AUTOPSY_CHAMBER_ENABLED_KEY, enabled ? 'true' : 'false');
   try {
     const user = getCurrentUser();
-    if (user?.uid) {
-      saveCloudUserSettings(user.uid, { enableAutopsyChamber: enabled });
+    if (user) {
+      const effectiveId = getEffectiveUserId(user) || user.uid;
+      if (effectiveId) {
+        saveCloudUserSettings(effectiveId, { enableAutopsyChamber: enabled });
+      }
     }
   } catch (e) {}
 }
@@ -1652,8 +1667,11 @@ export function setReceiptOfTruthEnabled(enabled) {
   localStorage.setItem(RECEIPT_OF_TRUTH_ENABLED_KEY, enabled ? 'true' : 'false');
   try {
     const user = getCurrentUser();
-    if (user?.uid) {
-      saveCloudUserSettings(user.uid, { enableReceiptOfTruth: enabled });
+    if (user) {
+      const effectiveId = getEffectiveUserId(user) || user.uid;
+      if (effectiveId) {
+        saveCloudUserSettings(effectiveId, { enableReceiptOfTruth: enabled });
+      }
     }
   } catch (e) {}
   window.dispatchEvent(new Event('receipt-of-truth-updated'));

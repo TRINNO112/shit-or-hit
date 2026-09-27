@@ -447,6 +447,22 @@ export default function App() {
             if (cloudSettings.spheresConfig && Array.isArray(cloudSettings.spheresConfig)) {
               localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(cloudSettings.spheresConfig));
             }
+            if (cloudSettings.sphereModeEnabled !== undefined) {
+              localStorage.setItem('daily_verdict_sphere_mode_enabled', cloudSettings.sphereModeEnabled ? 'true' : 'false');
+            }
+            if (cloudSettings.enableRansomCapsule !== undefined) {
+              localStorage.setItem('daily_verdict_ransom_capsule_enabled', cloudSettings.enableRansomCapsule ? 'true' : 'false');
+            }
+            if (cloudSettings.ransomCapsuleSensitivity !== undefined) {
+              localStorage.setItem('daily_verdict_ransom_capsule_sensitivity', cloudSettings.ransomCapsuleSensitivity.toString());
+            }
+            if (cloudSettings.enableAutopsyChamber !== undefined) {
+              localStorage.setItem('daily_verdict_autopsy_chamber_enabled', cloudSettings.enableAutopsyChamber ? 'true' : 'false');
+            }
+            if (cloudSettings.enableReceiptOfTruth !== undefined) {
+              localStorage.setItem('daily_verdict_receipt_of_truth_enabled', cloudSettings.enableReceiptOfTruth ? 'true' : 'false');
+              window.dispatchEvent(new Event('receipt-of-truth-updated'));
+            }
             if (cloudSettings.vaultPinEncrypted) {
               const decrypted = await decryptVaultPin(cloudSettings.vaultPinEncrypted);
               if (decrypted) {

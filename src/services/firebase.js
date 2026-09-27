@@ -505,13 +505,25 @@ export async function saveCloudUserSettings(userId, settingsData) {
   const fb = await getFirebase();
   if (!fb || !fb.db) return;
   try {
-    const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
     const sanitized = cleanFirestorePayload({
       ...settingsData,
       updatedAt: new Date().toISOString()
     });
+
+    // 1. Primary write to targeted userId
+    const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
     await fb.firestoreMod.setDoc(settingsRef, sanitized, { merge: true });
-    console.log(`✅ [Firestore] User preferences & sphere configs saved to cloud!`);
+
+    // 2. Dual-mirror for unified owner accounts (sync both trinno_owner_vault and native auth UID)
+    const curUser = getCurrentUser();
+    if (curUser?.uid && curUser.uid !== userId) {
+      try {
+        const mirrorRef = fb.firestoreMod.doc(fb.db, 'users', curUser.uid, 'settings', 'config');
+        await fb.firestoreMod.setDoc(mirrorRef, sanitized, { merge: true });
+      } catch (e) {}
+    }
+
+    console.log(`✅ [Firestore] User preferences & sphere configs saved to cloud (${userId})!`);
   } catch (err) {
     console.warn(`Firestore user settings save note:`, err.message);
   }
@@ -524,12 +536,23 @@ export async function fetchCloudUserSettings(userId) {
   try {
     const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
     const snap = await fb.firestoreMod.getDoc(settingsRef);
-    if (snap.exists()) {
-      return snap.data();
+    let data = snap.exists() ? snap.data() : null;
+
+    // Check if current user has a raw UID document with additional or fallback preferences
+    const curUser = getCurrentUser();
+    if (curUser?.uid && curUser.uid !== userId) {
+      try {
+        const rawRef = fb.firestoreMod.doc(fb.db, 'users', curUser.uid, 'settings', 'config');
+        const rawSnap = await fb.firestoreMod.getDoc(rawRef);
+        if (rawSnap.exists()) {
+          const rawData = rawSnap.data();
+          data = { ...(rawData || {}), ...(data || {}) };
+        }
+      } catch (e) {}
     }
 
     // Fallback to legacy raw UID if not found in user_UID
-    if (userId.startsWith('user_')) {
+    if (!data && userId.startsWith('user_')) {
       const legacyRawUid = userId.slice(5);
       const legacyRef = fb.firestoreMod.doc(fb.db, 'users', legacyRawUid, 'settings', 'config');
       const legSnap = await fb.firestoreMod.getDoc(legacyRef);
@@ -540,7 +563,7 @@ export async function fetchCloudUserSettings(userId) {
       }
     }
 
-    return null;
+    return data;
   } catch (err) {
     console.warn(`Firestore user settings fetch note:`, err.message);
     return null;
