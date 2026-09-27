@@ -824,7 +824,7 @@ export default function MobileAppView({
                 </span>
               </div>
               <span className="text-xs font-mono font-bold text-neutral-600 block mt-0.5">
-                {fullDate} • {sphereModeActive ? 'Multi-Sphere Matrix Active' : 'Unified Verdict Mode'}
+                {fullDate} • {isSanctuaryActive ? (isSabbatical ? 'Grand Sabbatical Stasis' : 'Tranquility Sanctuary Active') : sphereModeActive ? 'Multi-Sphere Matrix Active' : 'Unified Verdict Mode'}
               </span>
             </div>
 
@@ -1105,7 +1105,7 @@ export default function MobileAppView({
 
           {/* Active Verdict Status & Reflection Button */}
           <div className="pt-1.5 space-y-2.5">
-            {(() => {
+            {!isSanctuaryActive && (() => {
               const comp = calculateCompositeScore(spheresData);
               const activeR = comp ? comp.rating : selectedRating;
               const activeScore = comp ? comp.score : null;

@@ -344,7 +344,7 @@ export default function EditDayModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs"
+          className="fixed inset-0 z-60 flex items-center justify-center p-2 sm:p-4 bg-black/65 backdrop-blur-xs"
           onClick={onClose}
         >
           <motion.div
@@ -352,31 +352,31 @@ export default function EditDayModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`w-full ${sphereModeActive ? 'max-w-6xl 3xl:max-w-7xl 4k:max-w-[1920px]' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl'} min-h-125 sm:min-h-140 max-h-[92vh] h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[10px_10px_0px_#000000] overflow-hidden p-5 sm:p-7 3xl:p-9 4k:p-12`}
+            className={`w-full ${sphereModeActive ? 'max-w-6xl 3xl:max-w-7xl 4k:max-w-[1920px]' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl'} min-h-[360px] sm:min-h-140 max-h-[94vh] h-[90vh] sm:h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[4px_4px_0px_#000000] sm:shadow-[10px_10px_0px_#000000] overflow-hidden p-3.5 sm:p-7 3xl:p-9 4k:p-12`}
             onClick={(e) => e.stopPropagation()}
           >
 
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b-2 border-black/10 shrink-0">
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center font-display font-black text-base shadow-[2.5px_2.5px_0px_#000000]">
+            <div className="flex items-center justify-between pb-2.5 mb-2.5 sm:pb-3.5 sm:mb-3.5 border-b-2 border-black/10 shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center font-display font-black text-xs sm:text-base shadow-[2px_2px_0px_#000000] shrink-0">
                   D{dayIndex}
                 </div>
-                <div>
-                  <h3 className="font-display font-black text-xl sm:text-2xl text-black uppercase leading-tight">
+                <div className="min-w-0">
+                  <h3 className="font-display font-black text-base sm:text-2xl text-black uppercase leading-tight truncate">
                     EDIT DAY {dayIndex}
                   </h3>
-                  <span className="text-xs font-mono font-bold text-neutral-600 block mt-0.5">
+                  <span className="text-[11px] sm:text-xs font-mono font-bold text-neutral-600 block mt-0.5 truncate">
                     {formattedDate}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-2 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all"
+                  className="p-1.5 sm:p-2.5 rounded-xl bg-[#FF4D4D] hover:bg-red-600 border-2 border-black text-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95 transition-all"
                   title="Close modal"
                 >
                   <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-3" />
@@ -386,15 +386,15 @@ export default function EditDayModal({
 
             {/* Stasis Banner if Sanctuary Active */}
             {isRehabilitationActive(dateStr) && (
-              <div className="p-3 bg-[#E8F5E9] border-2 border-black rounded-2xl flex items-center gap-3 shadow-[2px_2px_0px_#000000] shrink-0 mb-3">
-                <div className="w-8 h-8 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0">
-                  <Shield className="w-4 h-4 text-black stroke-[2.5]" />
+              <div className="p-2.5 sm:p-3 bg-[#E8F5E9] border-2 border-black rounded-2xl flex items-center gap-2.5 sm:gap-3 shadow-[2px_2px_0px_#000000] shrink-0 mb-2.5 sm:mb-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0">
+                  <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black stroke-[2.5]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="font-display font-black text-xs uppercase text-emerald-950">
                     Sanctuary Stasis Active
                   </h4>
-                  <p className="text-[11px] font-mono text-emerald-900 truncate">
+                  <p className="text-[10px] sm:text-[11px] font-mono text-emerald-900 truncate">
                     Daily verdicts are suspended for this date and your streak is preserved.
                   </p>
                 </div>
@@ -402,7 +402,7 @@ export default function EditDayModal({
             )}
 
             {/* Scrollable Content Body */}
-            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden pr-1 space-y-4">
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden pr-1 space-y-3 sm:space-y-4">
 
               {/* If Multi-Sphere Mode Active: Landscape Spheres Matrix */}
               {sphereModeActive && spheresConfig.length > 0 ? (
@@ -587,14 +587,14 @@ export default function EditDayModal({
                 </div>
               ) : (
                 /* Single-Verdict Standard Rating & Single Diary Area */
-                <div className="flex-1 flex flex-col min-h-0 space-y-4">
+                <div className="flex-1 flex flex-col min-h-0 space-y-3 sm:space-y-4">
 
                   {/* Rating Selector */}
-                  <div className="space-y-2 shrink-0">
-                    <label className="block text-xs font-mono font-black text-neutral-700 uppercase">
+                  <div className="space-y-1.5 sm:space-y-2 shrink-0">
+                    <label className="block text-[11px] sm:text-xs font-mono font-black text-neutral-700 uppercase">
                       1. SELECT VERDICT RATING
                     </label>
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                       {[1, 2, 3, 4, 5].map((val) => {
                         const m = ratingMeta[val];
                         const SvgIcon = IconMap[m.icon];
@@ -607,17 +607,18 @@ export default function EditDayModal({
                             whileHover={{ scale: 1.04, y: -2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleRatingSelect(val)}
-                            className={`p-3 rounded-2xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all ${isSelected ? 'shadow-[3px_3px_0px_#000000] font-black' : 'bg-neutral-50 hover:bg-white'
-                              }`}
+                            className={`p-1.5 py-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 border-black flex flex-col items-center justify-center cursor-pointer transition-all ${
+                              isSelected ? 'shadow-[2.5px_2.5px_0px_#000000] font-black ring-2 ring-black' : 'bg-neutral-50 hover:bg-white shadow-[1px_1px_0px_#000000]'
+                            }`}
                             style={{ backgroundColor: isSelected ? m.bg : '#F9F9F9' }}
                           >
                             <div
-                              className="w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center mb-1 shadow-[1px_1px_0px_#000000]"
+                              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 border-black flex items-center justify-center mb-1 shadow-[1px_1px_0px_#000000] shrink-0"
                               style={{ backgroundColor: m.bg }}
                             >
-                              <SvgIcon className="w-4 h-4 text-black stroke-[2.5]" />
+                              <SvgIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black stroke-[2.5]" />
                             </div>
-                            <span className="font-display font-black text-[11px] uppercase">{m.title}</span>
+                            <span className="font-display font-black text-[9px] sm:text-[11px] uppercase tracking-tight truncate max-w-full">{m.title}</span>
                           </motion.button>
                         );
                       })}
@@ -625,7 +626,7 @@ export default function EditDayModal({
                   </div>
 
                   {/* Single Diary Reflection Textarea */}
-                  <div className="flex-1 flex flex-col min-h-0 space-y-2">
+                  <div className="flex-1 flex flex-col min-h-0 space-y-1.5 sm:space-y-2">
                     {/* 💾 Draft Stash Recovery Notice */}
                     {hasUnsavedDraft && (
                       <aside
@@ -663,10 +664,10 @@ export default function EditDayModal({
                       </aside>
                     )}
 
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-black shrink-0">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono font-bold text-black shrink-0">
                       <span>2. EDIT DIARY REFLECTION NOTE</span>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
                         {/* Undo / Redo / Revert Buttons */}
                         <div className="flex items-center gap-1 bg-neutral-100 p-0.5 border-2 border-black rounded-lg shadow-[1px_1px_0px_#000000]">
                           <button
@@ -745,7 +746,7 @@ export default function EditDayModal({
                           type="button"
                           onClick={handleAIEnhance}
                           disabled={isEnhancing || !notes.trim()}
-                          className="px-3.5 py-1 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_#000000]"
+                          className="px-2.5 py-1 sm:px-3.5 sm:py-1 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-[11px] sm:text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_#000000]"
                           title="Polish diary note with Gemini AI using your Settings directive"
                         >
                           {isEnhancing ? (
@@ -762,7 +763,7 @@ export default function EditDayModal({
                       placeholder="Type your reflection, thoughts, or wins for this day..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full flex-1 min-h-50 sm:min-h-65 p-4 text-xs sm:text-sm font-mono bg-white border-2 border-black rounded-2xl placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed shadow-[2px_2px_0px_#000000] resize-none"
+                      className="w-full flex-1 min-h-32 sm:min-h-56 p-3 sm:p-4 text-xs sm:text-sm font-mono bg-white border-2 border-black rounded-2xl placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed shadow-[2px_2px_0px_#000000] resize-none"
                       style={{ color: '#000000' }}
                     />
                   </div>
@@ -771,27 +772,39 @@ export default function EditDayModal({
 
             </div>
 
-            {/* Pinned Action Buttons Footer */}
-            <div className="flex items-center justify-between gap-2 pt-4 mt-2 border-t-2 border-black/10 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onOpenWallpaper) {
-                    onOpenWallpaper({ rating, notes, date: dateStr }, dateStr);
-                  }
-                }}
-                className="px-3.5 py-2 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95"
-                title="Generate Aesthetic Wallpaper for this day"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>WALLPAPER</span>
-              </button>
+            {/* Pinned Action Buttons Footer: Vertical-First on Mobile, Clean Responsive Spread on Desktop */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2.5 mt-1 sm:pt-4 sm:mt-2 border-t-2 border-black/10 shrink-0">
+              {/* Secondary Actions (Wallpaper & Mobile Cancel) */}
+              <div className="order-2 sm:order-1 flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onOpenWallpaper) {
+                      onOpenWallpaper({ rating, notes, date: dateStr }, dateStr);
+                    }
+                  }}
+                  className="flex-1 sm:flex-initial px-3.5 py-2.5 sm:py-2 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000] active:scale-95"
+                  title="Generate Aesthetic Wallpaper for this day"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>WALLPAPER</span>
+                </button>
 
-              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl text-black text-xs font-mono font-bold cursor-pointer"
+                  className="flex-1 sm:hidden px-3.5 py-2.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl text-black text-xs font-mono font-bold cursor-pointer text-center shadow-[1.5px_1.5px_0px_#000000]"
+                >
+                  CANCEL
+                </button>
+              </div>
+
+              {/* Primary Save Action & Desktop Cancel */}
+              <div className="order-1 sm:order-2 flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="hidden sm:block px-4 py-2 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl text-black text-xs font-mono font-bold cursor-pointer text-center"
                 >
                   CANCEL
                 </button>
@@ -800,7 +813,7 @@ export default function EditDayModal({
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving || justSaved}
-                  className={`px-5 py-2 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:scale-95 transition-all ${
+                  className={`w-full sm:w-auto px-5 py-2.5 sm:py-2 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-[2.5px_2.5px_0px_#000000] active:scale-95 transition-all ${
                     justSaved
                       ? 'bg-[#00E599] ring-2 ring-black scale-102'
                       : 'bg-[#00E599] hover:bg-emerald-400'

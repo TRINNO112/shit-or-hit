@@ -1327,8 +1327,8 @@ export default function SettingsModal({
               <div className={`p-3.5 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3 ${
                 isSabbatical ? 'bg-[#FFFBEB]' : rehabActive ? 'bg-[#F0FDF4]' : 'bg-[#FFFDF5]'
               }`}>
-                <div className="flex items-start sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 w-full sm:flex-1">
                     <div className={`w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000] ${
                       isSabbatical ? 'bg-[#FFB800]' : 'bg-[#00E599]'
                     }`}>
@@ -1355,7 +1355,7 @@ export default function SettingsModal({
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] font-mono text-neutral-600 mt-0.5 leading-tight">
+                      <p className="text-[11px] font-mono text-neutral-600 mt-1 leading-normal">
                         {isSabbatical 
                           ? 'Open-ended macro life pause. Daily grading suspended indefinitely.'
                           : rehabActive 
@@ -1377,7 +1377,7 @@ export default function SettingsModal({
                           window.dispatchEvent(new Event('storage'));
                         }
                       }}
-                      className="py-1.5 px-3 bg-[#FF4D4D] text-white hover:bg-red-500 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap"
+                      className="w-full sm:w-auto py-2.5 px-4 bg-[#FF4D4D] text-white hover:bg-red-500 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 text-center uppercase"
                     >
                       RESUME VERDICTS
                     </button>
