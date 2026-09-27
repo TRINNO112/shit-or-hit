@@ -1151,8 +1151,8 @@ export default function MobileAppView({
               </div>
             )}
 
-            {/* Action Row: Reflection Drawer Trigger, Receipt & Wallpaper Export */}
-            <div className={`grid ${receiptEnabled ? 'grid-cols-3' : sphereModeActive ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            {/* Action Row: Reflection Drawer Trigger, Receipt & Wallpaper Export (Vertical-First Stacking on Mobile) */}
+            <div className="flex flex-col sm:flex-row gap-2">
               {!sphereModeActive && (
                 <button
                   type="button"
@@ -1160,10 +1160,10 @@ export default function MobileAppView({
                     triggerHaptic('light');
                     setShowNoteDrawer(true);
                   }}
-                  className="py-3 px-2 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
+                  className="w-full sm:flex-1 py-3 px-3 rounded-xl border-2 border-black bg-white hover:bg-[#FDC800] text-black font-mono font-black text-xs flex items-center justify-center gap-2 shadow-[2px_2px_0px_#000000] cursor-pointer active:scale-98 transition-all"
                 >
-                  <PenLine className="w-4 h-4" />
-                  <span className="truncate">{entries[todayStr]?.notes ? 'DIARY' : '+ DIARY'}</span>
+                  <PenLine className="w-4 h-4 stroke-[2.5]" />
+                  <span>{entries[todayStr]?.notes ? 'DAILY DIARY REFLECTION' : '+ WRITE DAILY REFLECTION'}</span>
                 </button>
               )}
 
@@ -1175,11 +1175,11 @@ export default function MobileAppView({
                     soundEngine.playClick();
                     setIsReceiptModalOpen(true);
                   }}
-                  className="py-3 px-2 rounded-xl border-2 border-black bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
+                  className="w-full sm:flex-1 py-3 px-3 rounded-xl border-2 border-black bg-[#00E599] hover:bg-emerald-400 text-black font-mono font-black text-xs flex items-center justify-center gap-2 shadow-[2px_2px_0px_#000000] cursor-pointer active:scale-98 transition-all"
                   title="Receipt of Truth"
                 >
                   <Printer className="w-4 h-4 text-black stroke-[2.5]" />
-                  <span className="truncate">RECEIPT</span>
+                  <span>RECEIPT OF TRUTH (THERMAL SLIP)</span>
                 </button>
               )}
 
@@ -1189,10 +1189,10 @@ export default function MobileAppView({
                   triggerHaptic('medium');
                   if (onOpenWallpaper) onOpenWallpaper(entries[todayStr], todayStr);
                 }}
-                className="py-3 px-2 rounded-xl border-2 border-black bg-[#FDC800] hover:bg-amber-400 text-black font-mono font-black text-xs flex items-center justify-center gap-1.5 shadow-[2.5px_2.5px_0px_#000000] cursor-pointer"
+                className="w-full sm:flex-1 py-3 px-3 rounded-xl border-2 border-black bg-[#FDC800] hover:bg-amber-400 text-black font-mono font-black text-xs flex items-center justify-center gap-2 shadow-[2px_2px_0px_#000000] cursor-pointer active:scale-98 transition-all"
               >
-                <Sparkles className="w-4 h-4 text-black" />
-                <span className="truncate">POSTER</span>
+                <Sparkles className="w-4 h-4 text-black stroke-[2.5]" />
+                <span>WALLPAPER & POSTER STUDIO</span>
               </button>
             </div>
           </div>

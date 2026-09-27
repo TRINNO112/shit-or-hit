@@ -901,7 +901,7 @@ export default function AestheticCardExportModal({
                 </div>
 
                 {/* Format Tabs - Seamless Segmented Control */}
-                <div className="grid grid-cols-2 bg-neutral-100 rounded-2xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 bg-neutral-100 rounded-2xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000]">
                   <button
                     type="button"
                     onClick={() => setFormat('wallpaper')}
@@ -911,18 +911,18 @@ export default function AestheticCardExportModal({
                       }`}
                   >
                     <Smartphone className="w-4 h-4 stroke-[2.5]" />
-                    <span>STORY POSTER</span>
+                    <span>STORY POSTER (WALLPAPER)</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormat('social')}
-                    className={`py-2.5 px-3 font-display font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer transition-all border-l-2 border-black ${format === 'social'
+                    className={`py-2.5 px-3 font-display font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer transition-all border-t-2 sm:border-t-0 sm:border-l-2 border-black ${format === 'social'
                       ? 'bg-[#FDC800] text-black shadow-inner'
                       : 'bg-transparent text-neutral-600 hover:text-black hover:bg-neutral-200'
                       }`}
                   >
                     <Share2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>FEED CARD</span>
+                    <span>FEED CARD (SQUARE)</span>
                   </button>
                 </div>
 
@@ -957,14 +957,14 @@ export default function AestheticCardExportModal({
                 )}
 
                 {/* 3 Themes - Seamless Segmented Control */}
-                <div className="grid grid-cols-3 bg-neutral-100 rounded-2xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000]">
+                <div className="grid grid-cols-1 sm:grid-cols-3 bg-neutral-100 rounded-2xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000000]">
                   {THEMES.map((t, idx) => (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => setActiveTheme(t.id)}
-                      className={`py-2 px-2 font-mono text-xs font-black text-center cursor-pointer transition-all ${
-                        idx > 0 ? 'border-l-2 border-black' : ''
+                      className={`py-2 px-3 font-mono text-xs font-black text-center cursor-pointer transition-all ${
+                        idx > 0 ? 'border-t-2 sm:border-t-0 sm:border-l-2 border-black' : ''
                       } ${activeTheme === t.id
                         ? 'bg-black text-[#FDC800]'
                         : 'bg-white text-neutral-700 hover:bg-neutral-100'
@@ -1009,11 +1009,11 @@ export default function AestheticCardExportModal({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 pt-1 border-t border-black/10">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1 border-t border-black/10">
                     <button
                       type="button"
                       onClick={() => setShowStickerVault(true)}
-                      className="flex-1 py-1.5 px-2 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                      className="w-full sm:flex-1 py-2 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>STICKER VAULT</span>
@@ -1029,7 +1029,7 @@ export default function AestheticCardExportModal({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="py-1.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1 active:scale-95 transition-all shrink-0"
+                      className="w-full sm:w-auto py-2 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0"
                       title="Upload any PNG transparent sticker"
                     >
                       <Upload className="w-3.5 h-3.5" />
@@ -1072,46 +1072,42 @@ export default function AestheticCardExportModal({
             </div>
           </div>
 
-          {/* Pinned Action Footer */}
-          <div className="flex items-center gap-2 sm:gap-3 pt-2.5 sm:pt-3 border-t-2 border-black/10 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="py-2.5 sm:py-3 px-3 sm:px-5 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
-            >
-              CLOSE
-            </button>
-
-            {/* Native Web Share Button (Stories / WhatsApp) */}
-            {typeof navigator !== 'undefined' && navigator.share && (
-              <button
-                type="button"
-                onClick={handleWebShare}
-                disabled={sharing || !previewUrl}
-                className="py-2.5 sm:py-3 px-3 sm:px-4 bg-[#FDC800] hover:bg-amber-400 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0 flex items-center gap-1.5"
-                title="Share directly to Instagram Stories, WhatsApp, or Contacts"
-              >
-                <Share2 className="w-4 h-4 stroke-3 shrink-0" />
-                <span className="hidden sm:inline">{sharing ? 'SHARING...' : 'SHARE STORY'}</span>
-              </button>
-            )}
-
+          {/* Pinned Action Footer (Vertical-First Stacking on Mobile) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 pt-2.5 sm:pt-3 border-t-2 border-black/10 shrink-0">
             <button
               type="button"
               onClick={handleDownload}
               disabled={downloading || !previewUrl}
-              className="flex-1 py-2.5 sm:py-3 px-2.5 sm:px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 min-w-0"
+              className="w-full sm:flex-1 py-3 px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs sm:text-sm uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 order-1 sm:order-3"
             >
               <Download className="w-4 h-4 stroke-3 shrink-0" />
-              <span className="truncate">
-                {downloading ? 'GENERATING POSTER...' : (
-                  <>
-                    <span className="hidden sm:inline">DOWNLOAD POSTER</span>
-                    <span className="sm:hidden">DOWNLOAD</span>
-                  </>
-                )}
+              <span>
+                {downloading ? 'GENERATING POSTER...' : 'DOWNLOAD HIGH-RES POSTER'}
               </span>
             </button>
+
+            <div className="flex items-center gap-2 order-2 sm:order-1">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 sm:flex-none py-2.5 sm:py-3 px-4 sm:px-5 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+              >
+                CLOSE
+              </button>
+
+              {typeof navigator !== 'undefined' && navigator.share && (
+                <button
+                  type="button"
+                  onClick={handleWebShare}
+                  disabled={sharing || !previewUrl}
+                  className="flex-1 sm:flex-none py-2.5 sm:py-3 px-4 bg-[#FDC800] hover:bg-amber-400 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5"
+                  title="Share directly to Instagram Stories, WhatsApp, or Contacts"
+                >
+                  <Share2 className="w-4 h-4 stroke-3 shrink-0" />
+                  <span>{sharing ? 'SHARING...' : 'SHARE STORY'}</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
   );
