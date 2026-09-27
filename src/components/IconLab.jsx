@@ -4,7 +4,8 @@ import {
   Flame, Crown, Skull, Crosshair, Swords, Target, Terminal,
   Zap, Sparkles, Ghost, ShieldAlert, Cpu, Activity,
   Compass, ShieldCheck, Trophy, Radio, Gem, Eye,
-  Layers, Check, Copy, ArrowLeft, Download, RefreshCw
+  Layers, Check, Copy, ArrowLeft, Download, RefreshCw,
+  Calendar, Palette, Smartphone
 } from 'lucide-react';
 
 export function MedalRibbonIcon({ className = "w-14 h-14", color = "#FDC800" }) {
@@ -214,8 +215,24 @@ import AestheticCardVariantDeepseek from './AestheticCardVariantDeepseek';
 import YearInPixelsWallpaperEngine from './YearInPixelsWallpaperEngine';
 import MoodReactionBanner from './MoodReactionBanner';
 
-export default function IconLab({ onBack }) {
-  const [activeLabTab, setActiveLabTab] = useState('banner_arena');
+export default function IconLab({ onBack, defaultTab, entries = {} }) {
+  const [activeLabTab, setActiveLabTab] = useState(() => {
+    if (defaultTab) return defaultTab;
+    if (typeof window !== 'undefined') {
+      const search = window.location.search;
+      const hash = window.location.hash;
+      if (search.includes('tab=year') || search.includes('view=year') || search.includes('view=wallpaper') || hash.includes('wallpaper') || hash.includes('year_pixels')) {
+        return 'year_pixels';
+      }
+      if (search.includes('tab=banner') || search.includes('view=banner')) {
+        return 'banner_arena';
+      }
+      if (search.includes('tab=icons') || search.includes('view=icons')) {
+        return 'icons';
+      }
+    }
+    return 'banner_arena';
+  });
   const [selectedStudioDesign, setSelectedStudioDesign] = useState('darkroom'); // 'darkroom' | 'deepseek'
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState('shield_volt');
@@ -271,46 +288,50 @@ export default function IconLab({ onBack }) {
             <button
               type="button"
               onClick={() => setActiveLabTab('banner_arena')}
-              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
                 activeLabTab === 'banner_arena'
                   ? 'bg-[#FF4D4D] text-white border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black border-2 border-transparent'
               }`}
             >
-              🎨 BANNER DESIGN ARENA
+              <Palette className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>BANNER DESIGN ARENA</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveLabTab('year_pixels')}
-              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
                 activeLabTab === 'year_pixels'
                   ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black border-2 border-transparent'
               }`}
             >
-              🗓️ 365-DAY WALLPAPER
+              <Calendar className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>365-DAY WALLPAPER</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveLabTab('icons')}
-              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
                 activeLabTab === 'icons'
                   ? 'bg-[#00E599] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black border-2 border-transparent'
               }`}
             >
-              ⚡ ICONS & SVG
+              <Zap className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>ICONS & SVG</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveLabTab('wallpaper')}
-              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all ${
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
                 activeLabTab === 'wallpaper'
                   ? 'bg-black text-white border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
                   : 'text-neutral-700 hover:text-black border-2 border-transparent'
               }`}
             >
-              🖼️ POSTER ARENA
+              <Layers className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>POSTER ARENA</span>
             </button>
           </div>
         </div>
@@ -378,7 +399,7 @@ export default function IconLab({ onBack }) {
         {/* TAB 0: 365-DAY YEAR IN PIXELS WALLPAPER ENGINE */}
         {activeLabTab === 'year_pixels' && (
           <div className="space-y-6">
-            <YearInPixelsWallpaperEngine />
+            <YearInPixelsWallpaperEngine userEntries={entries} />
           </div>
         )}
 

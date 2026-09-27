@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Download, 
-  Sparkles, 
-  RefreshCw, 
-  Smartphone, 
-  Monitor, 
-  Square, 
-  Flame, 
-  Calendar, 
-  Check, 
+import {
+  Download,
+  Sparkles,
+  RefreshCw,
+  Smartphone,
+  Monitor,
+  Square,
+  Flame,
+  Calendar,
+  Check,
   ShieldCheck,
   Layers,
   Palette,
@@ -130,148 +130,178 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
     canvas.width = width;
     canvas.height = height;
 
-    // 1. Background Fill
-    if (selectedTheme === 'darkroom') {
-      ctx.fillStyle = '#0B0F17';
-      ctx.fillRect(0, 0, width, height);
+    // Theme-specific background configurations
+    const themeBackgrounds = {
+      darkroom: {
+        fillStyle: '#0B0F17',
+        gradient: {
+          stops: [
+            { offset: 0, color: 'rgba(0, 229, 153, 0.08)' },
+            { offset: 0.6, color: 'rgba(253, 200, 0, 0.04)' },
+            { offset: 1, color: 'rgba(0, 0, 0, 0)' },
+          ],
+          x1: width * 0.5, y1: height * 0.45, r1: 100,
+          x2: width * 0.5, y2: height * 0.45, r2: width * 0.8,
+        },
+      },
+      matrix: { fillStyle: '#05080E' },
+      cream: { fillStyle: '#FFFDF5' },
+      cyberpunk: { fillStyle: '#120E24' },
+    };
 
-      // Ambient radial lighting
-      const grad = ctx.createRadialGradient(width * 0.5, height * 0.45, 100, width * 0.5, height * 0.45, width * 0.8);
-      grad.addColorStop(0, 'rgba(0, 229, 153, 0.08)');
-      grad.addColorStop(0.6, 'rgba(253, 200, 0, 0.04)');
-      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    // Apply background based on theme
+    const bgConfig = themeBackgrounds[selectedTheme];
+    ctx.fillStyle = bgConfig.fillStyle;
+    ctx.fillRect(0, 0, width, height);
+    if (bgConfig.gradient) {
+      const grad = ctx.createRadialGradient(bgConfig.gradient.x1, bgConfig.gradient.y1, bgConfig.gradient.r1, bgConfig.gradient.x2, bgConfig.gradient.y2, bgConfig.gradient.r2);
+      bgConfig.gradient.stops.forEach(stop => grad.addColorStop(stop.offset, stop.color));
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
-    } else if (selectedTheme === 'matrix') {
-      ctx.fillStyle = '#05080E';
-      ctx.fillRect(0, 0, width, height);
-    } else if (selectedTheme === 'cream') {
-      ctx.fillStyle = '#FFFDF5';
-      ctx.fillRect(0, 0, width, height);
-    } else if (selectedTheme === 'cyberpunk') {
-      ctx.fillStyle = '#120E24';
       ctx.fillRect(0, 0, width, height);
     }
 
-    // 2. Header & Branding
+    // 2. Theme brightness & text tokens
     const isLight = selectedTheme === 'cream';
-    const textColor = isLight ? '#000000' : '#FFFFFF';
-    const subColor = isLight ? '#4B5563' : '#9CA3AF';
-    const accentColor = '#FDC800';
 
-    ctx.save();
-    
-    // Scale factor relative to 1080 base
-    const scale = width / 1080;
+    // --- Helper Functions for Drawing ---
+    const drawText = (text, x, y, fontProps, fillStyle) => {
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = fillStyle;
+      ctx.font = fontProps;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    };
 
-    // Top Title & Badges
-    const headerY = selectedFormat === 'phone' ? height * 0.12 : height * 0.14;
-    
-    ctx.textAlign = 'center';
-    ctx.fillStyle = accentColor;
-    ctx.font = `900 ${22 * scale}px "Plus Jakarta Sans", monospace`;
-    ctx.fillText(`SHIT OR HIT • 365-DAY LIFE MATRIX`, width / 2, headerY - (45 * scale));
+    const drawBrandHeader = (scale, headerYPosition) => {
+      const textColor = isLight ? '#000000' : '#FFFFFF';
+      const subColor = isLight ? '#4B5563' : '#9CA3AF';
+      const accentColor = '#FDC800';
 
-    ctx.fillStyle = textColor;
-    ctx.font = `900 ${56 * scale}px "Cabinet Grotesk", "Plus Jakarta Sans", sans-serif`;
-    ctx.fillText(`${targetYear} YEAR IN PIXELS`, width / 2, headerY + (10 * scale));
+      drawText(
+        'SHIT OR HIT • 365-DAY LIFE MATRIX',
+        width / 2, headerYPosition - (45 * scale),
+        `900 ${22 * scale}px "Plus Jakarta Sans", monospace`,
+        accentColor
+      );
 
-    ctx.fillStyle = subColor;
-    ctx.font = `700 ${20 * scale}px monospace`;
-    ctx.fillText(`${daysData.loggedCount} DAYS LOGGED • ${daysData.hitRatio}% HIT RATIO • 365 TOTAL TILES`, width / 2, headerY + (50 * scale));
+      drawText(
+        'Year In Pixels',
+        width / 2, headerYPosition + (10 * scale),
+        `900 ${56 * scale}px "Cabinet Grotesk", "Plus Jakarta Sans", sans-serif`,
+        textColor
+      );
 
-    // 3. Grid Computation
-    // Mobile: 14 cols x 27 rows (~378 slots for 365 days)
-    // Desktop: 31 cols x 12 rows (Months x Days matrix)
-    const isDesktop = selectedFormat === 'desktop';
-    const cols = isDesktop ? 31 : 14;
-    const rows = isDesktop ? 12 : 27;
+      drawText(
+        `${daysData.loggedCount} DAYS LOGGED • ${daysData.hitRatio}% HIT RATIO • 365 TOTAL TILES`,
+        width / 2, headerYPosition + (50 * scale),
+        `700 ${20 * scale}px monospace`,
+        subColor
+      );
+    };
 
-    const gridWidth = width * (isDesktop ? 0.85 : 0.84);
-    const gridHeight = height * (isDesktop ? 0.60 : 0.58);
-    const startX = (width - gridWidth) / 2;
-    const startY = headerY + (110 * scale);
+    const drawGrid = (headerY, scale) => {
+      const isDesktop = selectedFormat === 'desktop';
+      const cols = isDesktop ? 31 : 14;
+      const rows = isDesktop ? 12 : 27;
 
-    const gap = 8 * scale;
-    const blockW = (gridWidth - (cols - 1) * gap) / cols;
-    const blockH = (gridHeight - (rows - 1) * gap) / rows;
-    const blockRadius = Math.min(blockW, blockH) * 0.22;
+      const gridWidth = width * (isDesktop ? 0.85 : 0.84);
+      const gridHeight = height * (isDesktop ? 0.60 : 0.58);
+      const startX = (width - gridWidth) / 2;
+      const startY = headerY + (110 * scale);
 
-    // Render Blocks
-    daysData.days.forEach((dayInfo, idx) => {
-      let colIdx = 0;
-      let rowIdx = 0;
+      const gap = 8 * scale;
+      const blockW = (gridWidth - (cols - 1) * gap) / cols;
+      const blockH = (gridHeight - (rows - 1) * gap) / rows;
+      const blockRadius = Math.min(blockW, blockH) * 0.22;
 
-      if (isDesktop) {
-        // Month rows, Day cols
-        colIdx = dayInfo.day - 1;
-        rowIdx = dayInfo.month - 1;
-      } else {
-        colIdx = idx % cols;
-        rowIdx = Math.floor(idx / cols);
-      }
+      daysData.days.forEach((dayInfo, idx) => {
+        let colIdx = 0;
+        let rowIdx = 0;
 
-      const x = startX + colIdx * (blockW + gap);
-      const y = startY + rowIdx * (blockH + gap);
+        if (isDesktop) {
+          colIdx = dayInfo.day - 1;
+          rowIdx = dayInfo.month - 1;
+        } else {
+          colIdx = idx % cols;
+          rowIdx = Math.floor(idx / cols);
+        }
 
-      const color = getBlockColor(dayInfo.rating, dayInfo.isPast, selectedTheme);
+        const x = startX + colIdx * (blockW + gap);
+        const y = startY + rowIdx * (blockH + gap);
 
-      // Block Fill
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.roundRect(x, y, blockW, blockH, blockRadius);
-      ctx.fill();
+        const color = getBlockColor(dayInfo.rating, dayInfo.isPast, selectedTheme);
 
-      // Block Border / Stroke
-      if (isLight) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x, y, blockW, blockH, blockRadius);
+        ctx.fill();
+
+        if (isLight) {
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 1.5 * scale;
+          ctx.stroke();
+        } else if (dayInfo.rating) {
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+          ctx.lineWidth = 1.5 * scale;
+          ctx.stroke();
+        }
+      });
+      return { startY, gridHeight }; // Return positioning info for legend
+    };
+
+    const drawLegend = (gridPos, scale) => {
+      const legendY = gridPos.startY + gridPos.gridHeight + (65 * scale);
+      const legendItems = [
+        { label: '5★ Peak', color: '#FDC800' },
+        { label: '4★ Good', color: '#00E599' },
+        { label: '3★ Okay', color: '#CBD5E1' },
+        { label: '2★ Down', color: '#FF8A00' },
+        { label: '1★ Rough', color: '#FF4D4D' }
+      ];
+
+      const itemWidth = 140 * scale;
+      const totalLegendWidth = legendItems.length * itemWidth;
+      const legendStartX = (width - totalLegendWidth) / 2;
+      const textColor = isLight ? '#000000' : '#FFFFFF';
+
+      legendItems.forEach((item, idx) => {
+        const lx = legendStartX + idx * itemWidth;
+
+        ctx.fillStyle = item.color;
+        ctx.beginPath();
+        ctx.arc(lx + (15 * scale), legendY, 9 * scale, 0, Math.PI * 2);
+        ctx.fill();
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1.5 * scale;
         ctx.stroke();
-      } else if (dayInfo.rating) {
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.lineWidth = 1.5 * scale;
-        ctx.stroke();
-      }
-    });
 
-    // 4. Legend Key at Bottom
-    const legendY = startY + gridHeight + (65 * scale);
-    const legendItems = [
-      { label: '5★ Peak', color: '#FDC800' },
-      { label: '4★ Good', color: '#00E599' },
-      { label: '3★ Okay', color: '#CBD5E1' },
-      { label: '2★ Down', color: '#FF8A00' },
-      { label: '1★ Rough', color: '#FF4D4D' }
-    ];
+        drawText(
+          item.label,
+          lx + (32 * scale), legendY + (5 * scale),
+          `800 ${15 * scale}px "Plus Jakarta Sans", sans-serif`,
+          textColor
+        );
+      });
+    };
 
-    const itemWidth = 140 * scale;
-    const totalLegendWidth = legendItems.length * itemWidth;
-    const legendStartX = (width - totalLegendWidth) / 2;
+    const drawFooter = (scale) => {
+      const subColor = isLight ? '#4B5563' : '#9CA3AF';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = subColor;
+      ctx.font = `700 ${14 * scale}px monospace`;
+      ctx.fillText(`GENERATED VIA DAILY VERDICT OS • ZERO PRIVACY LEAKS`, width / 2, height - (40 * scale));
+    };
 
-    legendItems.forEach((item, idx) => {
-      const lx = legendStartX + idx * itemWidth;
-      
-      // Dot
-      ctx.fillStyle = item.color;
-      ctx.beginPath();
-      ctx.arc(lx + (15 * scale), legendY, 9 * scale, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 1.5 * scale;
-      ctx.stroke();
+    // --- Main Drawing Execution ---
+    ctx.save();
+    const scale = width / 1080; // Base scale for responsive elements
+    const headerY = selectedFormat === 'phone' ? height * 0.12 : height * 0.14;
 
-      // Text
-      ctx.textAlign = 'left';
-      ctx.fillStyle = textColor;
-      ctx.font = `800 ${15 * scale}px "Plus Jakarta Sans", sans-serif`;
-      ctx.fillText(item.label, lx + (32 * scale), legendY + (5 * scale));
-    });
-
-    // 5. Watermark Footer
-    ctx.textAlign = 'center';
-    ctx.fillStyle = subColor;
-    ctx.font = `700 ${14 * scale}px monospace`;
-    ctx.fillText(`GENERATED VIA DAILY VERDICT OS • ZERO PRIVACY LEAKS`, width / 2, height - (40 * scale));
+    drawBrandHeader(scale, headerY);
+    const gridPositioning = drawGrid(headerY, scale);
+    drawLegend(gridPositioning, scale);
+    drawFooter(scale);
 
     ctx.restore();
   };
@@ -301,7 +331,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
 
   return (
     <div className="bg-neutral-900 border-3 border-black rounded-3xl p-5 sm:p-7 text-white shadow-[6px_6px_0px_#000000] space-y-6">
-      
+
       {/* Engine Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
@@ -339,7 +369,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
 
       {/* Control Strip (Format + Themes + Demo Toggle) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
+
         {/* 1. Format Selector */}
         <div className="p-3 bg-black/50 border-2 border-white/10 rounded-2xl space-y-2">
           <span className="text-[11px] font-mono font-bold text-neutral-400 uppercase block">

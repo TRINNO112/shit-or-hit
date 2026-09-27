@@ -117,7 +117,20 @@ export default function App() {
   const isMobile = useIsMobile();
   const [showIconLab, setShowIconLab] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.location.search.includes('view=icons') || window.location.hash.includes('icons');
+    return window.location.search.includes('view=icons') || 
+           window.location.hash.includes('icons') ||
+           window.location.search.includes('view=wallpaper') ||
+           window.location.search.includes('view=year_pixels') ||
+           window.location.hash.includes('wallpaper');
+  });
+  const [iconLabTab, setIconLabTab] = useState(() => {
+    if (typeof window === 'undefined') return 'banner_arena';
+    const s = window.location.search;
+    const h = window.location.hash;
+    if (s.includes('tab=year') || s.includes('view=year') || s.includes('view=wallpaper') || h.includes('wallpaper') || h.includes('year_pixels')) {
+      return 'year_pixels';
+    }
+    return 'banner_arena';
   });
   const [showSkeletonPreview, setShowSkeletonPreview] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -344,7 +357,19 @@ export default function App() {
 
   useEffect(() => {
     const checkHash = () => {
-      setShowIconLab(window.location.search.includes('view=icons') || window.location.hash.includes('icons'));
+      const isLab = window.location.search.includes('view=icons') || 
+                    window.location.hash.includes('icons') ||
+                    window.location.search.includes('view=wallpaper') ||
+                    window.location.search.includes('view=year_pixels') ||
+                    window.location.hash.includes('wallpaper');
+      setShowIconLab(isLab);
+      if (isLab) {
+        const s = window.location.search;
+        const h = window.location.hash;
+        if (s.includes('tab=year') || s.includes('view=year') || s.includes('view=wallpaper') || h.includes('wallpaper') || h.includes('year_pixels')) {
+          setIconLabTab('year_pixels');
+        }
+      }
       setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
       setShowSanctuary(window.location.search.includes('view=sanctuary') || window.location.hash.includes('sanctuary'));
       setShowPrivacy(window.location.search.includes('view=privacy') || window.location.hash.includes('privacy'));
@@ -771,6 +796,8 @@ export default function App() {
       <ErrorBoundary>
         <Suspense fallback={<div className="min-h-screen bg-[#FFFDF5] flex items-center justify-center font-mono text-sm font-black">LOADING ICON STUDIO...</div>}>
           <IconLab
+            defaultTab={iconLabTab}
+            entries={entries}
             onBack={() => {
               setShowIconLab(false);
               window.history.replaceState(null, '', window.location.pathname);
@@ -1185,6 +1212,11 @@ export default function App() {
                 onOpenErasurePage={() => setShowErasure(true)}
                 onOpenStoragePage={() => setShowStoragePage(true)}
                 onOpenExportStudio={() => setIsExportStudioOpen(true)}
+                onOpenWallpaperEngine={() => {
+                  setIsSettingsOpen(false);
+                  setIconLabTab('year_pixels');
+                  setShowIconLab(true);
+                }}
               />
             )}
 
@@ -1205,6 +1237,11 @@ export default function App() {
                 onClose={() => setIsExportStudioOpen(false)}
                 entries={entries}
                 startDate={startDate}
+                onOpenWallpaperEngine={() => {
+                  setIsExportStudioOpen(false);
+                  setIconLabTab('year_pixels');
+                  setShowIconLab(true);
+                }}
               />
             )}
 

@@ -13,6 +13,7 @@ import {
   Moon,
   Info,
   Clock,
+  Calendar,
   Layers,
   Plus,
   Trash2,
@@ -114,7 +115,8 @@ export default function SettingsModal({
   onOpenPrivacyPage,
   onOpenErasurePage,
   onOpenStoragePage,
-  onOpenExportStudio
+  onOpenExportStudio,
+  onOpenWallpaperEngine
 }) {
   const [notificationsOn, setNotificationsOn] = useState(false);
   const [reminderTimeVal, setReminderTimeVal] = useState('22:00');
@@ -1586,6 +1588,26 @@ export default function SettingsModal({
                       <div className="flex items-center gap-2">
                         <Download className="w-4 h-4 stroke-[2.5]" />
                         <span>Data Export Studio (CSV, Digest & JSON)</span>
+                      </div>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                )}
+
+                {/* 365-Day Year in Pixels Wallpaper Engine Launcher */}
+                {onOpenWallpaperEngine && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenWallpaperEngine();
+                      }}
+                      className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-yellow-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:translate-x-px"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 stroke-[2.5]" />
+                        <span>365-Day Wallpaper Engine (4K & Mobile HD)</span>
                       </div>
                       <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                     </button>
