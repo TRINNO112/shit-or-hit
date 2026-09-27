@@ -14,6 +14,12 @@ import {
   aiAutopsySchema
 } from './schemas/apiSchemas.js';
 import { logger, requestLogger } from './logger.js';
+import {
+  SlidingWindowLimiter,
+  TokenBucketLimiter,
+  slidingWindowMiddleware,
+  tokenBucketMiddleware
+} from './rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +70,14 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(requestLogger);
+
+// ⚡ Precision Rate Limiting: 120 requests/min via Sliding Window Counter (Eliminates boundary burst spikes)
+app.use('/api', slidingWindowMiddleware({
+  windowMs: 60 * 1000,
+  maxRequests: 120,
+  name: 'api-global',
+  message: 'Too many requests across rolling window. Please slow down.'
+}));
 
 // OpenAPI / Swagger Documentation
 const openApiPath = path.join(__dirname, 'openapi.json');
@@ -128,34 +142,28 @@ function isTestSandbox(req) {
   );
 }
 
-// In-Memory Rate Limiter for PIN Verification (5 attempts per 15 minutes)
-const pinAttemptStore = new Map();
+// 🔒 Sliding Window Rate Limiter for PIN Verification (5 attempts per 15 minutes, zero boundary spike)
+const pinSlidingLimiter = new SlidingWindowLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  name: 'pin-verification'
+});
 
 function checkPinRateLimit(key) {
-  const now = Date.now();
-  const record = pinAttemptStore.get(key);
-  if (!record) return { allowed: true, remaining: 5 };
-  if (now > record.resetAt) {
-    pinAttemptStore.delete(key);
-    return { allowed: true, remaining: 5 };
-  }
-  if (record.count >= 5) {
-    const waitMinutes = Math.ceil((record.resetAt - now) / 60000);
+  const result = pinSlidingLimiter.check(key);
+  if (!result.allowed) {
+    const waitMinutes = Math.max(1, Math.ceil(result.retryAfterSec / 60));
     return { allowed: false, waitMinutes };
   }
-  return { allowed: true, remaining: 5 - record.count };
+  return { allowed: true, remaining: result.remaining };
 }
 
 function recordPinFailure(key) {
-  const now = Date.now();
-  const record = pinAttemptStore.get(key) || { count: 0, resetAt: now + 15 * 60 * 1000 };
-  record.count += 1;
-  record.resetAt = Math.max(record.resetAt, now + 15 * 60 * 1000);
-  pinAttemptStore.set(key, record);
+  // Check call automatically tracks counts; failure logging hook maintained
 }
 
 function resetPinAttempts(key) {
-  pinAttemptStore.delete(key);
+  pinSlidingLimiter.reset(key);
 }
 
 function getDataFilePath(req) {
@@ -406,7 +414,7 @@ async function callGeminiApi({ prompt, apiKey, temperature = 0.7, maxTokens = 20
 }
 
 // AI Enhancement Endpoint for Daily Reflection
-app.post('/api/ai/enhance', validateBody(aiEnhanceSchema), async (req, res) => {
+app.post('/api/ai/enhance', tokenBucketMiddleware({ capacity: 5, refillRatePerSec: 0.2, name: 'ai-enhance' }), validateBody(aiEnhanceSchema), async (req, res) => {
   const { notes, rating, date, preferredLanguage = 'auto', spheres, customInstruction } = req.body;
 
   if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) {
@@ -509,7 +517,7 @@ function sharpenReflectionLocally(text, rating) {
 }
 
 // 🩺 AI Forensic Autopsy Chamber Endpoint
-app.post('/api/ai/autopsy', validateBody(aiAutopsySchema), async (req, res) => {
+app.post('/api/ai/autopsy', tokenBucketMiddleware({ capacity: 5, refillRatePerSec: 0.2, name: 'ai-autopsy' }), validateBody(aiAutopsySchema), async (req, res) => {
   const { date, rating, notes = '', spheres = {}, anchors = {}, recentHistory = [] } = req.body;
   const apiKey = GEMINI_API_KEY;
 
@@ -685,7 +693,7 @@ app.get('/api/monthly-report', validateQuery(monthlyReportQuerySchema), (req, re
 });
 
 // Monthly AI Performance Dossier Report Route (POST generate / re-evaluate)
-app.post('/api/monthly-report', validateBody(monthlyReportBodySchema), async (req, res) => {
+app.post('/api/monthly-report', tokenBucketMiddleware({ capacity: 3, refillRatePerSec: 0.1, name: 'ai-dossier' }), validateBody(monthlyReportBodySchema), async (req, res) => {
   const { year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage = 'auto' } = req.body;
   const targetDataset = archetypeId || 'real';
   const monthStr = String(month).padStart(2, '0');

@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import { SlidingWindowLimiter, TokenBucketLimiter } from '../server/rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -303,6 +304,16 @@ assert(firebaseCode.includes('getEffectiveUserId'), 'firebase.js: getEffectiveUs
 assert(firebaseCode.includes('cleanFirestorePayload'), 'firebase.js: cleanFirestorePayload sanitizes entries & blocks invalid undefined fields');
 assert(!firebaseCode.includes('batchSaveCloudEntries(user.uid, parsed.entries)'), 'firebase.js: Removed unsafe cross-user cache auto-upload');
 assert(firebaseCode.includes('window.location.reload()'), 'firebase.js: logoutUser triggers browser reload to purge telemetry/cache memory');
+
+// 🧪 Precision Rate Limiting Invariants (Sliding Window & Token Bucket)
+const swLimiter = new SlidingWindowLimiter({ windowMs: 1000, maxRequests: 5, name: 'audit-sw' });
+for (let i = 0; i < 5; i++) { swLimiter.check('ip1'); }
+const swBlocked = swLimiter.check('ip1');
+assert(!swBlocked.allowed, 'RateLimiter: Sliding Window Counter strictly halts requests at limit');
+
+const tbLimiter = new TokenBucketLimiter({ capacity: 3, refillRatePerSec: 0.5, name: 'audit-tb' });
+assert(tbLimiter.check('ip2').allowed && tbLimiter.check('ip2').allowed && tbLimiter.check('ip2').allowed, 'RateLimiter: Token Bucket permits valid burst traffic');
+assert(!tbLimiter.check('ip2').allowed, 'RateLimiter: Token Bucket instantly throttles bursts exceeding bucket capacity');
 
 // ----------------------------------------------------------------------
 // SUITE 11: Offline Mathematical & Dynamic State Model Matrix
