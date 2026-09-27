@@ -192,7 +192,7 @@ export default function MobileAppView({
   }, [noteText, todayStr, entries]);
 
   // AI Polish State & History Stack
-  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'error'
   const [historyStack, setHistoryStack] = useState([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [originalDraft, setOriginalDraft] = useState('');
@@ -201,7 +201,6 @@ export default function MobileAppView({
   const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const [activeDirective, setActiveDirective] = useState('auto');
   const [selectedTags, setSelectedTags] = useState([]);
-  const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
   const [justSavedNote, setJustSavedNote] = useState(false);
 
   // Embedded Calendar State
@@ -366,8 +365,7 @@ export default function MobileAppView({
     const currentVal = noteText;
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
-    setIsEnhancing(true);
-    setAiFeedback(null);
+    setEnhanceStatus('polishing');
     try {
       const comp = calculateCompositeScore(spheresData);
       const enhanced = await enhanceReflectionWithAI(
@@ -386,22 +384,15 @@ export default function MobileAppView({
         setHistoryStack(newStack);
         setHistoryIdx(newStack.length - 1);
         setNoteText(enhanced);
-        setAiFeedback({
-          type: 'success',
-          message: 'Diary reflection polished with AI.'
-        });
-        setTimeout(() => setAiFeedback(null), 2500);
+        setEnhanceStatus('success');
+        setTimeout(() => setEnhanceStatus('idle'), 2000);
       }
     } catch (err) {
       console.error('AI Enhance error:', err);
       triggerHaptic('warning');
       soundFx.playRough();
-      setAiFeedback({
-        type: 'error',
-        message: err.message || 'AI Enhancement failed. Check connection or API key.'
-      });
-    } finally {
-      setIsEnhancing(false);
+      setEnhanceStatus('error');
+      setTimeout(() => setEnhanceStatus('idle'), 2500);
     }
   };
 
@@ -1429,6 +1420,24 @@ export default function MobileAppView({
             </div>
           </div>
 
+          {/* Tactical Error Notification if Re-Evaluation had an issue but prior report is preserved */}
+          {dossierError && dossierReport && (
+            <div className="p-3 bg-amber-50 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 stroke-[2.5]" />
+                <span className="font-mono text-xs font-bold text-amber-950">
+                  AI Re-Evaluation Failed ({dossierError}) • Existing Dossier Preserved
+                </span>
+              </div>
+              <button
+                onClick={() => loadDossier(dossierYear, dossierMonth, true)}
+                className="px-2.5 py-1 bg-black text-[#FDC800] hover:bg-neutral-800 rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer shrink-0"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
           {/* Dossier Content Body */}
           {dossierLoading ? (
             <div className="p-8 rounded-2xl border-2 border-black bg-white text-center space-y-2.5 shadow-[3px_3px_0px_#000000]">
@@ -1440,13 +1449,13 @@ export default function MobileAppView({
                 Gemini AI is analyzing behavioral patterns, calculating forensics, and drafting real-talk advice.
               </p>
             </div>
-          ) : dossierError ? (
+          ) : dossierError && !dossierReport ? (
             <div className="p-5 rounded-2xl border-2 border-black bg-red-100 text-center space-y-2.5">
               <AlertCircle className="w-7 h-7 text-red-600 mx-auto" />
               <p className="text-xs font-mono font-bold text-red-900">{dossierError}</p>
               <button
-                onClick={() => loadDossier(dossierArchetype, dossierYear, dossierMonth, true)}
-                className="px-4 py-1.5 bg-black text-[#FDC800] font-mono text-xs font-black rounded-xl"
+                onClick={() => loadDossier(dossierYear, dossierMonth, true)}
+                className="px-4 py-1.5 bg-black text-[#FDC800] font-mono text-xs font-black rounded-xl cursor-pointer"
               >
                 Retry
               </button>
@@ -1938,57 +1947,42 @@ export default function MobileAppView({
                 {/* AI Directives Modal Trigger & Polish Toolbar */}
                 <div className="flex items-center justify-between gap-2 pt-0.5 shrink-0">
                   <div className="flex items-center gap-2">
+                    {/* In-Place Tactile AI Polish Button (Zero Layout Shift) */}
                     <button
                       type="button"
                       onClick={() => handleAIEnhance()}
-                      disabled={isEnhancing || !noteText || !noteText.trim()}
-                      className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-all ${
-                        isEnhancing ? 'bg-amber-100 opacity-70 animate-pulse' : 'bg-[#FDC800] hover:bg-amber-400'
-                      } disabled:opacity-40 disabled:cursor-not-allowed`}
-                      title="Polish and organize your diary entry with Gemini AI using your Settings directive (maintains 1st person)"
+                      disabled={enhanceStatus === 'polishing' || !noteText || !noteText.trim()}
+                      className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-colors active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
+                        enhanceStatus === 'success'
+                          ? 'bg-[#00E599]'
+                          : enhanceStatus === 'error'
+                          ? 'bg-[#FF4D4D] text-white'
+                          : 'bg-[#FDC800] hover:bg-amber-400'
+                      }`}
+                      title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : 'Polish and organize your diary entry with Gemini AI using your Settings directive'}
                     >
-                      <Wand2 className={`w-3.5 h-3.5 ${isEnhancing ? 'animate-spin' : ''}`} />
-                      <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH'}</span>
-                    </button>
-
-                    {/* Pure Micro-Affirmation: Pure floating tick icon with no container box */}
-                    <AnimatePresence>
-                      {aiFeedback && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8, x: -4 }}
-                          animate={{ opacity: 1, scale: 1, x: 0 }}
-                          exit={{ opacity: 0, scale: 0.8, x: -4 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center gap-1.5 shrink-0"
-                        >
-                          {aiFeedback.type === 'success' ? (
-                            <>
-                              <Check className="w-4 h-4 text-[#00E599] stroke-[3.5] drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]" />
-                              <span className="font-mono text-xs font-bold text-neutral-600">Polished</span>
-                              <button
-                                type="button"
-                                onClick={handleUndo}
-                                className="text-[10px] font-mono font-bold text-neutral-400 hover:text-black underline cursor-pointer ml-0.5"
-                              >
-                                Undo
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <AlertCircle className="w-3.5 h-3.5 text-red-500 stroke-[2.5]" />
-                              <span className="font-mono text-[11px] font-bold text-red-600">Failed</span>
-                              <button
-                                type="button"
-                                onClick={() => handleAIEnhance()}
-                                className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer ml-0.5"
-                              >
-                                Retry
-                              </button>
-                            </>
-                          )}
-                        </motion.div>
+                      {enhanceStatus === 'polishing' ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>POLISHING...</span>
+                        </>
+                      ) : enhanceStatus === 'success' ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 stroke-3 text-black" />
+                          <span>POLISHED!</span>
+                        </>
+                      ) : enhanceStatus === 'error' ? (
+                        <>
+                          <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>FAILED (RETRY)</span>
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>AI POLISH</span>
+                        </>
                       )}
-                    </AnimatePresence>
+                    </button>
                   </div>
 
                   {/* History controls (Undo, Redo, Revert) */}

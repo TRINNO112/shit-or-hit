@@ -334,6 +334,33 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
             onScroll={handleScroll}
             className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-7 py-3 sm:py-4 space-y-3 sm:space-y-4"
           >
+            {/* Tactical Error Notification if Re-Evaluation had an issue but prior report is preserved */}
+            {error && report && (
+              <div className="p-3 bg-amber-50 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shrink-0">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 stroke-[2.5]" />
+                  <span className="font-mono text-xs font-bold text-amber-950">
+                    AI Re-Evaluation Failed ({error}) • Prior Dossier Preserved
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => loadReportData(year, month, true)}
+                    className="flex-1 sm:flex-initial px-3 py-1 bg-black text-[#FDC800] hover:bg-neutral-800 rounded-lg font-mono text-[11px] font-black uppercase cursor-pointer text-center shadow-[1px_1px_0px_#000000]"
+                  >
+                    Retry AI
+                  </button>
+                  <button
+                    onClick={() => setError(null)}
+                    className="p-1 text-neutral-600 hover:text-black cursor-pointer"
+                    title="Dismiss"
+                  >
+                    <X className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <div className="relative">
@@ -350,7 +377,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </p>
                 </div>
               </div>
-            ) : error ? (
+            ) : error && !report ? (
               <div className="p-6 rounded-2xl border-2 border-black bg-red-100 shadow-[3px_3px_0px_#000000] text-center space-y-3">
                 <AlertCircle className="w-8 h-8 text-red-600 mx-auto" />
                 <h4 className="font-display font-black text-sm text-black uppercase">
@@ -360,7 +387,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   {error}
                 </p>
                 <button
-                  onClick={() => loadReportData(year, month)}
+                  onClick={() => loadReportData(year, month, true)}
                   className="neo-btn px-4 py-2 bg-black text-[#FDC800] text-xs font-mono font-black shadow-[2px_2px_0px_#000000] cursor-pointer"
                 >
                   RETRY SYNTHESIS

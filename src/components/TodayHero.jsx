@@ -124,7 +124,7 @@ export default function TodayHero({
   const [showNote, setShowNote] = useState(Boolean(activeEntry?.notes));
   const [noteText, setNoteText] = useState(activeEntry?.notes || '');
   const [syncedBadge, setSyncedBadge] = useState(false);
-  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'fallback' | 'error'
   const [sadSettle, setSadSettle] = useState(false);
 
   // Behavioral Trilogy Modal States
@@ -205,7 +205,6 @@ export default function TodayHero({
     }
   })();
   const [justSavedNote, setJustSavedNote] = useState(false);
-  const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
   const [companionArtworkOverride, setCompanionArtworkOverride] = useState(null);
   const [showCompanionArt, setShowCompanionArt] = useState(() => {
     if (typeof window === 'undefined') return true;
@@ -566,8 +565,7 @@ export default function TodayHero({
     const currentVal = noteText;
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
-    setIsEnhancing(true);
-    setAiFeedback(null);
+    setEnhanceStatus('polishing');
     try {
       const enhanced = await enhanceReflectionWithAI(
         currentVal,
@@ -586,30 +584,18 @@ export default function TodayHero({
 
       if (enhanced?.isLocalFallback) {
         soundEngine.playClick();
-        setAiFeedback({
-          type: 'warning',
-          isFallback: true,
-          message: 'Gemini server high demand (503). Local sharpener applied.'
-        });
+        setEnhanceStatus('fallback');
+        setTimeout(() => setEnhanceStatus('idle'), 2500);
       } else {
         soundEngine.playSuccessChime();
-        setAiFeedback({
-          type: 'success',
-          isFallback: false,
-          message: `Reflection polished with Gemini AI (${enhanced?.modelUsed || '3.5-flash-lite'}).`
-        });
-        setTimeout(() => setAiFeedback(null), 2500);
+        setEnhanceStatus('success');
+        setTimeout(() => setEnhanceStatus('idle'), 2000);
       }
     } catch (err) {
       console.error('AI Enhance error:', err);
       soundEngine.playRoughTone();
-      setAiFeedback({
-        type: 'error',
-        isFallback: false,
-        message: err.message || 'AI Enhancement failed. Check your API key or connection.'
-      });
-    } finally {
-      setIsEnhancing(false);
+      setEnhanceStatus('error');
+      setTimeout(() => setEnhanceStatus('idle'), 2500);
     }
   };
 
@@ -1868,76 +1854,48 @@ export default function TodayHero({
                   )}
                 </div>
 
-                {/* Pure Micro-Affirmation: Pure floating tick icon with no container box */}
-                <AnimatePresence>
-                  {aiFeedback && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8, x: -4 }}
-                      animate={{ opacity: 1, scale: 1, x: 0 }}
-                      exit={{ opacity: 0, scale: 0.8, x: -4 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex items-center gap-1.5 shrink-0"
-                    >
-                      {aiFeedback.type === 'success' ? (
-                        <>
-                          <Check className="w-4 h-4 text-[#00E599] stroke-[3.5] drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]" />
-                          <span className="font-mono text-xs font-bold text-neutral-600">Polished</span>
-                          <button
-                            type="button"
-                            onClick={handleUndo}
-                            className="text-[10px] font-mono font-bold text-neutral-400 hover:text-black underline cursor-pointer ml-0.5"
-                          >
-                            Undo
-                          </button>
-                        </>
-                      ) : aiFeedback.isFallback ? (
-                        <>
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 stroke-[2.5]" />
-                          <span className="font-mono text-[11px] font-bold text-amber-800">Local</span>
-                          <button
-                            type="button"
-                            onClick={() => handleAIEnhance()}
-                            className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer ml-0.5"
-                          >
-                            Retry
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <AlertCircle className="w-3.5 h-3.5 text-red-500 stroke-[2.5]" />
-                          <span className="font-mono text-[11px] font-bold text-red-600">Failed</span>
-                          <button
-                            type="button"
-                            onClick={() => handleAIEnhance()}
-                            className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer ml-0.5"
-                          >
-                            Retry
-                          </button>
-                        </>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* AI Polish Button (Directly powered by Settings preferences) */}
+                {/* In-Place Tactile AI Polish Button (Zero Layout Shift) */}
                 <button
                   type="button"
                   onClick={() => handleAIEnhance()}
-                  disabled={isEnhancing || (!noteText.trim() && !Object.values(spheresData).some(s => s?.notes && s.notes.trim()))}
-                  title="Polish and organize your diary entry with Gemini AI using your Settings directive (maintains 1st person)"
-                  className="px-3.5 py-1.5 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000000]"
+                  disabled={enhanceStatus === 'polishing' || (!noteText.trim() && !Object.values(spheresData).some(s => s?.notes && s.notes.trim()))}
+                  title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : 'Polish and organize your diary entry with Gemini AI using your Settings directive'}
+                  className={`px-3.5 py-1.5 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000] transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    enhanceStatus === 'success'
+                      ? 'bg-[#00E599]'
+                      : enhanceStatus === 'fallback'
+                      ? 'bg-amber-200'
+                      : enhanceStatus === 'error'
+                      ? 'bg-[#FF4D4D] text-white'
+                      : 'bg-[#FDC800] hover:bg-amber-300'
+                  }`}
                 >
-                  {isEnhancing ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  {enhanceStatus === 'polishing' ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>POLISHING...</span>
+                    </>
+                  ) : enhanceStatus === 'success' ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-3 text-black" />
+                      <span>POLISHED!</span>
+                    </>
+                  ) : enhanceStatus === 'fallback' ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-3 text-black" />
+                      <span>POLISHED (LOCAL)</span>
+                    </>
+                  ) : enhanceStatus === 'error' ? (
+                    <>
+                      <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>FAILED (RETRY)</span>
+                    </>
                   ) : (
-                    <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <>
+                      <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>AI POLISH</span>
+                    </>
                   )}
-                  <span>
-                    {isEnhancing
-                      ? 'SYNTHESIZING...'
-                      : 'AI POLISH'
-                    }
-                  </span>
                 </button>
 
                 <button

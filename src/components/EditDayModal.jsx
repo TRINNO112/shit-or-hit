@@ -59,10 +59,9 @@ export default function EditDayModal({
 }) {
   const [rating, setRating] = useState(entryData?.rating || 3);
   const [notes, setNotes] = useState(entryData?.notes || '');
-  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'error'
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
-  const [aiFeedback, setAiFeedback] = useState(null); // { type: 'success' | 'error', message: string }
 
   // Sphere mode states
   const [sphereModeActive, setSphereModeActive] = useState(false);
@@ -257,8 +256,7 @@ export default function EditDayModal({
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null);
     
-    setIsEnhancing(true);
-    setAiFeedback(null);
+    setEnhanceStatus('polishing');
     try {
       const comp = calculateCompositeScore(spheresData);
       const enhanced = await enhanceReflectionWithAI(
@@ -274,20 +272,13 @@ export default function EditDayModal({
       setHistoryIdx(newStack.length - 1);
       setNotes(enhanced);
       soundEngine.playSuccessChime();
-      setAiFeedback({
-        type: 'success',
-        message: 'Diary reflection enhanced successfully with AI co-pilot.'
-      });
-      setTimeout(() => setAiFeedback(null), 2500);
+      setEnhanceStatus('success');
+      setTimeout(() => setEnhanceStatus('idle'), 2000);
     } catch (err) {
       console.error('AI Enhance error:', err);
       soundEngine.playRoughTone();
-      setAiFeedback({
-        type: 'error',
-        message: err.message || 'AI Enhancement failed. Check your API key or connection.'
-      });
-    } finally {
-      setIsEnhancing(false);
+      setEnhanceStatus('error');
+      setTimeout(() => setEnhanceStatus('idle'), 2500);
     }
   };
 
@@ -702,59 +693,41 @@ export default function EditDayModal({
                           )}
                         </div>
 
-                        {/* Pure Micro-Affirmation: Pure floating tick icon with no container box */}
-                        <AnimatePresence>
-                          {aiFeedback && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8, x: -4 }}
-                              animate={{ opacity: 1, scale: 1, x: 0 }}
-                              exit={{ opacity: 0, scale: 0.8, x: -4 }}
-                              transition={{ duration: 0.2 }}
-                              className="flex items-center gap-1.5 shrink-0"
-                            >
-                              {aiFeedback.type === 'success' ? (
-                                <>
-                                  <Check className="w-4 h-4 text-[#00E599] stroke-[3.5] drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]" />
-                                  <span className="font-mono text-xs font-bold text-neutral-600">Polished</span>
-                                  <button
-                                    type="button"
-                                    onClick={handleUndo}
-                                    className="text-[10px] font-mono font-bold text-neutral-400 hover:text-black underline cursor-pointer ml-0.5"
-                                  >
-                                    Undo
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <AlertCircle className="w-3.5 h-3.5 text-red-500 stroke-[2.5]" />
-                                  <span className="font-mono text-[11px] font-bold text-red-600">Failed</span>
-                                  <button
-                                    type="button"
-                                    onClick={handleAIEnhance}
-                                    className="text-[10px] font-mono font-bold text-neutral-500 hover:text-black underline cursor-pointer ml-0.5"
-                                  >
-                                    Retry
-                                  </button>
-                                </>
-                              )}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {/* AI Polish Button */}
+                        {/* In-Place Tactile AI Polish Button (Zero Layout Shift) */}
                         <button
                           type="button"
                           onClick={handleAIEnhance}
-                          disabled={isEnhancing || !notes.trim()}
-                          className="px-2.5 py-1 sm:px-3.5 sm:py-1 bg-[#FDC800] hover:bg-amber-300 border-2 border-black rounded-xl text-black text-[11px] sm:text-xs font-mono font-black flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-[2px_2px_0px_#000000]"
-                          title="Polish diary note with Gemini AI using your Settings directive"
+                          disabled={enhanceStatus === 'polishing' || !notes.trim()}
+                          className={`px-2.5 py-1 sm:px-3.5 sm:py-1 border-2 border-black rounded-xl text-black text-[11px] sm:text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000] transition-colors active:scale-95 disabled:opacity-50 ${
+                            enhanceStatus === 'success'
+                              ? 'bg-[#00E599]'
+                              : enhanceStatus === 'error'
+                              ? 'bg-[#FF4D4D] text-white'
+                              : 'bg-[#FDC800] hover:bg-amber-300'
+                          }`}
+                          title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : 'Polish diary note with Gemini AI using your Settings directive'}
                         >
-                          {isEnhancing ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          {enhanceStatus === 'polishing' ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>POLISHING...</span>
+                            </>
+                          ) : enhanceStatus === 'success' ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 stroke-3 text-black" />
+                              <span>POLISHED!</span>
+                            </>
+                          ) : enhanceStatus === 'error' ? (
+                            <>
+                              <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                              <span>FAILED (RETRY)</span>
+                            </>
                           ) : (
-                            <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <>
+                              <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                              <span>AI POLISH</span>
+                            </>
                           )}
-                          <span>{isEnhancing ? 'POLISHING...' : 'AI POLISH'}</span>
                         </button>
                       </div>
                     </div>

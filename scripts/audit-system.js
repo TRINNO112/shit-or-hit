@@ -66,6 +66,9 @@ const weekViewCode = readSrc('components/WeekView.jsx');
 assert(calCode.includes('onEditDay'), 'CalendarModal: onEditDay handler bound to date matrix');
 assert(editDayCode.includes('handleAddEventSphere'), 'EditDayModal: Day-specific outlier event sphere support active');
 assert(editDayCode.includes('const activeEntry = entryData || {};') && !editDayCode.includes('if (entryData) {'), 'EditDayModal: Unrecorded days (null entryData) initialize all active spheres without empty void');
+assert(editDayCode.includes('flex flex-col sm:flex-row') && editDayCode.includes('w-full sm:w-auto'), 'EditDayModal: 320px vertical-first button stacking and mobile responsive scale active');
+assert(!editDayCode.includes('min-h-50') && editDayCode.includes('min-h-32'), 'EditDayModal: Ultra-compact textarea bounds prevent 498px viewport vertical overflow');
+assert(editDayCode.includes("enhanceStatus === 'success'") && editDayCode.includes("POLISHED!"), 'EditDayModal: In-place tactile AI polish button morphing operational (zero layout shift)');
 assert(timelineCode.includes('entries') && timelineCode.includes('onEditDay'), 'JourneyTimeline: Chronological stream with entry edit triggers');
 assert(monthCalCode.length > 500 && weekViewCode.length > 500, 'MonthCalendar & WeekView components loaded and valid');
 
@@ -116,6 +119,7 @@ const dossierCode = readSrc('components/MonthlyReportModal.jsx');
 
 assert(dossierCode.includes('executiveSummary') && dossierCode.includes('homieLetter'), 'MonthlyReportModal: Contains executive summaries & homie letters');
 assert(dossierCode.includes('forceReevaluate'), 'MonthlyReportModal: Supports on-demand intelligence re-evaluation');
+assert(dossierCode.includes('AI Re-Evaluation Failed') && dossierCode.includes('Prior Dossier Preserved'), 'MonthlyReportModal: Graceful degradation protects dossier and provides tactical retry on AI failure');
 
 // ----------------------------------------------------------------------
 // SUITE 5: Creative Studio & 4K Wallpaper Engines
