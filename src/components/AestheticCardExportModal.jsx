@@ -17,7 +17,7 @@ import mascot5 from '../assets/mascots/mascot_5_peak.webp';
 const THEMES = [
   {
     id: 'streetwear',
-    name: '⚡ Gold',
+    name: 'Gold',
     bg: '#FFFDF0',
     accent: '#FDC800',
     subAccent: '#00E599',
@@ -27,7 +27,7 @@ const THEMES = [
   },
   {
     id: 'cyberpunk',
-    name: '🖤 Obsidian',
+    name: 'Obsidian',
     bg: '#080A0F',
     accent: '#00E599',
     subAccent: '#00D8F6',
@@ -37,7 +37,7 @@ const THEMES = [
   },
   {
     id: 'sunset',
-    name: '🔥 Crimson',
+    name: 'Crimson',
     bg: '#140C1D',
     accent: '#FF4D6D',
     subAccent: '#FF9E00',
@@ -100,8 +100,21 @@ export default function AestheticCardExportModal({
   const [previewUrl, setPreviewUrl] = useState(null);
   const [showStickerVault, setShowStickerVault] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [receiptEnabled, setReceiptEnabled] = useState(() => isReceiptOfTruthEnabled());
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setReceiptEnabled(isReceiptOfTruthEnabled());
+    };
+    window.addEventListener('receipt-of-truth-updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('receipt-of-truth-updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   // Sync selected date & active sticker from vault when modal opens
   useEffect(() => {
@@ -864,14 +877,14 @@ export default function AestheticCardExportModal({
                   </button>
 
                   {/* Centered with Distinct Wide Gap */}
-                  <div className="flex items-center justify-center gap-4 sm:gap-6 flex-1 px-2">
+                  <div className="flex items-center justify-center gap-2 sm:gap-4 flex-1 px-1 sm:px-2 min-w-0">
                     <input
                       type="date"
                       value={selectedDateStr}
                       onChange={(e) => setSelectedDateStr(e.target.value)}
-                      className="bg-neutral-100 border-2 border-black rounded-xl px-2.5 py-1.5 font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer focus:outline-none"
+                      className="bg-neutral-100 border-2 border-black rounded-xl px-2 py-1.5 font-mono text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer focus:outline-none min-w-0 max-w-[130px]"
                     />
-                    <span className="px-3 py-1.5 rounded-xl bg-black text-[#FDC800] text-xs font-mono font-black shrink-0 shadow-[1.5px_1.5px_0px_#000000]">
+                    <span className="px-2.5 py-1.5 rounded-xl bg-black text-[#FDC800] text-xs font-mono font-black shrink-0 shadow-[1.5px_1.5px_0px_#000000]">
                       DAY {activeDayCount}
                     </span>
                   </div>
@@ -914,8 +927,8 @@ export default function AestheticCardExportModal({
                 </div>
 
                 {/* Receipt of Truth Launcher Card (When Enabled) */}
-                {isReceiptOfTruthEnabled() && (
-                  <div className="bg-[#FFFDF0] border-2 border-black p-3 rounded-2xl shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-2">
+                {receiptEnabled && (
+                  <div className="bg-[#FFFDF0] border-2 border-black p-3 rounded-2xl shadow-[2px_2px_0px_#000000] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
                         <Printer className="w-4 h-4 text-black stroke-[2.5]" />
@@ -936,7 +949,7 @@ export default function AestheticCardExportModal({
                         soundEngine.playClick();
                         setShowReceiptModal(true);
                       }}
-                      className="px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all shrink-0"
+                      className="w-full sm:w-auto px-3 py-1.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-display font-black text-xs uppercase text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 transition-all shrink-0 text-center"
                     >
                       PRINT SLIP ➔
                     </button>
@@ -1026,8 +1039,11 @@ export default function AestheticCardExportModal({
                 </div>
 
                 {/* Info Callout */}
-                <div className="hidden md:block bg-neutral-100 border-2 border-black rounded-2xl p-3 text-xs font-mono text-neutral-700">
-                  ⚡ <span className="font-bold text-black">High-Res Export:</span> Rendered in 1080p lossless PNG, ready for wallpaper lockscreen or social status updates.
+                <div className="hidden md:flex items-center gap-2 bg-neutral-100 border-2 border-black rounded-2xl p-3 text-xs font-mono text-neutral-700">
+                  <Zap className="w-4 h-4 text-black stroke-[2.5] shrink-0" />
+                  <div>
+                    <span className="font-bold text-black">High-Res Export:</span> Rendered in 1080p lossless PNG, ready for wallpaper lockscreen or social status updates.
+                  </div>
                 </div>
 
               </div>
@@ -1061,7 +1077,7 @@ export default function AestheticCardExportModal({
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 sm:py-3 px-3.5 sm:px-5 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
+              className="py-2.5 sm:py-3 px-3 sm:px-5 bg-neutral-100 hover:bg-neutral-200 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0"
             >
               CLOSE
             </button>
@@ -1072,7 +1088,7 @@ export default function AestheticCardExportModal({
                 type="button"
                 onClick={handleWebShare}
                 disabled={sharing || !previewUrl}
-                className="py-2.5 sm:py-3 px-3.5 sm:px-4 bg-[#FDC800] hover:bg-amber-400 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0 flex items-center gap-1.5"
+                className="py-2.5 sm:py-3 px-3 sm:px-4 bg-[#FDC800] hover:bg-amber-400 text-black font-display font-black text-xs uppercase rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] cursor-pointer shrink-0 flex items-center gap-1.5"
                 title="Share directly to Instagram Stories, WhatsApp, or Contacts"
               >
                 <Share2 className="w-4 h-4 stroke-3 shrink-0" />
@@ -1084,14 +1100,14 @@ export default function AestheticCardExportModal({
               type="button"
               onClick={handleDownload}
               disabled={downloading || !previewUrl}
-              className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 min-w-0"
+              className="flex-1 py-2.5 sm:py-3 px-2.5 sm:px-4 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 min-w-0"
             >
               <Download className="w-4 h-4 stroke-3 shrink-0" />
               <span className="truncate">
                 {downloading ? 'GENERATING POSTER...' : (
                   <>
-                    <span className="hidden sm:inline">DOWNLOAD HIGH-RES POSTER</span>
-                    <span className="sm:hidden">DOWNLOAD POSTER</span>
+                    <span className="hidden sm:inline">DOWNLOAD POSTER</span>
+                    <span className="sm:hidden">DOWNLOAD</span>
                   </>
                 )}
               </span>

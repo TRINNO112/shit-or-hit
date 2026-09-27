@@ -24,7 +24,20 @@ export default function Header({
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [receiptEnabled, setReceiptEnabled] = useState(() => isReceiptOfTruthEnabled());
   const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setReceiptEnabled(isReceiptOfTruthEnabled());
+    };
+    window.addEventListener('receipt-of-truth-updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('receipt-of-truth-updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -161,7 +174,7 @@ export default function Header({
           )}
 
           {/* Receipt of Truth (Tablet) */}
-          {isReceiptOfTruthEnabled() && onOpenReceipt && (
+          {receiptEnabled && onOpenReceipt && (
             <button
               onClick={() => {
                 soundEngine.playClick();
@@ -324,7 +337,7 @@ export default function Header({
         </button>
 
         {/* Receipt of Truth (Desktop) */}
-        {isReceiptOfTruthEnabled() && onOpenReceipt && (
+        {receiptEnabled && onOpenReceipt && (
           <button
             onClick={() => {
               soundEngine.playClick();

@@ -1656,6 +1656,7 @@ export function setReceiptOfTruthEnabled(enabled) {
       saveCloudUserSettings(user.uid, { enableReceiptOfTruth: enabled });
     }
   } catch (e) {}
+  window.dispatchEvent(new Event('receipt-of-truth-updated'));
 }
 
 // 4. Guest Disclaimer State

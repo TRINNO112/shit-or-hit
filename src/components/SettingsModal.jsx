@@ -35,6 +35,7 @@ import {
   Printer,
   FileText,
   Shield,
+  Compass,
   History,
   Download,
   CheckCircle2,
@@ -90,6 +91,7 @@ import {
   permanentlyDeleteAllUserData,
   isRehabilitationActive,
   activateRehabilitation,
+  activateSabbatical,
   exitRehabilitation,
   getRehabilitationConfig,
   getRollingSnapshots,
@@ -133,7 +135,9 @@ export default function SettingsModal({
   const [isCapsuleVaultOpen, setIsCapsuleVaultOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
-  const [rehabActive, setRehabActive] = useState(() => isRehabilitationActive());
+  const [rehabConfig, setRehabConfig] = useState(() => getRehabilitationConfig());
+  const isSabbatical = Boolean(rehabConfig?.isSabbatical);
+  const rehabActive = Boolean(rehabConfig?.active);
   const [isErasureConfirmOpen, setIsErasureConfirmOpen] = useState(false);
   const [erasureInput, setErasureInput] = useState('');
   const [erasing, setErasing] = useState(false);
@@ -256,7 +260,7 @@ export default function SettingsModal({
       setRansomSensitivity(getRansomCapsuleSensitivity());
       setAutopsyChamberOn(isAutopsyChamberEnabled());
       setReceiptOfTruthOn(isReceiptOfTruthEnabled());
-      setRehabActive(isRehabilitationActive());
+      setRehabConfig(getRehabilitationConfig());
       setNotificationMsg('');
       setIsAddingSphere(false);
       setEditingSphereId(null);
@@ -454,7 +458,7 @@ export default function SettingsModal({
             initial={{ scale: 0.94, y: 15 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.94, y: 15 }}
-            className="w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-4 sm:p-7 shadow-[8px_8px_0px_#000000] space-y-4 h-[94vh] sm:h-auto sm:max-h-[90vh] flex flex-col"
+            className="w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-3.5 sm:p-7 shadow-[8px_8px_0px_#000000] space-y-3.5 sm:space-y-4 max-h-[92vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pinned Header with High-Contrast Desktop & Mobile Close ✕ Button */}
@@ -627,7 +631,7 @@ export default function SettingsModal({
               </div>
 
               {/* 4. Private 4-Digit Vault PIN Gatekeeper */}
-              <VaultPinSettings />
+              <VaultPinSettings onPinUpdated={() => { if (onSettingsChanged) onSettingsChanged(); }} />
 
               {/* 4. Daily Non-Negotiables Studio */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
@@ -716,22 +720,24 @@ export default function SettingsModal({
                   </div>
 
                   {ransomCapsuleOn && (
-                    <div className="pt-2 border-t border-black/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono font-bold text-neutral-600 uppercase">Trigger Sensitivity:</span>
-                        {[2, 3].map((days) => (
-                          <button
-                            key={days}
-                            type="button"
-                            onClick={() => handleSensitivityChange(days)}
-                            className={`px-2 py-0.5 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${ransomSensitivity === days
-                                ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]'
-                                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                              }`}
-                          >
-                            {days} ROUGH DAYS {days === 2 ? '(RECOMMENDED)' : ''}
-                          </button>
-                        ))}
+                    <div className="pt-2 border-t border-black/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
+                        <span className="text-[10px] font-mono font-bold text-neutral-600 uppercase shrink-0">Trigger Sensitivity:</span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {[2, 3].map((days) => (
+                            <button
+                              key={days}
+                              type="button"
+                              onClick={() => handleSensitivityChange(days)}
+                              className={`px-2 py-0.5 rounded-lg border border-black font-mono text-[10px] font-black cursor-pointer ${ransomSensitivity === days
+                                  ? 'bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000]'
+                                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                                }`}
+                            >
+                              {days} ROUGH DAYS {days === 2 ? '(RECOMMENDED)' : ''}
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
                       <button
@@ -740,7 +746,7 @@ export default function SettingsModal({
                           soundEngine.playClick();
                           setIsCapsuleVaultOpen(true);
                         }}
-                        className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-black rounded-lg font-mono text-[10px] font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] shrink-0 flex items-center gap-1"
+                        className="self-start sm:self-auto px-2.5 py-1 bg-white hover:bg-neutral-100 border border-black rounded-lg font-mono text-[10px] font-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] shrink-0 flex items-center gap-1"
                       >
                         <span>VIEW CAPSULE VAULT</span>
                         <ArrowRight className="w-3 h-3" />
@@ -834,7 +840,7 @@ export default function SettingsModal({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     { id: 'auto', label: 'AUTO-DETECT', desc: 'Preserves your language' },
                     { id: 'english', label: 'ENGLISH ONLY', desc: 'Forces clean UK/US English' },
@@ -1317,56 +1323,123 @@ export default function SettingsModal({
                 </button>
               </div>
 
-              {/* 11. Anti-Burnout Rehabilitation Sanctuary (Streak Freeze) */}
-              <div className="flex items-center justify-between p-3.5 bg-[#F0FDF4] border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] gap-3">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                    <Shield className="w-5 h-5 text-black stroke-[2.5]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-display font-black text-sm uppercase truncate text-black">
-                        Sanctuary Mode
-                      </h4>
-                      {rehabActive ? (
-                        <span className="px-2 py-0.5 rounded-full bg-[#00E599] border border-black text-[9px] font-mono font-black uppercase text-black">
-                          ACTIVE (STASIS)
-                        </span>
+              {/* 11. Anti-Burnout Rehabilitation Sanctuary & Grand Sabbatical */}
+              <div className={`p-3.5 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3 ${
+                isSabbatical ? 'bg-[#FFFBEB]' : rehabActive ? 'bg-[#F0FDF4]' : 'bg-[#FFFDF5]'
+              }`}>
+                <div className="flex items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000] ${
+                      isSabbatical ? 'bg-[#FFB800]' : 'bg-[#00E599]'
+                    }`}>
+                      {isSabbatical ? (
+                        <Compass className="w-5 h-5 text-black stroke-[2.5]" />
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-neutral-200 border border-black text-[9px] font-mono font-black uppercase text-neutral-600">
-                          OFF
-                        </span>
+                        <Shield className="w-5 h-5 text-black stroke-[2.5]" />
                       )}
                     </div>
-                    <p className="text-[11px] font-mono text-neutral-600 truncate">
-                      {rehabActive ? 'Streak shielded & frozen. Daily verdicts paused.' : 'Freeze streak & pause ratings for 7 days.'}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <h4 className="font-display font-black text-sm uppercase text-black">
+                          {isSabbatical ? 'Grand Sabbatical' : 'Sanctuary Mode'}
+                        </h4>
+                        {rehabActive ? (
+                          <span className={`px-2 py-0.5 rounded-full border border-black text-[9px] font-mono font-black uppercase text-black ${
+                            isSabbatical ? 'bg-[#FFB800]' : 'bg-[#00E599]'
+                          }`}>
+                            {isSabbatical ? 'SABBATICAL ACTIVE' : 'SANCTUARY ACTIVE'}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-neutral-200 border border-black text-[9px] font-mono font-black uppercase text-neutral-600">
+                            INACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600 mt-0.5 leading-tight">
+                        {isSabbatical 
+                          ? 'Open-ended macro life pause. Daily grading suspended indefinitely.'
+                          : rehabActive 
+                            ? 'Streak shielded & frozen. Daily verdicts paused for rest.' 
+                            : 'Pause demanding daily verdicts & protect your hard-earned streak.'}
+                      </p>
+                    </div>
                   </div>
+
+                  {rehabActive && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try { soundEngine.playClick(); } catch (e) {}
+                        exitRehabilitation();
+                        setRehabConfig(getRehabilitationConfig());
+                        if (onSettingsChanged) onSettingsChanged();
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new Event('storage'));
+                        }
+                      }}
+                      className="py-1.5 px-3 bg-[#FF4D4D] text-white hover:bg-red-500 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap"
+                    >
+                      RESUME VERDICTS
+                    </button>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (rehabActive) {
-                      exitRehabilitation();
-                      setRehabActive(false);
-                    } else {
-                      activateRehabilitation(7);
-                      setRehabActive(true);
-                    }
-                    if (onSettingsChanged) onSettingsChanged();
-                    if (typeof window !== 'undefined') {
-                      window.dispatchEvent(new Event('storage'));
-                    }
-                  }}
-                  className={`py-1.5 px-3.5 border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap ${
-                    rehabActive 
-                      ? 'bg-[#FF4D4D] text-white hover:bg-red-500' 
-                      : 'bg-[#00E599] text-black hover:bg-emerald-400'
-                  }`}
-                >
-                  {rehabActive ? 'TURN OFF' : 'TURN ON'}
-                </button>
+
+                {/* Stasis Selection & Activation Buttons */}
+                {!rehabActive ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try { soundEngine.playClick(); } catch (e) {}
+                        activateRehabilitation(7);
+                        setRehabConfig(getRehabilitationConfig());
+                        if (onSettingsChanged) onSettingsChanged();
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new Event('storage'));
+                        }
+                      }}
+                      className="py-2 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+                    >
+                      <Shield className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>7-DAY SANCTUARY</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try { soundEngine.playClick(); } catch (e) {}
+                        activateSabbatical();
+                        setRehabConfig(getRehabilitationConfig());
+                        if (onSettingsChanged) onSettingsChanged();
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new Event('storage'));
+                        }
+                      }}
+                      className="py-2 px-3 bg-[#FFB800] hover:bg-amber-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 transition-all text-center"
+                    >
+                      <Compass className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>GRAND SABBATICAL</span>
+                    </button>
+                  </div>
+                ) : !isSabbatical ? (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try { soundEngine.playClick(); } catch (e) {}
+                        activateSabbatical();
+                        setRehabConfig(getRehabilitationConfig());
+                        if (onSettingsChanged) onSettingsChanged();
+                        if (typeof window !== 'undefined') {
+                          window.dispatchEvent(new Event('storage'));
+                        }
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#FFB800] hover:bg-amber-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                    >
+                      <Compass className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>SWITCH TO GRAND SABBATICAL (INDEFINITE)</span>
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               {/* 12. Privacy Policy & Indian DPDPA 2023 */}

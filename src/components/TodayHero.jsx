@@ -212,6 +212,19 @@ export default function TodayHero({
     return localStorage.getItem('daily_verdict_show_companion_art') !== 'false';
   });
   const [viewingFullArtwork, setViewingFullArtwork] = useState(false);
+  const [receiptEnabled, setReceiptEnabled] = useState(() => isReceiptOfTruthEnabled());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setReceiptEnabled(isReceiptOfTruthEnabled());
+    };
+    window.addEventListener('receipt-of-truth-updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('receipt-of-truth-updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const activeCompanionMascot = companionArtworkOverride === 'rain'
     ? mascotSanctuaryRain
@@ -1605,7 +1618,7 @@ export default function TodayHero({
           )}
 
           {/* 1-Tap Receipt of Truth Generator Button (When Enabled) */}
-          {isReceiptOfTruthEnabled() && (
+          {receiptEnabled && (
             <button
               type="button"
               onClick={() => {

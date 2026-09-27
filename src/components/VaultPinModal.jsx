@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Unlock, KeyRound, ShieldAlert, Fingerprint, Delete, Check, X, ShieldCheck, Cloud, RefreshCcw, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Lock, Unlock, KeyRound, ShieldAlert, Fingerprint, Delete, Check, X, ShieldCheck, Cloud, RefreshCcw, AlertTriangle, ArrowRight, Clock } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { getCurrentUser } from '../services/firebase';
 import { 
@@ -206,13 +206,21 @@ export function VaultLockGatekeeper({ isLocked, onUnlock }) {
 
 // 2. Settings Modal PIN Setup Component with Dedicated Warning Dialog
 export function VaultPinSettings({ onPinUpdated }) {
-  const isEnabled = isVaultPinActive();
+  const [isEnabled, setIsEnabled] = useState(() => isVaultPinActive());
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [setupStep, setSetupStep] = useState(1); // 1 = Warning & Ack, 2 = Enter PIN, 3 = Re-enter PIN to Confirm
   const [hasAcknowledged, setHasAcknowledged] = useState(false);
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setIsEnabled(isVaultPinActive());
+    };
+    window.addEventListener('vault-pin-updated', handleUpdate);
+    return () => window.removeEventListener('vault-pin-updated', handleUpdate);
+  }, []);
 
   const openSetup = () => {
     setError('');
@@ -265,6 +273,7 @@ export function VaultPinSettings({ onPinUpdated }) {
       return;
     }
     await setVaultPin(newPin);
+    setIsEnabled(true);
     closeSetup();
     soundEngine.playSuccessChime();
     if (onPinUpdated) onPinUpdated();
@@ -273,8 +282,9 @@ export function VaultPinSettings({ onPinUpdated }) {
   const handleDisablePin = async () => {
     if (window.confirm('Are you sure you want to disable your vault PIN? Your reflections will no longer be locked.')) {
       await setVaultPin(null);
+      setIsEnabled(false);
       closeSetup();
-      soundEngine.playClick();
+      soundEngine.playSuccessChime();
       if (onPinUpdated) onPinUpdated();
     }
   };
@@ -337,8 +347,9 @@ export function VaultPinSettings({ onPinUpdated }) {
         {isEnabled && (
           <div className="pt-2 border-t border-black/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <div className="text-xs font-mono font-black text-black uppercase">
-                ⏱️ Auto-Lock Timer
+              <div className="text-xs font-mono font-black text-black uppercase flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                <span>Auto-Lock Timer</span>
               </div>
               <div className="text-[10px] font-mono text-neutral-500">
                 Locks on inactivity or tab switch
@@ -372,36 +383,39 @@ export function VaultPinSettings({ onPinUpdated }) {
 
       {/* Prominent High-Contrast Security Warning & Strict Step-by-Step PIN Setup Dialog */}
       {showSetupModal && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#FFFDF5] border-3 border-black rounded-3xl p-5 sm:p-7 max-w-md w-full shadow-[8px_8px_0px_#000000] relative space-y-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="bg-[#FFFDF5] border-3 border-black rounded-3xl p-4 sm:p-7 max-w-md w-full shadow-[8px_8px_0px_#000000] relative space-y-4 max-h-[90vh] my-auto overflow-y-auto">
             
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={closeSetup}
-              className="absolute top-4 right-4 p-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border-2 border-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {/* Header with Step indicator */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
-                <ShieldAlert className="w-6 h-6 text-white stroke-[2.5]" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[9px] font-black uppercase">
-                    STRICT SECURITY
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-black border border-black font-mono text-[9px] font-black uppercase">
-                    STEP {setupStep} OF 3
-                  </span>
+            {/* Header with Step indicator & Close button */}
+            <div className="flex items-start justify-between gap-2 border-b-2 border-black/10 pb-3">
+              <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
+                  <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.5]" />
                 </div>
-                <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-black mt-0.5">
-                  Vault PIN Gatekeeper
-                </h3>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[9px] font-black uppercase whitespace-nowrap">
+                      STRICT SECURITY
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-black border border-black font-mono text-[9px] font-black uppercase whitespace-nowrap">
+                      STEP {setupStep} OF 3
+                    </span>
+                  </div>
+                  <h3 className="font-display font-black text-base sm:text-xl uppercase tracking-tight text-black mt-0.5 truncate">
+                    Vault PIN Gatekeeper
+                  </h3>
+                </div>
               </div>
+
+              {/* Close Button in Natural Flow (Never Overlaps Badges) */}
+              <button
+                type="button"
+                onClick={closeSetup}
+                className="p-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border-2 border-black text-black cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95 shrink-0"
+                aria-label="Close PIN Setup"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             {/* STEP 1: MANDATORY ZERO-RECOVERY WARNING & ACKNOWLEDGEMENT */}

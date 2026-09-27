@@ -206,6 +206,19 @@ export default function MobileAppView({
 
   // Embedded Calendar State
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [receiptEnabled, setReceiptEnabled] = useState(() => isReceiptOfTruthEnabled());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setReceiptEnabled(isReceiptOfTruthEnabled());
+    };
+    window.addEventListener('receipt-of-truth-updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('receipt-of-truth-updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
   
   // Embedded Dossier State
   const [dossierYear, setDossierYear] = useState(new Date().getFullYear());
@@ -716,8 +729,8 @@ export default function MobileAppView({
               ) : (
                 <Shield className="w-3 h-3 text-emerald-800 shrink-0" />
               )}
-              <span className="hidden xs:inline">{isSabbatical ? 'SABBATICAL' : 'SANCTUARY'}</span>
-              <span className="xs:hidden">STASIS</span>
+              <span className="hidden sm:inline">{isSabbatical ? 'SABBATICAL' : 'SANCTUARY'}</span>
+              <span className="sm:hidden">S</span>
             </div>
           )}
 
@@ -1139,7 +1152,7 @@ export default function MobileAppView({
             )}
 
             {/* Action Row: Reflection Drawer Trigger, Receipt & Wallpaper Export */}
-            <div className={`grid ${isReceiptOfTruthEnabled() ? 'grid-cols-3' : sphereModeActive ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            <div className={`grid ${receiptEnabled ? 'grid-cols-3' : sphereModeActive ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
               {!sphereModeActive && (
                 <button
                   type="button"
@@ -1154,7 +1167,7 @@ export default function MobileAppView({
                 </button>
               )}
 
-              {isReceiptOfTruthEnabled() && (
+              {receiptEnabled && (
                 <button
                   type="button"
                   onClick={() => {
@@ -1842,14 +1855,14 @@ export default function MobileAppView({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 360 }}
-              className="w-full max-w-lg bg-[#FFFDF5] rounded-t-3xl border-t-3 border-x-3 border-black shadow-[0_-8px_0px_#000000] h-[80vh] max-h-[85vh] flex flex-col overflow-hidden"
+              className="w-full max-w-lg bg-[#FFFDF5] rounded-t-3xl border-t-3 border-x-3 border-black shadow-[0_-8px_0px_#000000] h-[92vh] max-h-[96vh] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Drag Handle & Top Header */}
-              <div className="px-4 pt-3 pb-2.5 border-b-2 border-black/10 bg-[#FFFDF5] shrink-0">
+              <div className="px-3.5 pt-2.5 pb-2 border-b-2 border-black/10 bg-[#FFFDF5] shrink-0">
                 <button 
                   onClick={() => setShowNoteDrawer(false)}
-                  className="w-14 h-1.5 bg-black/30 hover:bg-black rounded-full mx-auto block mb-2 cursor-pointer transition-colors"
+                  className="w-14 h-1.5 bg-black/30 hover:bg-black rounded-full mx-auto block mb-1.5 cursor-pointer transition-colors"
                   title="Swipe or tap to close"
                 />
                 
@@ -1870,7 +1883,7 @@ export default function MobileAppView({
 
                   <button
                     onClick={() => setShowNoteDrawer(false)}
-                    className="px-3 py-1 rounded-xl bg-neutral-100 hover:bg-neutral-200 border-2 border-black font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-xl bg-neutral-100 hover:bg-neutral-200 border-2 border-black font-mono text-xs font-black text-black shadow-[1px_1px_0px_#000000] cursor-pointer flex items-center gap-1"
                   >
                     <X className="w-3.5 h-3.5 stroke-3" />
                     <span>CLOSE</span>
@@ -1879,10 +1892,10 @@ export default function MobileAppView({
               </div>
 
               {/* Scrollable Textarea Body */}
-              <div className="flex-1 p-4 flex flex-col overflow-hidden min-h-0 space-y-2.5">
+              <div className="flex-1 p-3 sm:p-4 flex flex-col overflow-hidden min-h-0 space-y-2">
                 {/* 1-Tap Quick Context & Tag Chips */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] font-mono font-black text-neutral-600 uppercase">
                       DAY CONTEXT TAGS:
                     </span>
@@ -1915,12 +1928,11 @@ export default function MobileAppView({
                 </div>
 
                 {/* Textarea with Enhanced Text Size & Line Height */}
-
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
                   placeholder="What went wrong? What went right? Write your unfiltered thoughts..."
-                  className="flex-1 w-full p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto"
+                  className="flex-1 w-full p-3.5 sm:p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto min-h-[140px]"
                 />
 
                 {/* AI Directives Modal Trigger & Polish Toolbar */}
@@ -2024,12 +2036,12 @@ export default function MobileAppView({
               </div>
 
               {/* Pinned Bottom Action Footer (ALWAYS Visible above any navigation) */}
-              <div className="p-4 pt-2 bg-[#FFFDF5] border-t-2 border-black/10 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <div className="p-3 sm:p-4 pt-1.5 sm:pt-2 bg-[#FFFDF5] border-t-2 border-black/10 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <button
                   type="button"
                   onClick={handleSaveNote}
                   disabled={justSavedNote}
-                  className={`w-full py-3.5 text-black font-display font-black text-sm uppercase rounded-2xl border-3 border-black shadow-[3px_3px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                  className={`w-full py-2.5 sm:py-3.5 text-black font-display font-black text-xs sm:text-sm uppercase rounded-2xl border-3 border-black shadow-[2.5px_2.5px_0px_#000000] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 ${
                     justSavedNote
                       ? 'bg-[#00E599] ring-2 ring-black scale-[1.01]'
                       : 'bg-[#00E599] hover:bg-emerald-400'

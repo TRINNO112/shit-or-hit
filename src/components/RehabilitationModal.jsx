@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, X, Check, ShieldCheck, Sparkles, Moon, Sun, Clock, Coffee, Plus, Trash2 } from 'lucide-react';
+import { Heart, X, Check, ShieldCheck, Sparkles, Moon, Sun, Clock, Coffee, Plus, Trash2, Compass, Shield } from 'lucide-react';
 import { 
   getRehabilitationConfig, 
   activateRehabilitation, 
+  activateSabbatical,
   extendRehabilitation, 
   exitRehabilitation,
   getCompassionAnchors,
@@ -49,6 +50,13 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
     const res = extendRehabilitation(7);
     setConfig(res);
     showToast('Sanctuary Extended to 14 Days Maximum!');
+    if (onStateChange) onStateChange();
+  };
+
+  const handleActivateSabbatical = () => {
+    const res = activateSabbatical();
+    setConfig(res);
+    showToast('Grand Sabbatical Activated! Milestone sheltered indefinitely.');
     if (onStateChange) onStateChange();
   };
 
@@ -188,21 +196,33 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
               </div>
             </div>
           ) : (
-            <div className="p-4 bg-white border-2 border-black shadow-[3px_3px_0px_#000000] mb-5">
-              <div className="flex items-center gap-2 mb-2 font-black text-sm uppercase text-black">
-                <Clock className="w-4 h-4 stroke-[2.5]" />
-                Initiate 7-Day Sanctuary Freeze
+            <div className="p-4 bg-white border-2 border-black shadow-[3px_3px_0px_#000000] mb-5 space-y-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5 font-black text-sm uppercase text-black">
+                  <Clock className="w-4 h-4 stroke-[2.5]" />
+                  Initiate Rest & Streak Shelter
+                </div>
+                <p className="text-xs font-mono text-black/80">
+                  Locks your streak safely in stasis. Choose an acute 7-day nervous system reset or an open-ended sovereign sabbatical:
+                </p>
               </div>
-              <p className="text-xs font-mono text-black/80 mb-4">
-                Locks your streak in place for the next 7 days. Your app interface will shift to a calm restorative tone, and your daily demands will be swapped with compassion anchors.
-              </p>
-              <button
-                onClick={handleActivate7Days}
-                className="w-full py-3 bg-[#A8E6CF] hover:bg-[#88D49E] text-black font-black uppercase text-xs sm:text-sm border-2 border-black shadow-[3px_3px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0px_#000000] transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Heart className="w-4 h-4 stroke-[2.5]" />
-                ACTIVATE 7-DAY REHABILITATION
-              </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <button
+                  onClick={handleActivate7Days}
+                  className="py-3 px-3 bg-[#A8E6CF] hover:bg-[#88D49E] text-black font-black uppercase text-xs border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-[1.5px_1.5px_0px_#000000] transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center"
+                >
+                  <Shield className="w-4 h-4 stroke-[2.5]" />
+                  <span>7-DAY SANCTUARY</span>
+                </button>
+                <button
+                  onClick={handleActivateSabbatical}
+                  className="py-3 px-3 bg-[#FFB800] hover:bg-amber-400 text-black font-black uppercase text-xs border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-[1.5px_1.5px_0px_#000000] transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center"
+                >
+                  <Compass className="w-4 h-4 stroke-[2.5]" />
+                  <span>GRAND SABBATICAL</span>
+                </button>
+              </div>
             </div>
           )}
 
