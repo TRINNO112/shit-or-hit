@@ -1,9 +1,8 @@
 /**
  * ⚡ Ultra-Lightweight Pure-JS QR Code SVG Generator (Zero Dependencies)
- * Implements ISO/IEC 18004 QR code matrix generation for compact URLs and pairing codes.
+ * Implements ISO/IEC 18004 QR code matrix generation with configurable Error Correction (L, M, Q, H).
  */
 
-// QR Code Type 1-4 generator tables and Reed-Solomon polynomial math
 const PAD0 = 0xec;
 const PAD1 = 0x11;
 
@@ -70,32 +69,83 @@ function calculateEC(data, ecCount) {
   return info.slice(data.length);
 }
 
+// QR Code Standard Capacity & Error Correction Table (Versions 1 to 6)
+// dataCapacity = totalDataBytes - ecBytes
+const QR_TABLE = {
+  1: {
+    L: { totalDataBytes: 19, ecBytes: 7, maxLen: 17 },
+    M: { totalDataBytes: 16, ecBytes: 10, maxLen: 14 },
+    Q: { totalDataBytes: 13, ecBytes: 13, maxLen: 11 },
+    H: { totalDataBytes: 9, ecBytes: 17, maxLen: 7 }
+  },
+  2: {
+    L: { totalDataBytes: 34, ecBytes: 10, maxLen: 32 },
+    M: { totalDataBytes: 28, ecBytes: 16, maxLen: 26 },
+    Q: { totalDataBytes: 22, ecBytes: 22, maxLen: 20 },
+    H: { totalDataBytes: 16, ecBytes: 28, maxLen: 14 }
+  },
+  3: {
+    L: { totalDataBytes: 55, ecBytes: 15, maxLen: 53 },
+    M: { totalDataBytes: 44, ecBytes: 26, maxLen: 42 },
+    Q: { totalDataBytes: 34, ecBytes: 36, maxLen: 32 },
+    H: { totalDataBytes: 26, ecBytes: 44, maxLen: 24 }
+  },
+  4: {
+    L: { totalDataBytes: 80, ecBytes: 20, maxLen: 78 },
+    M: { totalDataBytes: 64, ecBytes: 36, maxLen: 62 },
+    Q: { totalDataBytes: 48, ecBytes: 52, maxLen: 46 },
+    H: { totalDataBytes: 36, ecBytes: 64, maxLen: 34 }
+  },
+  5: {
+    L: { totalDataBytes: 108, ecBytes: 26, maxLen: 106 },
+    M: { totalDataBytes: 86, ecBytes: 48, maxLen: 84 },
+    Q: { totalDataBytes: 62, ecBytes: 72, maxLen: 60 },
+    H: { totalDataBytes: 46, ecBytes: 88, maxLen: 44 }
+  },
+  6: {
+    L: { totalDataBytes: 136, ecBytes: 36, maxLen: 134 },
+    M: { totalDataBytes: 108, ecBytes: 64, maxLen: 106 },
+    Q: { totalDataBytes: 76, ecBytes: 96, maxLen: 74 },
+    H: { totalDataBytes: 60, ecBytes: 112, maxLen: 58 }
+  }
+};
+
+// Format Information Bits for Mask Pattern 0: ((row + col) % 2 === 0)
+const FORMAT_BITS = {
+  L: [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0],
+  M: [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+  Q: [0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1],
+  H: [0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1]
+};
+
 /**
  * Generates an SVG path string or 2D boolean module matrix for a text payload
+ * @param {string} text - Payload string or URL
+ * @param {'L' | 'M' | 'Q' | 'H'} errorCorrectionLevel - Damage protection level
  */
-export function generateQRCodeMatrix(text) {
-  // Determine version needed (1 = 21x21, 2 = 25x25, 3 = 29x29, 4 = 33x33)
+export function generateQRCodeMatrix(text, errorCorrectionLevel = 'M') {
+  const ecLevel = ['L', 'M', 'Q', 'H'].includes(errorCorrectionLevel) ? errorCorrectionLevel : 'M';
   const bytes = new TextEncoder().encode(text);
   const len = bytes.length;
-  
+
+  // Determine minimum version required for payload length under selected EC level
   let typeNumber = 1;
-  let totalDataBytes = 19;
-  let ecBytes = 7;
-  
-  if (len <= 14) {
-    typeNumber = 1; totalDataBytes = 19; ecBytes = 7;
-  } else if (len <= 26) {
-    typeNumber = 2; totalDataBytes = 34; ecBytes = 10;
-  } else if (len <= 42) {
-    typeNumber = 3; totalDataBytes = 55; ecBytes = 15;
-  } else {
-    typeNumber = 4; totalDataBytes = 80; ecBytes = 20;
+  for (let v = 1; v <= 6; v++) {
+    if (len <= QR_TABLE[v][ecLevel].maxLen) {
+      typeNumber = v;
+      break;
+    }
+    typeNumber = v;
   }
+
+  const spec = QR_TABLE[typeNumber][ecLevel];
+  const totalDataBytes = spec.totalDataBytes;
+  const ecBytes = spec.ecBytes;
 
   const moduleCount = typeNumber * 4 + 17;
   const modules = Array.from({ length: moduleCount }, () => new Array(moduleCount).fill(null));
 
-  // Function patterns: Finder Patterns (top-left, top-right, bottom-left)
+  // Finder Patterns (top-left, top-right, bottom-left)
   function setupFinder(r, c) {
     for (let row = -1; row <= 7; row++) {
       for (let col = -1; col <= 7; col++) {
@@ -144,7 +194,7 @@ export function generateQRCodeMatrix(text) {
     bitBuf.put(bytes[i], 8);
   }
 
-  // Terminator
+  // Terminator & Padding
   while (bitBuf.getLengthInBits() % 8 !== 0) bitBuf.putBit(false);
   const dataBytesCount = totalDataBytes - ecBytes;
   while (bitBuf.getLengthInBits() < dataBytesCount * 8) {
@@ -200,8 +250,8 @@ export function generateQRCodeMatrix(text) {
     dir = -dir;
   }
 
-  // Format Information (Mask 0 + Error Level M)
-  const formatBits = [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0];
+  // Format Information
+  const formatBits = FORMAT_BITS[ecLevel];
   for (let i = 0; i < 15; i++) {
     const bit = formatBits[i] === 1;
     // Top-left
@@ -221,9 +271,12 @@ export function generateQRCodeMatrix(text) {
 
 /**
  * Generates an SVG string representation of the QR code
+ * @param {string} text - Content to encode
+ * @param {number} size - Output pixel dimension
+ * @param {'L' | 'M' | 'Q' | 'H'} errorCorrectionLevel - Damage protection level (default 'M')
  */
-export function generateQRCodeSVG(text, size = 220) {
-  const matrix = generateQRCodeMatrix(text);
+export function generateQRCodeSVG(text, size = 220, errorCorrectionLevel = 'M') {
+  const matrix = generateQRCodeMatrix(text, errorCorrectionLevel);
   const n = matrix.length;
   const cellSize = (size / n).toFixed(2);
 

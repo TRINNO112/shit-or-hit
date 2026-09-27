@@ -2,20 +2,63 @@
  * ⚡ PWA Auto-Update & Stale Worker Elimination Engine
  * 
  * Automatically detects new deploys, polls for updates on app focus / online events,
- * and activates new service workers seamlessly without user friction or stale asset freezes.
+ * and activates new service workers safely without interrupting user reflections or force-reloading mid-thought.
  */
 
+let initialized = false;
 let updateCheckInterval = null;
 let isRefreshing = false;
+let waitingWorkerInstance = null;
 
 /**
- * Initializes proactive PWA auto-update polling and controller change handlers.
+ * Checks whether the user is actively typing, interacting, or viewing a modal.
+ */
+export function isUserBusy() {
+  if (typeof document === 'undefined') return false;
+  
+  const active = document.activeElement;
+  if (active && (
+    active.tagName === 'TEXTAREA' ||
+    active.tagName === 'INPUT' ||
+    active.tagName === 'SELECT' ||
+    active.isContentEditable
+  )) {
+    return true;
+  }
+
+  // Check if any modal, drawer, or dialog overlay is active
+  if (document.querySelector('[role="dialog"], .fixed.inset-0, .z-50, .z-80, .z-85')) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Explicit user-triggered activation of the waiting service worker.
+ */
+export function applyWaitingUpdate() {
+  if (waitingWorkerInstance) {
+    waitingWorkerInstance.postMessage({ type: 'SKIP_WAITING' });
+  } else {
+    window.location.reload();
+  }
+}
+
+/**
+ * Initializes proactive PWA update polling and controller change handlers.
  * @param {Function} onUpdateAvailable - Optional callback if UI wants to display a pill.
  */
 export function initPwaAutoUpdate(onUpdateAvailable) {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
     return;
   }
+
+  // Guard against double-initialization (HMR, remounts)
+  if (initialized) {
+    return;
+  }
+  initialized = true;
 
   // 1. Skip completely in local development mode
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -27,10 +70,10 @@ export function initPwaAutoUpdate(onUpdateAvailable) {
     if (!isRefreshing) {
       isRefreshing = true;
       console.log('⚡ [PWA Engine] New Service Worker activated. Reloading to apply update...');
-      // Small 150ms buffer to allow any pending IndexedDB/localStorage writes to complete
+      // 200ms buffer to allow any pending writes to complete cleanly
       setTimeout(() => {
         window.location.reload();
-      }, 150);
+      }, 200);
     }
   });
 
@@ -39,7 +82,7 @@ export function initPwaAutoUpdate(onUpdateAvailable) {
     // Initial check on load
     checkForUpdate(registration);
 
-    // If a worker is already waiting in the wings, trigger skipWaiting immediately
+    // If a worker is already waiting in the wings
     if (registration.waiting) {
       handleWaitingWorker(registration.waiting, onUpdateAvailable);
     }
@@ -56,7 +99,7 @@ export function initPwaAutoUpdate(onUpdateAvailable) {
       }
     });
 
-    // 4. Trigger update check on App Focus / Visibility Change (e.g. phone unlock, tab switch)
+    // 4. Trigger update check on App Focus / Visibility Change
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         checkForUpdate(registration);
@@ -92,24 +135,37 @@ export function checkForUpdate(registration) {
 }
 
 /**
- * Handles a waiting service worker by signaling skipWaiting
+ * Handles a waiting service worker safely without disrupting user reflection
  */
 function handleWaitingWorker(worker, onUpdateAvailable) {
   if (!worker) return;
+  waitingWorkerInstance = worker;
 
-  // Check if user is actively typing in a reflection textarea to avoid interrupting their flow
-  const isTyping = document.activeElement && (
-    document.activeElement.tagName === 'TEXTAREA' ||
-    document.activeElement.tagName === 'INPUT'
-  );
+  const notifyUser = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('pwa-update-available', {
+        detail: { applyUpdate: applyWaitingUpdate }
+      }));
+    }
+    if (typeof onUpdateAvailable === 'function') {
+      onUpdateAvailable(applyWaitingUpdate);
+    }
+  };
 
-  if (isTyping && onUpdateAvailable) {
-    // Give user an on-screen pill if they are actively drafting
-    onUpdateAvailable(() => {
-      worker.postMessage({ type: 'SKIP_WAITING' });
-    });
+  // If user is actively typing or inside a modal, defer and inform without force-reloading
+  if (isUserBusy()) {
+    notifyUser();
+    return;
+  }
+
+  // If onUpdateAvailable callback is hooked, let user initiate
+  if (onUpdateAvailable) {
+    notifyUser();
   } else {
-    // Auto-activate immediately for seamless updates
-    worker.postMessage({ type: 'SKIP_WAITING' });
+    // If not busy, dispatch global event first; only activate if window is hidden
+    notifyUser();
+    if (document.visibilityState === 'hidden') {
+      worker.postMessage({ type: 'SKIP_WAITING' });
+    }
   }
 }

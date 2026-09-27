@@ -1,4 +1,4 @@
-// ⚡ High-Performance PWA Service Worker for Daily Verdict (v7)
+// ⚡ High-Performance PWA Service Worker for Daily Verdict (v8)
 // Provides instant Cache-First & Stale-While-Revalidate for static assets & modal chunks,
 // eliminating network latency on mobile devices.
 const CACHE_NAME = 'daily-verdict-v8';
@@ -14,9 +14,9 @@ const PRECACHE_URLS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS).catch((err) => {
-        console.warn('Precache partial warning:', err);
-      });
+      return Promise.allSettled(
+        PRECACHE_URLS.map((url) => cache.add(url))
+      );
     }).then(() => self.skipWaiting())
   );
 });
@@ -54,7 +54,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/@') ||
     url.pathname.startsWith('/src/') ||
     url.pathname.startsWith('/node_modules/') ||
-    url.search.includes('?t=')
+    url.searchParams.has('t')
   ) {
     return;
   }
@@ -91,7 +91,7 @@ self.addEventListener('fetch', (event) => {
         const cachedResponse = await cache.match(request);
         if (cachedResponse) {
           fetch(request).then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
+            if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
               cache.put(request, networkResponse.clone()).catch(() => {});
             }
           }).catch(() => {});
@@ -100,7 +100,7 @@ self.addEventListener('fetch', (event) => {
 
         try {
           const networkResponse = await fetch(request);
-          if (networkResponse && networkResponse.status === 200) {
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             cache.put(request, networkResponse.clone()).catch(() => {});
           }
           return networkResponse;
@@ -117,7 +117,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             const copy = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
           }
@@ -135,7 +135,7 @@ self.addEventListener('fetch', (event) => {
 
   // Default: Network with cache fallback
   event.respondWith(
-    fetch(request).catch(() => caches.match(request))
+    fetch(request).catch(() => caches.match(request).then((r) => r || Response.error()))
   );
 });
 
