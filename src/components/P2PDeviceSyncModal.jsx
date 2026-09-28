@@ -22,7 +22,11 @@ import {
   ShieldAlert,
   HardDrive,
   CheckCircle2,
-  Info
+  Info,
+  KeyRound,
+  Shield,
+  RotateCcw,
+  Lock
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { generateQRCodeSVG } from '../services/qrGenerator';
@@ -33,7 +37,13 @@ import {
   getLocalSyncPayload,
   importSyncPayload,
   getAccountRoomId,
-  checkAccountHostActive
+  checkAccountHostActive,
+  getGuestSyncKey,
+  setGuestSyncKey,
+  generateMeshSyncKey,
+  getMeshRoomId,
+  getMutualPeerBackupMeta,
+  restoreFromMutualPeerBackup
 } from '../services/p2pSyncEngine';
 
 export default function P2PDeviceSyncModal({
@@ -50,6 +60,11 @@ export default function P2PDeviceSyncModal({
     return user?.email ? 'account' : 'send';
   });
   const [pairingCode, setPairingCode] = useState(() => generatePairingCode());
+  const [guestMeshKey, setGuestMeshKey] = useState(() => getGuestSyncKey());
+  const [inputMeshKey, setInputMeshKey] = useState('');
+  const [peerBackupMeta, setPeerBackupMeta] = useState(() => getMutualPeerBackupMeta());
+  const [isCopiedMeshKey, setIsCopiedMeshKey] = useState(false);
+  const [syncSubTab, setSyncSubTab] = useState(() => (user?.email ? 'google' : 'mesh'));
   const [syncStatus, setSyncStatus] = useState('Idle');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isHostingAccount, setIsHostingAccount] = useState(false);
@@ -287,6 +302,129 @@ export default function P2PDeviceSyncModal({
     cleanupRef.current = session?.cleanup;
   };
 
+  const handleCopyMeshKey = () => {
+    soundEngine.playClick();
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(guestMeshKey);
+      setIsCopiedMeshKey(true);
+      showToast('Mesh Sync Key copied to clipboard!', 'success');
+      setTimeout(() => setIsCopiedMeshKey(false), 2000);
+    }
+  };
+
+  const handleGenerateNewMeshKey = () => {
+    soundEngine.playClick();
+    if (window.confirm('Generate a new Mesh Sync Key? You will need to enter this new key on your secondary device to keep syncing.')) {
+      const nextKey = generateMeshSyncKey();
+      setGuestSyncKey(nextKey);
+      setGuestMeshKey(nextKey);
+      showToast('Generated fresh Mesh Sync Key!', 'info');
+    }
+  };
+
+  const handleSavePairedMeshKey = (e) => {
+    e.preventDefault();
+    if (!inputMeshKey.trim()) return;
+    const clean = inputMeshKey.trim().toUpperCase();
+    setGuestSyncKey(clean);
+    setGuestMeshKey(clean);
+    setInputMeshKey('');
+    soundEngine.playSuccessChime();
+    showToast('Paired Mesh Sync Key saved on this device!', 'success');
+  };
+
+  const handleStartMeshHost = async () => {
+    soundEngine.playClick();
+    setIsProcessing(true);
+    setIsHostingAccount(true);
+    setErrorMessage('');
+    setSuccessResult(null);
+
+    stopActiveSession();
+
+    const roomCode = getMeshRoomId(guestMeshKey);
+    setIsHostingAccount(true);
+    setIsProcessing(true);
+    showToast('Mesh Antenna active! Keep this browser tab open.', 'info');
+
+    const session = await startSenderSession(
+      roomCode,
+      (status) => setSyncStatus(status),
+      (result) => {
+        soundEngine.playSuccessChime();
+        setIsProcessing(false);
+        setIsHostingAccount(false);
+        setSuccessResult(result);
+        setSyncStatus('Mesh Sync Complete! Beamed to paired device.');
+        showToast('Transfer Complete! Beamed to paired device.', 'success');
+        setPeerBackupMeta(getMutualPeerBackupMeta());
+        if (onSyncComplete) onSyncComplete();
+      },
+      (err) => {
+        soundEngine.playRoughTone();
+        setIsProcessing(false);
+        setIsHostingAccount(false);
+        const msg = err.message || 'Mesh session timed out.';
+        setErrorMessage(msg);
+        showToast(`Host Error: ${msg}`, 'error');
+      }
+    );
+
+    cleanupRef.current = session?.cleanup;
+  };
+
+  const handleFetchFromMeshHost = async () => {
+    soundEngine.playClick();
+    setIsProcessing(true);
+    setIsHostingAccount(false);
+    setErrorMessage('');
+    setSuccessResult(null);
+
+    stopActiveSession();
+    setIsProcessing(true);
+
+    const roomCode = getMeshRoomId(guestMeshKey);
+    setSyncStatus('Connecting to paired device over private mesh...');
+    showToast('Connecting to paired device...', 'info');
+
+    const session = await joinReceiverSession(
+      roomCode,
+      (status) => setSyncStatus(status),
+      (result) => {
+        soundEngine.playSuccessChime();
+        setIsProcessing(false);
+        setSuccessResult(result);
+        setSyncStatus('Mesh Sync Successful!');
+        showToast(`Mesh Sync Successful! Imported ${result.importedCount || 0} entries.`, 'success');
+        setPeerBackupMeta(getMutualPeerBackupMeta());
+        if (onSyncComplete) onSyncComplete();
+      },
+      (err) => {
+        soundEngine.playRoughTone();
+        setIsProcessing(false);
+        const msg = err.message || 'Failed to connect to paired device.';
+        setErrorMessage(msg);
+        showToast(`Sync Failed: ${msg}`, 'error');
+      }
+    );
+
+    cleanupRef.current = session?.cleanup;
+  };
+
+  const handleDisasterRecovery = () => {
+    soundEngine.playClick();
+    const res = restoreFromMutualPeerBackup();
+    if (res.success) {
+      soundEngine.playSuccessChime();
+      showToast(`Disaster Recovery complete! Restored ${res.count} entries.`, 'success');
+      setPeerBackupMeta(getMutualPeerBackupMeta());
+      if (onSyncComplete) onSyncComplete();
+    } else {
+      soundEngine.playRoughTone();
+      showToast(`Recovery failed: ${res.error || 'No backup found'}`, 'error');
+    }
+  };
+
   const handleCopyLink = () => {
     soundEngine.playClick();
     navigator.clipboard.writeText(syncUrl);
@@ -412,7 +550,22 @@ export default function P2PDeviceSyncModal({
 
           {/* Sub-Tabs for Data Transfer */}
           {activeSection === 'transfer' && (
-            <div className="grid grid-cols-3 gap-2 pt-0.5">
+            <div className={`grid gap-2 pt-0.5 ${user?.email ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+              {user?.email && (
+                <button
+                  type="button"
+                  onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('account'); }}
+                  className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] flex items-center justify-center gap-1.5 ${
+                    mode === 'account'
+                      ? 'bg-[#00E599] text-black'
+                      : 'bg-white hover:bg-neutral-50 text-neutral-700'
+                  }`}
+                >
+                  <Monitor className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Google Beam</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('send'); }}
@@ -474,48 +627,43 @@ export default function P2PDeviceSyncModal({
             )}
           </AnimatePresence>
 
-          {/* TAB 1: ACCOUNT-BASED 1-TAP REMOTE FETCH */}
-          {activeSection === 'sync' && mode === 'account' && (
+          {/* SECTION 1: DEVICE SYNC (Google Account or Private Mesh Key) */}
+          {activeSection === 'sync' && (
             <div className="space-y-3 pt-1">
-              {!user?.email ? (
-                <div className="p-4 bg-amber-50 rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#FDC800] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                      <LogIn className="w-4 h-4 text-black stroke-[2.5]" />
-                    </div>
-                    <div>
-                      <h4 className="font-display font-black text-xs uppercase text-black">
-                        Sign In Required for Account Fetch
-                      </h4>
-                      <p className="text-[10px] font-mono text-neutral-600">
-                        Link your devices by signing into the same Google account
-                      </p>
-                    </div>
-                  </div>
+              {/* If signed in: allow switching between Google Sync and Mesh Key */}
+              {user?.email && (
+                <div className="flex items-center gap-2 p-1 bg-neutral-100 border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
+                  <button
+                    type="button"
+                    onClick={() => { soundEngine.playClick(); setSyncSubTab('google'); }}
+                    className={`flex-1 py-1.5 px-2 rounded-lg font-mono text-[11px] font-black uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      syncSubTab === 'google'
+                        ? 'bg-[#00E599] text-black border border-black shadow-[1px_1px_0px_#000000]'
+                        : 'text-neutral-600 hover:text-black'
+                    }`}
+                  >
+                    <Monitor className="w-3 h-3 stroke-[2.5]" />
+                    <span>Google Account Sync</span>
+                  </button>
 
-                  <p className="font-mono text-xs text-neutral-800 leading-relaxed">
-                    Signing into the same Google account on your Office PC and Laptop allows 1-tap peer-to-peer discovery without scanning QR codes.
-                  </p>
-
-                  <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
-                    {onLogin && (
-                      <button
-                        type="button"
-                        onClick={onLogin}
-                        className="w-full sm:w-auto py-2 px-4 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:scale-95"
-                      >
-                        <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>Sign In With Google</span>
-                      </button>
-                    )}
-                    <span className="text-[10px] font-mono text-neutral-500 font-bold">
-                      Or use the QR Beam tab for anonymous guest sync
-                    </span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { soundEngine.playClick(); setSyncSubTab('mesh'); }}
+                    className={`flex-1 py-1.5 px-2 rounded-lg font-mono text-[11px] font-black uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      syncSubTab === 'mesh'
+                        ? 'bg-[#FDC800] text-black border border-black shadow-[1px_1px_0px_#000000]'
+                        : 'text-neutral-600 hover:text-black'
+                    }`}
+                  >
+                    <KeyRound className="w-3 h-3 stroke-[2.5]" />
+                    <span>Private Mesh Key (Offline)</span>
+                  </button>
                 </div>
-              ) : (
+              )}
+
+              {/* VIEW A: Google Account Sync */}
+              {user?.email && syncSubTab === 'google' && (
                 <div className="space-y-3">
-                  {/* Account Status Badge */}
                   <div className="p-3 bg-white rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-6 h-6 rounded-md bg-[#00E599] border border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
@@ -526,28 +674,25 @@ export default function P2PDeviceSyncModal({
                       </span>
                     </div>
                     <span className="px-2 py-0.5 bg-[#FFF5C2] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
-                      P2P DISCOVERY ACTIVE
+                      ACCOUNT PAIRING ACTIVE
                     </span>
                   </div>
 
-                  {/* 🚨 MANDATORY ACTIVE STATE ADVISORY */}
                   <div className="p-3 bg-[#FFF5C2] rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] space-y-1.5 font-mono text-xs text-neutral-900 font-bold leading-relaxed">
                     <div className="flex items-center gap-2 text-black font-black uppercase text-[11px]">
                       <AlertTriangle className="w-4 h-4 text-amber-700 stroke-[2.5] shrink-0" />
-                      CRITICAL: BOTH DEVICES MUST BE ACTIVE AT THE SAME TIME
+                      BOTH DEVICES MUST BE ACTIVE SIMULTANEOUSLY
                     </div>
                     <p>
-                      Because your diaries are <strong>never stored on a cloud database</strong>, data travels directly between your devices over an encrypted WebRTC tunnel.
+                      Because diary entries are <strong>never stored on central cloud databases</strong>, data streams directly between your browsers over an encrypted WebRTC tunnel.
                     </p>
                     <p className="text-[11px] text-neutral-700 font-medium">
-                      • Keep this browser tab open on your Office PC while fetching.<br />
-                      • If the office PC is sleeping or the browser is closed, your laptop cannot fetch entries.
+                      • Keep this tab open on your Office PC while fetching.<br />
+                      • Once synced, both devices automatically retain an offline safety mirror of each other.
                     </p>
                   </div>
 
-                  {/* Dual Action Matrix */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Action 1: Broadcast as Host */}
                     <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
                       <div className="space-y-1">
                         <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
@@ -587,7 +732,6 @@ export default function P2PDeviceSyncModal({
                       )}
                     </div>
 
-                    {/* Action 2: Fetch From Host */}
                     <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
                       <div className="space-y-1">
                         <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
@@ -614,6 +758,208 @@ export default function P2PDeviceSyncModal({
                   </div>
                 </div>
               )}
+
+              {/* VIEW B: Private Mesh Sync Key (Continuous Guest Sync & Cryptographic Isolation) */}
+              {(!user?.email || syncSubTab === 'mesh') && (
+                <div className="space-y-3">
+                  {/* Security Assurance Banner */}
+                  <div className="p-3 bg-neutral-900 text-white rounded-2xl border-2 border-black shadow-[2.5px_2.5px_0px_#000000] space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-[#00E599] stroke-[2.5]" />
+                      <span className="font-mono text-xs font-black uppercase tracking-wider text-[#00E599]">
+                        CONTINUOUS ENCRYPTED MESH • ZERO CLOUD
+                      </span>
+                    </div>
+                    <p className="font-mono text-[11px] text-neutral-300 leading-relaxed">
+                      Continuous guest sync uses a shared 16-character cryptographic Mesh Key. When both of your devices hold this key, they discover each other privately and maintain mutual offline safety backups.
+                    </p>
+                  </div>
+
+                  {/* Device Mesh Key Display */}
+                  <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-black text-neutral-500 uppercase tracking-wider">
+                        THIS DEVICE'S MESH SYNC KEY
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-[#FFF5C2] border border-black rounded text-[9px] font-mono font-black text-black">
+                        CONTINUOUS PAIRING
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-[#FFFDF5] border-2 border-black rounded-xl flex items-center justify-between gap-2 shadow-[1.5px_1.5px_0px_#000000]">
+                      <span className="font-mono font-black text-sm sm:text-base tracking-widest text-black select-all truncate">
+                        {guestMeshKey}
+                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={handleCopyMeshKey}
+                          className="py-1 px-2.5 bg-white hover:bg-neutral-100 border border-black rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer flex items-center gap-1 shadow-[1px_1px_0px_#000000] active:scale-95"
+                        >
+                          <Copy className="w-3 h-3 stroke-[2.5]" />
+                          <span>{isCopiedMeshKey ? 'Copied!' : 'Copy'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleGenerateNewMeshKey}
+                          className="py-1 px-2 bg-neutral-100 hover:bg-neutral-200 border border-black rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer shadow-[1px_1px_0px_#000000] active:scale-95"
+                          title="Generate New Mesh Key"
+                        >
+                          <RefreshCw className="w-3 h-3 stroke-[2.5]" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pair Secondary Device Input */}
+                  <form onSubmit={handleSavePairedMeshKey} className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2">
+                    <label className="text-[10px] font-mono font-black text-neutral-500 uppercase tracking-wider block">
+                      PAIR WITH OTHER DEVICE (ENTER THEIR MESH KEY)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. MESH-7F3A-9B2C-1E4D"
+                        value={inputMeshKey}
+                        onChange={(e) => setInputMeshKey(e.target.value.toUpperCase())}
+                        className="flex-1 p-2.5 bg-[#FFFDF5] border-2 border-black rounded-xl font-mono text-xs font-black uppercase focus:outline-none focus:ring-2 focus:ring-black shadow-[1.5px_1.5px_0px_#000000]"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!inputMeshKey.trim()}
+                        className="py-2.5 px-3 bg-[#FDC800] hover:bg-yellow-400 disabled:opacity-50 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:scale-95 shrink-0"
+                      >
+                        Link Key
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Dual Mesh Host / Fetch Actions */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
+                      <div className="space-y-1">
+                        <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
+                          STEP 1: SENDER (DEVICE A)
+                        </span>
+                        <h4 className="font-display font-black text-sm uppercase text-black">
+                          Broadcast Mesh Host
+                        </h4>
+                        <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                          Listens for your paired device sharing this Mesh Key.
+                        </p>
+                      </div>
+
+                      {isHostingAccount ? (
+                        <div className="space-y-2 pt-2">
+                          <div className="p-2 bg-[#00E599] border-2 border-black rounded-xl font-mono text-[11px] font-black uppercase text-black text-center shadow-[1.5px_1.5px_0px_#000000] animate-pulse">
+                            MESH HOST ACTIVE • LISTENING
+                          </div>
+                          <button
+                            type="button"
+                            onClick={stopActiveSession}
+                            className="w-full py-1.5 px-3 bg-red-100 hover:bg-red-200 text-red-900 border border-black rounded-xl font-mono text-[10px] font-black uppercase cursor-pointer"
+                          >
+                            Stop Broadcasting
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={isProcessing}
+                          onClick={handleStartMeshHost}
+                          className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                        >
+                          <Zap className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>Broadcast Mesh Host</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
+                      <div className="space-y-1">
+                        <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
+                          STEP 2: RECEIVER (DEVICE B)
+                        </span>
+                        <h4 className="font-display font-black text-sm uppercase text-black">
+                          1-Tap Mesh Sync
+                        </h4>
+                        <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                          Connect and pull latest entries from your host device.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={isProcessing}
+                        onClick={handleFetchFromMeshHost}
+                        className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                      >
+                        <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>1-Tap Sync Entries</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {!user?.email && onLogin && (
+                    <div className="p-3 bg-neutral-50 rounded-2xl border-2 border-black flex items-center justify-between gap-2 flex-wrap">
+                      <div className="min-w-0">
+                        <span className="font-mono text-xs font-black uppercase text-black block">
+                          Prefer zero-config automatic sync?
+                        </span>
+                        <span className="font-mono text-[10px] text-neutral-600">
+                          Sign into Google on both devices for automatic account pairing without keys
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={onLogin}
+                        className="py-1.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-[11px] font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95"
+                      >
+                        <LogIn className="w-3 h-3 stroke-[2.5]" />
+                        <span>Sign In With Google</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* MUTUAL DISASTER RECOVERY SAFETY NET (For both Google and Guest modes) */}
+              <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-black stroke-[2.5]" />
+                    <h4 className="font-display font-black text-xs uppercase text-black">
+                      Mutual Disaster Recovery Safety Net
+                    </h4>
+                  </div>
+                  {peerBackupMeta && peerBackupMeta.hasPayload ? (
+                    <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
+                      SAFETY BACKUP READY
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700">
+                      NO BACKUP DETECTED
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-[11px] font-mono text-neutral-600 leading-relaxed">
+                  {peerBackupMeta && peerBackupMeta.hasPayload
+                    ? `Holds an offline replica containing ${peerBackupMeta.entryCount} entries from "${peerBackupMeta.peerDeviceName}". If this device is wiped, recover everything in 1 tap.`
+                    : 'Whenever your devices sync, they save an offline safety backup of each other so you can recover if this device is ever lost or wiped.'}
+                </p>
+
+                {peerBackupMeta && peerBackupMeta.hasPayload && (
+                  <button
+                    type="button"
+                    onClick={handleDisasterRecovery}
+                    className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Restore All Entries from Paired Peer</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

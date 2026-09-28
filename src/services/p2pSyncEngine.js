@@ -17,6 +17,8 @@ const STUN_SERVERS = {
 
 const SYNC_COLLECTION = 'p2p_ephemeral_handshakes';
 
+export const GUEST_SYNC_KEY_STORAGE = 'goodness_p2p_mesh_key';
+
 /**
  * Derives a zero-knowledge deterministic room ID for authenticated account-to-account P2P pairing.
  * Zero email addresses or PII are exposed in the room identifier.
@@ -25,6 +27,61 @@ export function getAccountRoomId(email) {
   if (!email) return null;
   const hash = sha256Sync(email.toLowerCase().trim());
   return 'ACC-' + hash.slice(0, 10).toUpperCase();
+}
+
+/**
+ * Generates a high-entropy 16-character cryptographic Mesh Sync Key (e.g. MESH-7F3A-9B2C-1E4D).
+ */
+export function generateMeshSyncKey() {
+  const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const getChunk = (len) => {
+    let res = '';
+    const bytes = new Uint8Array(len);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(bytes);
+      for (let i = 0; i < len; i++) {
+        res += chars[bytes[i] % chars.length];
+      }
+    } else {
+      for (let i = 0; i < len; i++) {
+        res += chars[Math.floor(Math.random() * chars.length)];
+      }
+    }
+    return res;
+  };
+  return `MESH-${getChunk(4)}-${getChunk(4)}-${getChunk(4)}`;
+}
+
+/**
+ * Gets or creates the persistent Guest Mesh Sync Key for this device.
+ */
+export function getGuestSyncKey() {
+  if (typeof window === 'undefined') return '';
+  let key = localStorage.getItem(GUEST_SYNC_KEY_STORAGE);
+  if (!key) {
+    key = generateMeshSyncKey();
+    localStorage.setItem(GUEST_SYNC_KEY_STORAGE, key);
+  }
+  return key;
+}
+
+/**
+ * Sets a paired Guest Mesh Sync Key on this device.
+ */
+export function setGuestSyncKey(key) {
+  if (typeof window === 'undefined') return;
+  const clean = (key || '').trim().toUpperCase();
+  localStorage.setItem(GUEST_SYNC_KEY_STORAGE, clean);
+  window.dispatchEvent(new CustomEvent('guest-mesh-key-updated', { detail: clean }));
+}
+
+/**
+ * Derives a zero-knowledge deterministic room ID from a Mesh Sync Key.
+ */
+export function getMeshRoomId(syncKey) {
+  if (!syncKey) return null;
+  const hash = sha256Sync(syncKey.trim().toUpperCase());
+  return 'MSH-' + hash.slice(0, 10).toUpperCase();
 }
 
 /**
