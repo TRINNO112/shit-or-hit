@@ -1037,23 +1037,6 @@ export default function App() {
       {/* 📲 PWA 1-Tap Native Install Prompt Banner */}
       <PWAInstallBanner />
 
-      {/* 🛡️ Sovereign Guest Intelligence Banner */}
-      {showSovereignBanner && (
-        <div className="max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 pt-3">
-          <Suspense fallback={null}>
-            <SovereignGuestBanner
-              onOpenP2PSync={() => {
-                setP2PSyncSection('sync');
-                setIsP2PSyncOpen(true);
-              }}
-              onExportData={() => setIsExportStudioOpen(true)}
-              onOpenCloudAuth={handleGuestLogin}
-              onDismiss={() => setShowSovereignBanner(false)}
-            />
-          </Suspense>
-        </div>
-      )}
-
       {isMobile ? (
         <FaultBoundary
           name="MobileAppView"
@@ -1099,6 +1082,21 @@ export default function App() {
           </div>
 
           <main className="flex-1 w-full max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto p-4 sm:p-6 3xl:p-8 4k:p-12 space-y-6 3xl:space-y-8">
+            {/* 🛡️ Sovereign Guest Intelligence Banner (Cleanly seated beneath sticky Navigation Panel) */}
+            {showSovereignBanner && (
+              <Suspense fallback={null}>
+                <SovereignGuestBanner
+                  onOpenP2PSync={() => {
+                    setP2PSyncSection('sync');
+                    setIsP2PSyncOpen(true);
+                  }}
+                  onExportData={() => setIsExportStudioOpen(true)}
+                  onOpenCloudAuth={handleGuestLogin}
+                  onDismiss={() => setShowSovereignBanner(false)}
+                />
+              </Suspense>
+            )}
+
             {/* VIEW 1: TODAY ACTIVE WORKSPACE & STATS */}
             {activeDesktopTab === 'today' && (
               <div className="space-y-6">
