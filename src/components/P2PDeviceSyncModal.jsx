@@ -26,10 +26,16 @@ import {
   KeyRound,
   Shield,
   RotateCcw,
-  Lock
+  Lock,
+  Layers,
+  Cpu,
+  Cloud,
+  CheckCheck
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { generateQRCodeSVG } from '../services/qrGenerator';
+import { isOwnerAccount, isEmailWhitelisted } from '../services/firebase';
+import { fetchDatabase } from '../services/api';
 import {
   generatePairingCode,
   startSenderSession,
@@ -43,7 +49,8 @@ import {
   generateMeshSyncKey,
   getMeshRoomId,
   getMutualPeerBackupMeta,
-  restoreFromMutualPeerBackup
+  restoreFromMutualPeerBackup,
+  getCurrentDeviceInfo
 } from '../services/p2pSyncEngine';
 
 export default function P2PDeviceSyncModal({
@@ -54,6 +61,19 @@ export default function P2PDeviceSyncModal({
   onSyncComplete,
   initialSection = 'sync'
 }) {
+  const isOwner = Boolean(user?.email && isOwnerAccount(user.email));
+  const isWhitelisted = Boolean(user?.email && isEmailWhitelisted(user.email));
+  const currentDevice = getCurrentDeviceInfo();
+
+  const [localEntryCount, setLocalEntryCount] = useState(() => {
+    try {
+      const payload = getLocalSyncPayload();
+      return Object.keys(payload?.entries || {}).length;
+    } catch {
+      return 0;
+    }
+  });
+
   const [activeSection, setActiveSection] = useState(() => initialSection || (user?.email ? 'sync' : 'transfer'));
   const [mode, setMode] = useState(() => {
     if (initialSection === 'transfer') return 'send';
@@ -63,11 +83,17 @@ export default function P2PDeviceSyncModal({
   const [guestMeshKey, setGuestMeshKey] = useState(() => getGuestSyncKey());
   const [inputMeshKey, setInputMeshKey] = useState('');
   const [peerBackupMeta, setPeerBackupMeta] = useState(() => getMutualPeerBackupMeta());
+
+  const maxDeviceQuota = isOwner ? 10 : user?.email ? 5 : 3;
+  const activeSlotsCount = peerBackupMeta?.hasPayload ? 2 : 1;
+
   const [isCopiedMeshKey, setIsCopiedMeshKey] = useState(false);
   const [syncSubTab, setSyncSubTab] = useState(() => (user?.email ? 'google' : 'mesh'));
   const [syncStatus, setSyncStatus] = useState('Idle');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isHostingAccount, setIsHostingAccount] = useState(false);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+  const [showManualP2PForOwner, setShowManualP2PForOwner] = useState(false);
   const [successResult, setSuccessResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [receiveInputCode, setReceiveInputCode] = useState('');
@@ -83,9 +109,35 @@ export default function P2PDeviceSyncModal({
     setTimeout(() => setToast(null), 4500);
   };
 
+  const handleForceCloudSync = async () => {
+    soundEngine.playClick();
+    setIsCloudSyncing(true);
+    showToast('Syncing entries with Firebase Firestore...', 'info');
+    try {
+      const db = await fetchDatabase(user);
+      const count = Object.keys(db?.entries || {}).length;
+      setLocalEntryCount(count);
+      soundEngine.playSuccessChime();
+      showToast(`Cloud sync complete! ${count} entries synchronized.`, 'success');
+      if (onSyncComplete) onSyncComplete();
+    } catch (err) {
+      soundEngine.playRoughTone();
+      showToast('Cloud sync failed: ' + (err.message || 'Network error'), 'error');
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
   // Keep activeSection and mode in sync when modal opens or initialSection changes
   useEffect(() => {
     if (isOpen) {
+      setPeerBackupMeta(getMutualPeerBackupMeta());
+      try {
+        const payload = getLocalSyncPayload();
+        setLocalEntryCount(Object.keys(payload?.entries || {}).length);
+      } catch {
+        setLocalEntryCount(0);
+      }
       const section = initialSection || (user?.email ? 'sync' : 'transfer');
       setActiveSection(section);
       if (section === 'sync') {
@@ -94,7 +146,7 @@ export default function P2PDeviceSyncModal({
         setMode((prev) => (prev === 'account' ? 'send' : prev));
       }
     }
-  }, [isOpen, initialSection]);
+  }, [isOpen, initialSection, user?.email]);
 
   // Auto-detect sync parameter in URL
   useEffect(() => {
@@ -491,18 +543,26 @@ export default function P2PDeviceSyncModal({
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-lg bg-[#00E599] text-black border-2 border-black font-mono text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_#000000] inline-flex items-center gap-1">
                 <Radio className="w-3 h-3 stroke-[2.5] animate-pulse" />
-                {activeSection === 'sync' ? 'ACCOUNT MULTI-DEVICE SYNC' : 'WEBRTC DIRECT TUNNEL'}
+                {activeSection === 'sync'
+                  ? (isOwner ? 'OWNER MULTI-DEVICE MESH' : user?.email ? 'ACCOUNT MULTI-DEVICE SYNC' : 'OFFLINE PRIVATE MESH')
+                  : 'WEBRTC DIRECT TUNNEL'}
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-[#FDC800] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
-                ZERO CLOUD STORAGE
+              <span className="px-2 py-0.5 rounded-md bg-[#FDC800] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] inline-flex items-center gap-1">
+                {activeSection === 'sync'
+                  ? (isOwner ? 'CLOUD & P2P ACTIVE' : 'ZERO CLOUD STORAGE')
+                  : 'ONE-TIME TRANSFER'}
               </span>
             </div>
             <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight text-black leading-tight">
-              {activeSection === 'sync' ? 'Device Sync' : 'Direct Data Transfer'}
+              {activeSection === 'sync' ? 'Multi-Device Sync Hub' : 'Direct Data Transfer'}
             </h3>
             <p className="text-xs font-mono text-neutral-600 font-bold">
               {activeSection === 'sync'
-                ? 'Keep your phone, laptop, and office PC synchronized under your Google account without central cloud servers.'
+                ? (isOwner
+                    ? 'Continuous bidirectional cloud sync active. Real-time parity across up to 10 stations with zero-cloud P2P mesh fallback.'
+                    : user?.email
+                      ? 'Keep your phone, laptop, and office PC synchronized over direct P2P tunnels (up to 5 devices).'
+                      : 'Private peer-to-peer sync using your 16-character cryptographic Mesh Key (up to 3 devices).')
                 : 'One-time encrypted peer-to-peer transfer between devices. No Google account required.'}
             </p>
           </div>
@@ -548,23 +608,9 @@ export default function P2PDeviceSyncModal({
             </button>
           </div>
 
-          {/* Sub-Tabs for Data Transfer */}
+          {/* Sub-Tabs for Data Transfer (100% 1-Time Transfer: QR, Code, Text) */}
           {activeSection === 'transfer' && (
-            <div className={`grid gap-2 pt-0.5 ${user?.email ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
-              {user?.email && (
-                <button
-                  type="button"
-                  onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('account'); }}
-                  className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] flex items-center justify-center gap-1.5 ${
-                    mode === 'account'
-                      ? 'bg-[#00E599] text-black'
-                      : 'bg-white hover:bg-neutral-50 text-neutral-700'
-                  }`}
-                >
-                  <Monitor className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>Google Beam</span>
-                </button>
-              )}
+            <div className="grid grid-cols-3 gap-2 pt-0.5">
 
               <button
                 type="button"
@@ -625,39 +671,45 @@ export default function P2PDeviceSyncModal({
                 <span className="truncate">{toast.message}</span>
               </motion.div>
             )}
-          </AnimatePresence>
-
-          {/* SECTION 1: DEVICE SYNC (Google Account or Private Mesh Key) */}
+          </AnimatePresence>          {/* SECTION 1: DEVICE SYNC (Google Account or Private Mesh Key) */}
           {activeSection === 'sync' && (
             <div className="space-y-3 pt-1">
-              {/* If signed in: allow switching between Google Sync and Mesh Key */}
-              {user?.email && (
-                <div className="flex items-center gap-2 p-1 bg-neutral-100 border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
+              {/* 1. Sub-Tab Switcher: PLACED AT THE VERY TOP OF DEVICE SYNC */}
+              {user?.email ? (
+                <div className="flex items-center gap-2 p-1.5 bg-neutral-100 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000]">
                   <button
                     type="button"
                     onClick={() => { soundEngine.playClick(); setSyncSubTab('google'); }}
-                    className={`flex-1 py-1.5 px-2 rounded-lg font-mono text-[11px] font-black uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`flex-1 py-2 px-2.5 rounded-xl font-mono text-xs font-black uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
                       syncSubTab === 'google'
-                        ? 'bg-[#00E599] text-black border border-black shadow-[1px_1px_0px_#000000]'
-                        : 'text-neutral-600 hover:text-black'
+                        ? 'bg-[#00E599] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                        : 'text-neutral-600 hover:text-black border-2 border-transparent'
                     }`}
                   >
-                    <Monitor className="w-3 h-3 stroke-[2.5]" />
+                    <Monitor className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Google Account Sync</span>
+                    {isOwner && (
+                      <span className="text-[9px] px-1.5 py-0.5 bg-black text-[#00E599] rounded font-mono font-black shrink-0">CLOUD LIVE</span>
+                    )}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { soundEngine.playClick(); setSyncSubTab('mesh'); }}
-                    className={`flex-1 py-1.5 px-2 rounded-lg font-mono text-[11px] font-black uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`flex-1 py-2 px-2.5 rounded-xl font-mono text-xs font-black uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
                       syncSubTab === 'mesh'
-                        ? 'bg-[#FDC800] text-black border border-black shadow-[1px_1px_0px_#000000]'
-                        : 'text-neutral-600 hover:text-black'
+                        ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                        : 'text-neutral-600 hover:text-black border-2 border-transparent'
                     }`}
                   >
-                    <KeyRound className="w-3 h-3 stroke-[2.5]" />
+                    <KeyRound className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Private Mesh Key (Offline)</span>
                   </button>
+                </div>
+              ) : (
+                <div className="p-2.5 bg-neutral-100 border-2 border-black rounded-2xl font-mono text-xs font-black uppercase text-center flex items-center justify-center gap-2 shadow-[2px_2px_0px_#000000]">
+                  <KeyRound className="w-4 h-4 stroke-[2.5]" />
+                  <span>PRIVATE MESH KEY (OFFLINE GUEST SYNC)</span>
                 </div>
               )}
 
@@ -673,89 +725,185 @@ export default function P2PDeviceSyncModal({
                         ACCOUNT: {user.email}
                       </span>
                     </div>
-                    <span className="px-2 py-0.5 bg-[#FFF5C2] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
-                      ACCOUNT PAIRING ACTIVE
+                    <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black shadow-[1px_1px_0px_#000000]">
+                      {isOwner ? 'ACCOUNT SYNCED ON ALL DEVICES' : 'ACCOUNT PAIRING ACTIVE'}
                     </span>
                   </div>
 
-                  <div className="p-3 bg-[#FFF5C2] rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] space-y-1.5 font-mono text-xs text-neutral-900 font-bold leading-relaxed">
-                    <div className="flex items-center gap-2 text-black font-black uppercase text-[11px]">
-                      <AlertTriangle className="w-4 h-4 text-amber-700 stroke-[2.5] shrink-0" />
-                      BOTH DEVICES MUST BE ACTIVE SIMULTANEOUSLY
-                    </div>
-                    <p>
-                      Because diary entries are <strong>never stored on central cloud databases</strong>, data streams directly between your browsers over an encrypted WebRTC tunnel.
-                    </p>
-                    <p className="text-[11px] text-neutral-700 font-medium">
-                      • Keep this tab open on your Office PC while fetching.<br />
-                      • Once synced, both devices automatically retain an offline safety mirror of each other.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
-                      <div className="space-y-1">
-                        <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
-                          STEP 1: SENDER (OFFICE PC)
+                  {/* TIER 1 OWNER CLOUD SYNC HERO CARD */}
+                  {isOwner ? (
+                    <div className="p-4 bg-linear-to-br from-[#FFFDF0] via-[#F4FFF8] to-[#E6F9F0] rounded-2xl border-3 border-black shadow-[4px_4px_0px_#000000] space-y-3">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-lg bg-[#00E599] text-black border-2 border-black font-mono text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_#000000] inline-flex items-center gap-1.5">
+                          <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+                          TIER 1 VERIFIED OWNER PRIVILEGES
                         </span>
+                        <span className="px-2 py-0.5 bg-[#FDC800] border border-black rounded text-[9px] font-mono font-black uppercase text-black shadow-[1px_1px_0px_#000000] inline-flex items-center gap-1">
+                          <Cloud className="w-3 h-3 stroke-[2.5]" />
+                          FIRESTORE CLOUD LIVE
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5 font-mono">
                         <h4 className="font-display font-black text-sm uppercase text-black">
-                          Broadcast As Host
+                          THIS ACCOUNT IS AUTOMATICALLY SYNCED ON ALL YOUR DEVICES
                         </h4>
-                        <p className="text-[11px] font-mono text-neutral-600 leading-snug">
-                          Activate this device so your other laptop can fetch its entries.
+                        <p className="text-xs text-neutral-800 leading-relaxed font-bold">
+                          You are logged in as <span className="text-black font-black underline">{user.email}</span>. Because your account is whitelisted with Tier 1 Cloud privileges, <strong>every phone, laptop, or desktop where you log into this Google account is already synchronized</strong>.
+                        </p>
+                        <p className="text-[11px] text-neutral-700 font-medium">
+                          Any entry created or updated on any device is automatically saved to Firebase Firestore in real time. You do not need to perform manual data transfers.
                         </p>
                       </div>
 
-                      {isHostingAccount ? (
-                        <div className="space-y-2 pt-2">
-                          <div className="p-2 bg-[#00E599] border-2 border-black rounded-xl font-mono text-[11px] font-black uppercase text-black text-center shadow-[1.5px_1.5px_0px_#000000] animate-pulse">
-                            HOST ACTIVE • AWAITING REMOTE DEVICE
-                          </div>
-                          <button
-                            type="button"
-                            onClick={stopActiveSession}
-                            className="w-full py-1.5 px-3 bg-red-100 hover:bg-red-200 text-red-900 border border-black rounded-xl font-mono text-[10px] font-black uppercase cursor-pointer"
-                          >
-                            Stop Broadcasting
-                          </button>
+                      <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs">
+                        <div className="p-2.5 bg-white rounded-xl border border-black/30 shadow-[1px_1px_0px_#000000]">
+                          <span className="text-[9px] font-black uppercase text-neutral-500 block">CLOUD VAULT</span>
+                          <span className="font-black text-black text-xs">trinno_owner_vault</span>
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={isProcessing}
-                          onClick={handleStartAccountHost}
-                          className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
-                        >
-                          <Zap className="w-3.5 h-3.5 stroke-[2.5]" />
-                          <span>Broadcast As Host</span>
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
-                      <div className="space-y-1">
-                        <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
-                          STEP 2: RECEIVER (LAPTOP/PHONE)
-                        </span>
-                        <h4 className="font-display font-black text-sm uppercase text-black">
-                          Fetch From Host
-                        </h4>
-                        <p className="text-[11px] font-mono text-neutral-600 leading-snug">
-                          Connect to your broadcasting office device and import entries.
-                        </p>
+                        <div className="p-2.5 bg-white rounded-xl border border-black/30 shadow-[1px_1px_0px_#000000]">
+                          <span className="text-[9px] font-black uppercase text-neutral-500 block">LOCAL ENTRIES</span>
+                          <span className="font-black text-emerald-700 text-xs">{localEntryCount} Synchronized</span>
+                        </div>
                       </div>
 
+                      {/* 1-Tap Cloud Re-Sync Button */}
                       <button
                         type="button"
-                        disabled={isProcessing}
-                        onClick={handleFetchFromAccountHost}
-                        className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                        disabled={isCloudSyncing}
+                        onClick={handleForceCloudSync}
+                        className="w-full py-2.5 px-4 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                       >
-                        <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>1-Tap Fetch Entries</span>
+                        <RefreshCw className={`w-3.5 h-3.5 stroke-[2.5] ${isCloudSyncing ? 'animate-spin' : ''}`} />
+                        <span>{isCloudSyncing ? 'Syncing With Firestore...' : 'Force Re-Sync Cloud Now'}</span>
                       </button>
+
+                      {/* Secondary / Optional: Direct P2P WebRTC Fallback */}
+                      <div className="p-3 bg-white/90 rounded-2xl border-2 border-black space-y-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowManualP2PForOwner(prev => !prev)}
+                          className="w-full flex items-center justify-between text-left font-mono text-xs font-black uppercase text-neutral-800 cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Zap className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                            <span>Optional: Direct P2P WebRTC Streaming (Offline Fallback)</span>
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-neutral-200 border border-black rounded">
+                            {showManualP2PForOwner ? 'HIDE' : 'SHOW'}
+                          </span>
+                        </button>
+
+                        {showManualP2PForOwner && (
+                          <div className="pt-2 space-y-3 border-t border-black/20">
+                            <p className="text-[11px] font-mono text-neutral-600">
+                              Use this only if you want to beam directly browser-to-browser over local WebRTC without accessing the internet. Keep both devices active while transferring.
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={handleStartAccountHost}
+                                className="py-2 px-3 bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+                              >
+                                Broadcast As Host
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={handleFetchFromAccountHost}
+                                className="py-2 px-3 bg-[#00E599] border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
+                              >
+                                1-Tap Fetch Entries
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Standard Google Account P2P Section */
+                    <div className="space-y-3">
+                      <div className="p-3 bg-[#FFF5C2] rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] space-y-1.5 font-mono text-xs text-neutral-900 font-bold leading-relaxed">
+                        <div className="flex items-center gap-2 text-black font-black uppercase text-[11px]">
+                          <AlertTriangle className="w-4 h-4 text-amber-700 stroke-[2.5] shrink-0" />
+                          BOTH DEVICES MUST BE ACTIVE SIMULTANEOUSLY
+                        </div>
+                        <p>
+                          Because diary entries for standard accounts are <strong>never stored on central cloud databases</strong>, data streams directly between your browsers over an encrypted WebRTC tunnel.
+                        </p>
+                        <p className="text-[11px] text-neutral-700 font-medium">
+                          • Keep this tab open on your Office PC while fetching.<br />
+                          • Once synced, both devices automatically retain an offline safety mirror of each other.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
+                          <div className="space-y-1">
+                            <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
+                              STEP 1: SENDER (OFFICE PC)
+                            </span>
+                            <h4 className="font-display font-black text-sm uppercase text-black">
+                              Broadcast As Host
+                            </h4>
+                            <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                              Activate this device so your other laptop can fetch its entries.
+                            </p>
+                          </div>
+
+                          {isHostingAccount ? (
+                            <div className="space-y-2 pt-2">
+                              <div className="p-2 bg-[#00E599] border-2 border-black rounded-xl font-mono text-[11px] font-black uppercase text-black text-center shadow-[1.5px_1.5px_0px_#000000] animate-pulse">
+                                HOST ACTIVE • AWAITING REMOTE DEVICE
+                              </div>
+                              <button
+                                type="button"
+                                onClick={stopActiveSession}
+                                className="w-full py-1.5 px-3 bg-red-100 hover:bg-red-200 text-red-900 border border-black rounded-xl font-mono text-[10px] font-black uppercase cursor-pointer"
+                              >
+                                Stop Broadcasting
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={isProcessing}
+                              onClick={handleStartAccountHost}
+                              className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                            >
+                              <Zap className="w-3.5 h-3.5 stroke-[2.5]" />
+                              <span>Broadcast As Host</span>
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2 flex flex-col justify-between">
+                          <div className="space-y-1">
+                            <span className="px-2 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 inline-block">
+                              STEP 2: RECEIVER (LAPTOP/PHONE)
+                            </span>
+                            <h4 className="font-display font-black text-sm uppercase text-black">
+                              Fetch From Host
+                            </h4>
+                            <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                              Connect to your broadcasting office device and import entries.
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={isProcessing}
+                            onClick={handleFetchFromAccountHost}
+                            className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                          >
+                            <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>1-Tap Fetch Entries</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -767,11 +915,11 @@ export default function P2PDeviceSyncModal({
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-[#00E599] stroke-[2.5]" />
                       <span className="font-mono text-xs font-black uppercase tracking-wider text-[#00E599]">
-                        CONTINUOUS ENCRYPTED MESH • ZERO CLOUD
+                        CONTINUOUS ENCRYPTED MESH • UP TO 3 DEVICES
                       </span>
                     </div>
                     <p className="font-mono text-[11px] text-neutral-300 leading-relaxed">
-                      Continuous guest sync uses a shared 16-character cryptographic Mesh Key. When both of your devices hold this key, they discover each other privately and maintain mutual offline safety backups.
+                      Continuous guest sync uses a shared 16-character cryptographic Mesh Key. Supports up to 3 personal devices (e.g. Phone, Laptop, Work PC). When your devices hold this key, they discover each other privately and maintain mutual offline safety backups with zero cloud servers.
                     </p>
                   </div>
 
@@ -922,6 +1070,130 @@ export default function P2PDeviceSyncModal({
                   )}
                 </div>
               )}
+
+              {/* LIVE DEVICE NETWORK & PAIRING STATUS TOPOLOGY */}
+              <div className="p-3.5 sm:p-4 bg-white rounded-2xl border-3 border-black shadow-[4px_4px_0px_#000000] space-y-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap border-b-2 border-black pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-black stroke-[2.5]" />
+                    <span className="font-mono text-xs font-black uppercase tracking-wider text-black">
+                      DEVICE MESH & PAIRING TOPOLOGY
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 bg-[#FFF5C2] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
+                      {isOwner
+                        ? '10 MASTER STATIONS'
+                        : user?.email
+                          ? '5 AUTHORIZED DEVICES'
+                          : '3 PERSONAL DEVICES'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Device Quota Meter & Slots Indicator */}
+                <div className="p-2.5 bg-[#FFFDF5] rounded-xl border-2 border-black flex items-center justify-between gap-3 flex-wrap shadow-[1.5px_1.5px_0px_#000000]">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 font-mono text-[11px] font-black uppercase text-black">
+                      <span>DEVICE SLOTS:</span>
+                      <span className="text-emerald-700">{activeSlotsCount} OF {maxDeviceQuota} CONNECTED</span>
+                    </div>
+                    <p className="text-[10px] font-mono text-neutral-600">
+                      {isOwner
+                        ? 'Master Cluster: Live Firestore cloud sync across all your hardware.'
+                        : user?.email
+                          ? 'Optimal P2P WebRTC Quota: Connect up to 5 personal laptops and phones.'
+                          : 'Offline Mesh Quota: Connect up to 3 personal devices without central servers.'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0" title={`${activeSlotsCount} of ${maxDeviceQuota} device slots active`}>
+                    {Array.from({ length: maxDeviceQuota }).map((_, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-3.5 h-3.5 rounded-full border-2 border-black transition-all ${
+                          idx < activeSlotsCount
+                            ? 'bg-[#00E599] shadow-[1px_1px_0px_#000000]'
+                            : 'bg-neutral-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dual Node Mesh Visualizer (This Device <-> Companion Device) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {/* Node 1: Local Device */}
+                  <div className="p-3 bg-neutral-50 rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-mono font-black uppercase text-neutral-500">
+                        LOCAL NODE • THIS DEVICE
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-[#00E599] border border-black rounded text-[8px] font-mono font-black uppercase text-black">
+                        CURRENT ACTIVE
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
+                        {currentDevice.type === 'mobile' ? (
+                          <Smartphone className="w-4 h-4 stroke-[2.5]" />
+                        ) : (
+                          <Monitor className="w-4 h-4 stroke-[2.5]" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-display font-black text-xs uppercase text-black block truncate">
+                          {currentDevice.label}
+                        </span>
+                        <span className="font-mono text-[10px] text-neutral-600 block">
+                          {localEntryCount} entries saved locally
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Node 2: Paired Companion Device */}
+                  <div className="p-3 bg-neutral-50 rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-mono font-black uppercase text-neutral-500">
+                        COMPANION NODE • REMOTE
+                      </span>
+                      <span className={`px-1.5 py-0.5 border border-black rounded text-[8px] font-mono font-black uppercase ${
+                        isOwner || peerBackupMeta?.hasPayload ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-700'
+                      }`}>
+                        {isOwner ? 'CLOUD SYNCHRONIZED' : peerBackupMeta?.hasPayload ? 'PAIRED & MIRRORED' : 'STANDBY'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-lg border border-black flex items-center justify-center shrink-0 ${
+                        isOwner || peerBackupMeta?.hasPayload ? 'bg-[#FDC800] text-black' : 'bg-neutral-200 text-neutral-600'
+                      }`}>
+                        {peerBackupMeta?.hasPayload && peerBackupMeta.peerDeviceName.includes('Mobile') ? (
+                          <Smartphone className="w-4 h-4 stroke-[2.5]" />
+                        ) : (
+                          <Laptop className="w-4 h-4 stroke-[2.5]" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-display font-black text-xs uppercase text-black block truncate">
+                          {isOwner
+                            ? 'All Signed-In Stations'
+                            : peerBackupMeta?.hasPayload
+                              ? peerBackupMeta.peerDeviceName
+                              : (user?.email ? 'Second Account Station' : 'Second Mesh Device')}
+                        </span>
+                        <span className="font-mono text-[10px] text-neutral-600 block truncate">
+                          {isOwner
+                            ? 'Instant Firestore cloud parity'
+                            : peerBackupMeta?.hasPayload
+                              ? `${peerBackupMeta.entryCount} entries mirrored • Safe`
+                              : 'Open Daily Verdict on 2nd device to pair'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* MUTUAL DISASTER RECOVERY SAFETY NET (For both Google and Guest modes) */}
               <div className="p-3.5 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2.5">
