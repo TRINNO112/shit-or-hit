@@ -13,7 +13,8 @@ import {
   PenLine,
   Shield,
   Compass,
-  RefreshCw
+  RefreshCw,
+  ChevronDown
 } from 'lucide-react';
 import { ratingMeta, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 
@@ -110,7 +111,7 @@ export default function CalendarModal({
     >
       
       {/* Sticky Header with prominent AI Report & Close buttons */}
-      <div className="flex flex-wrap items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0 gap-2">
+      <div className="sticky top-0 z-20 bg-white flex flex-wrap items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0 gap-2 pt-0.5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
             <CalIcon className="w-5 h-5 text-black stroke-[2.5]" />
@@ -120,28 +121,35 @@ export default function CalendarModal({
               <h3 className="font-display font-black text-xl text-black uppercase leading-tight">
                 {monthName}
               </h3>
-              {/* Quick Jump Selectors */}
-              <div className="flex items-center gap-1">
-                <select
-                  value={month - 1}
-                  onChange={(e) => setCurrentDate(new Date(year, parseInt(e.target.value, 10), 1))}
-                  className="bg-neutral-100 hover:bg-neutral-200 border border-black rounded px-1.5 py-0.5 font-mono font-black text-[10px] uppercase cursor-pointer shadow-[1px_1px_0px_#000000]"
-                  title="Jump to month"
-                >
-                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, idx) => (
-                    <option key={m} value={idx}>{m}</option>
-                  ))}
-                </select>
-                <select
-                  value={year}
-                  onChange={(e) => setCurrentDate(new Date(parseInt(e.target.value, 10), month - 1, 1))}
-                  className="bg-neutral-100 hover:bg-neutral-200 border border-black rounded px-1.5 py-0.5 font-mono font-black text-[10px] uppercase cursor-pointer shadow-[1px_1px_0px_#000000]"
-                  title="Jump to year"
-                >
-                  {[year - 2, year - 1, year, year + 1].map((y) => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+              {/* Quick Jump Selectors in Pristine Neobrutalism */}
+              <div className="flex items-center gap-1.5">
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={month - 1}
+                    onChange={(e) => setCurrentDate(new Date(year, parseInt(e.target.value, 10), 1))}
+                    className="appearance-none bg-[#FFFDF5] hover:bg-[#FDC800] border-2 border-black rounded-lg pl-2 pr-6 py-0.5 font-mono font-black text-[11px] uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all outline-none"
+                    title="Jump to month"
+                  >
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, idx) => (
+                      <option key={m} value={idx} className="bg-white text-black font-mono font-bold">{m}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-black stroke-[3] pointer-events-none absolute right-1.5" />
+                </div>
+
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={year}
+                    onChange={(e) => setCurrentDate(new Date(parseInt(e.target.value, 10), month - 1, 1))}
+                    className="appearance-none bg-[#FFFDF5] hover:bg-[#FDC800] border-2 border-black rounded-lg pl-2 pr-6 py-0.5 font-mono font-black text-[11px] uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all outline-none"
+                    title="Jump to year"
+                  >
+                    {[year - 2, year - 1, year, year + 1].map((y) => (
+                      <option key={y} value={y} className="bg-white text-black font-mono font-bold">{y}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-black stroke-[3] pointer-events-none absolute right-1.5" />
+                </div>
               </div>
             </div>
             <span className="text-xs font-mono font-bold text-neutral-500 block">

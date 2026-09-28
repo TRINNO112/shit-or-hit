@@ -240,8 +240,8 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         </div>
       </div>
 
-      {/* Mobile-Optimized Clean Header */}
-      <div className="px-3.5 sm:px-7 py-2 sm:py-3 border-b-2 border-black/10 flex flex-col gap-2 shrink-0 bg-[#FFFDF5]">
+      {/* Mobile-Optimized Clean Sticky Header */}
+      <div className="sticky top-0 z-30 px-3.5 sm:px-7 py-2 sm:py-3 border-b-2 border-black/10 flex flex-col gap-2 shrink-0 bg-[#FFFDF5]">
         {/* Row 1: Title & Optional Close Button */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
