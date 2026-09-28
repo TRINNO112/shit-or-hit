@@ -105,8 +105,7 @@ export default function CalendarModal({
       initial={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 15 }}
       animate={isEmbedded ? undefined : { opacity: 1, scale: 1, y: 0 }}
       exit={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 12 }}
-      transition={isEmbedded ? undefined : { type: 'spring', damping: 26, stiffness: 360, mass: 0.8 }}
-      className={`neo-card w-full ${isEmbedded ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] p-5 sm:p-6 3xl:p-8 4k:p-10' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl my-auto max-h-[92vh] p-6 3xl:p-8 4k:p-10'} bg-white flex flex-col justify-between overflow-hidden`} 
+      className={`neo-card w-full ${isEmbedded ? 'rounded-3xl border-3 border-black shadow-[6px_6px_0px_#000000] p-5 sm:p-6 3xl:p-8 4k:p-10 overflow-visible' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl my-auto max-h-[92vh] p-6 3xl:p-8 4k:p-10 overflow-hidden'} bg-white flex flex-col justify-between`} 
       onClick={(e) => e.stopPropagation()}
     >
       
@@ -210,8 +209,8 @@ export default function CalendarModal({
         </div>
       </div>
 
-      {/* Scrollable / Scalable Grid Container */}
-      <div className="overflow-y-auto pr-1">
+      {/* Scalable Grid Container (No scrollbar when embedded, clean hidden scrollbar in modal mode) */}
+      <div className={isEmbedded ? 'w-full' : 'overflow-y-auto no-scrollbar pr-1'}>
         {/* Day of Week Headers */}
         <div className="grid grid-cols-7 gap-2 mb-2 text-center">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (

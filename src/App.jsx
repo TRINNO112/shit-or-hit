@@ -140,19 +140,28 @@ export default function App() {
   });
   const [showSanctuary, setShowSanctuary] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.location.search.includes('view=sanctuary') || window.location.hash.includes('sanctuary');
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') || params.get('preview') || '';
+    if (view === 'sanctuary-invitation' || view === 'invitation') return false;
+    return view === 'sanctuary' || window.location.hash === '#sanctuary' || window.location.hash === '#/sanctuary';
   });
   const [showPrivacy, setShowPrivacy] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.location.search.includes('view=privacy') || window.location.hash.includes('privacy');
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') || params.get('preview') || '';
+    return view === 'privacy' || window.location.hash === '#privacy';
   });
   const [showErasure, setShowErasure] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.location.search.includes('view=erasure') || window.location.hash.includes('erasure');
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') || params.get('preview') || '';
+    return view === 'erasure' || window.location.hash === '#erasure';
   });
   const [showStoragePage, setShowStoragePage] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.location.search.includes('view=storage') || window.location.hash.includes('storage');
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') || params.get('preview') || '';
+    return view === 'storage' || window.location.hash === '#storage';
   });
   const [pendingDeletion, setPendingDeletion] = useState(() => getPendingDeletionStatus());
   const [showNotFound, setShowNotFound] = useState(() => {
@@ -386,10 +395,13 @@ export default function App() {
           setIconLabTab('banner_arena');
         }
       }
-      setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
-      setShowSanctuary(window.location.search.includes('view=sanctuary') || window.location.hash.includes('sanctuary'));
-      setShowPrivacy(window.location.search.includes('view=privacy') || window.location.hash.includes('privacy'));
-      setShowErasure(window.location.search.includes('view=erasure') || window.location.hash.includes('erasure'));
+      const params = new URLSearchParams(window.location.search);
+      const v = params.get('view') || params.get('preview') || '';
+      setShowSkeletonPreview(v === 'skeleton' || window.location.hash.includes('skeleton'));
+      setShowSanctuary((v === 'sanctuary' || window.location.hash === '#sanctuary' || window.location.hash === '#/sanctuary') && v !== 'sanctuary-invitation' && v !== 'invitation');
+      setShowPrivacy(v === 'privacy' || window.location.hash === '#privacy');
+      setShowErasure(v === 'erasure' || window.location.hash === '#erasure');
+      setShowStoragePage(v === 'storage' || window.location.hash === '#storage');
       setPendingDeletion(getPendingDeletionStatus());
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
@@ -491,7 +503,14 @@ export default function App() {
       console.log('🛡️ [App Engine] Auth Hydration:', u ? `Logged in as ${u.displayName} (${u.email}) [UID: ${u.uid}]` : 'Local Mode');
       setCurrentUser(u);
       if (u) {
-        setIsGuestDisclaimerOpen(false);
+        const isPreviewingDisclaimer = typeof window !== 'undefined' && (() => {
+          const params = new URLSearchParams(window.location.search);
+          const val = params.get('view') || params.get('preview') || '';
+          return val === 'disclaimer' || val === 'guest';
+        })();
+        if (!isPreviewingDisclaimer) {
+          setIsGuestDisclaimerOpen(false);
+        }
       }
 
       // Re-fetch database entries immediately for the active user
