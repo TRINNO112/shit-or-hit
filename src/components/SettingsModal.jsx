@@ -105,6 +105,7 @@ import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
 import StickerVaultModal from './StickerVaultModal';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 import RehabilitationModal from './RehabilitationModal';
+import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../services/p2pSyncEngine';
 
 export default function SettingsModal({
   isOpen,
@@ -175,6 +176,34 @@ export default function SettingsModal({
       if (onSettingsChanged) onSettingsChanged();
       setSnapshots(getRollingSnapshots(user));
       setTimeout(() => setSnapshotRestoredMsg(''), 3000);
+    }
+  };
+
+  // 🛡️ Peer Mutual Backup State
+  const [peerBackupMeta, setPeerBackupMeta] = useState(() => getMutualPeerBackupMeta());
+  const [peerRestoreMsg, setPeerRestoreMsg] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setPeerBackupMeta(getMutualPeerBackupMeta());
+    }
+    const handlePeerUpdate = () => {
+      setPeerBackupMeta(getMutualPeerBackupMeta());
+    };
+    window.addEventListener('peer-backup-updated', handlePeerUpdate);
+    return () => window.removeEventListener('peer-backup-updated', handlePeerUpdate);
+  }, [isOpen]);
+
+  const handleRestoreFromPeer = () => {
+    soundEngine.playSuccess();
+    const res = restoreFromMutualPeerBackup();
+    if (res.success) {
+      setPeerRestoreMsg(`SUCCESS: Restored ${res.count} entries from paired device backup!`);
+      if (onSettingsChanged) onSettingsChanged();
+      setTimeout(() => setPeerRestoreMsg(''), 4000);
+    } else {
+      setPeerRestoreMsg(`FAILED: ${res.error || 'Could not restore backup.'}`);
+      setTimeout(() => setPeerRestoreMsg(''), 4000);
     }
   };
 
@@ -1482,7 +1511,7 @@ export default function SettingsModal({
                 </button>
               </div>
 
-              {/* 13. P2P WebRTC Direct Device Sync (Phone to PC) */}
+              {/* 13. Direct Device Beam (Phone to PC) */}
               <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1492,14 +1521,14 @@ export default function SettingsModal({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-display font-black text-sm uppercase text-black truncate">
-                          P2P Direct Sync
+                          Direct Device Beam
                         </h4>
                         <span className="px-1.5 py-0.5 bg-[#FDC800] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
-                          WebRTC AirDrop
+                          Direct Transfer
                         </span>
                       </div>
                       <p className="text-[11px] font-mono text-neutral-600 truncate">
-                        Direct QR transfer between Phone & PC — zero cloud storage
+                        Send entries directly between Phone & PC using a QR code — zero cloud storage
                       </p>
                     </div>
                   </div>
@@ -1516,12 +1545,77 @@ export default function SettingsModal({
                     className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
                   >
                     <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
-                    OPEN BEAM STUDIO
+                    BEAM ENTRIES NOW
                   </button>
                 </div>
               </div>
 
-              {/* 14. On-Device Storage Tier & Freedom Mode (Local Storage vs Persistent Shield) */}
+              {/* 13b. Mutual Device Backup & Safety Net */}
+              <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-[#FFF5C2] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                      <Shield className="w-5 h-5 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-display font-black text-sm uppercase text-black">
+                          Mutual Device Safety Net
+                        </h4>
+                        {peerBackupMeta && peerBackupMeta.hasPayload ? (
+                          <span className="px-1.5 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
+                            BACKUP GUARD ACTIVE
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 shrink-0">
+                            NOT PAIRED YET
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600">
+                        {peerBackupMeta && peerBackupMeta.hasPayload
+                          ? `Holds a safety backup of ${peerBackupMeta.entryCount} entries from "${peerBackupMeta.peerDeviceName}".`
+                          : 'Stores a safety backup of your secondary device. If one device loses data, the other restores it.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {peerBackupMeta && peerBackupMeta.hasPayload ? (
+                    <button
+                      type="button"
+                      onClick={handleRestoreFromPeer}
+                      className="py-1.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                      RESTORE FROM PAIRED DEVICE
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (typeof window !== 'undefined' && window.__openP2PSync) {
+                          window.__openP2PSync();
+                        } else {
+                          window.location.href = '/?view=sync';
+                        }
+                      }}
+                      className="py-1.5 px-3 bg-neutral-100 hover:bg-neutral-200 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
+                    >
+                      <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
+                      PAIR DEVICE NOW
+                    </button>
+                  )}
+                </div>
+
+                {peerRestoreMsg && (
+                  <div className="p-2 bg-[#00E599]/20 border border-black rounded-lg text-xs font-mono font-black text-black">
+                    {peerRestoreMsg}
+                  </div>
+                )}
+              </div>
+
+              {/* 14. Device Storage & Protection */}
               <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -1531,28 +1625,28 @@ export default function SettingsModal({
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-display font-black text-sm uppercase text-black">
-                          On-Device Storage & Mirror
+                          Device Storage & Protection
                         </h4>
                         {storageTierState.persisted ? (
                           <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
-                            EVICTION-PROOF SHIELD ACTIVE
+                            PROTECTED STORAGE
                           </span>
                         ) : (
                           <span className="px-2 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-800">
-                            BROWSER SANDBOX
+                            STANDARD BROWSER STORAGE
                           </span>
                         )}
                       </div>
                       <p className="text-[11px] font-mono text-neutral-600">
                         {storageTierState.quotaMb > 0 
-                          ? `Device Quota: ~${storageTierState.usageKb} KB used of ~${storageTierState.quotaMb} MB available`
+                          ? `Device Space: ~${storageTierState.usageKb} KB used of ~${storageTierState.quotaMb} MB available`
                           : 'Your diary entries are preserved securely on your local device.'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* 🪞 Dedicated Storage Sovereignty & Device File Mirror Portal Launcher */}
+                {/* Dedicated Storage Sovereignty Portal Launcher */}
                 <div className="pt-1">
                   <button
                     type="button"
@@ -1568,7 +1662,7 @@ export default function SettingsModal({
                   >
                     <div className="flex items-center gap-2">
                       <FolderSync className="w-4 h-4 stroke-[2.5]" />
-                      <span>Open Storage Sovereignty & File Mirror Portal</span>
+                      <span>Open Storage Protection & File Mirror Portal</span>
                     </div>
                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                   </button>
@@ -1614,7 +1708,7 @@ export default function SettingsModal({
                   </div>
                 )}
 
-                {/* 📂 Raw Database & Disk Entries Inspector Toggle */}
+                {/* 📂 Stored Data Files Inspector Toggle */}
                 <div className="pt-1 border-t border-black/15">
                   <button
                     type="button"
@@ -1623,7 +1717,7 @@ export default function SettingsModal({
                   >
                     <div className="flex items-center gap-1.5">
                       <Database className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                      <span>{isInspectorOpen ? 'Hide Database Inspector' : 'Inspect Raw Disk Entries & Folder Space'}</span>
+                      <span>{isInspectorOpen ? 'Hide Stored Data Files' : 'View Stored Data Files (Memory & Space)'}</span>
                     </div>
                     <span className="text-[10px] font-mono text-neutral-500">
                       {isInspectorOpen ? '▲ COLLAPSE' : '▼ EXPAND'}

@@ -181,6 +181,11 @@ export function importSyncPayload(payload) {
     localStorage.setItem('daily_verdict_spheres_config', JSON.stringify(sanitizedSpheresConfig));
   }
 
+  // Automatically save as mutual peer backup mirror
+  saveMutualPeerBackup(payload, {
+    deviceName: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Station') : 'Paired Device'
+  });
+
   return {
     success: true,
     totalEntries: Object.keys(mergedEntries).length,
@@ -414,3 +419,67 @@ export async function joinReceiverSession(code, onStatus, onSuccess, onError) {
     return { cleanup: () => {} };
   }
 }
+
+export const PEER_BACKUP_STORAGE_KEY = 'goodness_peer_mutual_backup';
+
+/**
+ * Saves a mutual peer backup replica from a paired device.
+ */
+export function saveMutualPeerBackup(payload, peerInfo = {}) {
+  if (typeof window === 'undefined' || !payload) return false;
+  try {
+    const backupRecord = {
+      savedAt: Date.now(),
+      peerDeviceName: peerInfo.deviceName || 'Paired Secondary Device',
+      peerDeviceId: peerInfo.deviceId || 'PEER-NODE',
+      entryCount: Object.keys(payload.entries || {}).length,
+      payload
+    };
+    localStorage.setItem(PEER_BACKUP_STORAGE_KEY, JSON.stringify(backupRecord));
+    window.dispatchEvent(new CustomEvent('peer-backup-updated'));
+    return true;
+  } catch (e) {
+    console.warn('Failed to store mutual peer backup:', e);
+    return false;
+  }
+}
+
+/**
+ * Returns metadata of the stored mutual peer backup (if one exists).
+ */
+export function getMutualPeerBackupMeta() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(PEER_BACKUP_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      savedAt: parsed.savedAt || Date.now(),
+      peerDeviceName: parsed.peerDeviceName || 'Paired Device',
+      peerDeviceId: parsed.peerDeviceId || 'PEER-NODE',
+      entryCount: parsed.entryCount || 0,
+      hasPayload: Boolean(parsed.payload && parsed.payload.entries)
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Restores diary entries from the stored mutual peer backup.
+ */
+export function restoreFromMutualPeerBackup() {
+  if (typeof window === 'undefined') return { success: false, count: 0 };
+  try {
+    const raw = localStorage.getItem(PEER_BACKUP_STORAGE_KEY);
+    if (!raw) return { success: false, count: 0, error: 'No peer backup found.' };
+    const parsed = JSON.parse(raw);
+    if (!parsed.payload) return { success: false, count: 0, error: 'Peer backup is empty.' };
+    const res = importSyncPayload(parsed.payload);
+    return { success: true, count: res.importedCount || res.totalEntries || 0 };
+  } catch (e) {
+    console.error('Failed to restore from mutual peer backup:', e);
+    return { success: false, count: 0, error: e.message };
+  }
+}
+
