@@ -62,8 +62,8 @@ export default function SanctuaryInvitationModal({
                 </h3>
                 <p className="text-xs font-mono font-bold text-neutral-600 mt-0.5">
                   {roughDaysCount >= 2
-                    ? `${roughDaysCount} consecutive friction days detected`
-                    : 'High friction or missed reflection detected'}
+                    ? `${roughDaysCount} consecutive rough days detected (1★ or 2★)`
+                    : 'Consecutive rough days or missed reflections detected'}
                 </p>
               </div>
             </div>

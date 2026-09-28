@@ -153,12 +153,12 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
           {/* Header Banner & Status Badge */}
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-[#FF4D4D] text-white border-2 border-black font-mono text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_#000000] inline-flex items-center gap-1.5">
+              <span className="px-2.5 py-1 rounded-lg bg-neutral-900 text-white border-2 border-black font-mono text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_#000000] inline-flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
                 DATA ARCHITECTURE & SAFETY
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
-                STATUS: NOT WHITELISTED
+              <span className="px-2 py-0.5 rounded-md bg-[#FDC800] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
+                LOCAL-FIRST MODE ACTIVE
               </span>
               {storageState.persisted ? (
                 <span className="px-2 py-0.5 rounded-md bg-[#00E599] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] inline-flex items-center gap-1">
@@ -190,11 +190,11 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
           {/* 🚨 PROMINENT TOP ALERT: WHITELIST RESTRICTION & LOCAL STORAGE REALITY */}
           <div className="p-4 rounded-2xl bg-[#FFF5C2] border-3 border-black shadow-[4px_4px_0px_#000000] space-y-2.5">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-[#FF4D4D] border-2 border-black flex items-center justify-center text-white shrink-0 shadow-[1px_1px_0px_#000000]">
+              <div className="w-7 h-7 rounded-lg bg-[#FDC800] border-2 border-black flex items-center justify-center text-black shrink-0 shadow-[1px_1px_0px_#000000]">
                 <ShieldAlert className="w-4 h-4 stroke-[2.5]" />
               </div>
               <span className="font-mono text-xs font-black uppercase tracking-wider text-black">
-                IMPORTANT: YOU ARE CURRENTLY NOT A WHITELISTED USER
+                NOTICE: LOCAL-FIRST DATA ARCHITECTURE (NON-WHITELISTED)
               </span>
             </div>
             

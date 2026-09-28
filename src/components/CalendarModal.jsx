@@ -12,7 +12,8 @@ import {
   Sparkles,
   PenLine,
   Shield,
-  Compass
+  Compass,
+  RefreshCw
 } from 'lucide-react';
 import { ratingMeta, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 
@@ -23,6 +24,19 @@ const IconMap = {
   Zap,
   Sparkles
 };
+
+// Helper function extracting day rendering props for clean readability
+function getDayDisplayProps(entry, dateStr, isBeforeStart, isFuture, isSabbatical) {
+  const rating = entry?.rating;
+  const meta = rating ? ratingMeta[rating] : null;
+  const inStasis = !rating && isRehabilitationActive(dateStr);
+  const SvgIcon = meta ? IconMap[meta.icon] : inStasis ? (isSabbatical ? Compass : Shield) : null;
+  const isEditable = !isBeforeStart && !isFuture;
+  const title = meta ? meta.title : inStasis ? (isSabbatical ? 'SABBATICAL' : 'SANCTUARY') : isBeforeStart ? '—' : '';
+  const bgColor = meta ? meta.bg : inStasis ? (isSabbatical ? '#FEF3C7' : '#E8F5E9') : undefined;
+  const noteSnippet = entry?.note?.trim() ? (entry.note.slice(0, 75) + (entry.note.length > 75 ? '...' : '')) : null;
+  return { rating, meta, inStasis, SvgIcon, isEditable, title, bgColor, noteSnippet };
+}
 
 export default function CalendarModal({ 
   isOpen, 
@@ -37,6 +51,7 @@ export default function CalendarModal({
 }) {
   const activeStartDate = startDate || startDateStr || todayStr || new Date().toISOString().slice(0, 10);
   const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const rehabConfig = getRehabilitationConfig();
   const isSabbatical = Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
 
@@ -98,29 +113,72 @@ export default function CalendarModal({
       {/* Sticky Header with prominent AI Report & Close buttons */}
       <div className="flex flex-wrap items-center justify-between pb-3.5 mb-4 border-b-2 border-black/10 shrink-0 gap-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000]">
+          <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0">
             <CalIcon className="w-5 h-5 text-black stroke-[2.5]" />
           </div>
           <div>
-            <h3 className="font-display font-black text-xl text-black uppercase leading-tight">
-              {monthName}
-            </h3>
-            <span className="text-xs font-mono font-bold text-neutral-500">
-              Click any active day to view or edit reflection
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-display font-black text-xl text-black uppercase leading-tight">
+                {monthName}
+              </h3>
+              {/* Quick Jump Selectors */}
+              <div className="flex items-center gap-1">
+                <select
+                  value={month - 1}
+                  onChange={(e) => setCurrentDate(new Date(year, parseInt(e.target.value, 10), 1))}
+                  className="bg-neutral-100 hover:bg-neutral-200 border border-black rounded px-1.5 py-0.5 font-mono font-black text-[10px] uppercase cursor-pointer shadow-[1px_1px_0px_#000000]"
+                  title="Jump to month"
+                >
+                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, idx) => (
+                    <option key={m} value={idx}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  value={year}
+                  onChange={(e) => setCurrentDate(new Date(parseInt(e.target.value, 10), month - 1, 1))}
+                  className="bg-neutral-100 hover:bg-neutral-200 border border-black rounded px-1.5 py-0.5 font-mono font-black text-[10px] uppercase cursor-pointer shadow-[1px_1px_0px_#000000]"
+                  title="Jump to year"
+                >
+                  {[year - 2, year - 1, year, year + 1].map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <span className="text-xs font-mono font-bold text-neutral-500 block">
+              Hover over days for notes preview • Click active day to edit reflection
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Launch AI Report for this specific month */}
+          {/* Launch AI Report for this specific month with in-place feedback */}
           {onOpenMonthlyReport && (
             <button
-              onClick={() => onOpenMonthlyReport({ year, month })}
+              disabled={isGeneratingReport}
+              onClick={async () => {
+                if (isGeneratingReport) return;
+                setIsGeneratingReport(true);
+                try {
+                  await onOpenMonthlyReport({ year, month });
+                } finally {
+                  setIsGeneratingReport(false);
+                }
+              }}
               title={`Generate AI Performance Report for ${monthName}`}
-              className="neo-btn px-3 py-1.5 bg-[#FDC800] text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer"
+              className="neo-btn px-3 py-1.5 bg-[#FDC800] hover:bg-amber-400 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50"
             >
-              <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>AI REPORT</span>
+              {isGeneratingReport ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 stroke-[2.5] animate-spin" />
+                  <span>GENERATING...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>AI REPORT</span>
+                </>
+              )}
             </button>
           )}
 
@@ -154,65 +212,75 @@ export default function CalendarModal({
 
       {/* Scrollable / Scalable Grid Container */}
       <div className="overflow-y-auto pr-1">
-              {/* Day of Week Headers */}
-              <div className="grid grid-cols-7 gap-2 mb-2 text-center">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                  <div key={day} className="font-mono font-black text-xs text-black uppercase py-1 bg-neutral-100 border border-black/10 rounded-lg">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Days Grid with responsive height */}
-              <div className="grid grid-cols-7 gap-2 3xl:gap-3">
-                {Array.from({ length: leadingBlanks }).map((_, i) => (
-                  <div key={`blank-${i}`} className="min-h-14.5 sm:min-h-17 3xl:min-h-24 4k:min-h-28 rounded-xl bg-neutral-50 border border-neutral-200/50 opacity-20" />
-                ))}
-
-                {days.map(({ dayNumber, dayIndex, dateStr, isToday, isBeforeStart, isFuture, entry }) => {
-                  const rating = entry?.rating;
-                  const meta = rating ? ratingMeta[rating] : null;
-                  const inStasis = !rating && isRehabilitationActive(dateStr);
-                  const SvgIcon = meta ? IconMap[meta.icon] : inStasis ? (isSabbatical ? Compass : Shield) : null;
-                  const isEditable = !isBeforeStart && !isFuture;
-
-                  return (
-                    <div
-                      key={dateStr}
-                      onClick={() => {
-                        if (isEditable && onEditDay) {
-                          onEditDay({ dateStr, dayIndex, entry });
-                        }
-                      }}
-                      className={`min-h-14.5 sm:min-h-17 3xl:min-h-24 4k:min-h-28 p-2 3xl:p-3 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
-                        isToday ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000000]' : 'bg-white'
-                      } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
-                      style={{ backgroundColor: meta ? meta.bg : inStasis ? (isSabbatical ? '#FEF3C7' : '#E8F5E9') : undefined }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`font-mono text-[11px] font-black ${isToday ? 'bg-black text-white px-1.5 rounded' : 'text-black'}`}>
-                          {dayNumber}
-                        </span>
-
-                        {isEditable && (
-                          <PenLine className="w-3 h-3 text-black opacity-0 group-hover:opacity-100 transition-opacity" />
-                        )}
-                      </div>
-
-                      <div className="my-auto text-center">
-                        {SvgIcon && (
-                          <SvgIcon className={`w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5] mx-auto ${inStasis && isSabbatical ? 'text-amber-800' : inStasis ? 'text-emerald-800' : 'text-black'}`} />
-                        )}
-                      </div>
-
-                      <div className="text-[8px] sm:text-[9px] font-mono font-bold text-black uppercase truncate text-right">
-                        {meta ? meta.title : inStasis ? (isSabbatical ? 'SABBATICAL' : 'SANCTUARY') : isBeforeStart ? '—' : ''}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+        {/* Day of Week Headers */}
+        <div className="grid grid-cols-7 gap-2 mb-2 text-center">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+            <div key={day} className="font-mono font-black text-xs text-black uppercase py-1 bg-neutral-100 border border-black/10 rounded-lg">
+              {day}
             </div>
+          ))}
+        </div>
+
+        {/* Days Grid with responsive height */}
+        <div className="grid grid-cols-7 gap-2 3xl:gap-3">
+          {Array.from({ length: leadingBlanks }).map((_, i) => (
+            <div key={`blank-${i}`} className="min-h-14.5 sm:min-h-17 3xl:min-h-24 4k:min-h-28 rounded-xl bg-neutral-50 border border-neutral-200/50 opacity-20" />
+          ))}
+
+          {days.map(({ dayNumber, dayIndex, dateStr, isToday, isBeforeStart, isFuture, entry }) => {
+            const display = getDayDisplayProps(entry, dateStr, isBeforeStart, isFuture, isSabbatical);
+
+            return (
+              <div
+                key={dateStr}
+                onClick={() => {
+                  if (display.isEditable && onEditDay) {
+                    onEditDay({ dateStr, dayIndex, entry });
+                  }
+                }}
+                className={`min-h-14.5 sm:min-h-17 3xl:min-h-24 4k:min-h-28 p-2 3xl:p-3 rounded-xl border-2 border-black flex flex-col justify-between transition-all relative group ${
+                  isToday ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000000]' : 'bg-white'
+                } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${display.isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
+                style={{ backgroundColor: display.bgColor }}
+              >
+                {/* On-Hover Quick Tooltip Peek */}
+                {entry && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:flex flex-col z-30 pointer-events-none min-w-32 max-w-44 p-2 bg-black text-white rounded-lg border border-black shadow-[2px_2px_0px_#000000] text-[10px] font-mono">
+                    <span className="font-black text-[#00E599] uppercase truncate">
+                      {display.title}
+                    </span>
+                    {display.noteSnippet && (
+                      <span className="text-neutral-300 text-[9px] line-clamp-2 leading-tight mt-0.5 font-normal">
+                        "{display.noteSnippet}"
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <span className={`font-mono text-[11px] font-black ${isToday ? 'bg-black text-white px-1.5 rounded' : 'text-black'}`}>
+                    {dayNumber}
+                  </span>
+
+                  {display.isEditable && (
+                    <PenLine className="w-3 h-3 text-black opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </div>
+
+                <div className="my-auto text-center">
+                  {display.SvgIcon && (
+                    <display.SvgIcon className={`w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5] mx-auto ${display.inStasis && isSabbatical ? 'text-amber-800' : display.inStasis ? 'text-emerald-800' : 'text-black'}`} />
+                  )}
+                </div>
+
+                <div className="text-[8px] sm:text-[9px] font-mono font-bold text-black uppercase truncate text-right">
+                  {display.title}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
             {/* Legend */}
             <div className="mt-4 pt-3.5 border-t-2 border-black/10 flex flex-wrap items-center justify-between gap-2.5 text-xs font-mono font-bold shrink-0">
