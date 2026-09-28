@@ -62,6 +62,7 @@ const PrivacyPolicyPage = safeLazy(() => import('./components/PrivacyPolicyPage'
 const DataErasurePage = safeLazy(() => import('./components/DataErasurePage'));
 const StorageSovereigntyPage = safeLazy(() => import('./components/StorageSovereigntyPage'));
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
+const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -259,6 +260,12 @@ export default function App() {
   const [p2pSyncSection, setP2PSyncSection] = useState(() => (previewModal === 'transfer' || previewModal === 'data-transfer') ? 'transfer' : 'sync');
   const [isSanctuaryInvitationOpen, setIsSanctuaryInvitationOpen] = useState(() => previewModal === 'sanctuary-invitation' || previewModal === 'invitation');
   const [sanctuaryInvitationRoughCount, setSanctuaryInvitationRoughCount] = useState(2);
+  const [showSovereignBanner, setShowSovereignBanner] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view') || params.get('preview') || '';
+    return v === 'banner' || v === 'guest-banner' || v === 'sovereign-banner';
+  });
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
   useEffect(() => {
@@ -408,6 +415,9 @@ export default function App() {
       }
       if (window.location.search.includes('view=guest') || window.location.search.includes('view=disclaimer') || window.location.search.includes('preview=disclaimer')) {
         setIsGuestDisclaimerOpen(true);
+      }
+      if (window.location.search.includes('view=banner') || window.location.search.includes('preview=banner') || window.location.search.includes('guest-banner')) {
+        setShowSovereignBanner(true);
       }
       if (window.location.search.includes('view=sanctuary-invitation') || window.location.search.includes('preview=sanctuary-invitation') || window.location.search.includes('view=invitation') || window.location.search.includes('preview=invitation')) {
         setIsSanctuaryInvitationOpen(true);
@@ -1026,6 +1036,23 @@ export default function App() {
 
       {/* 📲 PWA 1-Tap Native Install Prompt Banner */}
       <PWAInstallBanner />
+
+      {/* 🛡️ Sovereign Guest Intelligence Banner */}
+      {showSovereignBanner && (
+        <div className="max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 pt-3">
+          <Suspense fallback={null}>
+            <SovereignGuestBanner
+              onOpenP2PSync={() => {
+                setP2PSyncSection('sync');
+                setIsP2PSyncOpen(true);
+              }}
+              onExportData={() => setIsExportStudioOpen(true)}
+              onOpenCloudAuth={handleGuestLogin}
+              onDismiss={() => setShowSovereignBanner(false)}
+            />
+          </Suspense>
+        </div>
+      )}
 
       {isMobile ? (
         <FaultBoundary
