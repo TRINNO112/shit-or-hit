@@ -48,7 +48,9 @@ import {
   Lock,
   Database,
   Copy,
-  FolderSync
+  FolderSync,
+  RefreshCw,
+  LogIn
 } from 'lucide-react';
 import {
   getStorageStatus,
@@ -1511,24 +1513,32 @@ export default function SettingsModal({
                 </button>
               </div>
 
-              {/* 13. Direct Device Beam (Phone to PC) */}
+              {/* 13a. Device Sync (Google Account) */}
               <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                      <QrCode className="w-5 h-5 text-black stroke-[2.5]" />
+                      <RefreshCw className="w-5 h-5 text-black stroke-[2.5]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-display font-black text-sm uppercase text-black truncate">
-                          Direct Device Beam
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-display font-black text-sm uppercase text-black">
+                          Device Sync
                         </h4>
-                        <span className="px-1.5 py-0.5 bg-[#FDC800] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
-                          Direct Transfer
-                        </span>
+                        {user?.email ? (
+                          <span className="px-1.5 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
+                            GOOGLE ACCOUNT ACTIVE
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 shrink-0">
+                            SIGN-IN REQUIRED
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[11px] font-mono text-neutral-600 truncate">
-                        Send entries directly between Phone & PC using a QR code — zero cloud storage
+                      <p className="text-[11px] font-mono text-neutral-600">
+                        {user?.email
+                          ? `Syncs seamlessly with your phone & PC linked to ${user.email}. No QR codes needed.`
+                          : 'Connect multiple devices under your Google account for automatic 1-tap synchronization.'}
                       </p>
                     </div>
                   </div>
@@ -1537,20 +1547,59 @@ export default function SettingsModal({
                     onClick={() => {
                       onClose();
                       if (typeof window !== 'undefined' && window.__openP2PSync) {
-                        window.__openP2PSync();
+                        window.__openP2PSync('sync');
                       } else {
                         window.location.href = '/?view=sync';
                       }
                     }}
                     className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
                   >
-                    <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
-                    BEAM ENTRIES NOW
+                    <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>{user?.email ? 'OPEN DEVICE SYNC' : 'SETUP SYNC (GOOGLE)'}</span>
                   </button>
                 </div>
               </div>
 
-              {/* 13b. Mutual Device Backup & Safety Net */}
+              {/* 13b. Data Transfer (Direct P2P Beam) */}
+              <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                      <Radio className="w-5 h-5 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-display font-black text-sm uppercase text-black">
+                          Data Transfer (Direct Beam)
+                        </h4>
+                        <span className="px-1.5 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
+                          GUEST FRIENDLY • ZERO CLOUD
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600">
+                        One-time wireless transfer between phone & PC using QR codes. Works for everyone without signing in.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (typeof window !== 'undefined' && window.__openP2PSync) {
+                        window.__openP2PSync('transfer');
+                      } else {
+                        window.location.href = '/?view=sync';
+                      }
+                    }}
+                    className="py-1.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
+                  >
+                    <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>TRANSFER DATA NOW</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 13c. Mutual Device Backup & Safety Net */}
               <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1587,7 +1636,7 @@ export default function SettingsModal({
                       className="py-1.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
                     >
                       <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                      RESTORE FROM PAIRED DEVICE
+                      <span>RESTORE FROM PAIRED DEVICE</span>
                     </button>
                   ) : (
                     <button
@@ -1595,7 +1644,7 @@ export default function SettingsModal({
                       onClick={() => {
                         onClose();
                         if (typeof window !== 'undefined' && window.__openP2PSync) {
-                          window.__openP2PSync();
+                          window.__openP2PSync('transfer');
                         } else {
                           window.location.href = '/?view=sync';
                         }
@@ -1603,7 +1652,7 @@ export default function SettingsModal({
                       className="py-1.5 px-3 bg-neutral-100 hover:bg-neutral-200 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
                     >
                       <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
-                      PAIR DEVICE NOW
+                      <span>TRANSFER & PAIR NOW</span>
                     </button>
                   )}
                 </div>

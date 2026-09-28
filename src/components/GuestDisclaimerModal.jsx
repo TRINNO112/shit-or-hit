@@ -345,7 +345,7 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
                 <button
                   type="button"
                   onClick={() => {
-                    if (window.__openP2PSync) window.__openP2PSync();
+                    if (window.__openP2PSync) window.__openP2PSync('transfer');
                     onClose();
                   }}
                   className="px-3 py-1.5 rounded-xl bg-white hover:bg-neutral-100 border-2 border-black font-mono text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer inline-flex items-center gap-1.5 active:translate-x-px active:translate-y-px transition-all"

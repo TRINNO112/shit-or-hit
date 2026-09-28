@@ -238,6 +238,7 @@ export default function App() {
   const [isBehavioralLabOpen, setIsBehavioralLabOpen] = useState(false);
   const [simulatedCrash, setSimulatedCrash] = useState(false);
   const [isP2PSyncOpen, setIsP2PSyncOpen] = useState(false);
+  const [p2pSyncSection, setP2PSyncSection] = useState('sync');
   const [isSanctuaryInvitationOpen, setIsSanctuaryInvitationOpen] = useState(false);
   const [sanctuaryInvitationRoughCount, setSanctuaryInvitationRoughCount] = useState(2);
 
@@ -311,7 +312,10 @@ export default function App() {
     window.__simulateCrash = () => setSimulatedCrash(true);
     window.__testRecoveryModal = () => setIsMotivationalOpen(true);
     window.__testGuestDisclaimer = () => setIsGuestDisclaimerOpen(true);
-    window.__openP2PSync = () => setIsP2PSyncOpen(true);
+    window.__openP2PSync = (section = 'sync') => {
+      setP2PSyncSection(section);
+      setIsP2PSyncOpen(true);
+    };
 
     let keyBuffer = '';
     const handleKeyDown = (e) => {
@@ -382,6 +386,9 @@ export default function App() {
         setIsGuestDisclaimerOpen(true);
       }
       if (window.location.search.includes('sync=') || window.location.search.includes('view=sync') || window.location.hash.includes('sync')) {
+        if (window.location.search.includes('sync=')) {
+          setP2PSyncSection('transfer');
+        }
         setIsP2PSyncOpen(true);
       }
       if (window.location.search.includes('view=lab') || window.location.search.includes('view=showcase') || window.location.hash.includes('lab')) {
@@ -1283,6 +1290,7 @@ export default function App() {
                 isOpen={true}
                 onClose={() => setIsP2PSyncOpen(false)}
                 user={currentUser}
+                initialSection={p2pSyncSection}
                 onLogin={handleGuestLogin}
                 onSyncComplete={() => loadData()}
               />

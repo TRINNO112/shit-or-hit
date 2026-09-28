@@ -41,9 +41,14 @@ export default function P2PDeviceSyncModal({
   onClose,
   user = null,
   onLogin = null,
-  onSyncComplete
+  onSyncComplete,
+  initialSection = 'sync'
 }) {
-  const [mode, setMode] = useState(() => (user?.email ? 'account' : 'send'));
+  const [activeSection, setActiveSection] = useState(() => initialSection || (user?.email ? 'sync' : 'transfer'));
+  const [mode, setMode] = useState(() => {
+    if (initialSection === 'transfer') return 'send';
+    return user?.email ? 'account' : 'send';
+  });
   const [pairingCode, setPairingCode] = useState(() => generatePairingCode());
   const [syncStatus, setSyncStatus] = useState('Idle');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -63,12 +68,26 @@ export default function P2PDeviceSyncModal({
     setTimeout(() => setToast(null), 4500);
   };
 
+  // Keep activeSection and mode in sync when modal opens or initialSection changes
+  useEffect(() => {
+    if (isOpen) {
+      const section = initialSection || (user?.email ? 'sync' : 'transfer');
+      setActiveSection(section);
+      if (section === 'sync') {
+        setMode('account');
+      } else {
+        setMode((prev) => (prev === 'account' ? 'send' : prev));
+      }
+    }
+  }, [isOpen, initialSection]);
+
   // Auto-detect sync parameter in URL
   useEffect(() => {
     if (typeof window !== 'undefined' && isOpen) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlSyncCode = urlParams.get('sync');
       if (urlSyncCode) {
+        setActiveSection('transfer');
         setMode('receive');
         setReceiveInputCode(urlSyncCode.toUpperCase());
       }
@@ -334,70 +353,106 @@ export default function P2PDeviceSyncModal({
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-lg bg-[#00E599] text-black border-2 border-black font-mono text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_#000000] inline-flex items-center gap-1">
                 <Radio className="w-3 h-3 stroke-[2.5] animate-pulse" />
-                WEBRTC DIRECT TUNNEL
+                {activeSection === 'sync' ? 'ACCOUNT MULTI-DEVICE SYNC' : 'WEBRTC DIRECT TUNNEL'}
               </span>
               <span className="px-2 py-0.5 rounded-md bg-[#FDC800] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
                 ZERO CLOUD STORAGE
               </span>
             </div>
             <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight text-black leading-tight">
-              P2P Direct Device Sync
+              {activeSection === 'sync' ? 'Device Sync' : 'Direct Data Transfer'}
             </h3>
             <p className="text-xs font-mono text-neutral-600 font-bold">
-              Beam your diary database directly between phone & PC over an encrypted peer-to-peer tunnel.
+              {activeSection === 'sync'
+                ? 'Keep your phone, laptop, and office PC synchronized under your Google account without central cloud servers.'
+                : 'One-time encrypted peer-to-peer transfer between devices. No Google account required.'}
             </p>
           </div>
 
-          {/* Mode Switcher Tabs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {/* Top-Level Toggle Menu: Device Sync vs Data Transfer */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-neutral-100 border-2 border-black rounded-2xl shadow-[2.5px_2.5px_0px_#000000]">
             <button
               type="button"
-              onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('account'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'account'
-                  ? 'bg-[#00E599] text-black'
-                  : 'bg-white hover:bg-neutral-50 text-neutral-700'
-                }`}
+              onClick={() => {
+                soundEngine.playClick();
+                stopActiveSession();
+                setActiveSection('sync');
+                setMode('account');
+              }}
+              className={`py-2 px-3 rounded-xl border-2 font-mono text-xs font-black uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                activeSection === 'sync'
+                  ? 'bg-[#00E599] text-black border-black shadow-[2px_2px_0px_#000000]'
+                  : 'bg-transparent text-neutral-600 border-transparent hover:text-black'
+              }`}
             >
-              <Monitor className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Account Fetch</span>
+              <RefreshCw className={`w-3.5 h-3.5 stroke-[2.5] ${activeSection === 'sync' ? 'animate-spin-slow' : ''}`} />
+              <span>Device Sync</span>
+              <span className="text-[9px] px-1.5 py-0.5 bg-black text-white rounded font-mono font-black shrink-0">Google</span>
             </button>
 
             <button
               type="button"
-              onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('send'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'send'
-                  ? 'bg-[#FDC800] text-black'
-                  : 'bg-white hover:bg-neutral-50 text-neutral-700'
-                }`}
+              onClick={() => {
+                soundEngine.playClick();
+                stopActiveSession();
+                setActiveSection('transfer');
+                setMode(mode === 'account' ? 'send' : mode);
+              }}
+              className={`py-2 px-3 rounded-xl border-2 font-mono text-xs font-black uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                activeSection === 'transfer'
+                  ? 'bg-[#FDC800] text-black border-black shadow-[2px_2px_0px_#000000]'
+                  : 'bg-transparent text-neutral-600 border-transparent hover:text-black'
+              }`}
             >
-              <Upload className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>QR Beam</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('receive'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'receive'
-                  ? 'bg-[#00E599] text-black'
-                  : 'bg-white hover:bg-neutral-50 text-neutral-700'
-                }`}
-            >
-              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Receive Code</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('raw'); }}
-              className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] flex items-center justify-center gap-1.5 ${mode === 'raw'
-                  ? 'bg-neutral-900 text-white'
-                  : 'bg-white hover:bg-neutral-50 text-neutral-700'
-                }`}
-            >
-              <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Offline Text</span>
+              <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Data Transfer</span>
+              <span className="text-[9px] px-1.5 py-0.5 bg-black text-white rounded font-mono font-black shrink-0">P2P</span>
             </button>
           </div>
+
+          {/* Sub-Tabs for Data Transfer */}
+          {activeSection === 'transfer' && (
+            <div className="grid grid-cols-3 gap-2 pt-0.5">
+              <button
+                type="button"
+                onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('send'); }}
+                className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] flex items-center justify-center gap-1.5 ${
+                  mode === 'send'
+                    ? 'bg-[#FDC800] text-black'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-700'
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>QR Beam</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('receive'); }}
+                className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] flex items-center justify-center gap-1.5 ${
+                  mode === 'receive'
+                    ? 'bg-[#00E599] text-black'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-700'
+                }`}
+              >
+                <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Receive Code</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { soundEngine.playClick(); stopActiveSession(); setMode('raw'); }}
+                className={`py-2 px-2 rounded-xl border-2 border-black font-mono text-[11px] font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] flex items-center justify-center gap-1.5 ${
+                  mode === 'raw'
+                    ? 'bg-neutral-900 text-white'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-700'
+                }`}
+              >
+                <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Offline Text</span>
+              </button>
+            </div>
+          )}
 
           {/* ⚡ Live UX Feedback Toast HUD */}
           <AnimatePresence>
@@ -420,7 +475,7 @@ export default function P2PDeviceSyncModal({
           </AnimatePresence>
 
           {/* TAB 1: ACCOUNT-BASED 1-TAP REMOTE FETCH */}
-          {mode === 'account' && (
+          {activeSection === 'sync' && mode === 'account' && (
             <div className="space-y-3 pt-1">
               {!user?.email ? (
                 <div className="p-4 bg-amber-50 rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-3">
@@ -563,7 +618,7 @@ export default function P2PDeviceSyncModal({
           )}
 
           {/* TAB 2: QR BEAM (SENDER MODE) */}
-          {mode === 'send' && (
+          {activeSection === 'transfer' && mode === 'send' && (
             <div className="space-y-3.5 pt-1">
               <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000]">
                 {/* QR Code Container */}
@@ -647,7 +702,7 @@ export default function P2PDeviceSyncModal({
           )}
 
           {/* TAB 3: RECEIVE BY CODE */}
-          {mode === 'receive' && (
+          {activeSection === 'transfer' && mode === 'receive' && (
             <div className="space-y-3.5 pt-1">
               <div className="p-4 bg-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#000000] space-y-2.5">
                 <span className="text-[10px] font-mono font-black text-neutral-500 uppercase tracking-wider block">
@@ -680,7 +735,7 @@ export default function P2PDeviceSyncModal({
           )}
 
           {/* TAB 4: OFFLINE RAW JSON TRANSIT BEAM */}
-          {mode === 'raw' && (
+          {activeSection === 'transfer' && mode === 'raw' && (
             <div className="space-y-3 pt-1">
               <div className="p-3.5 bg-neutral-50 rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] space-y-2">
                 <div className="flex items-center justify-between">
