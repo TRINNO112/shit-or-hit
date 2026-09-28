@@ -220,9 +220,8 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
     if (defaultTab) return defaultTab;
     if (typeof window !== 'undefined') {
       const search = window.location.search;
-      const hash = window.location.hash;
-      if (search.includes('tab=year') || search.includes('view=year') || search.includes('view=wallpaper') || hash.includes('wallpaper') || hash.includes('year_pixels')) {
-        return 'year_pixels';
+      if (search.includes('view=wallpaper') || hash.includes('wallpaper')) {
+        return 'wallpaper';
       }
       if (search.includes('tab=banner') || search.includes('view=banner')) {
         return 'banner_arena';
@@ -296,18 +295,6 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
             >
               <Palette className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>BANNER DESIGN ARENA</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveLabTab('year_pixels')}
-              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
-                activeLabTab === 'year_pixels'
-                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
-                  : 'text-neutral-700 hover:text-black border-2 border-transparent'
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>365-DAY WALLPAPER</span>
             </button>
             <button
               type="button"

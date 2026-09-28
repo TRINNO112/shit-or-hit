@@ -146,7 +146,7 @@ export default function CalendarModal({
               </div>
             </div>
             <span className="text-xs font-mono font-bold text-neutral-500 block">
-              Hover over days for notes preview • Click active day to edit reflection
+              Click any active day to view or edit reflection
             </span>
           </div>
         </div>
@@ -243,20 +243,6 @@ export default function CalendarModal({
                 } ${isBeforeStart ? 'opacity-25 bg-neutral-100' : ''} ${display.isEditable ? 'cursor-pointer hover:scale-[1.03]' : ''}`}
                 style={{ backgroundColor: display.bgColor }}
               >
-                {/* On-Hover Quick Tooltip Peek */}
-                {entry && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:flex flex-col z-30 pointer-events-none min-w-32 max-w-44 p-2 bg-black text-white rounded-lg border border-black shadow-[2px_2px_0px_#000000] text-[10px] font-mono">
-                    <span className="font-black text-[#00E599] uppercase truncate">
-                      {display.title}
-                    </span>
-                    {display.noteSnippet && (
-                      <span className="text-neutral-300 text-[9px] line-clamp-2 leading-tight mt-0.5 font-normal">
-                        "{display.noteSnippet}"
-                      </span>
-                    )}
-                  </div>
-                )}
-
                 <div className="flex items-center justify-between">
                   <span className={`font-mono text-[11px] font-black ${isToday ? 'bg-black text-white px-1.5 rounded' : 'text-black'}`}>
                     {dayNumber}

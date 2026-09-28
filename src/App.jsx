@@ -120,15 +120,17 @@ export default function App() {
     return window.location.search.includes('view=icons') || 
            window.location.hash.includes('icons') ||
            window.location.search.includes('view=wallpaper') ||
-           window.location.search.includes('view=year_pixels') ||
            window.location.hash.includes('wallpaper');
   });
   const [iconLabTab, setIconLabTab] = useState(() => {
     if (typeof window === 'undefined') return 'banner_arena';
     const s = window.location.search;
     const h = window.location.hash;
-    if (s.includes('tab=year') || s.includes('view=year') || s.includes('view=wallpaper') || h.includes('wallpaper') || h.includes('year_pixels')) {
-      return 'year_pixels';
+    if (s.includes('view=wallpaper') || h.includes('wallpaper')) {
+      return 'wallpaper';
+    }
+    if (s.includes('view=icons') || h.includes('icons')) {
+      return 'icons';
     }
     return 'banner_arena';
   });
@@ -187,13 +189,19 @@ export default function App() {
     return {};
   });
 
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const previewModal = (() => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('preview') || params.get('view') || '';
+  })();
+
+  const [isCalendarOpen, setIsCalendarOpen] = useState(() => previewModal === 'calendar');
   const [isMonthlyReportOpen, setIsMonthlyReportOpen] = useState(false);
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
-  const [isExportStudioOpen, setIsExportStudioOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(() => previewModal === 'settings');
+  const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(() => previewModal === 'stickers');
+  const [isExportStudioOpen, setIsExportStudioOpen] = useState(() => previewModal === 'export');
   const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
@@ -208,9 +216,10 @@ export default function App() {
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
 
   // ⏱️ Guest Disclaimer evaluates with a 3-second grace buffer to allow Firebase Auth to initialize
-  const [isGuestDisclaimerOpen, setIsGuestDisclaimerOpen] = useState(false);
+  const [isGuestDisclaimerOpen, setIsGuestDisclaimerOpen] = useState(() => previewModal === 'disclaimer' || previewModal === 'guest');
 
   useEffect(() => {
+    if (previewModal === 'disclaimer' || previewModal === 'guest') return;
     const timer = setTimeout(() => {
       const u = getCurrentUser();
       if (!u && !isGuestDisclaimerDismissed()) {
@@ -218,10 +227,10 @@ export default function App() {
       }
     }, 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [previewModal]);
 
   // Behavioral Trilogy Modal States & Dev Lab
-  const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(false);
+  const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(() => previewModal === 'capsule');
   const [capsuleModalMode, setCapsuleModalMode] = useState('vault'); // 'vault' | 'capture' | 'release'
   const [capsuleTarget, setCapsuleTarget] = useState(null);
   const isCapsuleReleaseOpen = isCapsuleModalOpen;
@@ -229,17 +238,17 @@ export default function App() {
   const setIsCapsuleReleaseOpen = setIsCapsuleModalOpen;
   const setReleasedCapsule = setCapsuleTarget;
 
-  const [isGlobalReceiptOpen, setIsGlobalReceiptOpen] = useState(false);
+  const [isGlobalReceiptOpen, setIsGlobalReceiptOpen] = useState(() => previewModal === 'receipt');
   const [receiptPreviewEntries, setReceiptPreviewEntries] = useState(null);
-  const [isAutopsyOpen, setIsAutopsyOpen] = useState(false);
+  const [isAutopsyOpen, setIsAutopsyOpen] = useState(() => previewModal === 'autopsy');
   const [autopsyDate, setAutopsyDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [autopsyRating, setAutopsyRating] = useState(1);
   const [autopsyExistingData, setAutopsyExistingData] = useState(null);
-  const [isBehavioralLabOpen, setIsBehavioralLabOpen] = useState(false);
+  const [isBehavioralLabOpen, setIsBehavioralLabOpen] = useState(() => previewModal === 'lab');
   const [simulatedCrash, setSimulatedCrash] = useState(false);
-  const [isP2PSyncOpen, setIsP2PSyncOpen] = useState(false);
-  const [p2pSyncSection, setP2PSyncSection] = useState('sync');
-  const [isSanctuaryInvitationOpen, setIsSanctuaryInvitationOpen] = useState(false);
+  const [isP2PSyncOpen, setIsP2PSyncOpen] = useState(() => previewModal === 'sync' || previewModal === 'transfer' || previewModal === 'data-transfer');
+  const [p2pSyncSection, setP2PSyncSection] = useState(() => (previewModal === 'transfer' || previewModal === 'data-transfer') ? 'transfer' : 'sync');
+  const [isSanctuaryInvitationOpen, setIsSanctuaryInvitationOpen] = useState(() => previewModal === 'sanctuary-invitation' || previewModal === 'invitation');
   const [sanctuaryInvitationRoughCount, setSanctuaryInvitationRoughCount] = useState(2);
 
   // 🔐 Configurable Auto-Lock Gatekeeper (Default 5 min inactivity + Tab Blur/Visibility)
@@ -364,14 +373,17 @@ export default function App() {
       const isLab = window.location.search.includes('view=icons') || 
                     window.location.hash.includes('icons') ||
                     window.location.search.includes('view=wallpaper') ||
-                    window.location.search.includes('view=year_pixels') ||
                     window.location.hash.includes('wallpaper');
       setShowIconLab(isLab);
       if (isLab) {
         const s = window.location.search;
         const h = window.location.hash;
-        if (s.includes('tab=year') || s.includes('view=year') || s.includes('view=wallpaper') || h.includes('wallpaper') || h.includes('year_pixels')) {
-          setIconLabTab('year_pixels');
+        if (s.includes('view=wallpaper') || h.includes('wallpaper')) {
+          setIconLabTab('wallpaper');
+        } else if (s.includes('view=icons') || h.includes('icons')) {
+          setIconLabTab('icons');
+        } else {
+          setIconLabTab('banner_arena');
         }
       }
       setShowSkeletonPreview(window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton'));
@@ -382,11 +394,26 @@ export default function App() {
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
       }
-      if (window.location.search.includes('view=guest') || window.location.search.includes('view=disclaimer')) {
+      if (window.location.search.includes('view=guest') || window.location.search.includes('view=disclaimer') || window.location.search.includes('preview=disclaimer')) {
         setIsGuestDisclaimerOpen(true);
       }
-      if (window.location.search.includes('sync=') || window.location.search.includes('view=sync') || window.location.hash.includes('sync')) {
-        if (window.location.search.includes('sync=')) {
+      if (window.location.search.includes('view=sanctuary-invitation') || window.location.search.includes('preview=sanctuary-invitation') || window.location.search.includes('view=invitation') || window.location.search.includes('preview=invitation')) {
+        setIsSanctuaryInvitationOpen(true);
+      }
+      if (window.location.search.includes('view=calendar') || window.location.search.includes('preview=calendar')) {
+        setIsCalendarOpen(true);
+      }
+      if (window.location.search.includes('view=settings') || window.location.search.includes('preview=settings')) {
+        setIsSettingsOpen(true);
+      }
+      if (window.location.search.includes('view=export') || window.location.search.includes('preview=export')) {
+        setIsExportStudioOpen(true);
+      }
+      if (window.location.search.includes('view=stickers') || window.location.search.includes('preview=stickers')) {
+        setIsStickerVaultOpen(true);
+      }
+      if (window.location.search.includes('sync=') || window.location.search.includes('view=sync') || window.location.search.includes('preview=sync') || window.location.hash.includes('sync')) {
+        if (window.location.search.includes('sync=') || window.location.search.includes('view=transfer') || window.location.search.includes('preview=transfer') || window.location.search.includes('preview=data-transfer')) {
           setP2PSyncSection('transfer');
         }
         setIsP2PSyncOpen(true);
@@ -1219,11 +1246,6 @@ export default function App() {
                 onOpenErasurePage={() => setShowErasure(true)}
                 onOpenStoragePage={() => setShowStoragePage(true)}
                 onOpenExportStudio={() => setIsExportStudioOpen(true)}
-                onOpenWallpaperEngine={() => {
-                  setIsSettingsOpen(false);
-                  setIconLabTab('year_pixels');
-                  setShowIconLab(true);
-                }}
               />
             )}
 
@@ -1244,11 +1266,6 @@ export default function App() {
                 onClose={() => setIsExportStudioOpen(false)}
                 entries={entries}
                 startDate={startDate}
-                onOpenWallpaperEngine={() => {
-                  setIsExportStudioOpen(false);
-                  setIconLabTab('year_pixels');
-                  setShowIconLab(true);
-                }}
               />
             )}
 
