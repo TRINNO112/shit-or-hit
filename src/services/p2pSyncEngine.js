@@ -240,7 +240,7 @@ export function importSyncPayload(payload) {
 
   // Automatically save as mutual peer backup mirror
   saveMutualPeerBackup(payload, {
-    deviceName: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop Station') : 'Paired Device'
+    deviceName: getCurrentDeviceInfo().label
   });
 
   return {
@@ -520,6 +520,37 @@ export function getMutualPeerBackupMeta() {
   } catch (e) {
     return null;
   }
+}
+
+/**
+ * Detects descriptive hardware & browser information for the local device.
+ */
+export function getCurrentDeviceInfo() {
+  if (typeof navigator === 'undefined') {
+    return { type: 'desktop', label: 'Desktop Station', os: 'Desktop OS', browser: 'Browser' };
+  }
+  const ua = navigator.userAgent || '';
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const isTablet = /(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/i.test(ua);
+
+  let os = 'Desktop';
+  if (/Windows/i.test(ua)) os = 'Windows PC';
+  else if (/Macintosh|Mac OS X/i.test(ua)) os = 'macOS Mac';
+  else if (/iPhone/i.test(ua)) os = 'iPhone';
+  else if (/iPad/i.test(ua)) os = 'iPad';
+  else if (/Android/i.test(ua)) os = isTablet ? 'Android Tablet' : 'Android Mobile';
+  else if (/Linux/i.test(ua)) os = 'Linux Station';
+
+  let browser = 'Browser';
+  if (/Edg/i.test(ua)) browser = 'Edge';
+  else if (/Chrome/i.test(ua)) browser = 'Chrome';
+  else if (/Safari/i.test(ua)) browser = 'Safari';
+  else if (/Firefox/i.test(ua)) browser = 'Firefox';
+
+  const type = isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop';
+  const label = `${os} (${browser})`;
+
+  return { type, label, os, browser };
 }
 
 /**
