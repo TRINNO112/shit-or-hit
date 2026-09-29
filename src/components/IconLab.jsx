@@ -219,9 +219,10 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
   const [activeLabTab, setActiveLabTab] = useState(() => {
     if (defaultTab) return defaultTab;
     if (typeof window !== 'undefined') {
-      const search = window.location.search;
-      if (search.includes('view=wallpaper') || hash.includes('wallpaper')) {
-        return 'wallpaper';
+      const search = window.location.search || '';
+      const hash = window.location.hash || '';
+      if (search.includes('view=wallpaper') || hash.includes('wallpaper') || search.includes('view=pixels')) {
+        return 'year_pixels';
       }
       if (search.includes('tab=banner') || search.includes('view=banner')) {
         return 'banner_arena';
@@ -229,8 +230,11 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
       if (search.includes('tab=icons') || search.includes('view=icons')) {
         return 'icons';
       }
+      if (search.includes('tab=poster') || search.includes('view=poster')) {
+        return 'wallpaper';
+      }
     }
-    return 'banner_arena';
+    return 'year_pixels';
   });
   const [selectedStudioDesign, setSelectedStudioDesign] = useState('darkroom'); // 'darkroom' | 'deepseek'
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
@@ -284,6 +288,18 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
 
           {/* Tab Selector */}
           <div className="flex items-center p-1 bg-neutral-200 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveLabTab('year_pixels')}
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
+                activeLabTab === 'year_pixels'
+                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                  : 'text-neutral-700 hover:text-black border-2 border-transparent'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>365-DAY 4K WALLPAPER</span>
+            </button>
             <button
               type="button"
               onClick={() => setActiveLabTab('banner_arena')}

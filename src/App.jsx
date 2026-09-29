@@ -389,17 +389,20 @@ export default function App() {
       const isLab = window.location.search.includes('view=icons') || 
                     window.location.hash.includes('icons') ||
                     window.location.search.includes('view=wallpaper') ||
-                    window.location.hash.includes('wallpaper');
+                    window.location.hash.includes('wallpaper') ||
+                    window.location.search.includes('view=pixels') ||
+                    window.location.hash.includes('pixels') ||
+                    window.location.search.includes('view=lab');
       setShowIconLab(isLab);
       if (isLab) {
         const s = window.location.search;
         const h = window.location.hash;
-        if (s.includes('view=wallpaper') || h.includes('wallpaper')) {
-          setIconLabTab('wallpaper');
+        if (s.includes('view=wallpaper') || h.includes('wallpaper') || s.includes('view=pixels') || h.includes('pixels')) {
+          setIconLabTab('year_pixels');
         } else if (s.includes('view=icons') || h.includes('icons')) {
           setIconLabTab('icons');
         } else {
-          setIconLabTab('banner_arena');
+          setIconLabTab('year_pixels');
         }
       }
       const params = new URLSearchParams(window.location.search);
