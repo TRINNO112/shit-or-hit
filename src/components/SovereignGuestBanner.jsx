@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ShieldCheck, 
-  Radio, 
-  HardDriveDownload, 
-  Lock, 
-  Cloud, 
-  Check, 
-  ArrowRight, 
+import {
+  ShieldCheck,
+  Radio,
+  HardDriveDownload,
+  Lock,
+  Cloud,
+  Check,
+  ArrowRight,
   X,
   Database
 } from 'lucide-react';
@@ -40,7 +40,7 @@ export default function SovereignGuestBanner({
   };
 
   return (
-    <section 
+    <section
       aria-label="Sovereign Local Mode Intelligence"
       className="relative w-full bg-[#FFFDF5] border-3 border-black shadow-[4px_4px_0px_#000000] p-4 sm:p-6 mb-6 transition-all"
     >
@@ -180,7 +180,7 @@ export default function SovereignGuestBanner({
             <button
               type="button"
               onClick={onExportData}
-              className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-3.5 py-2.5 bg-[#FDC800] hover:bg-[#e0b200] border-2 border-black shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-3.5 py-2.5 bg-[#FDC800] hover:bg-[#e0b200] border-2 border-black shadow-2px_2px_0px_#000000 active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer flex items-center justify-center gap-2"
             >
               <HardDriveDownload className="w-3.5 h-3.5 text-black" />
               <span>EXPORT JSON</span>

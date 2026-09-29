@@ -159,6 +159,9 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
                 <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
                 DATA ARCHITECTURE & SAFETY
               </span>
+              <span className="px-2 py-0.5 rounded-md bg-[#FF4D4D] text-white border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
+                STATUS: NOT WHITELISTED
+              </span>
               <span className="px-2 py-0.5 rounded-md bg-[#FDC800] text-black border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
                 LOCAL-FIRST MODE ACTIVE
               </span>
@@ -169,7 +172,7 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
                 </span>
               ) : (
                 <span className="px-2 py-0.5 rounded-md bg-neutral-200 text-neutral-800 border border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000]">
-                  STORAGE: LOCAL BEST-EFFORT
+                  STORAGE: BEST-EFFORT
                 </span>
               )}
             </div>
@@ -185,6 +188,45 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
                 <p className="text-[11px] font-mono font-bold text-neutral-600 mt-0.5">
                   100% on-device privacy • Zero server harvesting • What is implemented in code
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 🚨 PROMINENT UNFILTERED ALERT: WHITELIST RESTRICTION & LOCAL REALITY */}
+          <div className="p-4 rounded-2xl bg-[#FFF5C2] border-3 border-black shadow-[4px_4px_0px_#000000] space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#FF4D4D] border-2 border-black flex items-center justify-center text-white shrink-0 shadow-[1px_1px_0px_#000000]">
+                <ShieldAlert className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <span className="font-mono text-xs font-black uppercase tracking-wider text-black">
+                IMPORTANT: YOU ARE CURRENTLY NOT A WHITELISTED USER
+              </span>
+            </div>
+            
+            <p className="font-mono text-xs text-neutral-900 font-bold leading-relaxed">
+              Logging in with a Google account does <strong>NOT</strong> automatically whitelist you. Daily Verdict is built with a strict two-tier architecture:
+            </p>
+
+            <div className="space-y-1.5 font-mono text-[11px] text-neutral-800">
+              <div className="p-2 bg-white/80 rounded-xl border border-black/20">
+                <span className="underline decoration-2 decoration-amber-500 font-black text-black block mb-0.5">
+                  1. LOCAL GUEST MODE (YOUR CURRENT STATUS)
+                </span>
+                All your entries, habit checkmarks, mood reflections, and notes are saved directly into your device's browser sandbox (<code className="bg-amber-200/80 px-1 py-0.5 rounded font-black">localStorage</code>). 100% private, zero-surveillance, and zero server communication.
+              </div>
+
+              <div className="p-2 bg-white/80 rounded-xl border border-black/20">
+                <span className="underline decoration-2 decoration-emerald-600 font-black text-black block mb-0.5">
+                  2. HOW TO BECOME A WHITELISTED USER
+                </span>
+                Cloud synchronization (Firebase Firestore) and AI Ghostwriting incur continuous real-time API and server costs. To keep Daily Verdict free without subscription paywalls or ads, cloud sync and live AI are reserved for manually whitelisted accounts. To become whitelisted, you must <strong>contact the developer directly</strong> with your Google email address (<code className="bg-neutral-200 px-1 py-0.5 rounded font-black">kaushtubh457@gmail.com</code>).
+              </div>
+
+              <div className="p-2 bg-red-100 rounded-xl border border-red-400 text-red-950">
+                <span className="font-black uppercase block mb-0.5">
+                  3. ZERO BACKDOOR RECOVERY (CRITICAL DATA HAZARD)
+                </span>
+                If you clear your browser's cache, cookies, or site data, or if you use Private / Incognito browsing, your local diary will be <strong>permanently and irreversibly wiped</strong>. There is NO developer backdoor, NO cloud shadow-copy, and NO recovery mechanism.
               </div>
             </div>
           </div>
@@ -357,7 +399,7 @@ export default function GuestDisclaimerModal({ isOpen, onClose, onLogin }) {
               </div>
               <div className="pl-8 space-y-1.5 font-mono text-xs text-emerald-950">
                 <p className="font-bold leading-relaxed">
-                  You have 100% full access to: Daily Ratings, Habit Anchors, Multi-Sphere Matrix, Autopsy Chamber, Ransom Capsules, Sanctuary Pause, 4K Wallpapers, AES-256 PIN Vault, and JSON/CSV Exports.
+                  You have 100% full access to: Daily Ratings, Habit Anchors, Multi-Sphere Matrix, Autopsy Chamber (On-Device Forensic Detective), Ransom Capsules, Sanctuary Pause, 4K Wallpapers, AES-256 PIN Vault, and JSON/CSV Exports.
                 </p>
                 <p className="text-[11px] text-neutral-700 font-medium leading-relaxed bg-white/70 p-2 rounded-lg border border-emerald-300">
                   <strong>Why are Cloud Sync & AI Ghostwriting gated?</strong> Google Gemini and Firebase incur live API costs per query. To keep Daily Verdict free without subscription paywalls or ads, cloud sync and AI endpoints are reserved for whitelisted developer accounts.

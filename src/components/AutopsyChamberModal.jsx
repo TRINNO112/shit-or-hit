@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { AutopsyBadge } from './AutopsyBadge';
+import { getAutopsyAnalysis } from '../services/autopsyIntelligence';
 
 // Re-export for seamless backward compatibility
 export { AutopsyBadge };
@@ -64,7 +65,7 @@ export default function AutopsyChamberModal({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Fetch AI Autopsy from backend API or local intelligent engine
+  // Fetch AI or On-Device Heuristic Forensic Autopsy
   const fetchAutopsyAnalysis = async () => {
     setIsLoading(true);
     setErrorMsg('');
@@ -72,37 +73,25 @@ export default function AutopsyChamberModal({
     soundEngine?.playRoughTone?.();
 
     try {
-      const res = await fetch('/api/ai/autopsy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: entryDate,
-          rating: Number(rating) || 1,
-          notes: notes || '',
-          spheres: spheres || {},
-          anchors: anchors || {}
-        })
+      const res = await getAutopsyAnalysis({
+        date: entryDate,
+        rating: Number(rating) || 1,
+        notes: notes || '',
+        spheres: spheres || {},
+        anchors: anchors || {},
+        isWhitelisted: typeof window !== 'undefined' && !!window.__USER_IS_WHITELISTED__
       });
 
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-
-      const data = await res.json();
-      if (data?.success && data?.autopsy) {
-        setAutopsyData(data.autopsy);
+      if (res?.success && res?.autopsy) {
+        setAutopsyData(res.autopsy);
         setStage('interrogating');
         soundEngine?.playSuccessChime?.();
       } else {
-        throw new Error(data?.error || 'Failed to parse autopsy');
+        throw new Error('Could not parse autopsy');
       }
     } catch (err) {
-      // Intelligent fallback dossier
-      const fallback = {
-        causeOfDeath: 'Acute Operational Derailment: Morning friction loops compromised discipline, allowing screen stimulation and avoidance behavior to dominate the day.',
-        questions: [],
-        recoveryAntidote: 'Execute a strict 60-minute digital curfew before sleep tonight, consume 750ml of water immediately upon waking tomorrow, and complete your primary anchor before opening any browser or social media feed.'
-      };
-      setAutopsyData(fallback);
-      setStage('interrogating');
+      console.warn('Autopsy retrieval exception, fallback engaged:', err);
+      // Fallback is handled automatically inside getAutopsyAnalysis
     } finally {
       setIsLoading(false);
     }
@@ -293,13 +282,18 @@ export default function AutopsyChamberModal({
         <div className="pt-3 pb-2 shrink-0 space-y-2">
           {/* Metadata & Stamp Row */}
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2 py-0.5 rounded bg-[#1C1917] text-[#FAF6ED] text-[9px] font-mono font-black uppercase tracking-wider">
                 CLEARANCE LEVEL 5
               </span>
               <span className="text-[10px] font-mono font-bold text-[#854D0E] bg-[#D8C7A5]/50 px-2 py-0.5 rounded border border-[#1C1917]/20">
                 SUBJECT VERDICT: {rating === 1 ? '1★ ROUGH' : '2★ DOWN'}
               </span>
+              {autopsyData?.engine && (
+                <span className="text-[9px] font-mono font-black text-black bg-[#FAF6ED] px-2 py-0.5 rounded border border-[#1C1917] shadow-[1px_1px_0px_#1C1917] uppercase">
+                  {autopsyData.engine}
+                </span>
+              )}
             </div>
 
             <div className="shrink-0">
