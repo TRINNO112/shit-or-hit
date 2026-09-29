@@ -341,17 +341,22 @@ export default function NotificationSetterCard() {
       </div>
 
       {/* Helpful OS Capabilities Callout */}
-      <div className="p-3 bg-neutral-100 border-2 border-black rounded-xl space-y-1">
-        <div className="flex items-center gap-1.5 font-mono text-[10px] font-black uppercase text-black">
-          <Smartphone className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>DEVICE ACTION CAPABILITIES</span>
+      <div className="p-4 bg-[#FDC800] border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000] space-y-2">
+        <div className="flex items-center gap-2 font-mono text-xs font-black uppercase text-black">
+          <Smartphone className="w-4 h-4 stroke-[2.5]" />
+          <span>DEVICE CAPABILITIES: WHY 2 BUTTONS ON WINDOWS PC?</span>
         </div>
-        <p className="text-[11px] font-mono text-neutral-700 leading-snug">
-          • <strong>PC Desktop (Google Chrome on Windows)</strong>: The browser strictly limits native popups to <strong>2 action buttons</strong> (<code>1★ Shit</code> &amp; <code>5★ Hit</code>). Clicking either button instantly records that rating and brings up your diary. Clicking anywhere on the notification body opens the app with all 5 options.
-        </p>
-        <p className="text-[11px] font-mono text-neutral-700 leading-snug">
-          • <strong>Smartphones &amp; Tablets</strong>: Android notification shades support more buttons, allowing full 5-star quick-rating directly from your lockscreen without launching the app.
-        </p>
+        <div className="text-xs font-mono text-black space-y-1.5 leading-relaxed">
+          <p>
+            • <strong>PC Desktop (Google Chrome on Windows)</strong>: Windows Action Center strictly hard-caps all notification popups to <strong>2 action buttons</strong> (<code>1★ Shit</code> &amp; <code>5★ Hit</code>). Clicking either button instantly logs that score for <strong>Today</strong> in zero taps!
+          </p>
+          <p>
+            • <strong>Rating 2★, 3★, or 4★ on PC</strong>: Simply click anywhere on the notification body itself! It immediately opens the app on your screen with all 5 mood icons ready to select.
+          </p>
+          <p>
+            • <strong>Smartphones (Android)</strong>: Mobile notification shades support up to 5 actions, enabling complete 1-tap ratings (1★ through 5★) straight from your lockscreen.
+          </p>
+        </div>
       </div>
 
     </div>

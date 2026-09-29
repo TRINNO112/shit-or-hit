@@ -648,10 +648,13 @@ export default function App() {
     if (!allEntries) return;
     const todayRating = allEntries[todayStr]?.rating;
 
-    // Calculate yesterday's date
+    // Calculate yesterday's date (local timezone safe)
     const yestObj = new Date(`${todayStr}T00:00:00`);
     yestObj.setDate(yestObj.getDate() - 1);
-    const yestStr = yestObj.toISOString().slice(0, 10);
+    const yestY = yestObj.getFullYear();
+    const yestM = String(yestObj.getMonth() + 1).padStart(2, '0');
+    const yestD = String(yestObj.getDate()).padStart(2, '0');
+    const yestStr = `${yestY}-${yestM}-${yestD}`;
     const yestRating = allEntries[yestStr]?.rating;
 
     const alreadyShown = sessionStorage.getItem('daily_verdict_motivational_shown') === todayStr;
@@ -847,16 +850,40 @@ export default function App() {
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const handleRemoteRating = (event) => {
-        if (event.data && event.data.type === 'REMOTE_NOTIFICATION_RATING') {
+        if (!event.data) return;
+        if (event.data.type === 'REMOTE_NOTIFICATION_RATING') {
           const { dateStr, rating } = event.data;
-          console.log(`🔔 [Remote Notification Rating] Saving 1-tap rating: ${rating}★ for ${dateStr}`);
-          handleSaveEntry({ date: dateStr, rating });
+          const targetDate = dateStr || todayStr;
+          console.log(`🔔 [Remote Notification Rating] Saving 1-tap rating: ${rating}★ for ${targetDate}`);
+          handleSaveEntry({ date: targetDate, rating });
+          setActiveDesktopTab('today');
+          try {
+            soundEngine.playSuccess();
+          } catch (e) {}
+        } else if (event.data.type === 'NOTIFICATION_OPEN_URL') {
+          console.log('🔔 [Notification Open URL] Focusing Today workspace');
+          setActiveDesktopTab('today');
         }
       };
       navigator.serviceWorker.addEventListener('message', handleRemoteRating);
       return () => navigator.serviceWorker.removeEventListener('message', handleRemoteRating);
     }
-  }, []);
+  }, [todayStr]);
+
+  // ⚡ In-App Simulator Listener for NotificationSetterCard
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleSimulatedRating = (event) => {
+      if (event.detail && event.detail.rating) {
+        const rating = Number(event.detail.rating);
+        console.log(`⚡ [Simulated Notification Rating] Saving: ${rating}★ for ${todayStr}`);
+        handleSaveEntry({ date: todayStr, rating });
+        setActiveDesktopTab('today');
+      }
+    };
+    window.addEventListener('remote_notification_verdict', handleSimulatedRating);
+    return () => window.removeEventListener('remote_notification_verdict', handleSimulatedRating);
+  }, [todayStr]);
 
   // ⚡ URL Query Parameter 1-Tap Notification Quick-Rate Receiver
   useEffect(() => {
@@ -864,12 +891,14 @@ export default function App() {
     try {
       const params = new URLSearchParams(window.location.search);
       const qRate = params.get('quickRate') || params.get('rate');
+      const qDate = params.get('date');
       if (qRate) {
         const ratingNum = parseInt(qRate, 10);
         if (ratingNum >= 1 && ratingNum <= 5) {
-          const today = new Date().toISOString().slice(0, 10);
-          console.log(`⚡ [URL Quick Rate] Recording rating ${ratingNum}★ for ${today}`);
-          handleSaveEntry({ date: today, rating: ratingNum });
+          const targetDate = qDate || todayStr;
+          console.log(`⚡ [URL Quick Rate] Recording rating ${ratingNum}★ for ${targetDate}`);
+          handleSaveEntry({ date: targetDate, rating: ratingNum });
+          setActiveDesktopTab('today');
           try {
             soundEngine.playSuccess();
           } catch (e) {}
@@ -877,13 +906,14 @@ export default function App() {
           const url = new URL(window.location.href);
           url.searchParams.delete('quickRate');
           url.searchParams.delete('rate');
+          url.searchParams.delete('date');
           window.history.replaceState({}, '', url.toString());
         }
       }
     } catch (e) {
       console.warn('URL quick rate parse error:', e);
     }
-  }, []);
+  }, [todayStr]);
 
   const handleOpenMonthlyReport = (target) => {
     startTransition(() => {

@@ -1,7 +1,7 @@
 // ⚡ High-Performance PWA Service Worker for Daily Verdict (v8)
 // Provides instant Cache-First & Stale-While-Revalidate for static assets & modal chunks,
 // eliminating network latency on mobile devices.
-const CACHE_NAME = 'daily-verdict-v8';
+const CACHE_NAME = 'daily-verdict-v9';
 
 // Assets to precache immediately on install
 const PRECACHE_URLS = [
@@ -171,39 +171,47 @@ self.addEventListener('push', (event) => {
   );
 });
 
+// Helper: Timezone-safe local YYYY-MM-DD date string
+function getLocalDateStr() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 // Click notification to focus or execute 1-Tap Verdict actions
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const baseUrl = (event.notification.data && event.notification.data.url) || self.registration.scope || '/';
+  const todayStr = getLocalDateStr();
 
   // 1-Tap Quick Rating Action from Lockscreen / Notification Shade
   if (event.action && event.action.startsWith('rate-')) {
     const rating = parseInt(event.action.replace('rate-', ''), 10);
     const tierMap = { 1: 'Rough', 2: 'Down', 3: 'Okay', 4: 'Good', 5: 'Peak' };
     const tierName = tierMap[rating] || 'Verdict';
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const rateUrl = new URL(`/?quickRate=${rating}`, baseUrl).href;
+    const rateUrl = new URL(`/?quickRate=${rating}&date=${todayStr}`, baseUrl).href;
 
     event.waitUntil(
       clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clientList) => {
-        // Broadcast rating directly to open tabs and focus them
+        let focusedClient = null;
+        // Broadcast rating directly to open tabs and focus the first one
         for (const client of clientList) {
           client.postMessage({
             type: 'REMOTE_NOTIFICATION_RATING',
             dateStr: todayStr,
             rating: rating
           });
-          if ('navigate' in client) {
-            client.navigate(rateUrl).catch(() => {});
-          }
-          if ('focus' in client) {
-            return client.focus();
+          if ('focus' in client && !focusedClient) {
+            focusedClient = client;
+            await client.focus().catch(() => {});
           }
         }
 
-        // If no window is open, launch window with quickRate
-        if (clients.openWindow) {
+        // If no window is currently open, launch a new window with quickRate and date
+        if (!focusedClient && clients.openWindow) {
           return clients.openWindow(rateUrl);
         }
       })
@@ -213,13 +221,10 @@ self.addEventListener('notificationclick', (event) => {
 
   // Standard notification click: Focus active app window or open website URL
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clientList) => {
       for (const client of clientList) {
         if ('focus' in client) {
-          client.postMessage({ type: 'NOTIFICATION_OPEN_URL', url: baseUrl });
-          if ('navigate' in client && client.url !== baseUrl) {
-            client.navigate(baseUrl).catch(() => {});
-          }
+          client.postMessage({ type: 'NOTIFICATION_OPEN_URL', url: baseUrl, dateStr: todayStr });
           return client.focus();
         }
       }

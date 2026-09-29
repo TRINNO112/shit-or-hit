@@ -172,6 +172,14 @@ export function setReminderTime(timeStr) {
   }
 }
 
+export function getLocalDateString(d = new Date()) {
+  const dateObj = (d instanceof Date) ? d : new Date(d);
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function scheduleLocalEveningReminder() {
   if (!isNotificationEnabled()) return;
 
@@ -197,7 +205,7 @@ export function scheduleLocalEveningReminder() {
 
   window._dailyVerdictReminderTimer = setTimeout(() => {
     // Check if today is logged
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = getLocalDateString();
     const dbStr = localStorage.getItem('goodness_db');
     let isLoggedToday = false;
     if (dbStr) {
