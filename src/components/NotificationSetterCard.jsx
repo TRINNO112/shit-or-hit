@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Bell, Send, Check, Sparkles, Smartphone, Keyboard, CheckCircle2, AlertCircle } from 'lucide-react';
 import { playMood } from '../services/soundEffects';
 import { soundEngine } from '../services/soundEngine';
-import { showInstantReminderNotification } from '../services/notifications';
+import { 
+  showInstantReminderNotification, 
+  getNotificationBannerMode, 
+  setNotificationBannerMode 
+} from '../services/notifications';
 
 /* ------------------------------------------------------------------
    NOTIFICATION STAR SETTER & SMARTPHONE SIMULATOR
@@ -18,6 +22,27 @@ const STAR_TIERS = [
   { rating: 5, label: 'PEAK', stars: '★★★★★', count: '5★', color: '#00E599', textColor: '#000000', key: '5' }
 ];
 
+const BANNER_MODES = [
+  {
+    id: 'inline',
+    name: '1. INLINE 1-5★ INPUT (PC RECOMMENDED)',
+    tag: 'ANY STAR 1-5',
+    desc: 'Native Windows reply field. Type 1, 2, 3, 4, or 5 & press Enter directly in the PC notification toast!'
+  },
+  {
+    id: 'polar',
+    name: '2. 1★ SHIT VS 5★ HIT BUTTONS',
+    tag: 'FAST 1-TAP',
+    desc: 'Two chunky buttons for binary logging on Windows. Click notification body to pick 2★, 3★, 4★ in-app.'
+  },
+  {
+    id: 'all5',
+    name: '3. ALL 5 STAR BUTTONS',
+    tag: 'MOBILE / FULL',
+    desc: 'Passes all 5 star buttons. Automatically renders in full on Android and devices supporting >2 actions.'
+  }
+];
+
 const DESIGN_OPTIONS = [
   { id: 'lockscreen', name: '1. OS NOTIFICATION DRAWER', desc: 'Realistic PC & Mobile OS Push Shade with 1-Tap Star Actions' },
   { id: 'tactile_chips', name: '2. TACTILE STAR CHIPS', desc: 'Chunky Neobrutalist buttons with star glyphs & keyboard acceleration' },
@@ -27,9 +52,17 @@ const DESIGN_OPTIONS = [
 export default function NotificationSetterCard() {
   const [selectedDesign, setSelectedDesign] = useState('lockscreen');
   const [selectedRating, setSelectedRating] = useState(5);
+  const [bannerMode, setBannerModeState] = useState(() => getNotificationBannerMode());
+  const [inlineInputVal, setInlineInputVal] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState(null);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testSent, setTestSent] = useState(false);
+
+  const handleSelectBannerMode = (modeId) => {
+    setBannerModeState(modeId);
+    setNotificationBannerMode(modeId);
+    soundEngine.playClick();
+  };
 
   // Keyboard shortcut listener [1..5]
   useEffect(() => {
@@ -135,11 +168,56 @@ export default function NotificationSetterCard() {
         </div>
       </div>
 
-      {/* Design Option Tabs */}
+      {/* Section 1: PC & Mobile Notification Banner Action Mode */}
       <div className="space-y-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs font-mono font-black uppercase text-neutral-800 tracking-wider flex items-center gap-1.5">
+            <Smartphone className="w-3.5 h-3.5 text-black" />
+            <span>SELECT PC &amp; MOBILE NOTIFICATION ACTION MODE:</span>
+          </span>
+          <span className="font-mono text-[10px] bg-black text-[#FDC800] px-2 py-0.5 rounded font-black">
+            SOLVES PC 2-BUTTON LIMIT
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {BANNER_MODES.map((m) => {
+            const isSelected = bannerMode === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => handleSelectBannerMode(m.id)}
+                className={`p-3 rounded-xl border-2 border-black text-left cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
+                  isSelected
+                    ? 'bg-[#FFFDF5] text-black shadow-[3px_3px_0px_#000] ring-2 ring-black -translate-y-0.5 font-black'
+                    : 'bg-white hover:bg-neutral-50 text-neutral-800 shadow-[2px_2px_0px_#000]'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-display font-black text-xs uppercase tracking-tight">
+                    {m.name}
+                  </span>
+                  <span className={`font-mono text-[9px] px-1.5 py-0.2 rounded border border-black font-black shrink-0 ${
+                    isSelected ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-700'
+                  }`}>
+                    {isSelected ? 'ACTIVE' : m.tag}
+                  </span>
+                </div>
+                <p className="text-[10px] font-mono text-neutral-600 line-clamp-2 leading-tight">
+                  {m.desc}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Section 2: Design Option Tabs */}
+      <div className="space-y-2 pt-2 border-t border-black/10">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <span className="text-xs font-mono font-black uppercase text-neutral-800 tracking-wider">
-            SELECT NOTIFICATION DESIGN OPTION:
+            PREVIEW NOTIFICATION SHADE SIMULATOR:
           </span>
           <div className="flex items-center gap-1.5 font-mono text-[10px] bg-black text-[#00E599] px-2 py-0.5 rounded font-black">
             <Keyboard className="w-3 h-3 text-[#00E599]" />
@@ -158,7 +236,7 @@ export default function NotificationSetterCard() {
                   setSelectedDesign(d.id);
                   soundEngine.playClick();
                 }}
-                className={`p-3 rounded-xl border-2 border-black text-left cursor-pointer transition-all ${
+                className={`p-2.5 rounded-xl border-2 border-black text-left cursor-pointer transition-all ${
                   isSelected
                     ? 'bg-[#FDC800] text-black shadow-[3px_3px_0px_#000] ring-2 ring-black -translate-y-0.5 font-black'
                     : 'bg-white hover:bg-neutral-50 text-neutral-800 shadow-[2px_2px_0px_#000]'
@@ -194,7 +272,7 @@ export default function NotificationSetterCard() {
                 </div>
               </div>
               <span className="font-mono text-[9px] bg-white/10 px-2 py-0.5 rounded text-white/70">
-                JUST NOW
+                MODE: {bannerMode.toUpperCase()}
               </span>
             </div>
 
@@ -204,36 +282,90 @@ export default function NotificationSetterCard() {
                 How was your day? Log in 1 tap:
               </h4>
               <p className="text-[11px] font-mono text-white/70 mt-0.5">
-                Hit or Shit? Tap a star action below to record your verdict without launching the app.
+                {bannerMode === 'inline' 
+                  ? 'Type 1 to 5 directly in the box below to log your rating without opening the app:'
+                  : 'Tap an action below to record your verdict without launching the app.'}
               </p>
             </div>
 
-            {/* 5 Interactive Star Action Buttons */}
-            <div className="grid grid-cols-5 gap-1.5 pt-1">
-              {STAR_TIERS.map((tier) => {
-                const isActive = selectedRating === tier.rating;
-                return (
-                  <button
-                    key={tier.rating}
-                    type="button"
-                    onClick={() => handleSelectRating(tier.rating)}
-                    className={`p-2 rounded-xl border-2 border-black flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all active:scale-95 ${
-                      isActive
-                        ? 'ring-2 ring-white scale-105 shadow-[0_0_12px_rgba(253,200,0,0.5)]'
-                        : 'opacity-90 hover:opacity-100'
-                    }`}
-                    style={{ backgroundColor: tier.color }}
-                  >
-                    <span className="font-mono font-black text-xs text-black leading-none">
-                      {tier.stars}
-                    </span>
-                    <span className="font-mono font-black text-[9px] text-black uppercase leading-none mt-0.5 truncate max-w-full">
-                      {tier.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            {/* MODE A: Inline 1-5 Input Field (PC Recommended) */}
+            {bannerMode === 'inline' && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const val = parseInt(inlineInputVal.trim(), 10);
+                  if (val >= 1 && val <= 5) {
+                    handleSelectRating(val);
+                    setInlineInputVal('');
+                  }
+                }}
+                className="flex items-center gap-2 pt-1"
+              >
+                <input
+                  type="text"
+                  value={inlineInputVal}
+                  onChange={(e) => setInlineInputVal(e.target.value)}
+                  placeholder="Type 1, 2, 3, 4, or 5 & Enter..."
+                  className="flex-1 bg-black/60 border-2 border-white/30 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-white/40 focus:border-[#FDC800] focus:outline-none"
+                  maxLength={1}
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
+                >
+                  SEND
+                </button>
+              </form>
+            )}
+
+            {/* MODE B: Polar Binary Buttons (1★ Shit vs 5★ Hit) */}
+            {bannerMode === 'polar' && (
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleSelectRating(1)}
+                  className="p-2.5 rounded-xl border-2 border-black bg-[#FF4D4D] text-black font-mono font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
+                >
+                  <span>1★ SHIT (ROUGH)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectRating(5)}
+                  className="p-2.5 rounded-xl border-2 border-black bg-[#00E599] text-black font-mono font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
+                >
+                  <span>5★ HIT (PEAK)</span>
+                </button>
+              </div>
+            )}
+
+            {/* MODE C: All 5 Star Buttons */}
+            {bannerMode === 'all5' && (
+              <div className="grid grid-cols-5 gap-1.5 pt-1">
+                {STAR_TIERS.map((tier) => {
+                  const isActive = selectedRating === tier.rating;
+                  return (
+                    <button
+                      key={tier.rating}
+                      type="button"
+                      onClick={() => handleSelectRating(tier.rating)}
+                      className={`p-2 rounded-xl border-2 border-black flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all active:scale-95 ${
+                        isActive
+                          ? 'ring-2 ring-white scale-105 shadow-[0_0_12px_rgba(253,200,0,0.5)]'
+                          : 'opacity-90 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: tier.color }}
+                    >
+                      <span className="font-mono font-black text-xs text-black leading-none">
+                        {tier.stars}
+                      </span>
+                      <span className="font-mono font-black text-[9px] text-black uppercase leading-none mt-0.5 truncate max-w-full">
+                        {tier.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Feedback ticker */}
             {feedbackMessage && (

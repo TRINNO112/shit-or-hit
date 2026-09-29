@@ -50,9 +50,42 @@ export function disableNotifications() {
   }
 }
 
+export function getNotificationBannerMode() {
+  if (typeof window === 'undefined') return 'inline';
+  return localStorage.getItem('daily_verdict_notification_mode') || 'inline';
+}
+
+export function setNotificationBannerMode(mode) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('daily_verdict_notification_mode', mode || 'inline');
+    if (typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('notification-mode-updated', { detail: mode }));
+    }
+  }
+}
+
 export function getNotificationRatingActions() {
+  const mode = getNotificationBannerMode();
   const max = (typeof Notification !== 'undefined' && Notification.maxActions) ? Notification.maxActions : 2;
-  if (max >= 5) {
+
+  // Mode 1: Inline 1-5★ Rating Field (Best for PC screens: permits typing any star 1-5!)
+  if (mode === 'inline') {
+    return [
+      {
+        action: 'rate-inline',
+        title: 'Rate Today (1-5★)',
+        type: 'text',
+        placeholder: 'Type 1, 2, 3, 4, or 5 & Enter...'
+      },
+      {
+        action: 'rate-open',
+        title: 'Open 5★ Moods'
+      }
+    ];
+  }
+
+  // Mode 2: All 5 Tier Buttons (Full spectrum for mobile/supporting systems)
+  if (mode === 'all5' || max >= 5) {
     return [
       { action: 'rate-1', title: '1★ Rough' },
       { action: 'rate-2', title: '2★ Down' },
@@ -61,8 +94,8 @@ export function getNotificationRatingActions() {
       { action: 'rate-5', title: '5★ Peak' }
     ];
   }
-  // Desktop Chromium / Windows limit (maxActions is 2):
-  // Provide the iconic Shit vs Hit 1-tap quick actions:
+
+  // Mode 3: Polar Quick Actions (1★ Shit vs 5★ Hit binary buttons)
   return [
     { action: 'rate-1', title: '1★ Shit (Rough)' },
     { action: 'rate-5', title: '5★ Hit (Peak)' }
@@ -107,7 +140,6 @@ export async function showInstantReminderNotification(customBody = null) {
         }
         if (registration && registration.showNotification) {
           const targetUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/';
-          console.log('🔔 [Notification Debug] Step 3a: Firing notification via ServiceWorker with URL and 1-tap actions:', targetUrl);
           await registration.showNotification('⚡ Daily Verdict', {
             body,
             icon: '/icon-192.png',
@@ -118,16 +150,14 @@ export async function showInstantReminderNotification(customBody = null) {
             renotify: true,
             actions: getNotificationRatingActions()
           });
-          console.log('✅ [Notification Debug] Step 4: ServiceWorker notification fired successfully with 1-tap actions!');
           return true;
         }
       } catch (swErr) {
-        console.warn('⚠️ [Notification Debug] ServiceWorker trigger fallback:', swErr);
+        console.warn('ServiceWorker notification trigger note:', swErr.message || swErr);
       }
     }
 
-    // Method B: Standard Web Notification API
-    console.log('🔔 [Notification Debug] Step 3b: Firing notification via standard new Notification() API');
+    // Method B: Standard Web Notification API Fallback (Desktop/Safari)
     const targetUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/';
     const n = new Notification('⚡ Daily Verdict', {
       body,
@@ -135,12 +165,9 @@ export async function showInstantReminderNotification(customBody = null) {
       badge: '/icon-192.png',
       vibrate: [150, 50, 150],
       tag: 'daily-verdict-reminder',
-      data: { url: targetUrl },
-      requireInteraction: false
+      data: { url: targetUrl }
     });
 
-    n.onshow = () => console.log('✅ [Notification Debug] Step 4: Notification displayed on screen!');
-    n.onerror = (e) => console.error('❌ [Notification Debug] Notification encountered error:', e);
     n.onclick = (event) => {
       event.preventDefault();
       window.focus();
@@ -152,7 +179,6 @@ export async function showInstantReminderNotification(customBody = null) {
 
     return true;
   } catch (err) {
-    console.error('❌ [Notification Debug] Show notification failed:', err);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('in_app_reminder', { detail: { title: '⚡ Daily Verdict', body } }));
     }

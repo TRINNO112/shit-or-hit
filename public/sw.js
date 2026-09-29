@@ -1,7 +1,7 @@
 // ⚡ High-Performance PWA Service Worker for Daily Verdict (v8)
 // Provides instant Cache-First & Stale-While-Revalidate for static assets & modal chunks,
 // eliminating network latency on mobile devices.
-const CACHE_NAME = 'daily-verdict-v9';
+const CACHE_NAME = 'daily-verdict-v10';
 
 // Assets to precache immediately on install
 const PRECACHE_URLS = [
@@ -187,11 +187,23 @@ self.addEventListener('notificationclick', (event) => {
   const baseUrl = (event.notification.data && event.notification.data.url) || self.registration.scope || '/';
   const todayStr = getLocalDateStr();
 
-  // 1-Tap Quick Rating Action from Lockscreen / Notification Shade
+  // 1-Tap Quick Rating Action from Lockscreen / Notification Shade (Button or Inline Input)
+  let rating = null;
   if (event.action && event.action.startsWith('rate-')) {
-    const rating = parseInt(event.action.replace('rate-', ''), 10);
-    const tierMap = { 1: 'Rough', 2: 'Down', 3: 'Okay', 4: 'Good', 5: 'Peak' };
-    const tierName = tierMap[rating] || 'Verdict';
+    if (event.action === 'rate-inline' && event.reply) {
+      const typed = parseInt(event.reply.trim(), 10);
+      if (typed >= 1 && typed <= 5) {
+        rating = typed;
+      }
+    } else {
+      const parsed = parseInt(event.action.replace('rate-', ''), 10);
+      if (parsed >= 1 && parsed <= 5) {
+        rating = parsed;
+      }
+    }
+  }
+
+  if (rating !== null) {
     const rateUrl = new URL(`/?quickRate=${rating}&date=${todayStr}`, baseUrl).href;
 
     event.waitUntil(
