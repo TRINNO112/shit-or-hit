@@ -53,3 +53,6 @@ public/architecture/
 # Local External AI Skills (Keep skills on local machine only, never commit public repos)
 .agents/skills/*
 !.agents/skills/shit-or-hit-audit-guard/
+
+# Brag video output
+brag-output/
