@@ -354,6 +354,10 @@ export default function App() {
       if (keyBuffer.endsWith('iconlab')) {
         setShowIconLab(prev => !prev);
         keyBuffer = '';
+      } else if (keyBuffer.endsWith('verdict')) {
+        setShowIconLab(prev => !prev);
+        setIconLabTab('verdict_strip');
+        keyBuffer = '';
       } else if (keyBuffer.endsWith('skeleton')) {
         setShowSkeletonPreview(prev => !prev);
         keyBuffer = '';
@@ -398,6 +402,10 @@ export default function App() {
                     window.location.hash.includes('pixels') ||
                     window.location.search.includes('view=skeleton') ||
                     window.location.hash.includes('skeleton') ||
+                    window.location.search.includes('view=verdict') ||
+                    window.location.hash.includes('verdict') ||
+                    window.location.search.includes('view=notification') ||
+                    window.location.hash.includes('notification') ||
                     window.location.search.includes('view=lab');
       setShowIconLab(isLab);
       if (isLab) {
@@ -405,6 +413,8 @@ export default function App() {
         const h = window.location.hash;
         if (s.includes('view=skeleton') || h.includes('skeleton') || s.includes('tab=skeleton')) {
           setIconLabTab('skeleton');
+        } else if (s.includes('view=verdict') || h.includes('verdict') || s.includes('tab=verdict') || s.includes('notification')) {
+          setIconLabTab('verdict_strip');
         } else if (s.includes('view=wallpaper') || h.includes('wallpaper') || s.includes('view=pixels') || h.includes('pixels')) {
           setIconLabTab('year_pixels');
         } else if (s.includes('view=icons') || h.includes('icons')) {
@@ -832,6 +842,21 @@ export default function App() {
       console.warn('Network sync pending, saved to local cache:', err);
     }
   };
+
+  // ⚡ Remote 1-Tap Notification Bar Verdict Listener (Zero App Opening Sync)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      const handleRemoteRating = (event) => {
+        if (event.data && event.data.type === 'REMOTE_NOTIFICATION_RATING') {
+          const { dateStr, rating } = event.data;
+          console.log(`🔔 [Remote Notification Rating] Saving 1-tap rating: ${rating}★ for ${dateStr}`);
+          handleSaveEntry({ date: dateStr, rating });
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', handleRemoteRating);
+      return () => navigator.serviceWorker.removeEventListener('message', handleRemoteRating);
+    }
+  }, []);
 
   const handleOpenMonthlyReport = (target) => {
     startTransition(() => {

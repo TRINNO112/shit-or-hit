@@ -171,9 +171,43 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Click notification to focus
+// Click notification to focus or execute 1-Tap Verdict actions
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+
+  // 1-Tap Quick Rating Action from Lockscreen / Notification Shade
+  if (event.action && event.action.startsWith('rate-')) {
+    const rating = parseInt(event.action.replace('rate-', ''), 10);
+    const tierMap = { 1: 'Rough', 2: 'Down', 3: 'Okay', 4: 'Good', 5: 'Peak' };
+    const tierName = tierMap[rating] || 'Verdict';
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        // Broadcast rating directly to open tabs
+        for (const client of clientList) {
+          client.postMessage({
+            type: 'REMOTE_NOTIFICATION_RATING',
+            dateStr: todayStr,
+            rating: rating
+          });
+        }
+
+        // Show instant confirmation toast on notification shade
+        return self.registration.showNotification(`⚡ Locked ${rating}★ ${tierName}!`, {
+          body: `Day recorded for ${todayStr}. Zero app opening required!`,
+          icon: './icon.svg',
+          badge: './icon.svg',
+          tag: 'verdict-confirmation',
+          renotify: false,
+          vibrate: [100, 50, 100]
+        });
+      })
+    );
+    return;
+  }
+
+  // Standard notification click: Focus active app window or open it
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {

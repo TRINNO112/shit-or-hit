@@ -244,6 +244,7 @@ import AestheticCardVariantDeepseek from './AestheticCardVariantDeepseek';
 import YearInPixelsWallpaperEngine from './YearInPixelsWallpaperEngine';
 import MoodReactionBanner from './MoodReactionBanner';
 import SkeletonLoader from './SkeletonLoader';
+import VerdictIconGallery from './VerdictIconGallery';
 
 export default function IconLab({ onBack, defaultTab, entries = {} }) {
   const [activeLabTab, setActiveLabTab] = useState(() => {
@@ -251,6 +252,9 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
     if (typeof window !== 'undefined') {
       const search = window.location.search || '';
       const hash = window.location.hash || '';
+      if (search.includes('view=verdict') || hash.includes('verdict') || search.includes('tab=verdict')) {
+        return 'verdict_strip';
+      }
       if (search.includes('view=skeleton') || hash.includes('skeleton') || search.includes('tab=skeleton')) {
         return 'skeleton';
       }
@@ -383,8 +387,25 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
               <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>SKELETON PREVIEW</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveLabTab('verdict_strip')}
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
+                activeLabTab === 'verdict_strip'
+                  ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                  : 'text-neutral-700 hover:text-black border-2 border-transparent'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>VERDICT & NOTIFICATION LAB</span>
+            </button>
           </div>
         </div>
+
+        {/* TAB: VERDICT ICONS & NOTIFICATION MENU SETTER */}
+        {activeLabTab === 'verdict_strip' && (
+          <VerdictIconGallery />
+        )}
 
         {/* TAB 0: VERDICT BANNER SHOWCASE */}
         {activeLabTab === 'banner_arena' && (

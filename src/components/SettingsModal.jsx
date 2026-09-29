@@ -10,6 +10,7 @@ import {
   Check,
   Sparkles,
   ShieldCheck,
+  Trophy,
   Moon,
   Info,
   Clock,
@@ -108,6 +109,7 @@ import StickerVaultModal from './StickerVaultModal';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 import RehabilitationModal from './RehabilitationModal';
 import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../services/p2pSyncEngine';
+import VerdictIconGallery from './VerdictIconGallery';
 
 export default function SettingsModal({
   isOpen,
@@ -130,6 +132,7 @@ export default function SettingsModal({
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
   const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
+  const [isVerdictGalleryOpen, setIsVerdictGalleryOpen] = useState(false);
   const [aiLanguage, setAiLanguage] = useState('auto');
 
   // Behavioral Trilogy Preferences (Off by Default)
@@ -589,6 +592,40 @@ export default function SettingsModal({
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* 1b. Verdict Icons & 1-Tap Notification Bar Setter */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                      <Trophy className="w-4 h-4 text-black stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-display font-black text-sm uppercase text-black flex items-center gap-2">
+                        <span>Verdict Icons & Notification Bar</span>
+                        <span className="font-mono text-[9px] bg-black text-[#00E599] px-1.5 py-0.5 rounded font-black">NEW</span>
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                        Customize 1-tap notification bar designs & vector icon variants
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsVerdictGalleryOpen(!isVerdictGalleryOpen)}
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center bg-[#FDC800] hover:bg-[#ffe066] text-black"
+                  >
+                    {isVerdictGalleryOpen ? 'HIDE SETTER' : 'OPEN SETTER'}
+                  </button>
+                </div>
+
+                {isVerdictGalleryOpen && (
+                  <div className="pt-3 border-t-2 border-black/10">
+                    <VerdictIconGallery />
+                  </div>
+                )}
               </div>
 
               {/* 2. Tactile Procedural Sound FX Synthesizer (Default OFF) */}
