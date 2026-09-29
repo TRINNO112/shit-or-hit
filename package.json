@@ -19,6 +19,7 @@
     "audit:perf": "node scripts/audit-performance.js",
     "benchmark:live": "node scripts/benchmark-live.js",
     "test:perf:live": "node scripts/benchmark-live.js",
+    "test:p2p": "node scripts/test-p2p-sync.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {

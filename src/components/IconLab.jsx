@@ -5,7 +5,7 @@ import {
   Zap, Sparkles, Ghost, ShieldAlert, Cpu, Activity,
   Compass, ShieldCheck, Trophy, Radio, Gem, Eye,
   Layers, Check, Copy, ArrowLeft, Download, RefreshCw,
-  Calendar, Palette, Smartphone
+  Calendar, Palette, Smartphone, FlaskConical
 } from 'lucide-react';
 
 export function MedalRibbonIcon({ className = "w-14 h-14", color = "#FDC800" }) {
@@ -187,8 +187,37 @@ export function SerratedStreetBoltIcon({ className = "w-14 h-14", color = "#FDC8
   );
 }
 
+export function CyberSkeletonIcon({ className = "w-14 h-14", color = "#FDC800" }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* 3D Neobrutalist Base Drop Shadow */}
+      <rect x="18" y="14" width="64" height="72" rx="16" fill="#000000" transform="translate(4, 4)" />
+      {/* Solid Outer Frame */}
+      <rect x="18" y="14" width="64" height="72" rx="16" fill="#111622" stroke="#000000" strokeWidth="4" />
+      {/* Skull Craniotomy Vault */}
+      <ellipse cx="50" cy="38" rx="22" ry="18" fill="#FFFDF5" stroke="#000000" strokeWidth="3" />
+      {/* Cyber Eye Sockets */}
+      <rect x="38" y="32" width="8" height="10" rx="3" fill="#000000" />
+      <rect x="54" y="32" width="8" height="10" rx="3" fill="#000000" />
+      <circle cx="42" cy="37" r="1.5" fill={color} />
+      <circle cx="58" cy="37" r="1.5" fill={color} />
+      {/* Nasal Cavity */}
+      <polygon points="50,44 47,48 53,48" fill="#000000" />
+      {/* Crossed Skeleton Marrow Bones / Teeth */}
+      <rect x="42" y="52" width="16" height="6" rx="2" fill="#FFFDF5" stroke="#000000" strokeWidth="2" />
+      <line x1="46" y1="52" x2="46" y2="58" stroke="#000000" strokeWidth="1.5" />
+      <line x1="50" y1="52" x2="50" y2="58" stroke="#000000" strokeWidth="1.5" />
+      <line x1="54" y1="52" x2="54" y2="58" stroke="#000000" strokeWidth="1.5" />
+      {/* Cyber Neon Rib Lines */}
+      <path d="M30 68C38 74 62 74 70 68" stroke={color} strokeWidth="3" strokeLinecap="round" />
+      <path d="M34 76C41 81 59 81 66 76" stroke="#00E599" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const ICON_PRESETS = [
-  { id: 'shield_volt', name: 'Aegis Lightning Shield ⚡', icon: ShieldVoltIcon, category: 'Supreme Armor', vibe: 'Hexagonal defense armor sliced by mecha thunderbolt' },
+  { id: 'shield_volt', name: 'Aegis Lightning Shield', icon: ShieldVoltIcon, category: 'Supreme Armor', vibe: 'Hexagonal defense armor sliced by mecha thunderbolt' },
+  { id: 'cyber_skeleton', name: 'Cyber Skeleton & Marrow', icon: CyberSkeletonIcon, category: 'Chaos & Trench', vibe: '1★ trench survivor & unbreakable skeleton frame' },
   { id: 'mecha_volt', name: 'Mecha Cyber Bolt', icon: MechaVoltIcon, category: 'Streetwear Volt', vibe: 'Chamfered 3D bevels, mechanical notches & street shadow' },
   { id: 'serrated_bolt', name: 'Serrated Overdrive Bolt', icon: SerratedStreetBoltIcon, category: 'Streetwear Volt', vibe: 'Triple-tier aggressive lightning with inner core' },
   { id: 'glitch_volt', name: 'Cyber Glitch Bolt', icon: GlitchVoltIcon, category: 'Cyberpunk', vibe: 'Matrix split data lines & chromatic aberration shift' },
@@ -282,8 +311,9 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
               <span>BACK TO APP</span>
             </button>
             <div>
-              <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight">
-                🧪 Experimental Studio & Lab
+              <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight flex items-center gap-2">
+                <FlaskConical className="w-6 h-6 stroke-[2.5] text-amber-500" />
+                <span>Experimental Studio & Lab</span>
               </h1>
               <p className="text-xs font-mono text-neutral-600">
                 Live sandbox for 365-Day Wallpapers, PWA App Icons, and Story Posters.
@@ -479,7 +509,10 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
             <div className="lg:col-span-5 space-y-5">
               <div className="bg-white border-3 border-black rounded-3xl p-6 shadow-[6px_6px_0px_#000000] space-y-6">
                 <div className="flex items-center justify-between border-b-2 border-black/10 pb-3">
-                  <span className="font-display font-black text-sm uppercase">📱 Live PWA Mockup Preview</span>
+                  <span className="font-display font-black text-sm uppercase flex items-center gap-1.5">
+                    <Smartphone className="w-4 h-4 stroke-[2.5]" />
+                    <span>Live PWA Mockup Preview</span>
+                  </span>
                   <span className="text-xs font-mono px-2 py-0.5 bg-neutral-100 rounded-lg font-bold">192 × 192</span>
                 </div>
 
@@ -521,7 +554,10 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
 
                 {/* Color & Stroke Customizers */}
                 <div className="space-y-4 pt-2">
-                  <div className="font-display font-black text-xs uppercase text-neutral-700">🎨 Live Icon Calibration</div>
+                  <div className="font-display font-black text-xs uppercase text-neutral-700 flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 stroke-[2.5]" />
+                    <span>Live Icon Calibration</span>
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -584,7 +620,10 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
               {/* Custom SVG Paste Playground */}
               <div className="bg-white border-3 border-black rounded-3xl p-5 shadow-[4px_4px_0px_#000000] space-y-3">
                 <div className="font-display font-black text-xs uppercase flex items-center justify-between">
-                  <span>📥 Paste External SVG Code</span>
+                  <span className="flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 stroke-[2.5]" />
+                    <span>Paste External SVG Code</span>
+                  </span>
                   {customSvgInput && (
                     <button
                       type="button"

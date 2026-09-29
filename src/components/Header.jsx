@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass } from 'lucide-react';
+import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass, FlaskConical } from 'lucide-react';
 import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
 import { soundEngine } from '../services/soundEngine';
@@ -19,7 +19,8 @@ export default function Header({
   onOpenReceipt,
   onSyncRefresh,
   onOpenExportStudio,
-  onOpenRehab
+  onOpenRehab,
+  onOpenIconLab
 }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);

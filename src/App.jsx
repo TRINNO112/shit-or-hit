@@ -121,24 +121,28 @@ export default function App() {
     return window.location.search.includes('view=icons') || 
            window.location.hash.includes('icons') ||
            window.location.search.includes('view=wallpaper') ||
-           window.location.hash.includes('wallpaper');
+           window.location.hash.includes('wallpaper') ||
+           window.location.search.includes('view=pixels') ||
+           window.location.hash.includes('pixels') ||
+           window.location.search.includes('view=skeleton') ||
+           window.location.hash.includes('skeleton');
   });
   const [iconLabTab, setIconLabTab] = useState(() => {
-    if (typeof window === 'undefined') return 'banner_arena';
+    if (typeof window === 'undefined') return 'year_pixels';
     const s = window.location.search;
     const h = window.location.hash;
-    if (s.includes('view=wallpaper') || h.includes('wallpaper')) {
-      return 'wallpaper';
+    if (s.includes('view=skeleton') || h.includes('skeleton') || s.includes('tab=skeleton')) {
+      return 'skeleton';
+    }
+    if (s.includes('view=wallpaper') || h.includes('wallpaper') || s.includes('view=pixels') || h.includes('pixels')) {
+      return 'year_pixels';
     }
     if (s.includes('view=icons') || h.includes('icons')) {
       return 'icons';
     }
-    return 'banner_arena';
+    return 'year_pixels';
   });
-  const [showSkeletonPreview, setShowSkeletonPreview] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.location.search.includes('view=skeleton') || window.location.hash.includes('skeleton');
-  });
+  const [showSkeletonPreview, setShowSkeletonPreview] = useState(false);
   const [showSanctuary, setShowSanctuary] = useState(() => {
     if (typeof window === 'undefined') return false;
     const params = new URLSearchParams(window.location.search);
@@ -220,7 +224,7 @@ export default function App() {
   });
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
@@ -392,12 +396,16 @@ export default function App() {
                     window.location.hash.includes('wallpaper') ||
                     window.location.search.includes('view=pixels') ||
                     window.location.hash.includes('pixels') ||
+                    window.location.search.includes('view=skeleton') ||
+                    window.location.hash.includes('skeleton') ||
                     window.location.search.includes('view=lab');
       setShowIconLab(isLab);
       if (isLab) {
         const s = window.location.search;
         const h = window.location.hash;
-        if (s.includes('view=wallpaper') || h.includes('wallpaper') || s.includes('view=pixels') || h.includes('pixels')) {
+        if (s.includes('view=skeleton') || h.includes('skeleton') || s.includes('tab=skeleton')) {
+          setIconLabTab('skeleton');
+        } else if (s.includes('view=wallpaper') || h.includes('wallpaper') || s.includes('view=pixels') || h.includes('pixels')) {
           setIconLabTab('year_pixels');
         } else if (s.includes('view=icons') || h.includes('icons')) {
           setIconLabTab('icons');
@@ -407,7 +415,6 @@ export default function App() {
       }
       const params = new URLSearchParams(window.location.search);
       const v = params.get('view') || params.get('preview') || '';
-      setShowSkeletonPreview(v === 'skeleton' || window.location.hash.includes('skeleton'));
       setShowSanctuary((v === 'sanctuary' || window.location.hash === '#sanctuary' || window.location.hash === '#/sanctuary') && v !== 'sanctuary-invitation' && v !== 'invitation');
       setShowPrivacy(v === 'privacy' || window.location.hash === '#privacy');
       setShowErasure(v === 'erasure' || window.location.hash === '#erasure');
