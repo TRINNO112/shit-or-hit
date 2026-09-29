@@ -50,13 +50,26 @@ export function disableNotifications() {
   }
 }
 
-export const NOTIFICATION_RATING_ACTIONS = [
-  { action: 'rate-1', title: '1★ Rough' },
-  { action: 'rate-2', title: '2★ Down' },
-  { action: 'rate-3', title: '3★ Okay' },
-  { action: 'rate-4', title: '4★ Good' },
-  { action: 'rate-5', title: '5★ Peak' }
-];
+export function getNotificationRatingActions() {
+  const max = (typeof Notification !== 'undefined' && Notification.maxActions) ? Notification.maxActions : 2;
+  if (max >= 5) {
+    return [
+      { action: 'rate-1', title: '1★ Rough' },
+      { action: 'rate-2', title: '2★ Down' },
+      { action: 'rate-3', title: '3★ Okay' },
+      { action: 'rate-4', title: '4★ Good' },
+      { action: 'rate-5', title: '5★ Peak' }
+    ];
+  }
+  // Desktop Chromium / Windows limit (maxActions is 2):
+  // Provide the iconic Shit vs Hit 1-tap quick actions:
+  return [
+    { action: 'rate-1', title: '1★ Shit (Rough)' },
+    { action: 'rate-5', title: '5★ Hit (Peak)' }
+  ];
+}
+
+export const NOTIFICATION_RATING_ACTIONS = getNotificationRatingActions();
 
 export async function showInstantReminderNotification(customBody = null) {
   console.log('🔔 [Notification Debug] Step 1: Checking browser support...');
@@ -87,17 +100,23 @@ export async function showInstantReminderNotification(customBody = null) {
     // Method A: Check for active Service Worker Registration (Supports 1-Tap Notification Actions)
     if ('serviceWorker' in navigator) {
       try {
-        const registration = await navigator.serviceWorker.getRegistration();
+        let registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) {
+          registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+          await navigator.serviceWorker.ready;
+        }
         if (registration && registration.showNotification) {
-          console.log('🔔 [Notification Debug] Step 3a: Firing notification via ServiceWorkerRegistration.showNotification() with 1-Tap Verdict Actions');
+          const targetUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/';
+          console.log('🔔 [Notification Debug] Step 3a: Firing notification via ServiceWorker with URL and 1-tap actions:', targetUrl);
           await registration.showNotification('⚡ Daily Verdict', {
             body,
             icon: '/icon-192.png',
             badge: '/icon-192.png',
+            data: { url: targetUrl },
             vibrate: [150, 50, 150],
             tag: 'daily-verdict-reminder',
             renotify: true,
-            actions: NOTIFICATION_RATING_ACTIONS
+            actions: getNotificationRatingActions()
           });
           console.log('✅ [Notification Debug] Step 4: ServiceWorker notification fired successfully with 1-tap actions!');
           return true;
@@ -109,19 +128,25 @@ export async function showInstantReminderNotification(customBody = null) {
 
     // Method B: Standard Web Notification API
     console.log('🔔 [Notification Debug] Step 3b: Firing notification via standard new Notification() API');
+    const targetUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/';
     const n = new Notification('⚡ Daily Verdict', {
       body,
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       vibrate: [150, 50, 150],
       tag: 'daily-verdict-reminder',
+      data: { url: targetUrl },
       requireInteraction: false
     });
 
     n.onshow = () => console.log('✅ [Notification Debug] Step 4: Notification displayed on screen!');
     n.onerror = (e) => console.error('❌ [Notification Debug] Notification encountered error:', e);
-    n.onclick = () => {
+    n.onclick = (event) => {
+      event.preventDefault();
       window.focus();
+      try {
+        window.location.href = targetUrl;
+      } catch (err) {}
       n.close();
     };
 

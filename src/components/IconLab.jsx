@@ -5,7 +5,7 @@ import {
   Zap, Sparkles, Ghost, ShieldAlert, Cpu, Activity,
   Compass, ShieldCheck, Trophy, Radio, Gem, Eye,
   Layers, Check, Copy, ArrowLeft, Download, RefreshCw,
-  Calendar, Palette, Smartphone, FlaskConical
+  Calendar, Palette, Smartphone, FlaskConical, Bell
 } from 'lucide-react';
 
 export function MedalRibbonIcon({ className = "w-14 h-14", color = "#FDC800" }) {
@@ -245,6 +245,7 @@ import YearInPixelsWallpaperEngine from './YearInPixelsWallpaperEngine';
 import MoodReactionBanner from './MoodReactionBanner';
 import SkeletonLoader from './SkeletonLoader';
 import VerdictIconGallery from './VerdictIconGallery';
+import NotificationSetterCard from './NotificationSetterCard';
 
 export default function IconLab({ onBack, defaultTab, entries = {} }) {
   const [activeLabTab, setActiveLabTab] = useState(() => {
@@ -397,14 +398,31 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
               }`}
             >
               <Trophy className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>VERDICT & NOTIFICATION LAB</span>
+              <span>MOOD ICON THEMES</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveLabTab('notification_setter')}
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
+                activeLabTab === 'notification_setter'
+                  ? 'bg-[#00E599] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                  : 'text-neutral-700 hover:text-black border-2 border-transparent'
+              }`}
+            >
+              <Bell className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>NOTIFICATION STAR SETTER</span>
             </button>
           </div>
         </div>
 
-        {/* TAB: VERDICT ICONS & NOTIFICATION MENU SETTER */}
+        {/* TAB: MOOD ICON THEMES (3 PRESETS + FREEDOM GALLERY) */}
         {activeLabTab === 'verdict_strip' && (
           <VerdictIconGallery />
+        )}
+
+        {/* TAB: NOTIFICATION STAR SETTER & SMARTPHONE SIMULATOR */}
+        {activeLabTab === 'notification_setter' && (
+          <NotificationSetterCard />
         )}
 
         {/* TAB 0: VERDICT BANNER SHOWCASE */}

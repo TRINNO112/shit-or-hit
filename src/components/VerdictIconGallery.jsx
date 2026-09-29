@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { playMood } from '../services/soundEffects';
+import { Loader2, Check, Sparkles, RotateCcw, Copy, AlertCircle } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 
 /* ------------------------------------------------------------------
@@ -180,19 +180,14 @@ export const PeakTrophy = (p) => (
   </Base>
 );
 
-// ✨ UPGRADED: Prestigious Neobrutalist Grand Olympic Victory Medal
-// Features bold faceted ribbon drape, polished suspension ring, and 5-point star relief
+// Olympic Grand Victory Medal with folded ribbon, suspension ring, and 5-point star relief
 export const PeakMedal = (p) => (
   <Base {...p}>
-    {/* Symmetrical Folded Grosgrain Ribbon */}
     <path d="M6 2 L12 9 L18 2" strokeWidth="2.5" strokeLinecap="square" />
     <path d="M4 2 L12 10.5 L20 2" strokeWidth="1.5" strokeOpacity="0.4" />
-    {/* Suspension Ring Clasp */}
     <circle cx="12" cy="9.5" r="1.5" {...SOLID} stroke="none" />
-    {/* Heavy Medallion Disc */}
     <circle cx="12" cy="15" r="6.5" {...SOFT} strokeWidth="2.2" />
     <circle cx="12" cy="15" r="4.8" strokeWidth="1" strokeDasharray="1.2 0.8" strokeOpacity="0.6" />
-    {/* Embossed 5-Point Victory Star */}
     <polygon
       points="12,12 12.9,13.8 14.8,14.1 13.4,15.4 13.8,17.2 12,16.2 10.2,17.2 10.6,15.4 9.2,14.1 11.1,13.8"
       {...SOLID}
@@ -208,7 +203,7 @@ export const VERDICT_ICONS = {
   2: { rain: DownRain, battery: DownBattery, trend: DownTrend },
   3: { balance: OkayBalance, partly: OkayPartly, level: OkayLevel },
   4: { charged: GoodCharged, cell: GoodCell, velocity: GoodVelocity },
-  5: { star: PeakStar, trophy: PeakTrophy, medal: PeakMedal },
+  5: { star: PeakStar, trophy: PeakTrophy, medal: PeakMedal }
 };
 
 export const DEFAULT_VARIANTS = {
@@ -216,7 +211,7 @@ export const DEFAULT_VARIANTS = {
   2: 'rain',
   3: 'balance',
   4: 'charged',
-  5: 'medal', // Upgraded prestigious medal as hero default
+  5: 'medal'
 };
 
 export const VARIANT_LABELS = {
@@ -234,7 +229,7 @@ export const VARIANT_LABELS = {
   velocity: 'Sonic Velocity',
   star: 'Sparkle Star',
   trophy: 'Championship Trophy',
-  medal: 'Olympic Grand Medal',
+  medal: 'Olympic Grand Medal'
 };
 
 export const TIER_META = {
@@ -242,343 +237,322 @@ export const TIER_META = {
   2: { name: 'Down', color: '#FF8A00', text: 'text-black', key: '2' },
   3: { name: 'Okay', color: '#CBD5E1', text: 'text-black', key: '3' },
   4: { name: 'Good', color: '#00E599', text: 'text-black', key: '4' },
-  5: { name: 'Peak', color: '#FDC800', text: 'text-black', key: '5' },
+  5: { name: 'Peak', color: '#FDC800', text: 'text-black', key: '5' }
 };
+
+/* 3 Pre-made System Presets */
+export const MOOD_ICON_PRESETS = [
+  {
+    id: 'signature',
+    title: '1. SIGNATURE ESSENTIALS',
+    tag: 'DEFAULT',
+    desc: 'Warning Seal, Rain Cloud, Equilibrium, Charged Orbit & Grand Medal',
+    variants: { 1: 'seal', 2: 'rain', 3: 'balance', 4: 'charged', 5: 'medal' }
+  },
+  {
+    id: 'elements',
+    title: '2. STORM & STRENGTH',
+    tag: 'POWER',
+    desc: 'Thunderstorm, Critical Battery, Partly Sunny, Full Battery & Victory Trophy',
+    variants: { 1: 'storm', 2: 'battery', 3: 'partly', 4: 'cell', 5: 'trophy' }
+  },
+  {
+    id: 'resilience',
+    title: '3. STEADFAST RESILIENCE',
+    tag: 'TACTICAL',
+    desc: 'Cracked Shield, Downtrend Fall, Spirit Level, Sonic Velocity & Sparkle Star',
+    variants: { 1: 'cracked', 2: 'trend', 3: 'level', 4: 'velocity', 5: 'star' }
+  }
+];
 
 export function getSavedVerdictVariants() {
   if (typeof window === 'undefined') return DEFAULT_VARIANTS;
   try {
     const raw = localStorage.getItem('verdict_icon_variants');
-    if (raw) return { ...DEFAULT_VARIANTS, ...JSON.parse(raw) };
-  } catch (e) {}
-  return DEFAULT_VARIANTS;
+    if (!raw) return DEFAULT_VARIANTS;
+    const parsed = JSON.parse(raw);
+    return {
+      1: parsed[1] || DEFAULT_VARIANTS[1],
+      2: parsed[2] || DEFAULT_VARIANTS[2],
+      3: parsed[3] || DEFAULT_VARIANTS[3],
+      4: parsed[4] || DEFAULT_VARIANTS[4],
+      5: parsed[5] || DEFAULT_VARIANTS[5]
+    };
+  } catch (e) {
+    return DEFAULT_VARIANTS;
+  }
 }
 
 export function saveVerdictVariants(variants) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem('verdict_icon_variants', JSON.stringify(variants));
-  } catch (e) {}
+  } catch (e) {
+    console.error('Failed to save verdict icon variants:', e);
+  }
 }
 
-export function VerdictIcon({ rating, variant, ...props }) {
-  const set = VERDICT_ICONS[rating];
-  if (!set) return null;
-  const saved = getSavedVerdictVariants();
-  const Icon = set[variant] || set[saved[rating]] || set[DEFAULT_VARIANTS[rating]];
-  return <Icon {...props} />;
-}
-
-/* ================== 3 NOTIFICATION MENU SETTER DESIGNS ================= */
-
-export function NotificationStripPreview({ design = 'tactile', selectedRating, onSelectRating, variants = DEFAULT_VARIANTS }) {
-  // DESIGN 1: "The Neobrutalist Tactile Strip"
-  if (design === 'tactile') {
-    return (
-      <div className="bg-[#FFFDF5] border-3 border-black rounded-2xl p-4 shadow-[6px_6px_0px_#000000]">
-        <div className="flex items-center justify-between mb-3 border-b-2 border-black pb-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D4D] animate-ping" />
-            <span className="font-mono font-black text-xs uppercase tracking-wider">
-              NOTIFICATION SHADE // 1-TAP QUICK VERDICT
-            </span>
-          </div>
-          <span className="font-mono text-[10px] bg-black text-white px-2 py-0.5 rounded font-black">
-            KEYS: 1-5
-          </span>
-        </div>
-
-        <div className="grid grid-cols-5 gap-2 sm:gap-3">
-          {[1, 2, 3, 4, 5].map((r) => {
-            const isSelected = selectedRating === r;
-            const meta = TIER_META[r];
-            const Icon = VERDICT_ICONS[r][variants[r]] || VERDICT_ICONS[r][DEFAULT_VARIANTS[r]];
-            return (
-              <button
-                key={r}
-                type="button"
-                onClick={() => onSelectRating(r)}
-                className={`relative flex flex-col items-center justify-center py-2.5 sm:py-3.5 rounded-xl border-2 border-black transition-all cursor-pointer select-none ${
-                  isSelected
-                    ? 'translate-x-0.5 translate-y-0.5 shadow-none ring-2 ring-black'
-                    : 'shadow-[3px_3px_0px_#000000] hover:-translate-y-0.5'
-                }`}
-                style={{ backgroundColor: meta.color }}
-              >
-                <div className="absolute top-1 left-1.5 font-mono text-[9px] font-black text-black/60 bg-white/60 px-1 rounded border border-black/40">
-                  {meta.key}
-                </div>
-                <Icon size={26} className="text-black stroke-[2.2] my-1" />
-                <span className="font-mono font-black text-[11px] uppercase tracking-tight text-black">
-                  {meta.name}
-                </span>
-                <span className="font-mono font-black text-[9px] text-black/70">
-                  {r}★
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  // DESIGN 2: "The Minimalist Cyber Dock"
-  if (design === 'cyber_dock') {
-    return (
-      <div className="bg-[#121214] border-3 border-black rounded-2xl p-4 shadow-[6px_6px_0px_#00E599] text-white">
-        <div className="flex items-center justify-between mb-3 text-neutral-400 font-mono text-xs uppercase">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#00E599]" />
-            <span className="text-white font-black tracking-wider">CYBER DOCK // LOCKSCREEN MENU</span>
-          </div>
-          <span className="text-[#00E599] font-black text-[10px]">TAP OR PRESS [1-5]</span>
-        </div>
-
-        <div className="flex items-center bg-black/80 p-1.5 rounded-xl border-2 border-neutral-700 gap-1 sm:gap-2">
-          {[1, 2, 3, 4, 5].map((r) => {
-            const isSelected = selectedRating === r;
-            const meta = TIER_META[r];
-            const Icon = VERDICT_ICONS[r][variants[r]] || VERDICT_ICONS[r][DEFAULT_VARIANTS[r]];
-            return (
-              <button
-                key={r}
-                type="button"
-                onClick={() => onSelectRating(r)}
-                className={`flex-1 flex flex-col items-center py-2 sm:py-2.5 rounded-lg transition-all cursor-pointer border ${
-                  isSelected
-                    ? 'border-white bg-white/20 text-white shadow-[0_0_12px_rgba(255,255,255,0.4)] -translate-y-0.5'
-                    : 'border-transparent text-neutral-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center mb-1 border"
-                  style={{
-                    backgroundColor: isSelected ? meta.color : 'rgba(255,255,255,0.06)',
-                    borderColor: isSelected ? '#000' : 'rgba(255,255,255,0.2)'
-                  }}
-                >
-                  <Icon size={18} className={isSelected ? 'text-black stroke-[2.5]' : 'text-white stroke-[2]'} />
-                </div>
-                <span className="font-mono font-bold text-[10px] uppercase">
-                  {meta.name}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  // DESIGN 3: "Mechanical Keycap Matrix"
-  return (
-    <div className="bg-[#EAE5D9] border-3 border-black rounded-2xl p-4 shadow-[6px_6px_0px_#000000]">
-      <div className="flex items-center justify-between mb-3 border-b-2 border-black/30 pb-2">
-        <span className="font-mono font-black text-xs uppercase text-neutral-800 tracking-wider">
-          CHERRY MX VERDICT BAR // KEYBOARD ACCELERATED
-        </span>
-        <span className="font-mono text-[10px] bg-[#FDC800] border border-black text-black px-2 py-0.5 rounded font-black shadow-[1px_1px_0px_#000]">
-          PHYSICAL SPRING TRAVEL
-        </span>
-      </div>
-
-      <div className="grid grid-cols-5 gap-2 sm:gap-3">
-        {[1, 2, 3, 4, 5].map((r) => {
-          const isSelected = selectedRating === r;
-          const meta = TIER_META[r];
-          const Icon = VERDICT_ICONS[r][variants[r]] || VERDICT_ICONS[r][DEFAULT_VARIANTS[r]];
-          return (
-            <button
-              key={r}
-              type="button"
-              onClick={() => onSelectRating(r)}
-              className={`p-2 sm:p-3 rounded-xl border-2 border-black flex flex-col items-center justify-between cursor-pointer transition-all select-none ${
-                isSelected
-                  ? 'bg-white translate-y-1.5 shadow-[1px_1px_0px_#000000] border-t-4 border-t-black'
-                  : 'bg-[#FFFDF5] shadow-[0px_6px_0px_#000000] hover:translate-y-0.5 hover:shadow-[0px_4px_0px_#000000]'
-              }`}
-            >
-              <div
-                className="w-full py-1 rounded-md text-center font-mono font-black text-xs border border-black mb-1.5"
-                style={{ backgroundColor: meta.color }}
-              >
-                [{meta.key}]
-              </div>
-              <Icon size={24} className="text-black stroke-[2.2] my-1" />
-              <span className="font-mono font-black text-[10px] uppercase text-black mt-1">
-                {meta.name}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
+/* Reusable VerdictIcon Component: Renders the active variant for rating tier */
+export function VerdictIcon({ rating, size = 20, className = '', strokeWidth = 2, ...props }) {
+  const r = Math.max(1, Math.min(5, Math.round(Number(rating) || 3)));
+  const variants = getSavedVerdictVariants();
+  const variantKey = variants[r] || DEFAULT_VARIANTS[r];
+  const Component = (VERDICT_ICONS[r] && VERDICT_ICONS[r][variantKey]) || VERDICT_ICONS[r][DEFAULT_VARIANTS[r]];
+  if (!Component) return null;
+  return <Component size={size} className={className} strokeWidth={strokeWidth} {...props} />;
 }
 
 /* ============================= Main Gallery ============================= */
 
 export default function VerdictIconGallery({ onSelectCustomVariant }) {
   const [picks, setPicks] = useState(getSavedVerdictVariants);
-  const [selectedDesign, setSelectedDesign] = useState('tactile'); // 'tactile' | 'cyber_dock' | 'keycap'
-  const [activePreviewRating, setActivePreviewRating] = useState(5);
-  const [lastKeyPressed, setLastKeyPressed] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
+  const [applyError, setApplyError] = useState(null);
 
-  // Global Keyboard listener for [1, 2, 3, 4, 5]
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Don't intercept if user is typing in an input or textarea
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+  // Determine active preset (if current picks match one of the 3 presets)
+  const activePresetId = React.useMemo(() => {
+    for (const preset of MOOD_ICON_PRESETS) {
+      const match = [1, 2, 3, 4, 5].every((r) => preset.variants[r] === picks[r]);
+      if (match) return preset.id;
+    }
+    return 'custom';
+  }, [picks]);
 
-      const num = parseInt(e.key, 10);
-      if (num >= 1 && num <= 5) {
-        e.preventDefault();
-        setActivePreviewRating(num);
-        setLastKeyPressed(num);
-        try {
-          playMood(num);
-        } catch (err) {
-          soundEngine.playClick();
-        }
-        setTimeout(() => setLastKeyPressed(null), 600);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  const handleSelectPreset = (preset) => {
+    setPicks(preset.variants);
+    soundEngine.playClick();
+  };
 
   const handlePickVariant = (tier, variant) => {
     const updated = { ...picks, [tier]: variant };
     setPicks(updated);
-    saveVerdictVariants(updated);
     soundEngine.playClick();
     if (onSelectCustomVariant) onSelectCustomVariant(updated);
   };
 
-  const handleRatingSelect = (rating) => {
-    setActivePreviewRating(rating);
-    try {
-      playMood(rating);
-    } catch (e) {
-      soundEngine.playClick();
-    }
+  const handleResetDefaults = () => {
+    setPicks(DEFAULT_VARIANTS);
+    soundEngine.playClick();
   };
 
-  const code = `export const DEFAULT_VARIANTS = ${JSON.stringify(picks, null, 2).replace(/"(\d)":/g, '$1:')};`;
+  const handleApplyToApp = () => {
+    setIsApplying(true);
+    setApplyError(null);
+    soundEngine.playClick();
 
-  const copy = async () => {
+    setTimeout(() => {
+      try {
+        saveVerdictVariants(picks);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('verdict-icons-updated', { detail: picks }));
+        }
+        setIsApplying(false);
+        setIsApplied(true);
+        soundEngine.playSuccess();
+        setTimeout(() => setIsApplied(false), 2400);
+      } catch (err) {
+        setIsApplying(false);
+        setApplyError('Failed to save settings');
+        setTimeout(() => setApplyError(null), 3000);
+      }
+    }, 450);
+  };
+
+  const copyConfig = async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(JSON.stringify(picks, null, 2));
       setCopied(true);
+      soundEngine.playClick();
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {}
   };
 
   return (
-    <div className="bg-[#FFFDF8] border-3 border-black rounded-3xl p-4 sm:p-7 text-black shadow-[6px_6px_0px_#000000] space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-3 border-black pb-4">
-        <div>
-          <div className="inline-block px-2.5 py-0.5 bg-[#FDC800] border-2 border-black rounded-lg font-mono font-black text-[10px] uppercase shadow-[2px_2px_0px_#000] mb-1.5">
-            FREEDOM ENGINE // USER PREFERENCE VAULT
+    <div className="bg-[#FFFDF8] border-3 border-black rounded-3xl p-3.5 sm:p-7 text-black shadow-[6px_6px_0px_#000000] space-y-6">
+      
+      {/* Header & Main Primary Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-3 border-black pb-5">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-0.5 bg-[#FDC800] border-2 border-black rounded-lg font-mono font-black text-[10px] uppercase shadow-[2px_2px_0px_#000]">
+              DAILY MOOD THEME ENGINE
+            </span>
+            <span className="px-2 py-0.5 bg-black text-[#00E599] rounded font-mono font-black text-[10px] uppercase">
+              {activePresetId === 'custom' ? 'CUSTOM COMBINATION' : `THEME: ${activePresetId.toUpperCase()}`}
+            </span>
           </div>
-          <h2 className="font-display font-black text-2xl uppercase tracking-tight">
-            Verdict Vector Icons & Notification Setter
+          <h2 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight">
+            Daily Mood Icon Themes
           </h2>
           <p className="text-xs font-mono text-black/70">
-            3 vector variants for each mood tier + 3 interactive Notification Bar designs with keyboard shortcuts.
+            Select one of 3 pre-made settings or freely pick from your 15 vector variants.
           </p>
         </div>
 
-        {/* Keyboard status pill */}
-        <div className="flex items-center gap-2 bg-black text-[#00E599] font-mono text-xs px-3 py-2 rounded-xl border-2 border-black shadow-[2px_2px_0px_#000]">
-          <span className="w-2 h-2 rounded-full bg-[#00E599] animate-pulse" />
-          <span>KEYBOARD: PRESS 1-5</span>
-          {lastKeyPressed && (
-            <span className="bg-[#FF4D4D] text-white px-1.5 py-0.2 rounded font-black text-[10px]">
-              [{lastKeyPressed}★]
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Part 1: Interactive Notification Setter Designs Preview */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-mono font-black uppercase text-black/80 flex items-center gap-1.5">
-            <span>PREVIEW NOTIFICATION SHADE LAYOUT:</span>
-          </span>
-
-          <div className="flex items-center gap-1.5 bg-neutral-200 p-1 rounded-xl border-2 border-black">
-            {[
-              { id: 'tactile', label: '1. Tactile Strip' },
-              { id: 'cyber_dock', label: '2. Cyber Dock' },
-              { id: 'keycap', label: '3. Cherry Keycap' },
-            ].map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => setSelectedDesign(d.id)}
-                className={`px-2.5 py-1 rounded-lg font-mono font-black text-[10px] uppercase cursor-pointer transition-all ${
-                  selectedDesign === d.id
-                    ? 'bg-[#FDC800] text-black border border-black shadow-[1.5px_1.5px_0px_#000]'
-                    : 'text-neutral-700 hover:text-black'
-                }`}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Live Notification Strip */}
-        <NotificationStripPreview
-          design={selectedDesign}
-          selectedRating={activePreviewRating}
-          onSelectRating={handleRatingSelect}
-          variants={picks}
-        />
-      </div>
-
-      {/* Part 2: Vector Icon Freedom Picker */}
-      <div className="space-y-4 pt-2 border-t-2 border-black/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-display font-black text-lg uppercase tracking-tight">
-              Vector Icon Freedom (Choose Your Style)
-            </h3>
-            <p className="text-[11px] font-mono text-black/60">
-              Click any vector icon to set it as your active theme across the app and notification bar.
-            </p>
-          </div>
+        {/* Primary Activation CTA with In-Place Loading/Update Morph */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={copy}
-            className="px-3 py-1.5 bg-[#00E599] border-2 border-black rounded-xl font-mono font-black text-[10px] uppercase shadow-[2px_2px_0px_#000000] cursor-pointer hover:bg-[#00c785] active:translate-x-px active:translate-y-px"
+            onClick={handleApplyToApp}
+            disabled={isApplying}
+            className={`w-full sm:w-auto px-5 py-2.5 border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[3px_3px_0px_#000000] cursor-pointer transition-all flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px ${
+              isApplied
+                ? 'bg-[#00E599] text-black ring-2 ring-black'
+                : applyError
+                ? 'bg-[#FF4D4D] text-white ring-2 ring-black'
+                : 'bg-[#FDC800] hover:bg-[#ffe066] text-black'
+            }`}
           >
-            {copied ? 'COPIED TO CLIPBOARD!' : 'COPY CONFIG'}
+            {isApplying ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin stroke-3" />
+                <span>UPDATING APPLICATION...</span>
+              </>
+            ) : isApplied ? (
+              <>
+                <Check className="w-4 h-4 stroke-3 text-black" />
+                <span>APPLIED TO DAILY PAGE!</span>
+              </>
+            ) : applyError ? (
+              <>
+                <AlertCircle className="w-4 h-4 stroke-3 text-white" />
+                <span>ERROR: RETRY</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 stroke-[2.5]" />
+                <span>ACTIVATE FOR DAILY PAGE</span>
+              </>
+            )}
           </button>
+
+          {/* Quick Helper Tools */}
+          <div className="flex items-center gap-1.5 self-center sm:self-auto">
+            <button
+              type="button"
+              onClick={handleResetDefaults}
+              title="Reset to default variants"
+              className="p-2 bg-white border-2 border-black rounded-xl hover:bg-neutral-100 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px flex items-center gap-1 font-mono text-[10px] font-black uppercase"
+            >
+              <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="hidden md:inline">RESET</span>
+            </button>
+            <button
+              type="button"
+              onClick={copyConfig}
+              title="Copy configuration JSON"
+              className="p-2 bg-white border-2 border-black rounded-xl hover:bg-neutral-100 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px flex items-center gap-1 font-mono text-[10px] font-black uppercase"
+            >
+              <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{copied ? 'COPIED' : 'COPY'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Part 1: 3 Curated Preset Theme Cards */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="font-mono font-black text-xs uppercase text-neutral-800 tracking-wider">
+            3 PRE-MADE THEME SETTINGS (1-TAP SELECT):
+          </span>
+          <span className="font-mono text-[10px] text-neutral-500 font-bold uppercase hidden sm:inline">
+            CLICK TO LOAD COMPLETE SET
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {MOOD_ICON_PRESETS.map((preset) => {
+            const isSelected = activePresetId === preset.id;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleSelectPreset(preset)}
+                className={`p-3.5 rounded-2xl border-2 border-black text-left cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                  isSelected
+                    ? 'bg-[#FFFDF5] shadow-[4px_4px_0px_#000000] ring-2 ring-black -translate-y-0.5'
+                    : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-display font-black text-xs uppercase tracking-tight">
+                      {preset.title}
+                    </span>
+                    <span
+                      className={`font-mono text-[9px] font-black px-1.5 py-0.5 rounded border border-black ${
+                        isSelected ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-700'
+                      }`}
+                    >
+                      {isSelected ? 'SELECTED' : preset.tag}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-600 line-clamp-2">
+                    {preset.desc}
+                  </p>
+                </div>
+
+                {/* 5 Icons Row Preview */}
+                <div className="flex items-center justify-between gap-1 pt-2 border-t border-black/10">
+                  {[1, 2, 3, 4, 5].map((tier) => {
+                    const variantKey = preset.variants[tier];
+                    const IconComponent = VERDICT_ICONS[tier][variantKey];
+                    const meta = TIER_META[tier];
+                    return (
+                      <div
+                        key={tier}
+                        className="w-7 h-7 rounded-lg border border-black flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: meta.color }}
+                        title={`${tier}★ ${meta.name}: ${VARIANT_LABELS[variantKey]}`}
+                      >
+                        <IconComponent size={16} className="text-black stroke-[2.2]" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Part 2: 5-Tier Freedom Customization Grid (Original Handcrafted SVG Gallery) */}
+      <div className="space-y-4 pt-4 border-t-2 border-black/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div>
+            <h3 className="font-display font-black text-base sm:text-lg uppercase tracking-tight">
+              Individual Tier Customizer (Freedom Mode)
+            </h3>
+            <p className="text-[11px] font-mono text-black/60">
+              Click any vector icon variant below to customize that tier. Then tap Activate to apply to your daily page.
+            </p>
+          </div>
+          {activePresetId === 'custom' && (
+            <span className="font-mono text-[10px] bg-[#FDC800] border border-black px-2 py-0.5 rounded font-black self-start sm:self-auto">
+              CUSTOM MIX ACTIVE
+            </span>
+          )}
         </div>
 
         {/* 5 Tiers Grid */}
         {[1, 2, 3, 4, 5].map((r) => {
           const meta = TIER_META[r];
           return (
-            <div key={r} className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000]">
+            <div key={r} className="p-3 sm:p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000]">
               <div className="flex items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <span
-                    className="w-3.5 h-3.5 rounded-full border border-black"
+                    className="w-3.5 h-3.5 rounded-full border border-black shrink-0"
                     style={{ backgroundColor: meta.color }}
                   />
                   <span className="font-mono font-black text-xs uppercase text-black">
                     {r}★ {meta.name}
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-neutral-500 font-bold uppercase">
+                <span className="font-mono text-[10px] text-neutral-600 font-black uppercase">
                   ACTIVE: {VARIANT_LABELS[picks[r]]}
                 </span>
               </div>
@@ -593,19 +567,19 @@ export default function VerdictIconGallery({ onSelectCustomVariant }) {
                       type="button"
                       onClick={() => handlePickVariant(r, v)}
                       aria-pressed={active}
-                      className={`p-2.5 sm:p-3 rounded-xl border-2 border-black flex flex-col items-center gap-2 cursor-pointer transition-all ${
+                      className={`p-2 sm:p-3 rounded-xl border-2 border-black flex flex-col items-center gap-1.5 sm:gap-2 cursor-pointer transition-all ${
                         active
                           ? 'bg-[#FFFDF5] shadow-[4px_4px_0px_#000000] -translate-y-0.5 ring-2 ring-black'
                           : 'bg-neutral-50 hover:bg-white shadow-[2px_2px_0px_#000000]'
                       }`}
                     >
                       <div
-                        className="w-full aspect-square max-w-[76px] rounded-lg border-2 border-black flex items-center justify-center transition-all"
+                        className="w-full aspect-square max-w-[56px] sm:max-w-[70px] rounded-lg border-2 border-black flex items-center justify-center transition-all"
                         style={{ backgroundColor: meta.color }}
                       >
-                        <Icon size={44} className="text-black stroke-[2]" />
+                        <Icon size={32} className="text-black stroke-[2]" />
                       </div>
-                      <span className="font-mono font-black text-[10px] uppercase text-center truncate max-w-full">
+                      <span className="font-mono font-black text-[9px] sm:text-[10px] uppercase text-center truncate max-w-full">
                         {VARIANT_LABELS[v]}
                       </span>
                     </button>
@@ -616,6 +590,7 @@ export default function VerdictIconGallery({ onSelectCustomVariant }) {
           );
         })}
       </div>
+
     </div>
   );
 }

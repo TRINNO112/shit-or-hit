@@ -110,6 +110,7 @@ import PrivacyPolicyModal from './PrivacyPolicyModal';
 import RehabilitationModal from './RehabilitationModal';
 import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../services/p2pSyncEngine';
 import VerdictIconGallery from './VerdictIconGallery';
+import NotificationSetterCard from './NotificationSetterCard';
 
 export default function SettingsModal({
   isOpen,
@@ -133,6 +134,7 @@ export default function SettingsModal({
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(false);
   const [isDirectivesModalOpen, setIsDirectivesModalOpen] = useState(false);
   const [isVerdictGalleryOpen, setIsVerdictGalleryOpen] = useState(false);
+  const [isNotificationSetterOpen, setIsNotificationSetterOpen] = useState(false);
   const [aiLanguage, setAiLanguage] = useState('auto');
 
   // Behavioral Trilogy Preferences (Off by Default)
@@ -523,8 +525,9 @@ export default function SettingsModal({
             </div>
 
             {/* Scrollable Settings Body */}
-            <div className="space-y-3.5 overflow-y-auto overflow-x-hidden flex-1 pr-1">              {/* 1. Notifications & Reminder Time */}
-              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
+            <div className="space-y-3.5 overflow-y-auto overflow-x-hidden flex-1 pr-1">
+              {/* 1. Master Daily Notification & Lockscreen Star Center */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                     <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
@@ -535,11 +538,18 @@ export default function SettingsModal({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-display font-black text-sm uppercase text-black">
-                        Daily Streak Reminder
+                      <h4 className="font-display font-black text-sm uppercase text-black flex items-center gap-2">
+                        <span>Daily Notifications & Star Setter</span>
+                        <span className={`font-mono text-[9px] px-1.5 py-0.5 rounded font-black ${
+                          notificationsOn ? 'bg-black text-[#00E599]' : 'bg-neutral-200 text-neutral-700'
+                        }`}>
+                          {notificationsOn ? 'ACTIVE' : 'MUTED'}
+                        </span>
                       </h4>
                       <p className="text-[11px] font-mono text-neutral-600 leading-snug">
-                        Evening alert if today's log is empty
+                        {notificationsOn 
+                          ? 'Active: Receive daily streak alerts and quick-log mood directly from notification shade'
+                          : 'Turn ON to receive daily reminders and log mood without opening the web app'}
                       </p>
                     </div>
                   </div>
@@ -547,54 +557,75 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handleToggleNotifications}
-                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${notificationsOn
-                        ? 'bg-[#00E599] text-black'
-                        : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                      }`}
+                    className={`w-full sm:w-auto px-5 py-2.5 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:scale-95 shrink-0 text-center ${
+                      notificationsOn
+                        ? 'bg-[#00E599] text-black ring-2 ring-black'
+                        : 'bg-[#FDC800] hover:bg-[#ffe066] text-black'
+                    }`}
                   >
-                    {notificationsOn ? 'ACTIVE (ON)' : 'MUTED (OFF)'}
+                    {notificationsOn ? 'TURN OFF / MUTE' : 'ACTIVATE NOTIFICATIONS'}
                   </button>
                 </div>
 
-                {/* ⏰ Radial Clock Trigger & Time Display */}
-                <div className="pt-2 border-t border-black/10 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-neutral-700 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                      <span>REMINDER TIME</span>
-                    </span>
+                {/* When notifications are ACTIVE: Show Time Settings and Star Setter Preview */}
+                {notificationsOn ? (
+                  <div className="pt-3 border-t-2 border-black/10 space-y-4">
+                    {/* Reminder Time Dial */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-neutral-700 flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                          <span>DAILY REMINDER TIME</span>
+                        </span>
 
-                    <button
-                      type="button"
-                      onClick={() => setIsClockPickerOpen(true)}
-                      className="px-3 py-1.5 bg-[#FFFDF0] hover:bg-[#FDC800] border-2 border-black rounded-xl font-display font-black text-sm text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all shrink-0"
-                      title="Open Interactive Clock Dial"
-                    >
-                      <span>{formatDisplayTime(reminderTimeVal)}</span>
-                      <span className="text-[10px] font-mono bg-black text-[#FDC800] px-1 rounded">DIAL</span>
-                    </button>
-                  </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsClockPickerOpen(true)}
+                          className="px-3 py-1.5 bg-[#FFFDF0] hover:bg-[#FDC800] border-2 border-black rounded-xl font-display font-black text-sm text-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all shrink-0"
+                          title="Open Interactive Clock Dial"
+                        >
+                          <span>{formatDisplayTime(reminderTimeVal)}</span>
+                          <span className="text-[10px] font-mono bg-black text-[#FDC800] px-1 rounded">DIAL</span>
+                        </button>
+                      </div>
 
-                  {/* Quick-Pick Time Chips */}
-                  <div className="grid grid-cols-4 gap-1.5 pt-1">
-                    {timePresets.map((preset) => (
-                      <button
-                        key={preset.value}
-                        type="button"
-                        onClick={() => handleTimeChange(preset.value)}
-                        className={`py-1 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${reminderTimeVal === preset.value
-                            ? 'bg-[#FDC800] text-black shadow-[1.5px_1.5px_0px_#000000] border-2 border-black'
-                            : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600'
-                          }`}
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
+                      {/* Quick-Pick Time Chips */}
+                      <div className="grid grid-cols-4 gap-1.5 pt-1">
+                        {timePresets.map((preset) => (
+                          <button
+                            key={preset.value}
+                            type="button"
+                            onClick={() => handleTimeChange(preset.value)}
+                            className={`py-1 rounded-xl border border-black font-mono text-[10px] font-black cursor-pointer transition-all ${
+                              reminderTimeVal === preset.value
+                                ? 'bg-[#FDC800] text-black shadow-[1.5px_1.5px_0px_#000000] border-2 border-black'
+                                : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Integrated Notification Star Setter & Simulator */}
+                    <div className="pt-2">
+                      <NotificationSetterCard />
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-3 bg-neutral-50 border border-black/20 rounded-xl text-center space-y-1">
+                    <p className="font-mono text-xs font-bold text-neutral-700">
+                      Notifications are currently MUTED.
+                    </p>
+                    <p className="font-mono text-[11px] text-neutral-500">
+                      Tap the "ACTIVATE NOTIFICATIONS" button above to enable daily streak alerts and background lockscreen star logging.
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* 1b. Verdict Icons & 1-Tap Notification Bar Setter */}
+              {/* 2. Daily Mood Icon Themes (In-App Theme Engine) */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
@@ -603,11 +634,11 @@ export default function SettingsModal({
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="font-display font-black text-sm uppercase text-black flex items-center gap-2">
-                        <span>Verdict Icons & Notification Bar</span>
-                        <span className="font-mono text-[9px] bg-black text-[#00E599] px-1.5 py-0.5 rounded font-black">NEW</span>
+                        <span>Daily Mood Icon Themes</span>
+                        <span className="font-mono text-[9px] bg-black text-[#00E599] px-1.5 py-0.5 rounded font-black">IN-APP THEME</span>
                       </h4>
                       <p className="text-[11px] font-mono text-neutral-600 leading-snug">
-                        Customize 1-tap notification bar designs & vector icon variants
+                        3 pre-made settings or freely customize the 5 SVG vector buttons on your daily page
                       </p>
                     </div>
                   </div>
@@ -617,7 +648,7 @@ export default function SettingsModal({
                     onClick={() => setIsVerdictGalleryOpen(!isVerdictGalleryOpen)}
                     className="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center bg-[#FDC800] hover:bg-[#ffe066] text-black"
                   >
-                    {isVerdictGalleryOpen ? 'HIDE SETTER' : 'OPEN SETTER'}
+                    {isVerdictGalleryOpen ? 'HIDE THEMES' : 'CUSTOMIZE THEMES'}
                   </button>
                 </div>
 

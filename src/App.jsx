@@ -858,6 +858,33 @@ export default function App() {
     }
   }, []);
 
+  // ⚡ URL Query Parameter 1-Tap Notification Quick-Rate Receiver
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qRate = params.get('quickRate') || params.get('rate');
+      if (qRate) {
+        const ratingNum = parseInt(qRate, 10);
+        if (ratingNum >= 1 && ratingNum <= 5) {
+          const today = new Date().toISOString().slice(0, 10);
+          console.log(`⚡ [URL Quick Rate] Recording rating ${ratingNum}★ for ${today}`);
+          handleSaveEntry({ date: today, rating: ratingNum });
+          try {
+            soundEngine.playSuccess();
+          } catch (e) {}
+          // Clean URL so refresh doesn't re-trigger
+          const url = new URL(window.location.href);
+          url.searchParams.delete('quickRate');
+          url.searchParams.delete('rate');
+          window.history.replaceState({}, '', url.toString());
+        }
+      }
+    } catch (e) {
+      console.warn('URL quick rate parse error:', e);
+    }
+  }, []);
+
   const handleOpenMonthlyReport = (target) => {
     startTransition(() => {
       if (target) {

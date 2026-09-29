@@ -175,48 +175,56 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
+  const baseUrl = (event.notification.data && event.notification.data.url) || self.registration.scope || '/';
+
   // 1-Tap Quick Rating Action from Lockscreen / Notification Shade
   if (event.action && event.action.startsWith('rate-')) {
     const rating = parseInt(event.action.replace('rate-', ''), 10);
     const tierMap = { 1: 'Rough', 2: 'Down', 3: 'Okay', 4: 'Good', 5: 'Peak' };
     const tierName = tierMap[rating] || 'Verdict';
     const todayStr = new Date().toISOString().slice(0, 10);
+    const rateUrl = new URL(`/?quickRate=${rating}`, baseUrl).href;
 
     event.waitUntil(
-      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-        // Broadcast rating directly to open tabs
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clientList) => {
+        // Broadcast rating directly to open tabs and focus them
         for (const client of clientList) {
           client.postMessage({
             type: 'REMOTE_NOTIFICATION_RATING',
             dateStr: todayStr,
             rating: rating
           });
+          if ('navigate' in client) {
+            client.navigate(rateUrl).catch(() => {});
+          }
+          if ('focus' in client) {
+            return client.focus();
+          }
         }
 
-        // Show instant confirmation toast on notification shade
-        return self.registration.showNotification(`⚡ Locked ${rating}★ ${tierName}!`, {
-          body: `Day recorded for ${todayStr}. Zero app opening required!`,
-          icon: './icon.svg',
-          badge: './icon.svg',
-          tag: 'verdict-confirmation',
-          renotify: false,
-          vibrate: [100, 50, 100]
-        });
+        // If no window is open, launch window with quickRate
+        if (clients.openWindow) {
+          return clients.openWindow(rateUrl);
+        }
       })
     );
     return;
   }
 
-  // Standard notification click: Focus active app window or open it
+  // Standard notification click: Focus active app window or open website URL
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
         if ('focus' in client) {
+          client.postMessage({ type: 'NOTIFICATION_OPEN_URL', url: baseUrl });
+          if ('navigate' in client && client.url !== baseUrl) {
+            client.navigate(baseUrl).catch(() => {});
+          }
           return client.focus();
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow('./');
+        return clients.openWindow(baseUrl);
       }
     })
   );

@@ -75,6 +75,7 @@ import NonNegotiableCard, { isNonNegotiablesActive, getNonNegotiablesMode } from
 import { soundEngine } from '../services/soundEngine';
 import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
 import { AutopsyBadge } from './AutopsyBadge';
+import { VerdictIcon } from './VerdictIconGallery';
 
 const RansomCapsuleModal = lazy(() => import('./RansomCapsuleModal'));
 const AutopsyChamberModal = lazy(() => import('./AutopsyChamberModal'));
@@ -126,6 +127,13 @@ export default function TodayHero({
   const [syncedBadge, setSyncedBadge] = useState(false);
   const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'fallback' | 'error'
   const [sadSettle, setSadSettle] = useState(false);
+  const [verdictIconsVer, setVerdictIconsVer] = useState(0);
+
+  useEffect(() => {
+    const handleIconsUpdated = () => setVerdictIconsVer(v => v + 1);
+    window.addEventListener('verdict-icons-updated', handleIconsUpdated);
+    return () => window.removeEventListener('verdict-icons-updated', handleIconsUpdated);
+  }, []);
 
   // Behavioral Trilogy Modal States
   const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(false);
@@ -1362,7 +1370,11 @@ export default function TodayHero({
                       className="w-7 h-7 sm:w-10 sm:h-10 3xl:w-12 3xl:h-12 4k:w-14 4k:h-14 rounded-lg sm:rounded-xl border-2 border-black flex items-center justify-center mb-1 sm:mb-1.5 3xl:mb-2 shadow-[1.5px_1.5px_0px_#000000]"
                       style={{ backgroundColor: m.bg }}
                     >
-                      <SvgIcon className="w-4 h-4 sm:w-5 sm:h-5 3xl:w-6 3xl:h-6 4k:w-7 4k:h-7 text-black stroke-[2.5]" />
+                      <VerdictIcon
+                        key={`hero-verdict-icon-${val}-${verdictIconsVer}`}
+                        rating={val}
+                        className="w-4 h-4 sm:w-5 sm:h-5 3xl:w-6 3xl:h-6 4k:w-7 4k:h-7 text-black stroke-[2.5]"
+                      />
                     </div>
 
                     <span className="font-display font-black text-[10px] sm:text-xs 3xl:text-sm 4k:text-base uppercase tracking-tight leading-none truncate max-w-full">
@@ -1572,9 +1584,11 @@ export default function TodayHero({
             className="inline-flex items-center gap-2.5 px-4 3xl:px-5 py-2 3xl:py-2.5 rounded-xl border-2 border-black text-xs 3xl:text-sm font-mono font-bold text-black shadow-[3px_3px_0px_#000000]"
             style={{ backgroundColor: ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.bg }}
           >
-            {React.createElement(IconMap[ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.icon] || Sparkles, {
-              className: "w-4 h-4 text-black stroke-3 shrink-0"
-            })}
+            <VerdictIcon
+              key={`hero-verdict-pill-${verdictIconsVer}`}
+              rating={sphereModeActive && compositeStats ? compositeStats.rating : selectedRating}
+              className="w-4 h-4 text-black stroke-3 shrink-0"
+            />
 
             <span>
               VERDICT: <strong className="uppercase">{ratingMeta[sphereModeActive && compositeStats ? compositeStats.rating : selectedRating]?.title}</strong>
