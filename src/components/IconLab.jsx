@@ -214,6 +214,7 @@ import AestheticCardExportModal from './AestheticCardExportModal';
 import AestheticCardVariantDeepseek from './AestheticCardVariantDeepseek';
 import YearInPixelsWallpaperEngine from './YearInPixelsWallpaperEngine';
 import MoodReactionBanner from './MoodReactionBanner';
+import SkeletonLoader from './SkeletonLoader';
 
 export default function IconLab({ onBack, defaultTab, entries = {} }) {
   const [activeLabTab, setActiveLabTab] = useState(() => {
@@ -221,6 +222,9 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
     if (typeof window !== 'undefined') {
       const search = window.location.search || '';
       const hash = window.location.hash || '';
+      if (search.includes('view=skeleton') || hash.includes('skeleton') || search.includes('tab=skeleton')) {
+        return 'skeleton';
+      }
       if (search.includes('view=wallpaper') || hash.includes('wallpaper') || search.includes('view=pixels')) {
         return 'year_pixels';
       }
@@ -236,6 +240,7 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
     }
     return 'year_pixels';
   });
+  const [skeletonMode, setSkeletonMode] = useState('desktop');
   const [selectedStudioDesign, setSelectedStudioDesign] = useState('darkroom'); // 'darkroom' | 'deepseek'
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState('shield_volt');
@@ -336,6 +341,18 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
               <Layers className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>POSTER ARENA</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveLabTab('skeleton')}
+              className={`px-3 py-1.5 rounded-xl font-display font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1.5 ${
+                activeLabTab === 'skeleton'
+                  ? 'bg-neutral-900 text-white border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
+                  : 'text-neutral-700 hover:text-black border-2 border-transparent'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>SKELETON PREVIEW</span>
+            </button>
           </div>
         </div>
 
@@ -403,6 +420,54 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
         {activeLabTab === 'year_pixels' && (
           <div className="space-y-6">
             <YearInPixelsWallpaperEngine userEntries={entries} />
+          </div>
+        )}
+
+        {/* TAB: SKELETON LOADING PREVIEW ARENA */}
+        {activeLabTab === 'skeleton' && (
+          <div className="space-y-6">
+            <div className="bg-white border-3 border-black rounded-3xl p-5 sm:p-6 shadow-[6px_6px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-display font-black text-xl uppercase tracking-tight text-black flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600 stroke-[2.5]" />
+                  <span>Neobrutalist Skeleton Loading Architecture</span>
+                </h3>
+                <p className="text-xs font-mono text-neutral-600 mt-1">
+                  Zero-layout-shift static panel containers with linear shimmer bone placeholders.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSkeletonMode('desktop')}
+                  className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-black uppercase border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] transition-all ${
+                    skeletonMode === 'desktop' ? 'bg-[#FDC800] text-black shadow-none translate-x-px translate-y-px' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                  }`}
+                >
+                  Desktop View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSkeletonMode('mobile')}
+                  className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-black uppercase border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] transition-all ${
+                    skeletonMode === 'mobile' ? 'bg-[#00E599] text-black shadow-none translate-x-px translate-y-px' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                  }`}
+                >
+                  Mobile View
+                </button>
+              </div>
+            </div>
+
+            {/* Live Skeleton Render Frame */}
+            <div className="border-3 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_#000000] bg-[#FFFDF5]">
+              {skeletonMode === 'mobile' ? (
+                <div className="max-w-md mx-auto border-x-3 border-black min-h-[640px] shadow-2xl">
+                  <SkeletonLoader isMobile={true} delayMs={0} />
+                </div>
+              ) : (
+                <SkeletonLoader isMobile={false} delayMs={0} />
+              )}
+            </div>
           </div>
         )}
 

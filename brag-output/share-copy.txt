@@ -1,0 +1,13 @@
+Most habit apps coddle you with pretty gamified rings and fake dopamine.
+
+I built SHIT OR HIT: a private, air-gapped Neobrutalist daily verdict engine.
+
+• 1-tap brutal verdicts (1★ to 5★)
+• CIA forensic autopsy chambers for rough days
+• Wax-sealed ransom time capsules to future self
+• 100% on-device local storage + P2P QR mesh sync
+• 365-day Retina & 4K Year-in-Pixels wallpaper generator
+
+No subscription. No tracking. Pure accountability.
+
+Stop negotiating with yourself. ⚡
