@@ -758,7 +758,7 @@ export default function P2PDeviceSyncModal({
                         </h4>
                         <div className="flex items-center gap-2 pt-0.5">
                           <div className="w-5 h-5 rounded bg-[#00E599] border border-black flex items-center justify-center shrink-0">
-                            <Check className="w-3 h-3 text-black stroke-[3]" />
+                            <Check className="w-3 h-3 text-black stroke-3" />
                           </div>
                           <span className="text-xs text-black font-black uppercase underline truncate">
                             {user.email}

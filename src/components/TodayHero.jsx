@@ -1351,7 +1351,7 @@ export default function TodayHero({
                     } : {}}
                     transition={{ type: 'spring', stiffness: 450, damping: 16 }}
                     onClick={(e) => handleRate(val, e)}
-                    className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 3xl:p-4 4k:p-5 relative min-h-[82px] 3xl:min-h-[110px] 4k:min-h-[130px] ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
+                    className={`neo-btn flex flex-col items-center justify-center p-1.5 sm:p-3 3xl:p-4 4k:p-5 relative min-h-20.5 3xl:min-h-27.5 4k:min-h-32.5 ${isDeterministicTaskLocked ? 'cursor-not-allowed opacity-85' : 'cursor-pointer'}`}
                     style={{
                       backgroundColor: isSelected ? m.bg : '#FFFFFF'
                     }}

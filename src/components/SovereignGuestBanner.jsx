@@ -72,7 +72,7 @@ export default function SovereignGuestBanner({
             type="button"
             onClick={onDismiss}
             aria-label="Dismiss sovereign vault banner"
-            className="self-end sm:self-auto p-1.5 border-2 border-black bg-white hover:bg-neutral-100 shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-transform cursor-pointer"
+            className="self-end sm:self-auto p-1.5 border-2 border-black bg-white hover:bg-neutral-100 shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-transform cursor-pointer"
           >
             <X className="w-4 h-4 text-black stroke-2" />
           </button>
@@ -148,7 +148,9 @@ export default function SovereignGuestBanner({
           type="button"
           onClick={handlePersistStorage}
           disabled={isPersisted || persisting}
-          className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-4 py-2.5 bg-[#00E599] hover:bg-[#00cc88] disabled:bg-neutral-200 border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-transform"
+          className={`w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-4 py-2.5 border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-transform ${
+            isPersisted || persisting ? 'bg-neutral-200' : 'bg-[#00E599] hover:bg-[#00cc88]'
+          }`}
         >
           {isPersisted ? (
             <>
@@ -169,7 +171,7 @@ export default function SovereignGuestBanner({
             <button
               type="button"
               onClick={onOpenP2PSync}
-              className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-3.5 py-2.5 bg-white hover:bg-neutral-100 border-2 border-black shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-3.5 py-2.5 bg-white hover:bg-neutral-100 border-2 border-black shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer flex items-center justify-center gap-2"
             >
               <Radio className="w-3.5 h-3.5 text-black" />
               <span>P2P SYNC</span>
@@ -180,7 +182,7 @@ export default function SovereignGuestBanner({
             <button
               type="button"
               onClick={onExportData}
-              className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-3.5 py-2.5 bg-[#FDC800] hover:bg-[#e0b200] border-2 border-black shadow-2px_2px_0px_#000000 active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-3.5 py-2.5 bg-[#FDC800] hover:bg-[#e0b200] border-2 border-black shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer flex items-center justify-center gap-2"
             >
               <HardDriveDownload className="w-3.5 h-3.5 text-black" />
               <span>EXPORT JSON</span>

@@ -460,7 +460,7 @@ export default function NotificationSetterCard() {
                       value={inlineInputVal}
                       onChange={(e) => setInlineInputVal(e.target.value)}
                       placeholder="Type 1, 2, 3, 4, or 5 & Enter..."
-                      className="flex-1 bg-black/60 border-2 border-white/30 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#FDC800]"
+                      className="flex-1 bg-black/60 border-2 border-white/30 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FDC800]"
                       maxLength={1}
                     />
                     <button

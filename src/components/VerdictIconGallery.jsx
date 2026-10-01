@@ -574,10 +574,10 @@ export default function VerdictIconGallery({ onSelectCustomVariant }) {
                       }`}
                     >
                       <div
-                        className="w-full aspect-square max-w-[56px] sm:max-w-[70px] rounded-lg border-2 border-black flex items-center justify-center transition-all"
+                        className="w-full aspect-square max-w-14 sm:max-w-17.5 rounded-lg border-2 border-black flex items-center justify-center transition-all"
                         style={{ backgroundColor: meta.color }}
                       >
-                        <Icon size={32} className="text-black stroke-[2]" />
+                        <Icon size={32} className="text-black stroke-2" />
                       </div>
                       <span className="font-mono font-black text-[9px] sm:text-[10px] uppercase text-center truncate max-w-full">
                         {VARIANT_LABELS[v]}

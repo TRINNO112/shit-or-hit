@@ -530,7 +530,7 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
             {/* Live Skeleton Render Frame */}
             <div className="border-3 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_#000000] bg-[#FFFDF5]">
               {skeletonMode === 'mobile' ? (
-                <div className="max-w-md mx-auto border-x-3 border-black min-h-[640px] shadow-2xl">
+                <div className="max-w-md mx-auto border-x-3 border-black min-h-160 shadow-2xl">
                   <SkeletonLoader isMobile={true} delayMs={0} />
                 </div>
               ) : (

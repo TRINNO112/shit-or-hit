@@ -539,7 +539,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                         >
                           {/* Chain Title & Friction Tag */}
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-                            <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black break-words leading-snug">
+                            <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black wrap-break-word leading-snug">
                               {chain.title || chain.chainTitle}
                             </h5>
                             {(chain.frictionPattern || chain.rootTrigger) && (
@@ -564,7 +564,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                               return (
                                 <React.Fragment key={nIdx}>
-                                  <div className="w-full min-w-0 md:min-w-[210px] md:max-w-[320px] md:flex-1 p-3 rounded-lg border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5">
+                                  <div className="w-full min-w-0 md:min-w-52.5 md:max-w-[320px] md:flex-1 p-3 rounded-lg border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5">
                                     <div className="flex items-center justify-between gap-1">
                                       <span className={`text-[8px] font-mono font-black px-1.5 py-0.5 rounded border border-black/30 uppercase ${badgeClass}`}>
                                         {node.stage || `STAGE ${nIdx + 1}`}
@@ -582,7 +582,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                         )}
                                       </div>
                                     </div>
-                                    <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-snug break-words">
+                                    <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-snug wrap-break-word">
                                       {node.summary}
                                     </p>
                                     {node.frictionTag && (
@@ -593,8 +593,8 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                   </div>
                                   {!isLast && (
                                     <div className="flex items-center justify-center py-1 md:py-0 md:px-0.5 shrink-0 self-center">
-                                      <ArrowRight className="hidden md:block w-4 h-4 text-black stroke-[3]" />
-                                      <ArrowDown className="block md:hidden w-4 h-4 text-black stroke-[3]" />
+                                      <ArrowRight className="hidden md:block w-4 h-4 text-black stroke-3" />
+                                      <ArrowDown className="block md:hidden w-4 h-4 text-black stroke-3" />
                                     </div>
                                   )}
                                 </React.Fragment>
@@ -612,7 +612,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                 <span className="block text-[9px] font-mono font-black uppercase text-[#007038] tracking-wider leading-tight">
                                   TACTICAL CIRCUIT BREAKER • HOW TO SEVER THIS CHAIN
                                 </span>
-                                <p className="text-xs sm:text-sm font-mono font-bold text-neutral-900 leading-relaxed break-words mt-0.5">
+                                <p className="text-xs sm:text-sm font-mono font-bold text-neutral-900 leading-relaxed wrap-break-word mt-0.5">
                                   {chain.circuitBreaker}
                                 </p>
                               </div>

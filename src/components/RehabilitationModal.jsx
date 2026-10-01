@@ -210,14 +210,14 @@ export default function RehabilitationModal({ isOpen, onClose, onStateChange }) 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 <button
                   onClick={handleActivate7Days}
-                  className="py-3 px-3 bg-[#A8E6CF] hover:bg-[#88D49E] text-black font-black uppercase text-xs border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-[1.5px_1.5px_0px_#000000] transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center"
+                  className="py-3 px-3 bg-[#A8E6CF] hover:bg-[#88D49E] text-black font-black uppercase text-xs border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center"
                 >
                   <Shield className="w-4 h-4 stroke-[2.5]" />
                   <span>7-DAY SANCTUARY</span>
                 </button>
                 <button
                   onClick={handleActivateSabbatical}
-                  className="py-3 px-3 bg-[#FFB800] hover:bg-amber-400 text-black font-black uppercase text-xs border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-[1.5px_1.5px_0px_#000000] transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center"
+                  className="py-3 px-3 bg-[#FFB800] hover:bg-amber-400 text-black font-black uppercase text-xs border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center"
                 >
                   <Compass className="w-4 h-4 stroke-[2.5]" />
                   <span>GRAND SABBATICAL</span>

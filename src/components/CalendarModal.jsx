@@ -127,28 +127,28 @@ export default function CalendarModal({
                   <select
                     value={month - 1}
                     onChange={(e) => setCurrentDate(new Date(year, parseInt(e.target.value, 10), 1))}
-                    className="appearance-none bg-[#FFFDF5] hover:bg-[#FDC800] border-2 border-black rounded-lg pl-2 pr-6 py-0.5 font-mono font-black text-[11px] uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all outline-none"
+                    className="appearance-none bg-[#FFFDF5] hover:bg-[#FDC800] border-2 border-black rounded-lg pl-2 pr-6 py-0.5 font-mono font-black text-[11px] uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all outline-none"
                     title="Jump to month"
                   >
                     {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, idx) => (
                       <option key={m} value={idx} className="bg-white text-black font-mono font-bold">{m}</option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3.5 h-3.5 text-black stroke-[3] pointer-events-none absolute right-1.5" />
+                  <ChevronDown className="w-3.5 h-3.5 text-black stroke-3 pointer-events-none absolute right-1.5" />
                 </div>
 
                 <div className="relative inline-flex items-center">
                   <select
                     value={year}
                     onChange={(e) => setCurrentDate(new Date(parseInt(e.target.value, 10), month - 1, 1))}
-                    className="appearance-none bg-[#FFFDF5] hover:bg-[#FDC800] border-2 border-black rounded-lg pl-2 pr-6 py-0.5 font-mono font-black text-[11px] uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all outline-none"
+                    className="appearance-none bg-[#FFFDF5] hover:bg-[#FDC800] border-2 border-black rounded-lg pl-2 pr-6 py-0.5 font-mono font-black text-[11px] uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all outline-none"
                     title="Jump to year"
                   >
                     {[year - 2, year - 1, year, year + 1].map((y) => (
                       <option key={y} value={y} className="bg-white text-black font-mono font-bold">{y}</option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3.5 h-3.5 text-black stroke-[3] pointer-events-none absolute right-1.5" />
+                  <ChevronDown className="w-3.5 h-3.5 text-black stroke-3 pointer-events-none absolute right-1.5" />
                 </div>
               </div>
             </div>
