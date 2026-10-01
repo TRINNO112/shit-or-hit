@@ -51,7 +51,9 @@ import {
   Copy,
   FolderSync,
   RefreshCw,
-  LogIn
+  LogIn,
+  ExternalLink,
+  Send
 } from 'lucide-react';
 import {
   getStorageStatus,
@@ -66,7 +68,8 @@ import {
   disableNotifications,
   getReminderTime,
   setReminderTime,
-  showInstantReminderNotification
+  showInstantReminderNotification,
+  getNotificationBannerMode
 } from '../services/notifications';
 import { soundEngine } from '../services/soundEngine';
 import { VaultPinSettings, isVaultPinActive } from './VaultPinModal';
@@ -118,6 +121,7 @@ export default function SettingsModal({
   user,
   onSettingsChanged,
   onOpenSanctuaryPage,
+  onOpenNotificationStudio,
   onOpenPrivacyPage,
   onOpenErasurePage,
   onOpenStoragePage,
@@ -608,9 +612,56 @@ export default function SettingsModal({
                       </div>
                     </div>
 
-                    {/* Integrated Notification Star Setter & Simulator */}
-                    <div className="pt-2">
-                      <NotificationSetterCard />
+                    {/* Dedicated Notification Studio & Preview Lab Entrance */}
+                    <div className="pt-3 border-t-2 border-black/15 space-y-2.5">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="font-mono text-xs font-black uppercase text-neutral-800 flex items-center gap-1.5">
+                          <Sliders className="w-3.5 h-3.5 text-black" />
+                          <span>NOTIFICATION ACTION MODE &amp; PREVIEW LAB</span>
+                        </span>
+                        <span className="font-mono text-[10px] bg-black text-[#00E599] px-2 py-0.5 rounded font-black">
+                          {getNotificationBannerMode() === 'inline' ? 'INLINE STAR & NOTE (DEFAULT)' : '2-BUTTON POLAR'}
+                        </span>
+                      </div>
+
+                      <p className="font-mono text-xs text-neutral-600 leading-snug">
+                        Preview Windows 11 Action Center &amp; Android shade simulations, test all 5 behavioral engines, and send live test notifications.
+                      </p>
+
+                      <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onOpenNotificationStudio) {
+                              onOpenNotificationStudio();
+                            } else {
+                              window.location.search = '?view=notifications';
+                            }
+                          }}
+                          className="w-full sm:flex-1 py-3 px-4 bg-[#FDC800] hover:bg-[#ffe066] border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[3px_3px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px transition-all text-black"
+                        >
+                          <Sliders className="w-4 h-4 stroke-[2.5]" />
+                          <span>OPEN NOTIFICATION STUDIO &amp; PREVIEW LAB</span>
+                          <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            soundEngine.playClick();
+                            const ok = await showInstantReminderNotification();
+                            if (ok) {
+                              setNotificationMsg('TEST NOTIFICATION SENT TO SYSTEM TRAY!');
+                              soundEngine.playSuccess();
+                              setTimeout(() => setNotificationMsg(''), 4000);
+                            }
+                          }}
+                          className="w-full sm:w-auto py-3 px-4 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 active:translate-x-px active:translate-y-px transition-all text-black"
+                        >
+                          <Send className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>SEND TEST</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (

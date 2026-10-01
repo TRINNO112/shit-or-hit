@@ -122,6 +122,7 @@ export default function MobileAppView({
   onOpenWallpaper,
   onOpenTelemetry,
   onOpenSettings,
+  onOpenNotificationStudio,
   onOpenStickerVault,
   sphereSettingsVer = 0,
   onOpenExportStudio,

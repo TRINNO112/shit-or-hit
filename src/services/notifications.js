@@ -1,18 +1,83 @@
-// Smart Brotherly Notification & Reminder Engine (Zero-PII)
+// Smart Brotherly Notification & Reminder Engine (Zero-PII, Zero-Emoji)
 
 const HINGLISH_REMINDERS = [
-  "🤦‍♂️ Bhai yaar rating nahi dali na tune? Kar le na shanti se, kya timepass kar raha hai!",
-  "⏰ Bhai aaj ka daalna tu bhool chuka hai, yaad dila raha hoon bas... baad mein kahega yaad nahi dilaya!",
-  "🥱 Are yaar daal de na rating, achhi khasi late ho gayi hai! Poore din karta nahi, raat ko karne mein bhi natak!",
-  "🙏 Bhai bhai please please please rating daal de, please please please... matlab rating daal de aur kya apni!",
-  "👑 Mere devta, mere prabhu... rating de di aaj ke day ki? Main aapke bhale ke liye bol raha hoon!",
-  "⚡ Bhai sun na, Hit tha ya Shit? Bas 1 tap deke rating lock karle!",
-  "👀 Oye hero! Diary entry kaun karega? 1 minute lagega bas, abhi निपटा le!"
+  "Bhai yaar rating nahi dali na tune? Kar le na shanti se, kya timepass kar raha hai!",
+  "Bhai aaj ka daalna tu bhool chuka hai, yaad dila raha hoon bas... baad mein kahega yaad nahi dilaya!",
+  "Are yaar daal de na rating, achhi khasi late ho gayi hai! Poore din karta nahi, raat ko karne mein bhi natak!",
+  "Bhai bhai please please please rating daal de, please please please... matlab rating daal de aur kya apni!",
+  "Mere devta, mere prabhu... rating de di aaj ke day ki? Main aapke bhale ke liye bol raha hoon!",
+  "Bhai sun na, Hit tha ya Shit? Bas 1 tap deke rating lock karle!",
+  "Oye hero! Diary entry kaun karega? 1 minute lagega bas, abhi nipata le!"
 ];
 
 export function getRandomReminderText() {
   const idx = Math.floor(Math.random() * HINGLISH_REMINDERS.length);
   return HINGLISH_REMINDERS[idx];
+}
+
+export function detectActiveEngine() {
+  if (typeof window === 'undefined') return 'standard';
+  try {
+    const rawRehab = localStorage.getItem('goodness_rehab_config');
+    if (rawRehab) {
+      const cfg = JSON.parse(rawRehab);
+      if (cfg && cfg.active) {
+        if (cfg.isSabbatical || (cfg.freezeDays && cfg.freezeDays > 30)) {
+          return 'sabbatical';
+        }
+        return 'sanctuary';
+      }
+    }
+    const rawAnchors = localStorage.getItem('daily_anchors_config');
+    if (rawAnchors) {
+      const aCfg = JSON.parse(rawAnchors);
+      if (aCfg && aCfg.enabled) {
+        return 'non-negotiables';
+      }
+    }
+    const rawPeer = localStorage.getItem('goodness_peer_mutual_backup');
+    if (rawPeer) {
+      return 'peer';
+    }
+  } catch (e) {}
+  return 'standard';
+}
+
+export function getEngineNotificationContent(engineKey = null) {
+  const engine = engineKey || detectActiveEngine();
+  switch (engine) {
+    case 'sabbatical':
+      return {
+        title: 'SABBATICAL STASIS • DAILY CHRONICLE',
+        body: 'Open horizon active. Streak shielded & frozen. Record your reflection note for today.',
+        placeholder: 'Write today\'s sabbatical chronicle note...'
+      };
+    case 'sanctuary':
+      return {
+        title: 'TRANQUILITY SANCTUARY • SOMATIC RESET',
+        body: 'Nervous system recovery active. Breathe 4-2-6 and check in on your recovery state.',
+        placeholder: 'Log recovery state (1-5★) or soothing note...'
+      };
+    case 'non-negotiables':
+      return {
+        title: 'DAILY ANCHORS & HABITS AUDIT',
+        body: 'Daily non-negotiable checklist pending. Log execution score and summary notes.',
+        placeholder: 'Type 1-5★ habit score & completion summary...'
+      };
+    case 'peer':
+      return {
+        title: 'PEER ACCOUNTABILITY MIRROR',
+        body: 'Mutual streak shield active. Rate today to synchronize with your partner mirror.',
+        placeholder: 'Type 1-5★ rating & peer note...'
+      };
+    case 'standard':
+    default:
+      return {
+        title: 'DAILY VERDICT • HIT OR SHIT',
+        body: getRandomReminderText(),
+        placeholder: 'Type 1-5 & optional note (e.g. 5 Finished workout)...'
+      };
+  }
 }
 
 export function isNotificationSupported() {
@@ -52,49 +117,43 @@ export function disableNotifications() {
 
 export function getNotificationBannerMode() {
   if (typeof window === 'undefined') return 'inline';
-  return localStorage.getItem('daily_verdict_notification_mode') || 'inline';
+  const stored = localStorage.getItem('daily_verdict_notification_mode');
+  // Default to inline if unset or if legacy 'all5' (which overflows OS limits)
+  if (!stored || stored === 'all5') return 'inline';
+  return stored;
 }
 
 export function setNotificationBannerMode(mode) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('daily_verdict_notification_mode', mode || 'inline');
+    const safeMode = mode === 'polar' ? 'polar' : 'inline';
+    localStorage.setItem('daily_verdict_notification_mode', safeMode);
     if (typeof window.dispatchEvent === 'function') {
-      window.dispatchEvent(new CustomEvent('notification-mode-updated', { detail: mode }));
+      window.dispatchEvent(new CustomEvent('notification-mode-updated', { detail: safeMode }));
     }
   }
 }
 
-export function getNotificationRatingActions(forcedMode = null) {
+export function getNotificationRatingActions(forcedMode = null, engineContext = null) {
   const mode = forcedMode || getNotificationBannerMode();
+  const engineContent = getEngineNotificationContent(engineContext);
 
-  // Mode 1: Inline 1-5★ Rating Field (Permits typing any star 1-5 in OS toast)
+  // Mode 1: Inline 1-5★ Rating & Note Text Field (DEFAULT - works on Android & Windows)
   if (mode === 'inline') {
     return [
       {
         action: 'rate-inline',
-        title: 'Rate Today (1-5★)',
+        title: engineContext === 'sabbatical' ? 'Record Note' : 'Log Verdict (1-5★ & Note)',
         type: 'text',
-        placeholder: 'Type 1, 2, 3, 4, or 5 & Enter...'
+        placeholder: engineContent.placeholder
       },
       {
         action: 'rate-open',
-        title: 'Open 5★ Moods'
+        title: 'Open Today'
       }
     ];
   }
 
-  // Mode 2: All 5 Tier Buttons (Full spectrum for mobile & systems with multi-button support)
-  if (mode === 'all5') {
-    return [
-      { action: 'rate-1', title: '1★ Rough' },
-      { action: 'rate-2', title: '2★ Down' },
-      { action: 'rate-3', title: '3★ Okay' },
-      { action: 'rate-4', title: '4★ Good' },
-      { action: 'rate-5', title: '5★ Peak' }
-    ];
-  }
-
-  // Mode 3: Polar Quick Actions (1★ Shit vs 5★ Hit binary buttons - 100% Windows Compatible)
+  // Mode 2: Polar Quick Actions (1★ Shit vs 5★ Hit binary buttons - 100% Windows & Android Compatible)
   return [
     { action: 'rate-1', title: '1★ Shit (Rough)' },
     { action: 'rate-5', title: '5★ Hit (Peak)' }
@@ -103,31 +162,28 @@ export function getNotificationRatingActions(forcedMode = null) {
 
 export const NOTIFICATION_RATING_ACTIONS = getNotificationRatingActions();
 
-export async function showInstantReminderNotification(customBody = null, overrideMode = null) {
-  console.log('🔔 [Notification Debug] Step 1: Checking browser support...');
+export async function showInstantReminderNotification(customBody = null, overrideMode = null, engineContext = null) {
   if (!isNotificationSupported()) {
-    console.warn('❌ [Notification Debug] Notifications are NOT supported in this browser window environment.');
+    console.warn('Notifications are NOT supported in this browser window environment.');
     return false;
   }
 
-  const body = customBody || getRandomReminderText();
-  console.log(`🔔 [Notification Debug] Step 2: Notification Permission is currently: "${Notification.permission}"`);
+  const engineContent = getEngineNotificationContent(engineContext);
+  const title = engineContent.title;
+  const body = customBody || engineContent.body;
 
   // If permission not granted yet, ask for it
   if (Notification.permission !== 'granted') {
-    console.log('🔔 [Notification Debug] Requesting permission from user...');
     const perm = await requestNotificationPermission();
-    console.log(`🔔 [Notification Debug] User response: ${perm ? 'GRANTED' : 'DENIED / DISMISSED'}`);
     if (!perm) {
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('in_app_reminder', { detail: { title: '⚡ Daily Verdict', body } }));
+        window.dispatchEvent(new CustomEvent('in_app_reminder', { detail: { title, body } }));
       }
       return false;
     }
   }
 
-  const actions = getNotificationRatingActions(overrideMode);
-  console.log('🔔 [Notification Debug] Step 3: Triggering notification payload:', { title: '⚡ Daily Verdict', body, actionsCount: actions.length });
+  const actions = getNotificationRatingActions(overrideMode, engineContext);
 
   try {
     // Method A: Check for active Service Worker Registration (Supports 1-Tap Notification Actions)
@@ -140,7 +196,7 @@ export async function showInstantReminderNotification(customBody = null, overrid
         }
         if (registration && registration.showNotification) {
           const targetUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/';
-          await registration.showNotification('⚡ Daily Verdict', {
+          await registration.showNotification(title, {
             body,
             icon: '/icon-192.png',
             badge: '/icon-192.png',
@@ -159,7 +215,7 @@ export async function showInstantReminderNotification(customBody = null, overrid
 
     // Method B: Standard Web Notification API Fallback (Desktop/Safari)
     const targetUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/';
-    const n = new Notification('⚡ Daily Verdict', {
+    const n = new Notification(title, {
       body,
       icon: '/icon-192.png',
       badge: '/icon-192.png',
@@ -180,7 +236,7 @@ export async function showInstantReminderNotification(customBody = null, overrid
     return true;
   } catch (err) {
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('in_app_reminder', { detail: { title: '⚡ Daily Verdict', body } }));
+      window.dispatchEvent(new CustomEvent('in_app_reminder', { detail: { title, body } }));
     }
     return false;
   }

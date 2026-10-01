@@ -189,22 +189,39 @@ self.addEventListener('notificationclick', (event) => {
 
   // 1-Tap Quick Rating Action from Lockscreen / Notification Shade (Button or Inline Input)
   let rating = null;
+  let notes = null;
   if (event.action && event.action.startsWith('rate-')) {
     if (event.action === 'rate-inline' && event.reply) {
-      const clean = event.reply.trim().toLowerCase();
-      const numMatch = clean.match(/[1-5]/);
+      const raw = event.reply.trim();
+      // 1. Check if input starts with a number 1-5 followed by optional note
+      const numMatch = raw.match(/^([1-5])(?:\s*[-:,.]?\s*(.*))?$/s);
       if (numMatch) {
-        rating = parseInt(numMatch[0], 10);
-      } else if (clean.includes('shit') || clean.includes('rough') || clean.includes('bad') || clean.includes('terrible')) {
-        rating = 1;
-      } else if (clean.includes('down') || clean.includes('sad') || clean.includes('low')) {
-        rating = 2;
-      } else if (clean.includes('ok') || clean.includes('fine') || clean.includes('average') || clean.includes('meh')) {
-        rating = 3;
-      } else if (clean.includes('good') || clean.includes('decent') || clean.includes('nice')) {
-        rating = 4;
-      } else if (clean.includes('hit') || clean.includes('peak') || clean.includes('great') || clean.includes('awesome') || clean.includes('fire')) {
-        rating = 5;
+        rating = parseInt(numMatch[1], 10);
+        if (numMatch[2] && numMatch[2].trim()) {
+          notes = numMatch[2].trim();
+        }
+      } else {
+        // 2. Keyword fallback with remaining text as note
+        const lower = raw.toLowerCase();
+        if (lower.startsWith('shit') || lower.startsWith('rough') || lower.startsWith('bad') || lower.startsWith('terrible')) {
+          rating = 1;
+          notes = raw.replace(/^(shit|rough|bad|terrible)\s*[-:,.]?\s*/i, '').trim() || null;
+        } else if (lower.startsWith('down') || lower.startsWith('sad') || lower.startsWith('low')) {
+          rating = 2;
+          notes = raw.replace(/^(down|sad|low)\s*[-:,.]?\s*/i, '').trim() || null;
+        } else if (lower.startsWith('ok') || lower.startsWith('okay') || lower.startsWith('fine') || lower.startsWith('average') || lower.startsWith('meh')) {
+          rating = 3;
+          notes = raw.replace(/^(ok|okay|fine|average|meh)\s*[-:,.]?\s*/i, '').trim() || null;
+        } else if (lower.startsWith('good') || lower.startsWith('decent') || lower.startsWith('nice')) {
+          rating = 4;
+          notes = raw.replace(/^(good|decent|nice)\s*[-:,.]?\s*/i, '').trim() || null;
+        } else if (lower.startsWith('hit') || lower.startsWith('peak') || lower.startsWith('great') || lower.startsWith('awesome') || lower.startsWith('fire')) {
+          rating = 5;
+          notes = raw.replace(/^(hit|peak|great|awesome|fire)\s*[-:,.]?\s*/i, '').trim() || null;
+        } else {
+          // 3. Freeform text reflection (e.g. Sabbatical chronicle or Sanctuary check-in)
+          notes = raw;
+        }
       }
     } else {
       const parsed = parseInt(event.action.replace('rate-', ''), 10);
@@ -214,8 +231,12 @@ self.addEventListener('notificationclick', (event) => {
     }
   }
 
-  if (rating !== null) {
-    const rateUrl = new URL(`/?quickRate=${rating}&date=${todayStr}`, baseUrl).href;
+  if (rating !== null || notes !== null) {
+    const params = new URLSearchParams();
+    if (rating !== null) params.set('quickRate', String(rating));
+    if (notes) params.set('notes', notes);
+    params.set('date', todayStr);
+    const rateUrl = new URL(`/?${params.toString()}`, baseUrl).href;
 
     event.waitUntil(
       clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clientList) => {
@@ -225,7 +246,8 @@ self.addEventListener('notificationclick', (event) => {
           client.postMessage({
             type: 'REMOTE_NOTIFICATION_RATING',
             dateStr: todayStr,
-            rating: rating
+            rating: rating,
+            notes: notes
           });
           if ('focus' in client && !focusedClient) {
             focusedClient = client;
@@ -233,7 +255,7 @@ self.addEventListener('notificationclick', (event) => {
           }
         }
 
-        // If no window is currently open, launch a new window with quickRate and date
+        // If no window is currently open, launch a new window with quickRate, notes and date
         if (!focusedClient && clients.openWindow) {
           return clients.openWindow(rateUrl);
         }

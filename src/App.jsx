@@ -62,6 +62,7 @@ const SanctuaryPage = safeLazy(() => import('./components/SanctuaryPage'));
 const PrivacyPolicyPage = safeLazy(() => import('./components/PrivacyPolicyPage'));
 const DataErasurePage = safeLazy(() => import('./components/DataErasurePage'));
 const StorageSovereigntyPage = safeLazy(() => import('./components/StorageSovereigntyPage'));
+const NotificationStudioPage = safeLazy(() => import('./components/NotificationStudioPage'));
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
 import { soundEngine } from './services/soundEngine';
@@ -197,6 +198,12 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view') || params.get('preview') || '';
     return view === 'storage' || window.location.hash === '#storage';
+  });
+  const [showNotificationStudio, setShowNotificationStudio] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') || params.get('preview') || '';
+    return view === 'notifications' || view === 'notification-studio' || window.location.hash === '#notifications' || window.location.hash === '#notification-studio';
   });
   const [pendingDeletion, setPendingDeletion] = useState(() => getPendingDeletionStatus());
   const [showNotFound, setShowNotFound] = useState(() => {
@@ -903,12 +910,15 @@ export default function App() {
       const handleRemoteRating = (event) => {
         if (!event.data) return;
         if (event.data.type === 'REMOTE_NOTIFICATION_RATING') {
-          const { dateStr, rating } = event.data;
+          const { dateStr, rating, notes } = event.data;
           const targetDate = dateStr || todayStr;
-          console.log(`🔔 [Remote Notification Rating] Saving 1-tap rating: ${rating}★ for ${targetDate}`);
-          handleSaveEntry({ date: targetDate, rating });
+          console.log(`🔔 [Remote Notification Rating] Saving: ${rating !== null ? rating + '★' : 'note-only'} for ${targetDate}`);
+          const payload = { date: targetDate };
+          if (rating !== null && rating !== undefined) payload.rating = rating;
+          if (notes) payload.notes = notes;
+          handleSaveEntry(payload);
           setActiveDesktopTab('today');
-          triggerNotificationFeedback(rating, '1-Tap Notification');
+          triggerNotificationFeedback(rating || 5, notes ? '1-Tap Notification & Note' : '1-Tap Notification');
         } else if (event.data.type === 'NOTIFICATION_OPEN_URL') {
           console.log('🔔 [Notification Open URL] Focusing Today workspace');
           setActiveDesktopTab('today');
@@ -919,16 +929,18 @@ export default function App() {
     }
   }, [todayStr, triggerNotificationFeedback]);
 
-  // ⚡ In-App Simulator Listener for NotificationSetterCard
+  // ⚡ In-App Simulator Listener for NotificationSetterCard & NotificationStudioPage
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleSimulatedRating = (event) => {
-      if (event.detail && event.detail.rating) {
-        const rating = Number(event.detail.rating);
-        console.log(`⚡ [Simulated Notification Rating] Saving: ${rating}★ for ${todayStr}`);
-        handleSaveEntry({ date: todayStr, rating });
+      if (event.detail) {
+        const payload = { date: todayStr };
+        if (event.detail.rating) payload.rating = Number(event.detail.rating);
+        if (event.detail.notes) payload.notes = event.detail.notes;
+        console.log(`⚡ [Simulated Notification] Saving for ${todayStr}:`, payload);
+        handleSaveEntry(payload);
         setActiveDesktopTab('today');
-        triggerNotificationFeedback(rating, 'Notification Simulator');
+        triggerNotificationFeedback(payload.rating || 5, payload.notes ? 'Notification Simulator & Note' : 'Notification Simulator');
       }
     };
     window.addEventListener('remote_notification_verdict', handleSimulatedRating);
@@ -941,22 +953,31 @@ export default function App() {
     try {
       const params = new URLSearchParams(window.location.search);
       const qRate = params.get('quickRate') || params.get('rate');
+      const qNotes = params.get('notes');
       const qDate = params.get('date');
-      if (qRate) {
-        const ratingNum = parseInt(qRate, 10);
-        if (ratingNum >= 1 && ratingNum <= 5) {
-          const targetDate = qDate || todayStr;
-          console.log(`⚡ [URL Quick Rate] Recording rating ${ratingNum}★ for ${targetDate}`);
-          handleSaveEntry({ date: targetDate, rating: ratingNum });
-          setActiveDesktopTab('today');
-          triggerNotificationFeedback(ratingNum, '1-Tap Notification Link');
-          // Clean URL so refresh doesn't re-trigger
-          const url = new URL(window.location.href);
-          url.searchParams.delete('quickRate');
-          url.searchParams.delete('rate');
-          url.searchParams.delete('date');
-          window.history.replaceState({}, '', url.toString());
+      if (qRate || qNotes) {
+        const targetDate = qDate || todayStr;
+        const payload = { date: targetDate };
+        if (qRate) {
+          const ratingNum = parseInt(qRate, 10);
+          if (ratingNum >= 1 && ratingNum <= 5) {
+            payload.rating = ratingNum;
+          }
         }
+        if (qNotes) {
+          payload.notes = decodeURIComponent(qNotes);
+        }
+        console.log(`⚡ [URL Quick Rate] Recording for ${targetDate}:`, payload);
+        handleSaveEntry(payload);
+        setActiveDesktopTab('today');
+        triggerNotificationFeedback(payload.rating || 5, '1-Tap Notification Link');
+        // Clean URL so refresh doesn't re-trigger
+        const url = new URL(window.location.href);
+        url.searchParams.delete('quickRate');
+        url.searchParams.delete('rate');
+        url.searchParams.delete('notes');
+        url.searchParams.delete('date');
+        window.history.replaceState({}, '', url.toString());
       }
     } catch (e) {
       console.warn('URL quick rate parse error:', e);
@@ -1127,6 +1148,23 @@ export default function App() {
     );
   }
 
+  if (showNotificationStudio) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[#FFFDF8] flex items-center justify-center font-mono text-sm font-black">ENTERING NOTIFICATION STUDIO...</div>}>
+          <NotificationStudioPage
+            onBack={() => {
+              setShowNotificationStudio(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+            entries={entries}
+            todayStr={todayStr}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   if (isInitialLoading) {
     return <SkeletonLoader isMobile={isMobile} />;
   }
@@ -1229,6 +1267,7 @@ export default function App() {
             onOpenWallpaper={(entry, date) => handleOpenWallpaper(entry, date)}
             onOpenTelemetry={() => setIsTelemetryOpen(true)}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenNotificationStudio={() => setShowNotificationStudio(true)}
             onOpenStickerVault={() => setIsStickerVaultOpen(true)}
             onOpenExportStudio={() => setIsExportStudioOpen(true)}
             onOpenRehab={() => setShowSanctuary(true)}
@@ -1460,6 +1499,10 @@ export default function App() {
                 user={currentUser}
                 onSettingsChanged={() => setSphereSettingsVer(v => v + 1)}
                 onOpenSanctuaryPage={() => setShowSanctuary(true)}
+                onOpenNotificationStudio={() => {
+                  setIsSettingsOpen(false);
+                  setShowNotificationStudio(true);
+                }}
                 onOpenPrivacyPage={() => setShowPrivacy(true)}
                 onOpenErasurePage={() => setShowErasure(true)}
                 onOpenStoragePage={() => setShowStoragePage(true)}

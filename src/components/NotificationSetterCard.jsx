@@ -38,10 +38,10 @@ const STAR_TIERS = [
 const BANNER_MODES = [
   {
     id: 'inline',
-    name: '1. INLINE NUMBER INPUT (1-5★)',
-    tag: 'TEXT REPLY',
+    name: '1. INLINE NUMBER & NOTE INPUT (1-5★)',
+    tag: 'TEXT REPLY (DEFAULT)',
     shortTitle: 'INLINE INPUT',
-    desc: 'Type 1 to 5 and send directly in the notification banner. (On Windows, click the reply arrow in the toast).'
+    desc: 'Type 1 to 5 and an optional day summary note directly in the notification banner. (On Windows, click the reply arrow in the toast).'
   },
   {
     id: 'polar',
@@ -49,13 +49,6 @@ const BANNER_MODES = [
     tag: 'RECOMMENDED FOR PC',
     shortTitle: '2-BUTTON POLAR',
     desc: 'Two physical buttons. 100% reliable 1-tap rating on Windows PC Action Center without typing or opening the app.'
-  },
-  {
-    id: 'all5',
-    name: '3. ALL 5 STAR BUTTONS',
-    tag: 'MOBILE / FULL TIER',
-    shortTitle: '5-BUTTON FULL',
-    desc: 'Passes all 5 star buttons. Android shows all 5. Windows PC shows the first 2 buttons or truncates.'
   }
 ];
 
@@ -411,7 +404,7 @@ export default function NotificationSetterCard() {
                     </button>
                   </form>
                   <p className="text-[10px] font-mono text-white/50">
-                    💡 On Windows PC notifications, type 1-5 and click the small reply arrow button if your Windows build doesn't bind Enter.
+                    NOTE: On Windows PC notifications, type 1-5 and click the small reply arrow button if your Windows build doesn't bind Enter.
                   </p>
                 </div>
               )}
@@ -436,41 +429,7 @@ export default function NotificationSetterCard() {
                     </button>
                   </div>
                   <p className="text-[10px] font-mono text-white/50">
-                    💡 Windows officially guarantees 2 action buttons. This mode provides 100% reliable 1-tap logging on PC!
-                  </p>
-                </div>
-              )}
-
-              {/* MODE 3: All 5 Star Buttons */}
-              {bannerMode === 'all5' && (
-                <div className="space-y-2 pt-1">
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-                    {STAR_TIERS.map((tier) => {
-                      const isActive = selectedRating === tier.rating;
-                      return (
-                        <button
-                          key={tier.rating}
-                          type="button"
-                          onClick={() => handleSelectRating(tier.rating)}
-                          className={`p-2.5 rounded-xl border-2 border-black flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all active:scale-95 ${
-                            isActive
-                              ? 'ring-2 ring-white scale-102 shadow-[0_0_12px_rgba(253,200,0,0.5)]'
-                              : 'opacity-90 hover:opacity-100'
-                          }`}
-                          style={{ backgroundColor: tier.color }}
-                        >
-                          <span className="font-mono font-black text-xs text-black leading-none">
-                            {tier.stars}
-                          </span>
-                          <span className="font-mono font-black text-[9px] text-black uppercase leading-none mt-0.5 truncate max-w-full">
-                            {tier.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[10px] font-mono text-white/50">
-                    💡 Android smartphones show all 5 buttons. On Windows, Windows OS shows the first 2 buttons or truncates them.
+                    NOTE: Windows officially guarantees 2 action buttons. This mode provides 100% reliable 1-tap logging on PC!
                   </p>
                 </div>
               )}
