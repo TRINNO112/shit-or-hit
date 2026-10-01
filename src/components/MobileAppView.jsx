@@ -44,8 +44,10 @@ import {
   Wind,
   Shield,
   Database,
-  MessageSquareQuote
+  MessageSquareQuote,
+  HelpCircle
 } from 'lucide-react';
+import HitRateInfoModal from './HitRateInfoModal';
 import { 
   ratingMeta, 
   exportDatabaseBackup, 
@@ -176,6 +178,7 @@ export default function MobileAppView({
 
   // Behavioral Trilogy Modal States for Mobile
   const [isCapsuleModalOpen, setIsCapsuleModalOpen] = useState(false);
+  const [showHitRateInfo, setShowHitRateInfo] = useState(false);
   const [isAutopsyModalOpen, setIsAutopsyModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
@@ -759,10 +762,11 @@ export default function MobileAppView({
                 handleGoogleLogin();
               }}
               disabled={authLoading}
-              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black font-mono text-xs font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-colors shrink-0"
+              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-amber-100 hover:bg-[#FDC800] border-2 border-black font-mono text-xs font-black flex items-center gap-1 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-colors shrink-0"
+              title="Local Mode: Stored on this phone only. Tap to sync."
             >
-              <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="hidden xs:inline">SYNC</span>
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-800 stroke-[2.5]" />
+              <span className="hidden xs:inline">{authLoading ? '...' : 'LOCAL'}</span>
             </button>
           )}
 
@@ -809,6 +813,29 @@ export default function MobileAppView({
           )}
         </div>
       </header>
+
+      {/* ⚠️ Prominent Desync Protection: Unsynced Device Warning Banner */}
+      {!isWhitelisted && (
+        <div className="mx-2.5 sm:mx-4 mt-2 p-2 sm:p-2.5 rounded-xl border-2 border-black bg-amber-100 flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000000]">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-800 shrink-0 stroke-[2.5]" />
+            <span className="font-mono text-[10px] sm:text-xs font-black uppercase text-amber-950 truncate">
+              LOCAL DEVICE ONLY • NOT SYNCED TO PC
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              handleGoogleLogin();
+            }}
+            disabled={authLoading}
+            className="px-2 py-0.5 rounded-lg border border-black bg-[#FDC800] hover:bg-amber-400 font-mono text-[9px] sm:text-[10px] font-black uppercase text-black shrink-0 cursor-pointer shadow-[1px_1px_0px_#000]"
+          >
+            {authLoading ? 'CONNECTING...' : 'SYNC CLOUD'}
+          </button>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* ⚡ TAB 1: TODAY ACTIVE WORKSPACE */}
@@ -1029,13 +1056,17 @@ export default function MobileAppView({
                     initial={{ opacity: 0, y: -6, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                    className="p-2.5 bg-[#00E599] border-2 border-black rounded-xl text-xs font-mono font-black text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
+                    className={`p-2.5 border-2 border-black rounded-xl text-xs font-mono font-black flex items-center justify-between shadow-[2px_2px_0px_#000000] ${
+                      isWhitelisted ? 'bg-[#00E599] text-black' : 'bg-amber-200 text-amber-950'
+                    }`}
                   >
                     <div className="flex items-center gap-1.5">
                       <Check className="w-4 h-4 stroke-3" />
-                      <span>ENTRY SAVED TO THIS DEVICE!</span>
+                      <span>{isWhitelisted ? 'ENTRY SAVED & CLOUD SYNCED!' : 'SAVED LOCALLY (NOT SYNCED TO PC)!'}</span>
                     </div>
-                    <span className="text-[10px] uppercase font-bold opacity-80">LOCAL VAULT</span>
+                    <span className="text-[10px] uppercase font-black opacity-80">
+                      {isWhitelisted ? 'CLOUD SYNC' : 'THIS PHONE ONLY'}
+                    </span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1503,10 +1534,24 @@ export default function MobileAppView({
                 </p>
 
                 <div className="grid grid-cols-3 gap-2 pt-1">
-                  <div className={`p-2 rounded-xl border-2 border-black text-center ${
+                  <div className={`p-2 rounded-xl border-2 border-black text-center relative ${
                     dossierReport.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                   }`}>
-                    <span className="block text-[9px] font-mono font-bold text-neutral-400">HIT RATE</span>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="block text-[9px] font-mono font-bold text-neutral-400">HIT RATE</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowHitRateInfo(true);
+                        }}
+                        className="p-0.5 rounded border border-black/30 hover:border-black bg-neutral-100 hover:bg-[#FDC800] text-black cursor-pointer active:translate-x-px active:translate-y-px transition-all"
+                        title="What is Hit Rate? Click for formula & explanation"
+                        aria-label="What is Hit Rate?"
+                      >
+                        <HelpCircle className="w-2.5 h-2.5 stroke-[2.5]" />
+                      </button>
+                    </div>
                     <span className="font-display font-black text-lg leading-none text-[#FF4D4D]">
                       {dossierReport.hitRate}%
                     </span>
@@ -2035,10 +2080,17 @@ export default function MobileAppView({
 
                 <div className="flex items-center justify-between text-[10px] font-mono font-bold text-neutral-500 pt-0.5 shrink-0">
                   <span>{noteText.length} characters</span>
-                  <span className="flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-[#00E599]" />
-                    <span>Auto-synced with rating</span>
-                  </span>
+                  {isWhitelisted ? (
+                    <span className="flex items-center gap-1 text-emerald-800 font-black">
+                      <CheckCircle2 className="w-3 h-3 text-[#00E599]" />
+                      <span>Cloud & PC Synced</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-amber-800 font-black">
+                      <AlertTriangle className="w-3 h-3 text-amber-600" />
+                      <span>Phone only (Sign in to sync to PC)</span>
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -2057,6 +2109,11 @@ export default function MobileAppView({
                   <Check className="w-4 h-4 stroke-3" />
                   <span>{justSavedNote ? 'SAVED!' : 'SAVE REFLECTION NOTE'}</span>
                 </button>
+                {!isWhitelisted && (
+                  <p className="text-[10px] font-mono text-neutral-600 text-center mt-1 font-bold">
+                    Saved to this phone only. Connect Google Cloud to sync with PC.
+                  </p>
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -2240,6 +2297,12 @@ export default function MobileAppView({
           />
         )}
       </Suspense>
+
+      {/* Hit Rate Invariant Explainer Modal */}
+      <HitRateInfoModal
+        isOpen={showHitRateInfo}
+        onClose={() => setShowHitRateInfo(false)}
+      />
     </div>
   );
 }

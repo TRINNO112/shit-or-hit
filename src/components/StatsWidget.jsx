@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   BarChart2, 
   Flame, 
@@ -7,9 +7,11 @@ import {
   AlertCircle,
   CloudRain,
   MinusCircle,
-  Sparkles
+  Sparkles,
+  HelpCircle
 } from 'lucide-react';
 import { ratingMeta } from '../services/api';
+import HitRateInfoModal from './HitRateInfoModal';
 
 const IconMap = {
   AlertCircle,
@@ -20,6 +22,7 @@ const IconMap = {
 };
 
 export default function StatsWidget({ entries, dayCount, onOpenTelemetry }) {
+  const [showHitRateInfo, setShowHitRateInfo] = useState(false);
   const entryList = Object.values(entries);
   const total = entryList.length;
 
@@ -28,58 +31,79 @@ export default function StatsWidget({ entries, dayCount, onOpenTelemetry }) {
     if (counts[e.rating] !== undefined) counts[e.rating]++;
   });
 
-  const hitCount = (counts[4] || 0) + (counts[5] || 0);
+  // Strict Invariant: Rating >= 3 constitutes a "Hit" (3★ Okay, 4★ Good, 5★ Peak)
+  const hitCount = (counts[3] || 0) + (counts[4] || 0) + (counts[5] || 0);
   const hitRate = total > 0 ? Math.round((hitCount / total) * 100) : 0;
   const avgScore = total > 0 ? (entryList.reduce((acc, e) => acc + Number(e.rating || 0), 0) / total).toFixed(1) : '-';
 
   return (
-    <div className="neo-card bg-white flex flex-col justify-between h-full p-6 sm:p-8 3xl:p-10 4k:p-12">
-      
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6 pb-2 border-b-2 border-black/10">
-          <div className="flex items-center gap-2.5">
-            <BarChart2 className="w-5 h-5 3xl:w-6 3xl:h-6 text-black stroke-[2.5]" />
-            <h3 className="font-display font-black text-lg 3xl:text-xl text-black uppercase tracking-wider">
-              LIFETIME METRICS
-            </h3>
+    <>
+      <HitRateInfoModal 
+        isOpen={showHitRateInfo} 
+        onClose={() => setShowHitRateInfo(false)} 
+      />
+
+      <div className="neo-card bg-white flex flex-col justify-between h-full p-6 sm:p-8 3xl:p-10 4k:p-12">
+        
+        <div>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6 pb-2 border-b-2 border-black/10">
+            <div className="flex items-center gap-2.5">
+              <BarChart2 className="w-5 h-5 3xl:w-6 3xl:h-6 text-black stroke-[2.5]" />
+              <h3 className="font-display font-black text-lg 3xl:text-xl text-black uppercase tracking-wider">
+                LIFETIME METRICS
+              </h3>
+            </div>
+            <span className="text-xs 3xl:text-sm font-mono font-black px-3 py-1 bg-[#FDC800] border-2 border-black rounded-md shadow-[2px_2px_0px_#000000]">
+              STATS
+            </span>
           </div>
-          <span className="text-xs 3xl:text-sm font-mono font-black px-3 py-1 bg-[#FDC800] border-2 border-black rounded-md shadow-[2px_2px_0px_#000000]">
-            STATS
-          </span>
-        </div>
 
-        {/* 4K/3XL Multi-Column Dashboard Layout */}
-        <div className="grid grid-cols-1 3xl:grid-cols-12 gap-6 3xl:gap-10 items-start">
-          
-          {/* Top 2 Metric Cards */}
-          <div className="3xl:col-span-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 3xl:p-6 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
-                <span className="text-xs 3xl:text-sm font-mono font-black text-neutral-600 uppercase block">
-                  HIT RATE %
-                </span>
-                <div className="font-display font-black text-3xl 3xl:text-4xl text-black mt-1">
-                  {hitRate}%
+          {/* 4K/3XL Multi-Column Dashboard Layout */}
+          <div className="grid grid-cols-1 3xl:grid-cols-12 gap-6 3xl:gap-10 items-start">
+            
+            {/* Top 2 Metric Cards */}
+            <div className="3xl:col-span-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 3xl:p-6 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] relative">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs 3xl:text-sm font-mono font-black text-neutral-600 uppercase block">
+                      HIT RATE %
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowHitRateInfo(true);
+                      }}
+                      className="p-1 rounded-md border border-black/40 hover:border-black bg-white hover:bg-[#FDC800] text-black shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px transition-all"
+                      title="What is Hit Rate? Click for formula & explanation"
+                      aria-label="What is Hit Rate?"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </button>
+                  </div>
+                  <div className="font-display font-black text-3xl 3xl:text-4xl text-black mt-1">
+                    {hitRate}%
+                  </div>
+                  <span className="text-[11px] 3xl:text-xs font-mono font-bold text-neutral-500 mt-0.5 block">
+                    {hitCount}/{total} logged days
+                  </span>
                 </div>
-                <span className="text-[11px] 3xl:text-xs font-mono font-bold text-neutral-500 mt-0.5 block">
-                  {hitCount}/{total} logged days
-                </span>
-              </div>
 
-              <div className="p-4 3xl:p-6 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
-                <span className="text-xs 3xl:text-sm font-mono font-black text-neutral-600 uppercase block">
-                  AVG QUALITY
-                </span>
-                <div className="font-display font-black text-3xl 3xl:text-4xl text-black mt-1">
-                  {avgScore} <span className="text-sm font-mono text-neutral-500">/ 5.0</span>
+                <div className="p-4 3xl:p-6 rounded-xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000]">
+                  <span className="text-xs 3xl:text-sm font-mono font-black text-neutral-600 uppercase block">
+                    AVG QUALITY
+                  </span>
+                  <div className="font-display font-black text-3xl 3xl:text-4xl text-black mt-1">
+                    {avgScore} <span className="text-sm font-mono text-neutral-500">/ 5.0</span>
+                  </div>
+                  <span className="text-[11px] 3xl:text-xs font-mono font-bold text-neutral-500 mt-0.5 block">
+                    Overall score
+                  </span>
                 </div>
-                <span className="text-[11px] 3xl:text-xs font-mono font-bold text-neutral-500 mt-0.5 block">
-                  Overall score
-                </span>
               </div>
             </div>
-          </div>
 
           {/* Verdict Distribution Bars */}
           <div className="3xl:col-span-7 space-y-3">
@@ -135,6 +159,7 @@ export default function StatsWidget({ entries, dayCount, onOpenTelemetry }) {
         </p>
       </div>
 
-    </div>
+      </div>
+    </>
   );
 }

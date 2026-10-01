@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -12,10 +12,12 @@ import {
   ShieldCheck, 
   Sparkles,
   Layers,
-  BatteryCharging
+  BatteryCharging,
+  HelpCircle
 } from 'lucide-react';
 import { ratingMeta, isSphereModeEnabled } from '../services/api';
 import SphereIcon from './SphereIcon';
+import HitRateInfoModal from './HitRateInfoModal';
 
 import mascot1 from '../assets/mascots/mascot_1_rough.webp';
 import mascot2 from '../assets/mascots/mascot_2_down.webp';
@@ -30,6 +32,8 @@ export default function ForensicStatsModal({
   startDate = '2026-08-01',
   todayStr
 }) {
+  const [showHitRateInfo, setShowHitRateInfo] = useState(false);
+
   // 1. Calculate Core Analytics
   const entryList = Object.entries(entries).map(([date, data]) => ({
     date,
@@ -143,8 +147,22 @@ export default function ForensicStatsModal({
                 <span className="text-[10px] font-mono text-emerald-600 font-bold">Active</span>
               </div>
 
-              <div className="bg-white border-2 border-black rounded-2xl p-3 shadow-[2.5px_2.5px_0px_#000000]">
-                <span className="text-[10px] font-mono font-bold text-neutral-500 uppercase">Hit Rate</span>
+              <div className="bg-white border-2 border-black rounded-2xl p-3 shadow-[2.5px_2.5px_0px_#000000] relative">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold text-neutral-500 uppercase">Hit Rate</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowHitRateInfo(true);
+                    }}
+                    className="p-0.5 rounded border border-black/30 hover:border-black bg-neutral-100 hover:bg-[#FDC800] text-black cursor-pointer active:translate-x-px active:translate-y-px transition-all"
+                    title="What is Hit Rate? Click for formula & explanation"
+                    aria-label="What is Hit Rate?"
+                  >
+                    <HelpCircle className="w-3 h-3 stroke-[2.5]" />
+                  </button>
+                </div>
                 <div className="flex items-baseline gap-1 mt-0.5">
                   <span className="font-display font-black text-xl text-black">{hitPercentage}%</span>
                 </div>
@@ -351,6 +369,12 @@ export default function ForensicStatsModal({
         </motion.div>
       </motion.div>
       )}
+
+      {/* Hit Rate Invariant Explainer Modal */}
+      <HitRateInfoModal
+        isOpen={showHitRateInfo}
+        onClose={() => setShowHitRateInfo(false)}
+      />
     </AnimatePresence>
   );
 }

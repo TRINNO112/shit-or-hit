@@ -18,7 +18,8 @@ import {
   Compass,
   HeartHandshake,
   Heart,
-  ListTodo
+  ListTodo,
+  Layers
 } from 'lucide-react';
 import { playMood } from '../services/soundEffects';
 import { soundEngine } from '../services/soundEngine';
@@ -67,6 +68,22 @@ const ENGINES = [
     description: 'Standard daily mood tracking. Rate your day 1-5★ and record your evening diary entry.'
   },
   {
+    id: 'spheres',
+    name: 'MULTI-SPHERE LIFE',
+    tag: '5 LIFE DOMAINS',
+    icon: Layers,
+    color: '#38BDF8',
+    description: 'Life sphere balance engine (Code, Health, Wealth, Mind, Tribe). Captures overall day verdict and domain reflections.'
+  },
+  {
+    id: 'non-negotiables',
+    name: 'NON-NEGOTIABLES',
+    tag: 'HABIT ANCHORS',
+    icon: ListTodo,
+    color: '#FF9500',
+    description: 'Daily habit execution engine. Audits daily anchors and records completion score.'
+  },
+  {
     id: 'sabbatical',
     name: 'SABBATICAL STASIS',
     tag: 'MACRO PAUSE',
@@ -81,14 +98,6 @@ const ENGINES = [
     icon: Heart,
     color: '#00E599',
     description: 'Short-term nervous system reset. Vagus nerve 4-2-6 calming pacing and somatic comfort check-in.'
-  },
-  {
-    id: 'non-negotiables',
-    name: 'NON-NEGOTIABLES',
-    tag: 'HABIT ANCHORS',
-    icon: ListTodo,
-    color: '#FF9500',
-    description: 'Daily habit execution engine. Audits daily anchors and records completion score.'
   },
   {
     id: 'peer',

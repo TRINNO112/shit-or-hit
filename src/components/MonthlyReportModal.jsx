@@ -33,11 +33,13 @@ import {
   ArrowRight,
   ArrowDown,
   GitBranch,
-  ShieldCheck
+  ShieldCheck,
+  HelpCircle
 } from 'lucide-react';
 import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 import confetti from 'canvas-confetti';
+import HitRateInfoModal from './HitRateInfoModal';
 
 export default function MonthlyReportModal({ 
   isOpen, 
@@ -55,6 +57,7 @@ export default function MonthlyReportModal({
   const [copied, setCopied] = useState(false);
   const [activeDayNote, setActiveDayNote] = useState(null);
   const [activeStoryChapter, setActiveStoryChapter] = useState('all');
+  const [showHitRateInfo, setShowHitRateInfo] = useState(false);
 
   const scrollContainerRef = useRef(null);
 
@@ -205,7 +208,8 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
   if (isOpen === false && !isEmbedded) return null;
 
   const contentJSX = (
-    <motion.div 
+    <>
+      <motion.div 
       initial={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 15 }}
       animate={isEmbedded ? undefined : { opacity: 1, scale: 1, y: 0 }}
       exit={isEmbedded ? undefined : { opacity: 0, scale: 0.94, y: 12 }}
@@ -476,10 +480,24 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 w-full md:w-auto shrink-0 pt-1 md:pt-0">
-                    <div className={`px-2 py-1.5 sm:px-3 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] ${
+                    <div className={`px-2 py-1.5 sm:px-3 rounded-xl border-2 border-black text-center shadow-[2px_2px_0px_#000000] relative ${
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
-                      <span className="block text-[8px] font-mono font-bold text-neutral-400">HIT RATE</span>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="block text-[8px] font-mono font-bold text-neutral-400">HIT RATE</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowHitRateInfo(true);
+                          }}
+                          className="p-0.5 rounded border border-black/30 hover:border-black bg-neutral-200 hover:bg-[#FDC800] text-black cursor-pointer active:translate-x-px active:translate-y-px transition-all"
+                          title="What is Hit Rate? Click for formula & explanation"
+                          aria-label="What is Hit Rate?"
+                        >
+                          <HelpCircle className="w-2.5 h-2.5 stroke-[2.5]" />
+                        </button>
+                      </div>
                       <span className={`font-display font-black text-base sm:text-lg leading-none mt-0.5 ${
                         report.hitRate < 50 ? 'text-[#FF4D4D]' : 'text-black'
                       }`}>
@@ -1199,6 +1217,13 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
           </div>
 
         </motion.div>
+        
+        {/* Hit Rate Invariant Explainer Modal */}
+        <HitRateInfoModal
+          isOpen={showHitRateInfo}
+          onClose={() => setShowHitRateInfo(false)}
+        />
+      </>
   );
 
   if (isEmbedded) {

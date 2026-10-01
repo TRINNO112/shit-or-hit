@@ -587,6 +587,84 @@ export function getRollingSnapshots(userOverride = null) {
   return snapshots;
 }
 
+export function getSnapshotDetails(snapshotId, userOverride = null) {
+  if (typeof window === 'undefined') return null;
+  const currentUser = userOverride || getCurrentUser();
+  const effectiveId = getEffectiveUserId(currentUser);
+  const storageKey = getDbStorageKey(effectiveId);
+
+  try {
+    const raw = localStorage.getItem(`${storageKey}_snapshot_${snapshotId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.entries) return null;
+    return {
+      id: snapshotId,
+      timestamp: parsed.timestamp,
+      entryCount: parsed.entryCount || Object.keys(parsed.entries).length,
+      startDate: parsed.startDate,
+      entries: parsed.entries
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+export function getSafetyStashMeta(userOverride = null) {
+  if (typeof window === 'undefined') return { exists: false, count: 0, timestamp: null, restoredSnapshotId: null };
+  const currentUser = userOverride || getCurrentUser();
+  const effectiveId = getEffectiveUserId(currentUser);
+  const storageKey = getDbStorageKey(effectiveId);
+
+  try {
+    const raw = localStorage.getItem(`${storageKey}_safety_stash`);
+    const activeRestored = localStorage.getItem(`${storageKey}_active_snapshot_restored`);
+    if (!raw) return { exists: false, count: 0, timestamp: null, restoredSnapshotId: activeRestored };
+    const parsed = JSON.parse(raw);
+    return {
+      exists: true,
+      timestamp: parsed.timestamp,
+      count: parsed.entries ? Object.keys(parsed.entries).length : 0,
+      restoredSnapshotId: activeRestored
+    };
+  } catch (e) {
+    return { exists: false, count: 0, timestamp: null, restoredSnapshotId: null };
+  }
+}
+
+export function revertToLiveSafetyStash(userOverride = null) {
+  if (typeof window === 'undefined') return null;
+  const currentUser = userOverride || getCurrentUser();
+  const effectiveId = getEffectiveUserId(currentUser);
+  const storageKey = getDbStorageKey(effectiveId);
+
+  try {
+    const raw = localStorage.getItem(`${storageKey}_safety_stash`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.entries) return null;
+
+    const liveDb = {
+      startDate: parsed.startDate || new Date().toISOString().slice(0, 10),
+      entries: parsed.entries
+    };
+
+    const payload = JSON.stringify(liveDb);
+    localStorage.setItem(storageKey, payload);
+    localStorage.setItem('goodness_db', payload);
+
+    // Clean up stash and restoration flag
+    localStorage.removeItem(`${storageKey}_safety_stash`);
+    localStorage.removeItem(`${storageKey}_active_snapshot_restored`);
+
+    window.dispatchEvent(new CustomEvent('goodness_db_reverted'));
+    return liveDb;
+  } catch (e) {
+    console.error('Failed to revert to live safety stash:', e);
+    return null;
+  }
+}
+
 export function restoreSnapshot(snapshotId, userOverride = null) {
   if (typeof window === 'undefined') return null;
   const currentUser = userOverride || getCurrentUser();
@@ -599,6 +677,25 @@ export function restoreSnapshot(snapshotId, userOverride = null) {
     const parsed = JSON.parse(raw);
     if (!parsed || !parsed.entries) return null;
 
+    // Safety First: Auto-stash current live database before restoring
+    try {
+      const currentRaw = localStorage.getItem(storageKey);
+      if (currentRaw) {
+        const currentParsed = JSON.parse(currentRaw);
+        if (currentParsed && currentParsed.entries && Object.keys(currentParsed.entries).length > 0) {
+          const stashData = {
+            timestamp: new Date().toISOString(),
+            startDate: currentParsed.startDate,
+            entries: currentParsed.entries,
+            reason: `Stashed before restoring snapshot #${snapshotId}`
+          };
+          localStorage.setItem(`${storageKey}_safety_stash`, JSON.stringify(stashData));
+        }
+      }
+    } catch (stashErr) {
+      console.warn('Safety stash warning before snapshot restore:', stashErr);
+    }
+
     const restoredDb = {
       startDate: parsed.startDate || new Date().toISOString().slice(0, 10),
       entries: parsed.entries
@@ -607,10 +704,23 @@ export function restoreSnapshot(snapshotId, userOverride = null) {
     const payload = JSON.stringify(restoredDb);
     localStorage.setItem(storageKey, payload);
     localStorage.setItem('goodness_db', payload);
+    localStorage.setItem(`${storageKey}_active_snapshot_restored`, String(snapshotId));
+
+    window.dispatchEvent(new CustomEvent('goodness_db_restored', { detail: { snapshotId } }));
 
     return restoredDb;
   } catch (e) {
     console.error('Failed to restore snapshot:', e);
+    return null;
+  }
+}
+
+export function getLastSyncStatus() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('goodness_last_sync_status');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
     return null;
   }
 }
@@ -653,18 +763,23 @@ export async function saveEntry(entryData) {
     }
   } catch (e) {}
 
+  let cloudSuccess = false;
+  let serverSuccess = false;
+
   // 2. Cloud save with 4s timeout protection against slow connections
   if (currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
       const cloudPromise = saveCloudEntry(effectiveId, formatted);
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Cloud save timeout')), 4000));
       await Promise.race([cloudPromise, timeoutPromise]);
+      cloudSuccess = true;
     } catch (err) {
       console.warn('Firestore cloud save background note:', err.message);
     }
   }
 
   // 3. Local server save if available (and not on static host like GitHub Pages)
+  let serverEntry = null;
   if (!isStaticHost) {
     try {
       const res = await fetch(`${API_BASE}/entries`, {
@@ -674,12 +789,29 @@ export async function saveEntry(entryData) {
       });
       if (res.ok) {
         const json = await res.json();
-        return json.entry || formatted;
+        serverEntry = json.entry || null;
+        serverSuccess = true;
       }
     } catch (err) {}
   }
 
-  return formatted;
+  const syncStatus = {
+    date: formatted.date,
+    timestamp: new Date().toISOString(),
+    local: true,
+    cloud: cloudSuccess,
+    server: serverSuccess,
+    isFullySynced: cloudSuccess || serverSuccess
+  };
+
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('goodness_last_sync_status', JSON.stringify(syncStatus));
+      window.dispatchEvent(new CustomEvent('verdict-sync-status', { detail: syncStatus }));
+    }
+  } catch (e) {}
+
+  return serverEntry ? { ...serverEntry, syncStatus } : { ...formatted, syncStatus };
 }
 
 export async function enhanceReflectionWithAI(notes, rating, date, spheres = null, customInstruction = null) {

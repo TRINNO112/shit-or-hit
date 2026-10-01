@@ -20,6 +20,8 @@ import {
   Trash2,
   Pencil,
   RotateCcw,
+  Eye,
+  Undo2,
   Code,
   Zap,
   Target,
@@ -102,6 +104,9 @@ import {
   exitRehabilitation,
   getRehabilitationConfig,
   getRollingSnapshots,
+  getSnapshotDetails,
+  getSafetyStashMeta,
+  revertToLiveSafetyStash,
   restoreSnapshot,
   exportDatabaseBackup,
   getDbStorageKey
@@ -111,6 +116,7 @@ import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
 import StickerVaultModal from './StickerVaultModal';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 import RehabilitationModal from './RehabilitationModal';
+import SnapshotPreviewModal from './SnapshotPreviewModal';
 import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../services/p2pSyncEngine';
 import VerdictIconGallery from './VerdictIconGallery';
 import NotificationSetterCard from './NotificationSetterCard';
@@ -173,20 +179,45 @@ export default function SettingsModal({
   // 🔄 Time Machine Snapshots State
   const [snapshots, setSnapshots] = useState([]);
   const [snapshotRestoredMsg, setSnapshotRestoredMsg] = useState('');
+  const [previewSnapshot, setPreviewSnapshot] = useState(null);
+  const [safetyStash, setSafetyStash] = useState({ exists: false, count: 0, timestamp: null, restoredSnapshotId: null });
 
   useEffect(() => {
     if (isOpen) {
       setSnapshots(getRollingSnapshots(user));
+      setSafetyStash(getSafetyStashMeta(user));
     }
   }, [isOpen, user]);
 
+  const handlePreviewSnapshot = (snapId) => {
+    soundEngine.playClick();
+    const details = getSnapshotDetails(snapId, user);
+    if (details) {
+      setPreviewSnapshot(details);
+    }
+  };
+
   const handleRestoreSnapshot = (snapId) => {
+    soundEngine.playSuccess();
     const res = restoreSnapshot(snapId, user);
     if (res) {
-      setSnapshotRestoredMsg(`SNAPSHOT ${snapId} RESTORED SUCCESSFULLY`);
+      setSnapshotRestoredMsg(`SNAPSHOT #${snapId} ACTIVATED • LIVE DATA STASHED SAFELY`);
       if (onSettingsChanged) onSettingsChanged();
       setSnapshots(getRollingSnapshots(user));
-      setTimeout(() => setSnapshotRestoredMsg(''), 3000);
+      setSafetyStash(getSafetyStashMeta(user));
+      setTimeout(() => setSnapshotRestoredMsg(''), 4000);
+    }
+  };
+
+  const handleRevertToLive = () => {
+    soundEngine.playSuccess();
+    const res = revertToLiveSafetyStash(user);
+    if (res) {
+      setSnapshotRestoredMsg('REVERTED TO ORIGINAL LIVE DATA');
+      if (onSettingsChanged) onSettingsChanged();
+      setSnapshots(getRollingSnapshots(user));
+      setSafetyStash(getSafetyStashMeta(user));
+      setTimeout(() => setSnapshotRestoredMsg(''), 4000);
     }
   };
 
@@ -1983,9 +2014,37 @@ export default function SettingsModal({
                 </div>
 
                 {snapshotRestoredMsg && (
-                  <div className="p-2 bg-[#00E599] border-2 border-black rounded-xl text-xs font-mono font-black uppercase text-black flex items-center gap-1.5 shadow-[1px_1px_0px_#000000]">
+                  <div className="p-2.5 bg-[#00E599] border-2 border-black rounded-xl text-xs font-mono font-black uppercase text-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000]">
                     <CheckCircle2 className="w-4 h-4" />
                     {snapshotRestoredMsg}
+                  </div>
+                )}
+
+                {/* Safety Rollback Banner: Revert to Original Live Database */}
+                {safetyStash.exists && (
+                  <div className="p-3 bg-[#00E599]/20 border-2 border-black rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-[2px_2px_0px_#000000]">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-xs font-black uppercase text-black">
+                          ORIGINAL LIVE DATA SAFE ({safetyStash.count} {safetyStash.count === 1 ? 'ENTRY' : 'ENTRIES'})
+                        </span>
+                        <span className="px-1.5 py-0.2 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase">
+                          SAVED STASH
+                        </span>
+                      </div>
+                      <span className="font-mono text-[10px] text-neutral-700 block truncate mt-0.5">
+                        Currently running on Snapshot #{safetyStash.restoredSnapshotId || 'Backup'}. Tap to revert anytime.
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRevertToLive}
+                      className="w-full sm:w-auto py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px shrink-0 flex items-center justify-center gap-1.5"
+                    >
+                      <Undo2 className="w-3.5 h-3.5 stroke-3" />
+                      <span>RETURN TO LIVE DATA</span>
+                    </button>
                   </div>
                 )}
 
@@ -1998,10 +2057,14 @@ export default function SettingsModal({
                     snapshots.map((snap) => {
                       const dateObj = new Date(snap.timestamp);
                       const timeStr = isNaN(dateObj.getTime()) ? snap.timestamp : dateObj.toLocaleString();
+                      const isCurrentActive = String(safetyStash.restoredSnapshotId) === String(snap.id);
+
                       return (
                         <div
                           key={snap.id}
-                          className="flex items-center justify-between p-2.5 bg-white border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000] gap-2"
+                          className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000] gap-2.5 ${
+                            isCurrentActive ? 'ring-2 ring-black bg-emerald-50/50' : ''
+                          }`}
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
@@ -2011,20 +2074,38 @@ export default function SettingsModal({
                               <span className="font-mono text-xs font-black text-black truncate">
                                 {snap.entryCount} {snap.entryCount === 1 ? 'ENTRY' : 'ENTRIES'}
                               </span>
+                              {isCurrentActive && (
+                                <span className="px-1.5 py-0.2 bg-[#00E599] text-black border border-black rounded text-[8px] font-mono font-black uppercase">
+                                  ACTIVE
+                                </span>
+                              )}
                             </div>
                             <span className="text-[10px] font-mono text-neutral-600 block truncate mt-0.5">
                               {timeStr}
                             </span>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => handleRestoreSnapshot(snap.id)}
-                            className="py-1 px-2.5 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px flex items-center gap-1"
-                          >
-                            <RotateCcw className="w-3 h-3 stroke-3" />
-                            RESTORE
-                          </button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handlePreviewSnapshot(snap.id)}
+                              className="flex-1 sm:flex-none py-1.5 px-2.5 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px flex items-center justify-center gap-1"
+                              title="Preview entries without modifying live database"
+                            >
+                              <Eye className="w-3 h-3 stroke-[2.5]" />
+                              <span>PREVIEW</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRestoreSnapshot(snap.id)}
+                              className="flex-1 sm:flex-none py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-lg font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px flex items-center justify-center gap-1"
+                              title="Switch to this backup (current live data is safely stashed)"
+                            >
+                              <RotateCcw className="w-3 h-3 stroke-3" />
+                              <span>RESTORE</span>
+                            </button>
+                          </div>
                         </div>
                       );
                     })
@@ -2230,6 +2311,14 @@ export default function SettingsModal({
           </div>
         </div>
       )}
+
+      {/* 📂 Time Machine Snapshot Inspection Modal (Zero-Risk Read-Only Preview) */}
+      <SnapshotPreviewModal
+        isOpen={Boolean(previewSnapshot)}
+        onClose={() => setPreviewSnapshot(null)}
+        snapshot={previewSnapshot}
+        onRestore={handleRestoreSnapshot}
+      />
     </>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass, FlaskConical } from 'lucide-react';
+import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass, FlaskConical, AlertTriangle } from 'lucide-react';
 import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
 import { soundEngine } from '../services/soundEngine';
@@ -320,11 +320,11 @@ export default function Header({
           <button
             onClick={handleGoogleLogin}
             disabled={authLoading}
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0"
-            title="Connect Google Cloud Sync"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-amber-100 hover:bg-[#FDC800] border-2 border-black text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 transition-colors"
+            title="Local Mode: Entries saved in this browser memory only. Click to connect Google Cloud Sync."
           >
-            <Cloud className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span className="hidden sm:inline">{authLoading ? 'Signing In...' : 'SYNC'}</span>
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-800 stroke-[2.5]" />
+            <span className="hidden sm:inline">{authLoading ? 'Connecting...' : 'LOCAL ONLY (SYNC)'}</span>
           </button>
         )}
 

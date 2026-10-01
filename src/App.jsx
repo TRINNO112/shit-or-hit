@@ -582,6 +582,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const handleDbRestoredOrReverted = () => {
+      loadData();
+    };
+    window.addEventListener('goodness_db_restored', handleDbRestoredOrReverted);
+    window.addEventListener('goodness_db_reverted', handleDbRestoredOrReverted);
+    return () => {
+      window.removeEventListener('goodness_db_restored', handleDbRestoredOrReverted);
+      window.removeEventListener('goodness_db_reverted', handleDbRestoredOrReverted);
+    };
+  }, [loadData]);
+
+  useEffect(() => {
     scheduleLocalEveningReminder();
     // ⚡ Instant local hydration: sync local storage/server immediately on mount
     loadData();

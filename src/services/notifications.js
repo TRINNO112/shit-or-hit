@@ -28,12 +28,14 @@ export function detectActiveEngine() {
         return 'sanctuary';
       }
     }
+    const sphereRaw = localStorage.getItem('daily_verdict_sphere_mode_enabled');
+    if (sphereRaw === 'true') {
+      return 'spheres';
+    }
+    const nonNegRaw = localStorage.getItem('daily_verdict_non_negotiables_enabled');
     const rawAnchors = localStorage.getItem('daily_anchors_config');
-    if (rawAnchors) {
-      const aCfg = JSON.parse(rawAnchors);
-      if (aCfg && aCfg.enabled) {
-        return 'non-negotiables';
-      }
+    if (nonNegRaw === 'true' || (rawAnchors && JSON.parse(rawAnchors)?.enabled)) {
+      return 'non-negotiables';
     }
     const rawPeer = localStorage.getItem('goodness_peer_mutual_backup');
     if (rawPeer) {
@@ -46,6 +48,12 @@ export function detectActiveEngine() {
 export function getEngineNotificationContent(engineKey = null) {
   const engine = engineKey || detectActiveEngine();
   switch (engine) {
+    case 'spheres':
+      return {
+        title: 'LIFE SPHERES AUDIT • 5 DOMAINS',
+        body: 'Audit your life spheres (Code, Health, Wealth, Mind, Tribe). Record overall verdict & reflections.',
+        placeholder: 'Type overall rating 1-5★ and domain reflections...'
+      };
     case 'sabbatical':
       return {
         title: 'SABBATICAL STASIS • DAILY CHRONICLE',
