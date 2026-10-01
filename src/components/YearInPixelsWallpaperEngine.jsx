@@ -400,7 +400,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
           className="px-6 py-3 bg-[#00E599] hover:bg-emerald-400 border-3 border-black rounded-2xl font-mono font-black text-xs uppercase tracking-wider text-black shadow-[4px_4px_0px_#000000] hover:shadow-[2px_2px_0px_#000000] hover:translate-x-px hover:translate-y-px active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 disabled:opacity-50"
         >
           {downloadSuccess ? (
-            <><Check className="w-4 h-4 stroke-[3]" /><span>WALLPAPER SAVED!</span></>
+            <><Check className="w-4 h-4 stroke-3" /><span>WALLPAPER SAVED!</span></>
           ) : (
             <><Download className="w-4 h-4 stroke-[2.5]" /><span>DOWNLOAD PNG</span></>
           )}

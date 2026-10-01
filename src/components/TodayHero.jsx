@@ -1874,7 +1874,7 @@ export default function TodayHero({
                   onClick={() => handleAIEnhance()}
                   disabled={enhanceStatus === 'polishing' || (!noteText.trim() && !Object.values(spheresData).some(s => s?.notes && s.notes.trim()))}
                   title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : 'Polish and organize your diary entry with Gemini AI using your Settings directive'}
-                  className={`px-3.5 py-1.5 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_#000000] transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`px-3.5 py-1.5 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                     enhanceStatus === 'success'
                       ? 'bg-[#00E599]'
                       : enhanceStatus === 'fallback'

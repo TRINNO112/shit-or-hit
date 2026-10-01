@@ -1941,7 +1941,7 @@ export default function MobileAppView({
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
                   placeholder="What went wrong? What went right? Write your unfiltered thoughts..."
-                  className="flex-1 w-full p-3.5 sm:p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto min-h-[140px]"
+                  className="flex-1 w-full p-3.5 sm:p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto min-h-35"
                 />
 
                 {/* AI Directives Modal Trigger & Polish Toolbar */}
@@ -1952,7 +1952,7 @@ export default function MobileAppView({
                       type="button"
                       onClick={() => handleAIEnhance()}
                       disabled={enhanceStatus === 'polishing' || !noteText || !noteText.trim()}
-                      className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer transition-colors active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
+                      className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] transition-colors active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
                         enhanceStatus === 'success'
                           ? 'bg-[#00E599]'
                           : enhanceStatus === 'error'

@@ -148,7 +148,7 @@ export default function SovereignGuestBanner({
           type="button"
           onClick={handlePersistStorage}
           disabled={isPersisted || persisting}
-          className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-4 py-2.5 bg-[#00E599] hover:bg-[#00cc88] disabled:bg-neutral-200 border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none enabled:cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-transform"
+          className="w-full sm:w-auto font-mono text-xs font-black uppercase tracking-wider px-4 py-2.5 bg-[#00E599] hover:bg-[#00cc88] disabled:bg-neutral-200 border-2 border-black shadow-[3px_3px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-transform"
         >
           {isPersisted ? (
             <>
