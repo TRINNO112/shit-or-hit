@@ -191,9 +191,20 @@ self.addEventListener('notificationclick', (event) => {
   let rating = null;
   if (event.action && event.action.startsWith('rate-')) {
     if (event.action === 'rate-inline' && event.reply) {
-      const typed = parseInt(event.reply.trim(), 10);
-      if (typed >= 1 && typed <= 5) {
-        rating = typed;
+      const clean = event.reply.trim().toLowerCase();
+      const numMatch = clean.match(/[1-5]/);
+      if (numMatch) {
+        rating = parseInt(numMatch[0], 10);
+      } else if (clean.includes('shit') || clean.includes('rough') || clean.includes('bad') || clean.includes('terrible')) {
+        rating = 1;
+      } else if (clean.includes('down') || clean.includes('sad') || clean.includes('low')) {
+        rating = 2;
+      } else if (clean.includes('ok') || clean.includes('fine') || clean.includes('average') || clean.includes('meh')) {
+        rating = 3;
+      } else if (clean.includes('good') || clean.includes('decent') || clean.includes('nice')) {
+        rating = 4;
+      } else if (clean.includes('hit') || clean.includes('peak') || clean.includes('great') || clean.includes('awesome') || clean.includes('fire')) {
+        rating = 5;
       }
     } else {
       const parsed = parseInt(event.action.replace('rate-', ''), 10);

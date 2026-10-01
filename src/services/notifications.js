@@ -64,11 +64,10 @@ export function setNotificationBannerMode(mode) {
   }
 }
 
-export function getNotificationRatingActions() {
-  const mode = getNotificationBannerMode();
-  const max = (typeof Notification !== 'undefined' && Notification.maxActions) ? Notification.maxActions : 2;
+export function getNotificationRatingActions(forcedMode = null) {
+  const mode = forcedMode || getNotificationBannerMode();
 
-  // Mode 1: Inline 1-5★ Rating Field (Best for PC screens: permits typing any star 1-5!)
+  // Mode 1: Inline 1-5★ Rating Field (Permits typing any star 1-5 in OS toast)
   if (mode === 'inline') {
     return [
       {
@@ -84,8 +83,8 @@ export function getNotificationRatingActions() {
     ];
   }
 
-  // Mode 2: All 5 Tier Buttons (Full spectrum for mobile/supporting systems)
-  if (mode === 'all5' || max >= 5) {
+  // Mode 2: All 5 Tier Buttons (Full spectrum for mobile & systems with multi-button support)
+  if (mode === 'all5') {
     return [
       { action: 'rate-1', title: '1★ Rough' },
       { action: 'rate-2', title: '2★ Down' },
@@ -95,7 +94,7 @@ export function getNotificationRatingActions() {
     ];
   }
 
-  // Mode 3: Polar Quick Actions (1★ Shit vs 5★ Hit binary buttons)
+  // Mode 3: Polar Quick Actions (1★ Shit vs 5★ Hit binary buttons - 100% Windows Compatible)
   return [
     { action: 'rate-1', title: '1★ Shit (Rough)' },
     { action: 'rate-5', title: '5★ Hit (Peak)' }
@@ -104,7 +103,7 @@ export function getNotificationRatingActions() {
 
 export const NOTIFICATION_RATING_ACTIONS = getNotificationRatingActions();
 
-export async function showInstantReminderNotification(customBody = null) {
+export async function showInstantReminderNotification(customBody = null, overrideMode = null) {
   console.log('🔔 [Notification Debug] Step 1: Checking browser support...');
   if (!isNotificationSupported()) {
     console.warn('❌ [Notification Debug] Notifications are NOT supported in this browser window environment.');
@@ -127,7 +126,8 @@ export async function showInstantReminderNotification(customBody = null) {
     }
   }
 
-  console.log('🔔 [Notification Debug] Step 3: Triggering notification payload:', { title: '⚡ Daily Verdict', body });
+  const actions = getNotificationRatingActions(overrideMode);
+  console.log('🔔 [Notification Debug] Step 3: Triggering notification payload:', { title: '⚡ Daily Verdict', body, actionsCount: actions.length });
 
   try {
     // Method A: Check for active Service Worker Registration (Supports 1-Tap Notification Actions)
@@ -148,7 +148,7 @@ export async function showInstantReminderNotification(customBody = null) {
             vibrate: [150, 50, 150],
             tag: 'daily-verdict-reminder',
             renotify: true,
-            actions: getNotificationRatingActions()
+            actions
           });
           return true;
         }

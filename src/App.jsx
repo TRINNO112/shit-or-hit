@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, startTransition } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Zap, Calendar, FlaskConical, Clock, Layers } from 'lucide-react';
+import { Zap, Calendar, FlaskConical, Clock, Layers, CheckCircle2, X } from 'lucide-react';
+import { playMood } from './services/soundEffects';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
 import JourneyTimeline from './components/JourneyTimeline';
@@ -228,6 +229,26 @@ export default function App() {
   const [activeDesktopTab, setActiveDesktopTab] = useState('today');
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
+  const [notificationVerdictFeedback, setNotificationVerdictFeedback] = useState(null);
+
+  const triggerNotificationFeedback = useCallback((rating, source = 'System Notification') => {
+    const meta = {
+      1: { label: '1★ ROUGH (SHIT)', color: '#FF4D4D' },
+      2: { label: '2★ DOWN', color: '#FF9500' },
+      3: { label: '3★ OKAY', color: '#FDC800' },
+      4: { label: '4★ GOOD', color: '#00D4FF' },
+      5: { label: '5★ PEAK (HIT)', color: '#00E599' }
+    }[rating] || { label: `${rating}★`, color: '#FDC800' };
+
+    setNotificationVerdictFeedback({ rating, label: meta.label, color: meta.color, source });
+    try {
+      playMood(rating);
+      soundEngine.playSuccess();
+    } catch (e) {
+      console.warn('Audio feedback error:', e);
+    }
+    setTimeout(() => setNotificationVerdictFeedback(null), 5500);
+  }, []);
 
   // ⏱️ Guest Disclaimer evaluates with a 3-second grace buffer to allow Firebase Auth to initialize
   const [isGuestDisclaimerOpen, setIsGuestDisclaimerOpen] = useState(() => previewModal === 'disclaimer' || previewModal === 'guest');
@@ -857,9 +878,7 @@ export default function App() {
           console.log(`🔔 [Remote Notification Rating] Saving 1-tap rating: ${rating}★ for ${targetDate}`);
           handleSaveEntry({ date: targetDate, rating });
           setActiveDesktopTab('today');
-          try {
-            soundEngine.playSuccess();
-          } catch (e) {}
+          triggerNotificationFeedback(rating, '1-Tap Notification');
         } else if (event.data.type === 'NOTIFICATION_OPEN_URL') {
           console.log('🔔 [Notification Open URL] Focusing Today workspace');
           setActiveDesktopTab('today');
@@ -868,7 +887,7 @@ export default function App() {
       navigator.serviceWorker.addEventListener('message', handleRemoteRating);
       return () => navigator.serviceWorker.removeEventListener('message', handleRemoteRating);
     }
-  }, [todayStr]);
+  }, [todayStr, triggerNotificationFeedback]);
 
   // ⚡ In-App Simulator Listener for NotificationSetterCard
   useEffect(() => {
@@ -879,11 +898,12 @@ export default function App() {
         console.log(`⚡ [Simulated Notification Rating] Saving: ${rating}★ for ${todayStr}`);
         handleSaveEntry({ date: todayStr, rating });
         setActiveDesktopTab('today');
+        triggerNotificationFeedback(rating, 'Notification Simulator');
       }
     };
     window.addEventListener('remote_notification_verdict', handleSimulatedRating);
     return () => window.removeEventListener('remote_notification_verdict', handleSimulatedRating);
-  }, [todayStr]);
+  }, [todayStr, triggerNotificationFeedback]);
 
   // ⚡ URL Query Parameter 1-Tap Notification Quick-Rate Receiver
   useEffect(() => {
@@ -899,9 +919,7 @@ export default function App() {
           console.log(`⚡ [URL Quick Rate] Recording rating ${ratingNum}★ for ${targetDate}`);
           handleSaveEntry({ date: targetDate, rating: ratingNum });
           setActiveDesktopTab('today');
-          try {
-            soundEngine.playSuccess();
-          } catch (e) {}
+          triggerNotificationFeedback(ratingNum, '1-Tap Notification Link');
           // Clean URL so refresh doesn't re-trigger
           const url = new URL(window.location.href);
           url.searchParams.delete('quickRate');
@@ -913,7 +931,7 @@ export default function App() {
     } catch (e) {
       console.warn('URL quick rate parse error:', e);
     }
-  }, [todayStr]);
+  }, [todayStr, triggerNotificationFeedback]);
 
   const handleOpenMonthlyReport = (target) => {
     startTransition(() => {
@@ -1121,6 +1139,40 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 🔔 1-Tap Notification Verdict Tactile Confirmation Toast */}
+      {notificationVerdictFeedback && (
+        <aside 
+          role="status"
+          aria-live="polite"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-90 w-[94%] max-w-lg p-3.5 sm:p-4 bg-black border-3 border-[#00E599] rounded-2xl shadow-[6px_6px_0px_#000000] text-white flex items-center justify-between gap-3 animate-fade-in"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div 
+              className="w-10 h-10 rounded-xl border-2 border-black flex items-center justify-center font-display font-black text-black text-sm shrink-0 shadow-[2px_2px_0px_#FFF]"
+              style={{ backgroundColor: notificationVerdictFeedback.color }}
+            >
+              <CheckCircle2 className="w-6 h-6 text-black stroke-[2.5]" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-mono font-black text-xs uppercase tracking-tight text-[#00E599] flex items-center gap-1.5">
+                <span>VERDICT APPLIED VIA {notificationVerdictFeedback.source.toUpperCase()}</span>
+              </div>
+              <div className="font-mono text-xs text-white font-bold truncate mt-0.5">
+                Today is locked as {notificationVerdictFeedback.label}. Local diary updated &amp; synced!
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setNotificationVerdictFeedback(null)}
+            className="p-1.5 hover:bg-white/20 rounded-xl text-white/70 hover:text-white cursor-pointer shrink-0 transition-colors"
+            aria-label="Close notification"
+          >
+            <X className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </aside>
       )}
 
       {/* 🛫 Verified Offline Airplane Shelter Status Badge */}

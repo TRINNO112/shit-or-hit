@@ -3,15 +3,15 @@ import {
   Bell, 
   Send, 
   Check, 
-  Sparkles, 
   Smartphone, 
   Keyboard, 
   CheckCircle2, 
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  Monitor,
-  Settings
+  ChevronDown, 
+  ChevronUp, 
+  Monitor, 
+  Settings,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { playMood } from '../services/soundEffects';
 import { soundEngine } from '../services/soundEngine';
@@ -38,33 +38,29 @@ const STAR_TIERS = [
 const BANNER_MODES = [
   {
     id: 'inline',
-    name: '1. INLINE 1-5★ INPUT (PC RECOMMENDED)',
-    tag: 'ANY STAR 1-5',
-    desc: 'Native Windows reply field. Type 1, 2, 3, 4, or 5 & press Enter directly in the PC notification toast!'
+    name: '1. INLINE NUMBER INPUT (1-5★)',
+    tag: 'TEXT REPLY',
+    shortTitle: 'INLINE INPUT',
+    desc: 'Type 1 to 5 and send directly in the notification banner. (On Windows, click the reply arrow in the toast).'
   },
   {
     id: 'polar',
     name: '2. 1★ SHIT VS 5★ HIT BUTTONS',
-    tag: 'FAST 1-TAP',
-    desc: 'Two chunky buttons for binary logging on Windows. Click notification body to pick 2★, 3★, 4★ in-app.'
+    tag: 'RECOMMENDED FOR PC',
+    shortTitle: '2-BUTTON POLAR',
+    desc: 'Two physical buttons. 100% reliable 1-tap rating on Windows PC Action Center without typing or opening the app.'
   },
   {
     id: 'all5',
     name: '3. ALL 5 STAR BUTTONS',
-    tag: 'MOBILE / FULL',
-    desc: 'Passes all 5 star buttons. Automatically renders in full on Android and devices supporting >2 actions.'
+    tag: 'MOBILE / FULL TIER',
+    shortTitle: '5-BUTTON FULL',
+    desc: 'Passes all 5 star buttons. Android shows all 5. Windows PC shows the first 2 buttons or truncates.'
   }
-];
-
-const DESIGN_OPTIONS = [
-  { id: 'lockscreen', name: '1. OS NOTIFICATION DRAWER', desc: 'Realistic PC & Mobile OS Push Shade with 1-Tap Star Actions' },
-  { id: 'tactile_chips', name: '2. TACTILE STAR CHIPS', desc: 'Chunky Neobrutalist buttons with star glyphs & keyboard acceleration' },
-  { id: 'cyber_bar', name: '3. COMPACT CYBER DOCK', desc: 'Ultra-dense horizontal bar optimized for narrow mobile viewports' }
 ];
 
 export default function NotificationSetterCard() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedDesign, setSelectedDesign] = useState('lockscreen');
   const [selectedRating, setSelectedRating] = useState(5);
   const [bannerMode, setBannerModeState] = useState(() => getNotificationBannerMode());
   const [inlineInputVal, setInlineInputVal] = useState('');
@@ -72,9 +68,8 @@ export default function NotificationSetterCard() {
   const [confirmedRating, setConfirmedRating] = useState(null);
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testSent, setTestSent] = useState(false);
-  const [showMobileModesOnPC, setShowMobileModesOnPC] = useState(false);
+  const [testSentMode, setTestSentMode] = useState(null);
 
-  // Responsive PC vs Mobile screen detection
   const [isMobileScreen, setIsMobileScreen] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 640 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -87,14 +82,6 @@ export default function NotificationSetterCard() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // For PC desktops, ensure default is strictly the inline number format
-  useEffect(() => {
-    if (!isMobileScreen && bannerMode !== 'inline' && !showMobileModesOnPC) {
-      setBannerModeState('inline');
-      setNotificationBannerMode('inline');
-    }
-  }, [isMobileScreen, bannerMode, showMobileModesOnPC]);
 
   const handleSelectBannerMode = (modeId) => {
     setBannerModeState(modeId);
@@ -128,10 +115,10 @@ export default function NotificationSetterCard() {
     const msg = `RECORDED ${tier.count} ${tier.label} TO TODAY'S DIARY (ZERO APP OPEN NEEDED)`;
     setFeedbackMessage(msg);
     setConfirmedRating(tier);
-    setTimeout(() => setFeedbackMessage(null), 4000);
+    setTimeout(() => setFeedbackMessage(null), 4500);
     setTimeout(() => setConfirmedRating(null), 6000);
 
-    // Dispatch remote rating message to app if registered
+    // Dispatch remote rating message to app
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('remote_notification_verdict', { detail: { rating, timestamp: new Date().toISOString() } })
@@ -139,21 +126,25 @@ export default function NotificationSetterCard() {
     }
   };
 
-  const handleSendTestNotification = async () => {
+  const handleSendTestNotification = async (overrideMode = null) => {
+    const targetMode = overrideMode || bannerMode;
     setIsSendingTest(true);
     soundEngine.playClick();
     try {
-      const ok = await showInstantReminderNotification();
+      const ok = await showInstantReminderNotification(null, targetMode);
       setIsSendingTest(false);
       if (ok) {
         setTestSent(true);
+        setTestSentMode(targetMode);
         soundEngine.playSuccess();
-        setTimeout(() => setTestSent(false), 3500);
+        setTimeout(() => setTestSent(false), 4500);
       }
     } catch (e) {
       setIsSendingTest(false);
     }
   };
+
+  const currentModeObj = BANNER_MODES.find(m => m.id === bannerMode) || BANNER_MODES[0];
 
   return (
     <div className="bg-[#FFFDF8] border-3 border-black rounded-3xl p-3.5 sm:p-6 text-black shadow-[6px_6px_0px_#000000] space-y-4">
@@ -165,25 +156,16 @@ export default function NotificationSetterCard() {
             <span className="px-2.5 py-0.5 bg-[#00E599] border-2 border-black rounded-lg font-mono font-black text-[10px] uppercase shadow-[2px_2px_0px_#000]">
               SYSTEM NOTIFICATION ENGINE
             </span>
-            {!isMobileScreen ? (
-              <span className="px-2 py-0.5 bg-black text-[#FDC800] rounded font-mono font-black text-[10px] uppercase flex items-center gap-1">
-                <Monitor className="w-3 h-3 text-[#FDC800]" />
-                <span>PC DESKTOP: INLINE 1-5 NUMBER FORMAT</span>
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 bg-black text-[#FDC800] rounded font-mono font-black text-[10px] uppercase flex items-center gap-1">
-                <Smartphone className="w-3 h-3 text-[#FDC800]" />
-                <span>MOBILE LOCKSCREEN READY</span>
-              </span>
-            )}
+            <span className="px-2 py-0.5 bg-black text-[#FDC800] rounded font-mono font-black text-[10px] uppercase flex items-center gap-1">
+              {!isMobileScreen ? <Monitor className="w-3 h-3 text-[#FDC800]" /> : <Smartphone className="w-3 h-3 text-[#FDC800]" />}
+              <span>ARMED: {currentModeObj.shortTitle}</span>
+            </span>
           </div>
           <h2 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight">
             Daily Notification &amp; Star Setter
           </h2>
           <p className="text-xs font-mono text-black/70">
-            {!isMobileScreen 
-              ? 'Desktop PC defaults to inline number reply: type 1, 2, 3, 4, or 5 & press Enter in Windows toast.'
-              : 'Log your daily mood directly from your smartphone notification shade, or tap to open the app.'}
+            Log your daily mood directly from Windows notifications or smartphone shade without opening the app.
           </p>
         </div>
 
@@ -191,7 +173,7 @@ export default function NotificationSetterCard() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={handleSendTestNotification}
+            onClick={() => handleSendTestNotification()}
             disabled={isSendingTest}
             className={`px-4 py-2.5 border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[3px_3px_0px_#000000] cursor-pointer transition-all flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px ${
               testSent
@@ -249,7 +231,7 @@ export default function NotificationSetterCard() {
                 VERDICT CONFIRMED: TODAY RECORDED AS {confirmedRating.count} ({confirmedRating.label})
               </div>
               <div className="font-mono text-[11px] text-black/80">
-                Logged directly via notification number system. Local diary updated &amp; cloud synced.
+                Logged directly via notification system. Local diary updated &amp; cloud synced!
               </div>
             </div>
           </div>
@@ -264,9 +246,14 @@ export default function NotificationSetterCard() {
 
       {/* Test Notification Fired Toast */}
       {testSent && !confirmedRating && (
-        <div className="p-3 bg-[#FDC800] border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] text-black font-mono text-xs font-black flex items-center gap-2 animate-fade-in">
-          <Check className="w-4 h-4 stroke-3 text-black" />
-          <span>TEST NOTIFICATION SENT TO SYSTEM TRAY / ACTION CENTER. CHECK YOUR SCREEN!</span>
+        <div className="p-3 bg-[#FDC800] border-2 border-black rounded-xl shadow-[3px_3px_0px_#000000] text-black font-mono text-xs font-black flex items-center justify-between gap-2 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 stroke-3 text-black shrink-0" />
+            <span>TEST NOTIFICATION SENT WITH [{testSentMode ? testSentMode.toUpperCase() : 'ACTIVE'}] ACTIONS. CHECK SYSTEM TRAY!</span>
+          </div>
+          <span className="text-[10px] bg-black text-white px-2 py-0.5 rounded font-bold shrink-0">
+            CHECK ACTION CENTER
+          </span>
         </div>
       )}
 
@@ -274,104 +261,84 @@ export default function NotificationSetterCard() {
       {isExpanded && (
         <div className="pt-3 border-t-3 border-black space-y-6">
           
-          {/* Section 1: Action Mode Configuration */}
-          <div className="space-y-2">
+          {/* Section 1: 3 Action Modes with Direct Test Triggers */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-xs font-mono font-black uppercase text-neutral-800 tracking-wider flex items-center gap-1.5">
                 <Smartphone className="w-3.5 h-3.5 text-black" />
-                <span>NOTIFICATION ACTION MODE:</span>
+                <span>SELECT &amp; TEST NOTIFICATION MODE:</span>
               </span>
-              <span className="font-mono text-[10px] bg-black text-[#FDC800] px-2 py-0.5 rounded font-black">
-                {!isMobileScreen ? 'DESKTOP 1-5 NUMBER MODE' : 'SMARTPHONE 5-TIER'}
+              <span className="font-mono text-[10px] bg-black text-[#00E599] px-2 py-0.5 rounded font-black">
+                CLICK TO ACTIVATE OR TEST
               </span>
             </div>
 
-            {/* PC Desktop Streamlined Notification Notice */}
-            {!isMobileScreen && !showMobileModesOnPC ? (
-              <div className="p-4 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded font-mono font-black text-[10px]">
-                      DEFAULT FOR PC DESKTOP
-                    </span>
-                    <span className="font-display font-black text-sm uppercase">
-                      INLINE 1-5 NUMBER FORMAT
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowMobileModesOnPC(true);
-                      soundEngine.playClick();
-                    }}
-                    className="text-[10px] font-mono font-bold text-neutral-600 hover:text-black underline cursor-pointer"
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {BANNER_MODES.map((m) => {
+                const isSelected = bannerMode === m.id;
+                return (
+                  <div
+                    key={m.id}
+                    className={`p-3.5 rounded-2xl border-2 border-black transition-all flex flex-col justify-between gap-2.5 ${
+                      isSelected
+                        ? 'bg-[#FFFDF5] shadow-[4px_4px_0px_#000] ring-2 ring-black'
+                        : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000]'
+                    }`}
                   >
-                    Test Smartphone Modes Instead
-                  </button>
-                </div>
-                <p className="text-xs font-mono text-neutral-700 leading-relaxed">
-                  On desktop PC (Windows Action Center &amp; Chrome), native notifications only support 2 buttons. 
-                  By using the <strong>Inline Number Format</strong>, you get a clean text input box directly in the Windows banner: 
-                  simply type <strong>1, 2, 3, 4, or 5 and hit Enter</strong> to log any mood instantly!
-                </p>
-              </div>
-            ) : (
-              /* Multi-Mode Grid for Mobile or When Testing on PC */
-              <div className="space-y-2">
-                {!isMobileScreen && (
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMobileModesOnPC(false);
-                        handleSelectBannerMode('inline');
-                      }}
-                      className="text-[10px] font-mono font-bold text-neutral-600 hover:text-black underline cursor-pointer"
-                    >
-                      ← Back to PC Desktop Default (Number Format Only)
-                    </button>
-                  </div>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {BANNER_MODES.map((m) => {
-                    const isSelected = bannerMode === m.id;
-                    return (
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-1.5">
+                        <span className={`font-mono text-[9px] px-2 py-0.5 rounded border border-black font-black ${
+                          isSelected ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-700'
+                        }`}>
+                          {isSelected ? 'ACTIVE ON OS' : m.tag}
+                        </span>
+                        {isSelected && (
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#00E599] border border-black animate-pulse" />
+                        )}
+                      </div>
+                      <h3 className="font-display font-black text-xs uppercase tracking-tight text-black">
+                        {m.name}
+                      </h3>
+                      <p className="text-[10px] font-mono text-neutral-600 leading-tight mt-1">
+                        {m.desc}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-2 border-t border-black/10">
                       <button
-                        key={m.id}
                         type="button"
                         onClick={() => handleSelectBannerMode(m.id)}
-                        className={`p-3 rounded-xl border-2 border-black text-left cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
-                          isSelected
-                            ? 'bg-[#FFFDF5] text-black shadow-[3px_3px_0px_#000] ring-2 ring-black -translate-y-0.5 font-black'
-                            : 'bg-white hover:bg-neutral-50 text-neutral-800 shadow-[2px_2px_0px_#000]'
+                        className={`flex-1 py-1.5 px-2 rounded-lg font-mono font-black text-[10px] uppercase border border-black cursor-pointer transition-all text-center ${
+                          isSelected 
+                            ? 'bg-black text-[#00E599]' 
+                            : 'bg-white hover:bg-neutral-100 text-black shadow-[1.5px_1.5px_0px_#000]'
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="font-display font-black text-xs uppercase tracking-tight">
-                            {m.name}
-                          </span>
-                          <span className={`font-mono text-[9px] px-1.5 py-0.2 rounded border border-black font-black shrink-0 ${
-                            isSelected ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-700'
-                          }`}>
-                            {isSelected ? 'ACTIVE' : m.tag}
-                          </span>
-                        </div>
-                        <p className="text-[10px] font-mono text-neutral-600 line-clamp-2 leading-tight">
-                          {m.desc}
-                        </p>
+                        {isSelected ? 'SELECTED' : 'SELECT MODE'}
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSelectBannerMode(m.id);
+                          handleSendTestNotification(m.id);
+                        }}
+                        className="py-1.5 px-2.5 rounded-lg bg-[#FDC800] hover:bg-[#ffe066] font-mono font-black text-[10px] uppercase border border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000] active:translate-x-px active:translate-y-px text-black shrink-0"
+                        title={`Send test notification with ${m.name}`}
+                      >
+                        TEST
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Section 2: Design Option Tabs */}
+          {/* Section 2: Active Mode Simulator Preview Canvas */}
           <div className="space-y-2 pt-2 border-t border-black/10">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-xs font-mono font-black uppercase text-neutral-800 tracking-wider">
-                PREVIEW NOTIFICATION SHADE SIMULATOR:
+                LIVE INTERACTIVE SIMULATOR (TEST HOW THIS MODE OPERATES):
               </span>
               <div className="flex items-center gap-1.5 font-mono text-[10px] bg-black text-[#00E599] px-2 py-0.5 rounded font-black">
                 <Keyboard className="w-3 h-3 text-[#00E599]" />
@@ -379,71 +346,44 @@ export default function NotificationSetterCard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {DESIGN_OPTIONS.map((d) => {
-                const isSelected = selectedDesign === d.id;
-                return (
-                  <button
-                    key={d.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedDesign(d.id);
-                      soundEngine.playClick();
-                    }}
-                    className={`p-2.5 rounded-xl border-2 border-black text-left cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-[#FDC800] text-black shadow-[3px_3px_0px_#000] ring-2 ring-black -translate-y-0.5 font-black'
-                        : 'bg-white hover:bg-neutral-50 text-neutral-800 shadow-[2px_2px_0px_#000]'
-                    }`}
-                  >
-                    <div className="font-display font-black text-xs uppercase">{d.name}</div>
-                    <div className="text-[10px] font-mono text-neutral-700 line-clamp-1 mt-0.5">{d.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Active Interactive Preview Canvas */}
-          <div className="p-4 sm:p-6 rounded-2xl border-3 border-black bg-[#241F1A] shadow-[4px_4px_0px_#000]">
-            
-            {/* DESIGN 1: OS LOCKSCREEN NOTIFICATION DRAWER */}
-            {selectedDesign === 'lockscreen' && (
-              <div className="max-w-xl mx-auto bg-[#1C1814] border-2 border-[#FDC800] rounded-2xl p-4 sm:p-5 text-white shadow-[0_8px_20px_rgba(0,0,0,0.6)] space-y-3.5">
-                {/* Header info */}
-                <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-[#FDC800] border border-black flex items-center justify-center font-display font-black text-black text-xs">
-                      S
+            <div className="p-4 sm:p-6 rounded-2xl border-3 border-black bg-[#1C1814] shadow-[4px_4px_0px_#000] text-white space-y-4">
+              {/* Notification Banner Header */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#FDC800] border border-black flex items-center justify-center font-display font-black text-black text-xs">
+                    S
+                  </div>
+                  <div>
+                    <div className="font-mono font-black text-xs uppercase text-[#FDC800] leading-none">
+                      SHIT OR HIT • DAILY VERDICT
                     </div>
-                    <div>
-                      <div className="font-mono font-black text-xs uppercase text-[#FDC800] leading-none">
-                        SHIT OR HIT • DAILY VERDICT
-                      </div>
-                      <div className="font-mono text-[9px] text-white/50 mt-0.5">
-                        8:30 PM • SYSTEM NOTIFICATION
-                      </div>
+                    <div className="font-mono text-[9px] text-white/50 mt-1">
+                      SYSTEM NOTIFICATION • {currentModeObj.name}
                     </div>
                   </div>
-                  <span className="font-mono text-[9px] bg-white/10 px-2 py-0.5 rounded text-white/70 uppercase">
-                    MODE: {bannerMode.toUpperCase()}
-                  </span>
                 </div>
+                <span className="font-mono text-[9px] bg-white/10 px-2.5 py-1 rounded text-[#00E599] font-bold uppercase">
+                  SIMULATING: {bannerMode.toUpperCase()}
+                </span>
+              </div>
 
-                {/* Notification Body */}
-                <div>
-                  <h4 className="font-display font-black text-sm uppercase text-white tracking-tight">
-                    How was your day? Log in 1 tap:
-                  </h4>
-                  <p className="text-[11px] font-mono text-white/70 mt-0.5">
-                    {bannerMode === 'inline' 
-                      ? 'Type 1 to 5 directly in the box below to log your rating without opening the app:'
-                      : 'Tap an action below to record your verdict without launching the app.'}
-                  </p>
-                </div>
+              {/* Notification Body Prompt */}
+              <div>
+                <h4 className="font-display font-black text-sm uppercase text-white tracking-tight">
+                  How was your day? Log in 1 tap:
+                </h4>
+                <p className="text-[11px] font-mono text-white/70 mt-0.5">
+                  {bannerMode === 'inline' 
+                    ? 'Type 1 to 5 directly in the box below to log your rating without opening the app:'
+                    : bannerMode === 'polar'
+                    ? 'Click 1★ Shit or 5★ Hit directly from your notification banner:'
+                    : 'Click any of the 5 stars to record your verdict directly:'}
+                </p>
+              </div>
 
-                {/* MODE A: Inline 1-5 Input Field (PC Recommended & Default) */}
-                {bannerMode === 'inline' && (
+              {/* MODE 1: Inline 1-5 Input Field */}
+              {bannerMode === 'inline' && (
+                <div className="space-y-2 pt-1">
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -453,7 +393,7 @@ export default function NotificationSetterCard() {
                         setInlineInputVal('');
                       }
                     }}
-                    className="flex items-center gap-2 pt-1"
+                    className="flex items-center gap-2"
                   >
                     <input
                       type="text"
@@ -461,40 +401,50 @@ export default function NotificationSetterCard() {
                       onChange={(e) => setInlineInputVal(e.target.value)}
                       placeholder="Type 1, 2, 3, 4, or 5 & Enter..."
                       className="flex-1 bg-black/60 border-2 border-white/30 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FDC800]"
-                      maxLength={1}
+                      maxLength={2}
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
+                      className="px-4 py-2 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px shrink-0"
                     >
                       SEND
                     </button>
                   </form>
-                )}
+                  <p className="text-[10px] font-mono text-white/50">
+                    💡 On Windows PC notifications, type 1-5 and click the small reply arrow button if your Windows build doesn't bind Enter.
+                  </p>
+                </div>
+              )}
 
-                {/* MODE B: Polar Binary Buttons (1★ Shit vs 5★ Hit) */}
-                {bannerMode === 'polar' && (
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+              {/* MODE 2: Polar Binary Buttons (1★ Shit vs 5★ Hit) */}
+              {bannerMode === 'polar' && (
+                <div className="space-y-2 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => handleSelectRating(1)}
-                      className="p-2.5 rounded-xl border-2 border-black bg-[#FF4D4D] text-black font-mono font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
+                      className="p-3 rounded-xl border-2 border-black bg-[#FF4D4D] text-black font-mono font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
                     >
                       <span>1★ SHIT (ROUGH)</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSelectRating(5)}
-                      className="p-2.5 rounded-xl border-2 border-black bg-[#00E599] text-black font-mono font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
+                      className="p-3 rounded-xl border-2 border-black bg-[#00E599] text-black font-mono font-black text-xs uppercase flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px"
                     >
                       <span>5★ HIT (PEAK)</span>
                     </button>
                   </div>
-                )}
+                  <p className="text-[10px] font-mono text-white/50">
+                    💡 Windows officially guarantees 2 action buttons. This mode provides 100% reliable 1-tap logging on PC!
+                  </p>
+                </div>
+              )}
 
-                {/* MODE C: All 5 Star Buttons */}
-                {bannerMode === 'all5' && (
-                  <div className="grid grid-cols-5 gap-1.5 pt-1">
+              {/* MODE 3: All 5 Star Buttons */}
+              {bannerMode === 'all5' && (
+                <div className="space-y-2 pt-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
                     {STAR_TIERS.map((tier) => {
                       const isActive = selectedRating === tier.rating;
                       return (
@@ -502,9 +452,9 @@ export default function NotificationSetterCard() {
                           key={tier.rating}
                           type="button"
                           onClick={() => handleSelectRating(tier.rating)}
-                          className={`p-2 rounded-xl border-2 border-black flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all active:scale-95 ${
+                          className={`p-2.5 rounded-xl border-2 border-black flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-all active:scale-95 ${
                             isActive
-                              ? 'ring-2 ring-white scale-105 shadow-[0_0_12px_rgba(253,200,0,0.5)]'
+                              ? 'ring-2 ring-white scale-102 shadow-[0_0_12px_rgba(253,200,0,0.5)]'
                               : 'opacity-90 hover:opacity-100'
                           }`}
                           style={{ backgroundColor: tier.color }}
@@ -519,129 +469,37 @@ export default function NotificationSetterCard() {
                       );
                     })}
                   </div>
-                )}
-
-                {/* Feedback ticker */}
-                {feedbackMessage && (
-                  <div className="p-2 rounded-lg bg-[#00E599]/20 border border-[#00E599] text-[#00E599] font-mono text-[10px] font-black text-center animate-fade-in flex items-center justify-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                    <span>{feedbackMessage}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* DESIGN 2: TACTILE NEOBRUTALIST STAR CHIPS */}
-            {selectedDesign === 'tactile_chips' && (
-              <div className="bg-[#FFFDF5] border-2 border-black rounded-2xl p-4 sm:p-5 text-black space-y-4 shadow-[4px_4px_0px_#000]">
-                <div className="flex items-center justify-between border-b-2 border-black/10 pb-2">
-                  <span className="font-mono font-black text-xs uppercase text-neutral-800">
-                    TACTILE STAR CHIP MATRIX
-                  </span>
-                  <span className="font-mono text-[10px] bg-[#00E599] border border-black px-2 py-0.5 rounded font-black">
-                    1-TAP LOGGING
-                  </span>
+                  <p className="text-[10px] font-mono text-white/50">
+                    💡 Android smartphones show all 5 buttons. On Windows, Windows OS shows the first 2 buttons or truncates them.
+                  </p>
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                  {STAR_TIERS.map((tier) => {
-                    const isActive = selectedRating === tier.rating;
-                    return (
-                      <button
-                        key={tier.rating}
-                        type="button"
-                        onClick={() => handleSelectRating(tier.rating)}
-                        className={`p-3 rounded-xl border-2 border-black flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:translate-x-px active:translate-y-px ${
-                          isActive
-                            ? 'shadow-[4px_4px_0px_#000] ring-2 ring-black -translate-y-1'
-                            : 'shadow-[2px_2px_0px_#000] hover:-translate-y-0.5'
-                        }`}
-                        style={{ backgroundColor: tier.color }}
-                      >
-                        <span className="font-mono text-[10px] bg-black text-white px-2 py-0.5 rounded-full font-black">
-                          KEY: {tier.key}
-                        </span>
-                        <span className="text-sm font-black text-black tracking-widest my-0.5">
-                          {tier.stars}
-                        </span>
-                        <span className="font-display font-black text-xs uppercase text-black">
-                          {tier.count} {tier.label}
-                        </span>
-                      </button>
-                    );
-                  })}
+              {/* Feedback ticker */}
+              {feedbackMessage && (
+                <div className="p-2.5 rounded-xl bg-[#00E599]/20 border border-[#00E599] text-[#00E599] font-mono text-xs font-black text-center animate-fade-in flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{feedbackMessage}</span>
                 </div>
-
-                {feedbackMessage && (
-                  <div className="p-2.5 rounded-xl bg-black text-[#00E599] font-mono text-xs font-black text-center flex items-center justify-center gap-2">
-                    <Check className="w-4 h-4 text-[#00E599] stroke-3" />
-                    <span>{feedbackMessage}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* DESIGN 3: COMPACT CYBER DOCK */}
-            {selectedDesign === 'cyber_bar' && (
-              <div className="bg-black border-2 border-white/20 rounded-2xl p-4 text-white space-y-3 shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
-                <div className="flex items-center justify-between text-[11px] font-mono border-b border-white/10 pb-2">
-                  <span className="text-[#00E599] font-black uppercase flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#00E599] animate-pulse" />
-                    CYBER DOCK COMPACT BAR
-                  </span>
-                  <span className="text-white/50">MOBILE OPTIMIZED</span>
-                </div>
-
-                <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-                  {STAR_TIERS.map((tier) => {
-                    const isActive = selectedRating === tier.rating;
-                    return (
-                      <button
-                        key={tier.rating}
-                        type="button"
-                        onClick={() => handleSelectRating(tier.rating)}
-                        className={`flex-1 py-2 sm:py-2.5 px-1 rounded-xl border border-black flex flex-col items-center justify-center gap-1 cursor-pointer transition-all active:scale-95 ${
-                          isActive ? 'ring-2 ring-white scale-105' : 'hover:scale-102'
-                        }`}
-                        style={{ backgroundColor: tier.color }}
-                      >
-                        <span className="font-mono font-black text-[11px] sm:text-xs text-black leading-none">
-                          {tier.count}
-                        </span>
-                        <span className="font-mono font-black text-[8px] sm:text-[9px] text-black uppercase leading-none truncate max-w-full">
-                          {tier.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {feedbackMessage && (
-                  <div className="p-2 rounded-lg bg-white/10 text-[#FDC800] font-mono text-[10px] font-black text-center">
-                    {feedbackMessage}
-                  </div>
-                )}
-              </div>
-            )}
-
+              )}
+            </div>
           </div>
 
-          {/* Helpful OS Capabilities Callout */}
-          <div className="p-4 bg-[#FDC800] border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000] space-y-2">
-            <div className="flex items-center gap-2 font-mono text-xs font-black uppercase text-black">
+          {/* Section 3: Transparent Device OS Capabilities Callout */}
+          <div className="p-4 bg-[#FDC800] border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000] space-y-2 text-black">
+            <div className="flex items-center gap-2 font-mono text-xs font-black uppercase">
               <Smartphone className="w-4 h-4 stroke-[2.5]" />
-              <span>HOW DESKTOP PC &amp; SMARTPHONES PROCESS NOTIFICATIONS</span>
+              <span>OS NOTIFICATION CAPABILITIES &amp; BUTTON LIMITS</span>
             </div>
-            <div className="text-xs font-mono text-black space-y-1.5 leading-relaxed">
+            <div className="text-xs font-mono space-y-1.5 leading-relaxed">
               <p>
-                • <strong>PC Desktop (Google Chrome on Windows)</strong>: Windows Action Center supports an inline text reply box. 
-                Type any number <strong>1, 2, 3, 4, or 5</strong> and press Enter right in the notification toast to record your rating instantly for <strong>Today</strong> without opening the app!
+                • <strong>Windows Action Center Limit</strong>: Windows PC strictly caps notifications to <strong>2 action buttons</strong>. Mode 2 (<code>1★ Shit</code> &amp; <code>5★ Hit</code>) fits natively on Windows.
               </p>
               <p>
-                • <strong>Opening Mood Grid on PC</strong>: You can also click the notification banner body or the &ldquo;Open 5★ Moods&rdquo; action to launch the app directly.
+                • <strong>Why Test Mode 2 on PC?</strong>: If typing in the Windows notification text field feels awkward or your Windows build doesn't bind Enter, switch to <strong>Mode 2</strong>. Both buttons click instantly!
               </p>
               <p>
-                • <strong>Smartphones (Android &amp; PWA)</strong>: Mobile notification shades support rich multi-button actions, rendering all star choices directly on your mobile lockscreen.
+                • <strong>Mobile Lockscreen (Android PWA)</strong>: Supports up to 5 buttons natively (Mode 3), giving you all 5 mood ratings right on your lockscreen.
               </p>
             </div>
           </div>
