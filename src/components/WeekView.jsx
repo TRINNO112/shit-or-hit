@@ -9,7 +9,7 @@ import {
   Sparkles,
   Plus
 } from 'lucide-react';
-import { ratingMeta } from '../services/api';
+import { ratingMeta, normalizeNotesString } from '../services/api';
 
 const IconMap = {
   AlertOctagon,
@@ -165,9 +165,9 @@ export default function WeekView({
                 )}
 
                 {/* Note snippet */}
-                {entry?.notes && (
+                {normalizeNotesString(entry?.notes) && (
                   <p className="text-xs font-serif italic text-[#c8c4bc] line-clamp-2 mt-2">
-                    "{entry.notes}"
+                    "{normalizeNotesString(entry.notes)}"
                   </p>
                 )}
               </div>

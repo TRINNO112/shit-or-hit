@@ -62,7 +62,8 @@ import {
   getRehabilitationConfig,
   exitRehabilitation,
   activateSabbatical,
-  activateRehabilitation
+  activateRehabilitation,
+  normalizeNotesString
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import { soundFx } from '../services/soundEffects';
@@ -164,9 +165,9 @@ export default function MobileAppView({
   const [noteText, setNoteText] = useState(() => {
     if (typeof window !== 'undefined') {
       const draft = localStorage.getItem(`shit_or_hit_draft_stash_${todayStr}`) || sessionStorage.getItem(`daily_verdict_draft_notes_${todayStr}`);
-      if (draft) return draft;
+      if (draft) return normalizeNotesString(draft);
     }
-    return entries?.[todayStr]?.notes || '';
+    return normalizeNotesString(entries?.[todayStr]?.notes);
   });
   const [savedFlash, setSavedFlash] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -261,9 +262,10 @@ export default function MobileAppView({
 
   useEffect(() => {
     if (entries?.[todayStr]?.notes !== undefined) {
-      setNoteText(entries?.[todayStr]?.notes || '');
-      setOriginalDraft(entries?.[todayStr]?.notes || '');
-      setHistoryStack([entries?.[todayStr]?.notes || '']);
+      const safeNotes = normalizeNotesString(entries?.[todayStr]?.notes);
+      setNoteText(safeNotes);
+      setOriginalDraft(safeNotes);
+      setHistoryStack([safeNotes]);
       setHistoryIdx(0);
     }
   }, [entries, todayStr]);
@@ -657,12 +659,23 @@ export default function MobileAppView({
     });
   }
 
+  const [rehabVer, setRehabVer] = useState(0);
+  useEffect(() => {
+    const handleRehab = () => setRehabVer(v => v + 1);
+    window.addEventListener('rehabilitation-updated', handleRehab);
+    window.addEventListener('storage', handleRehab);
+    return () => {
+      window.removeEventListener('rehabilitation-updated', handleRehab);
+      window.removeEventListener('storage', handleRehab);
+    };
+  }, []);
+
   const isDemoSabbatical = typeof window !== 'undefined' && window.location.search.includes('demo=sabbatical');
   const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
   const rehabConfig = getRehabilitationConfig();
   const isLiveSanctuary = isRehabilitationActive(todayStr);
-  const isSanctuaryActive = isLiveSanctuary || isDemoSanctuary || isDemoSabbatical;
-  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
+  const isSanctuaryActive = Boolean(isLiveSanctuary || isDemoSanctuary || isDemoSabbatical);
+  const isSabbatical = isSanctuaryActive && Boolean(isDemoSabbatical || (rehabConfig?.active && (rehabConfig.isSabbatical || (rehabConfig.freezeDays && rehabConfig.freezeDays > 30))));
 
   const freezeDays = isSabbatical ? null : Math.min(14, rehabConfig?.freezeDays || 7);
   const rehabStartDate = rehabConfig?.startDate || todayStr;
@@ -675,9 +688,8 @@ export default function MobileAppView({
     exitRehabilitation();
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('demo=')) {
-        window.history.replaceState(null, '', '/');
+        window.history.replaceState(null, '', window.location.pathname);
       }
-      window.location.reload();
     }
   };
 
@@ -1678,7 +1690,7 @@ export default function MobileAppView({
                           </span>
                         </div>
                         <p className="text-xs font-mono text-neutral-900 leading-snug">
-                          {activeDayNote.notes || "No extra diary notes logged."}
+                          {normalizeNotesString(activeDayNote.notes) || "No extra diary notes logged."}
                         </p>
                       </div>
                       <button

@@ -349,8 +349,23 @@ export async function saveCloudEntry(userId, entry) {
   try {
     console.log(`📡 [Firestore] Saving entry (${entry.date}) for user: ${userId}...`);
     const entryRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'entries', entry.date);
+    let safeNotes = entry.notes;
+    if (typeof safeNotes === 'object' && safeNotes !== null) {
+      const keys = Object.keys(safeNotes);
+      if (keys.length > 0 && keys.every(k => !isNaN(Number(k)))) {
+        safeNotes = keys.sort((a, b) => Number(a) - Number(b)).map(k => safeNotes[k]).join('');
+      } else {
+        safeNotes = String(safeNotes.text || safeNotes.content || safeNotes.notes || '');
+      }
+    } else if (safeNotes === undefined || safeNotes === null) {
+      safeNotes = '';
+    } else {
+      safeNotes = String(safeNotes);
+    }
+
     const sanitized = cleanFirestorePayload({
       ...entry,
+      notes: safeNotes,
       updatedAt: new Date().toISOString()
     });
     await fb.firestoreMod.setDoc(entryRef, sanitized, { merge: true });
@@ -369,8 +384,23 @@ export async function batchSaveCloudEntries(userId, entriesMap) {
     console.log(`📡 [Firestore] Uploading batch of ${entriesList.length} entries to Firebase Cloud for user: ${userId}...`);
     const promises = entriesList.map(([dateStr, entry]) => {
       const entryRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'entries', dateStr);
+      let safeNotes = entry.notes;
+      if (typeof safeNotes === 'object' && safeNotes !== null) {
+        const keys = Object.keys(safeNotes);
+        if (keys.length > 0 && keys.every(k => !isNaN(Number(k)))) {
+          safeNotes = keys.sort((a, b) => Number(a) - Number(b)).map(k => safeNotes[k]).join('');
+        } else {
+          safeNotes = String(safeNotes.text || safeNotes.content || safeNotes.notes || '');
+        }
+      } else if (safeNotes === undefined || safeNotes === null) {
+        safeNotes = '';
+      } else {
+        safeNotes = String(safeNotes);
+      }
+
       const sanitized = cleanFirestorePayload({
         ...entry,
+        notes: safeNotes,
         date: dateStr,
         updatedAt: new Date().toISOString()
       });
@@ -395,7 +425,16 @@ export async function fetchCloudEntries(userId) {
     const snapshot = await Promise.race([fetchPromise, timeoutPromise]);
     const entries = {};
     snapshot.forEach(docSnap => {
-      entries[docSnap.id] = docSnap.data();
+      const data = docSnap.data();
+      if (data && data.notes !== undefined && typeof data.notes !== 'string') {
+        const keys = Object.keys(data.notes || {});
+        if (keys.length > 0 && keys.every(k => !isNaN(Number(k)))) {
+          data.notes = keys.sort((a, b) => Number(a) - Number(b)).map(k => data.notes[k]).join('');
+        } else {
+          data.notes = String(data.notes?.text || data.notes?.content || data.notes?.notes || '');
+        }
+      }
+      entries[docSnap.id] = data;
     });
     let count = Object.keys(entries).length;
 

@@ -162,58 +162,171 @@ export const isStaticHost = typeof window !== 'undefined' && (
 );
 
 /**
+ * 🛡️ Robust Notes String Normalizer
+ * Guarantees that any reflection notes payload (string, object with numeric indices, or JSON)
+ * is cleanly and deterministically reconstituted into a valid JS string primitive.
+ * Prevents React child crashes and string method type errors.
+ */
+export function normalizeNotesString(notes) {
+  if (typeof notes === 'string') return notes;
+  if (!notes) return '';
+  if (typeof notes === 'object') {
+    const keys = Object.keys(notes);
+    const isCharMap = keys.length > 0 && keys.every(k => !isNaN(Number(k)));
+    if (isCharMap) {
+      return keys.sort((a, b) => Number(a) - Number(b)).map(k => notes[k]).join('');
+    }
+    if (typeof notes.text === 'string') return notes.text;
+    if (typeof notes.content === 'string') return notes.content;
+    if (typeof notes.notes === 'string') return notes.notes;
+    try {
+      return JSON.stringify(notes);
+    } catch (e) {
+      return '';
+    }
+  }
+  return String(notes);
+}
+
+/**
+ * 🏥 Autonomous Local Database Sanitizer & Healer
+ * Iterates through all localStorage databases ('goodness_db', 'goodness_db_guest', user-specific keys)
+ * and repairs any entries with objectified notes, NaN ratings, or malformed fields.
+ */
+export function repairAndSanitizeDatabase() {
+  if (typeof window === 'undefined') return { repaired: false, count: 0 };
+  let repairedCount = 0;
+  try {
+    const keysToAudit = ['goodness_db', 'goodness_db_guest'];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('goodness_db_') || k.startsWith('shit_or_hit_draft_stash_'))) {
+        keysToAudit.push(k);
+      }
+    }
+
+    const uniqueKeys = [...new Set(keysToAudit)];
+    uniqueKeys.forEach(key => {
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+
+      if (key.startsWith('shit_or_hit_draft_stash_')) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            const fixedStr = normalizeNotesString(parsed);
+            localStorage.setItem(key, fixedStr);
+            repairedCount++;
+          }
+        } catch (e) {}
+        return;
+      }
+
+      try {
+        const db = JSON.parse(raw);
+        if (db && db.entries && typeof db.entries === 'object') {
+          let modified = false;
+          Object.entries(db.entries).forEach(([dateStr, entry]) => {
+            if (entry && entry.notes !== undefined && typeof entry.notes !== 'string') {
+              entry.notes = normalizeNotesString(entry.notes);
+              modified = true;
+              repairedCount++;
+            }
+          });
+          if (modified) {
+            localStorage.setItem(key, JSON.stringify(db));
+          }
+        }
+      } catch (e) {}
+    });
+
+    // Also sanitize rehabilitation config if freezeDays was stuck at 9999 while inactive
+    const rawRehab = localStorage.getItem(REHAB_CONFIG_KEY);
+    if (rawRehab) {
+      try {
+        const rehab = JSON.parse(rawRehab);
+        if (!rehab.active && (rehab.isSabbatical || (rehab.freezeDays && rehab.freezeDays > 30))) {
+          rehab.isSabbatical = false;
+          rehab.freezeDays = 7;
+          rehab.maxDays = 14;
+          localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(rehab));
+          repairedCount++;
+        }
+      } catch (e) {}
+    }
+
+    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new Event('storage'));
+    return { repaired: true, count: repairedCount };
+  } catch (err) {
+    console.warn('Sanitize repair warning:', err);
+    return { repaired: false, error: err.message };
+  }
+}
+
+/**
  * 🛡️ RECONCILIATION ENGINE
  * Resolves conflicts between two entry records with an absolute guarantee:
  * An entry with reflection notes CAN NEVER be erased by an entry with blank notes,
  * regardless of timestamps.
  */
 function reconcileEntryItems(baseItem, candidateItem) {
-  if (!baseItem) return candidateItem;
-  if (!candidateItem) return baseItem;
+  if (!baseItem) {
+    return candidateItem ? { ...candidateItem, notes: normalizeNotesString(candidateItem.notes) } : candidateItem;
+  }
+  if (!candidateItem) {
+    return baseItem ? { ...baseItem, notes: normalizeNotesString(baseItem.notes) } : baseItem;
+  }
 
-  const baseNotes = (baseItem.notes || '').trim();
-  const candNotes = (candidateItem.notes || '').trim();
+  const baseItemNotes = normalizeNotesString(baseItem.notes);
+  const candItemNotes = normalizeNotesString(candidateItem.notes);
+
+  const normalizedBase = { ...baseItem, notes: baseItemNotes };
+  const normalizedCandidate = { ...candidateItem, notes: candItemNotes };
+
+  const baseNotes = baseItemNotes.trim();
+  const candNotes = candItemNotes.trim();
 
   // Rule 1: Base has rich notes, candidate has blank notes -> NEVER wipe base notes!
   if (baseNotes && !candNotes) {
-    const baseRating = Number(baseItem.rating);
-    const candRating = Number(candidateItem.rating);
+    const baseRating = Number(normalizedBase.rating);
+    const candRating = Number(normalizedCandidate.rating);
     return {
-      ...candidateItem,
-      notes: baseItem.notes, // Absolute note protection
-      rating: (candRating === 3 && baseRating !== 3) ? baseRating : (candidateItem.rating ?? baseItem.rating),
-      verdict: (candRating === 3 && baseRating !== 3) ? baseItem.verdict : (candidateItem.verdict ?? baseItem.verdict),
-      spheres: candidateItem.spheres || baseItem.spheres
+      ...normalizedCandidate,
+      notes: normalizedBase.notes, // Absolute note protection
+      rating: (candRating === 3 && baseRating !== 3) ? baseRating : (normalizedCandidate.rating ?? normalizedBase.rating),
+      verdict: (candRating === 3 && baseRating !== 3) ? normalizedBase.verdict : (normalizedCandidate.verdict ?? normalizedBase.verdict),
+      spheres: normalizedCandidate.spheres || normalizedBase.spheres
     };
   }
 
   // Rule 2: Base has blank notes, candidate has rich notes -> candidate has authentic new notes
   if (!baseNotes && candNotes) {
-    return candidateItem;
+    return normalizedCandidate;
   }
 
   // Rule 3: Both have notes -> timestamp determines the winner (server data/entries.json is authoritative)
   if (baseNotes && candNotes) {
-    const baseTime = new Date(baseItem.updatedAt || baseItem.createdAt || 0).getTime();
-    const candTime = new Date(candidateItem.updatedAt || candidateItem.createdAt || 0).getTime();
+    const baseTime = new Date(normalizedBase.updatedAt || normalizedBase.createdAt || 0).getTime();
+    const candTime = new Date(normalizedCandidate.updatedAt || normalizedCandidate.createdAt || 0).getTime();
     if (baseTime >= candTime) {
-      return baseItem;
+      return normalizedBase;
     }
-    return candidateItem;
+    return normalizedCandidate;
   }
 
   // Rule 4: Neither has notes:
   // If base has an explicit non-default rating (like Sep 13 with rating 4 Good),
   // and candidate was demoted to rating 3 (default/unrated) -> keep base rating!
-  const baseRating = Number(baseItem.rating);
-  const candRating = Number(candidateItem.rating);
+  const baseRating = Number(normalizedBase.rating);
+  const candRating = Number(normalizedCandidate.rating);
   if (baseRating && baseRating !== 3 && candRating === 3) {
-    return baseItem;
+    return normalizedBase;
   }
 
-  const baseTime = new Date(baseItem.updatedAt || baseItem.createdAt || 0).getTime();
-  const candTime = new Date(candidateItem.updatedAt || candidateItem.createdAt || 0).getTime();
-  return candTime > baseTime ? candidateItem : baseItem;
+  const baseTime = new Date(normalizedBase.updatedAt || normalizedBase.createdAt || 0).getTime();
+  const candTime = new Date(normalizedCandidate.updatedAt || normalizedCandidate.createdAt || 0).getTime();
+  return candTime > baseTime ? normalizedCandidate : normalizedBase;
 }
 
 export function getDbStorageKey(userId) {
@@ -507,6 +620,7 @@ export async function saveEntry(entryData) {
     ...entryData,
     rating: Number(entryData.rating),
     verdict: entryData.verdict || ratingMeta[entryData.rating]?.title || 'Verdict',
+    notes: normalizeNotesString(entryData.notes),
     updatedAt: new Date().toISOString()
   };
 
@@ -1804,6 +1918,8 @@ export function activateRehabilitation(freezeDays = 7) {
       activatedAt: new Date().toISOString()
     };
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
+    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new Event('storage'));
     return payload;
   } catch (e) {
     console.warn('Failed to activate rehabilitation:', e);
@@ -1819,6 +1935,8 @@ export function extendRehabilitation(additionalDays = 7) {
     current.freezeDays = newTotal;
     current.checkedInDay7 = true;
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(current));
+    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new Event('storage'));
     return current;
   } catch (e) {
     console.warn('Failed to extend rehabilitation:', e);
@@ -1840,6 +1958,8 @@ export function activateSabbatical() {
       activatedAt: new Date().toISOString()
     };
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
+    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new Event('storage'));
     return payload;
   } catch (e) {
     console.warn('Failed to activate sabbatical:', e);
@@ -1852,9 +1972,13 @@ export function exitRehabilitation() {
     const current = getRehabilitationConfig();
     current.active = false;
     current.isSabbatical = false;
+    current.freezeDays = 7;
+    current.maxDays = 14;
     current.exitedAt = new Date().toISOString();
     delete current.autoSanctuaryAssumed;
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(current));
+    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new Event('storage'));
   } catch (e) {}
 }
 

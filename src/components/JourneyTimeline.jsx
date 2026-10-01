@@ -11,7 +11,7 @@ import {
   Shield,
   Compass
 } from 'lucide-react';
-import { ratingMeta, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
+import { ratingMeta, isRehabilitationActive, getRehabilitationConfig, normalizeNotesString } from '../services/api';
 
 const IconMap = {
   AlertCircle,
@@ -114,9 +114,9 @@ export default function JourneyTimeline({
                         </span>
                       )}
                     </div>
-                    {entry?.notes ? (
+                    {normalizeNotesString(entry?.notes) ? (
                       <p className="text-[11px] sm:text-xs font-mono text-neutral-700 truncate mt-0.5 font-medium">
-                        "{entry.notes}"
+                        "{normalizeNotesString(entry.notes)}"
                       </p>
                     ) : inStasis ? (
                       <p className={`text-[10px] sm:text-[11px] font-mono font-bold mt-0.5 truncate ${isSabbatical ? 'text-amber-800' : 'text-emerald-800'}`}>

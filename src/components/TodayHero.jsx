@@ -632,12 +632,23 @@ export default function TodayHero({
     }
   };
 
+  const [rehabVer, setRehabVer] = useState(0);
+  useEffect(() => {
+    const handleRehab = () => setRehabVer(v => v + 1);
+    window.addEventListener('rehabilitation-updated', handleRehab);
+    window.addEventListener('storage', handleRehab);
+    return () => {
+      window.removeEventListener('rehabilitation-updated', handleRehab);
+      window.removeEventListener('storage', handleRehab);
+    };
+  }, []);
+
   const isDemoSabbatical = typeof window !== 'undefined' && window.location.search.includes('demo=sabbatical');
   const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
   const rehabConfig = getRehabilitationConfig();
   const isLiveSanctuary = isRehabilitationActive(todayStr);
-  const isSanctuaryActive = isLiveSanctuary || isDemoSanctuary || isDemoSabbatical;
-  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
+  const isSanctuaryActive = Boolean(isLiveSanctuary || isDemoSanctuary || isDemoSabbatical);
+  const isSabbatical = isSanctuaryActive && Boolean(isDemoSabbatical || (rehabConfig?.active && (rehabConfig.isSabbatical || (rehabConfig.freezeDays && rehabConfig.freezeDays > 30))));
 
   const rawFreezeDays = rehabConfig?.freezeDays || 7;
   const freezeDays = isSabbatical ? null : Math.min(14, rawFreezeDays);
@@ -651,9 +662,8 @@ export default function TodayHero({
     exitRehabilitation();
     if (typeof window !== 'undefined') {
       if (window.location.search.includes('demo=')) {
-        window.history.replaceState(null, '', '/');
+        window.history.replaceState(null, '', window.location.pathname);
       }
-      window.location.reload();
     }
   };
 

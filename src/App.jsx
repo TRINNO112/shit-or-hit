@@ -83,7 +83,9 @@ import {
   declineSanctuaryInvitation,
   acceptSanctuaryInvitation,
   getPendingDeletionStatus,
-  cancelAccountDeletion
+  cancelAccountDeletion,
+  normalizeNotesString,
+  repairAndSanitizeDatabase
 } from './services/api';
 import { syncStoragePersistenceWithPreference } from './services/storageManager';
 import { scheduleLocalEveningReminder } from './services/notifications';
@@ -99,17 +101,44 @@ function SimulatedCrashTrigger({ shouldCrash }) {
 }
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => {
+  const checkMobile = () => {
     if (typeof window === 'undefined') return false;
-    return window.matchMedia('(max-width: 767px)').matches;
-  });
+    const isNarrow = window.innerWidth <= 768;
+    const isMqlMobile = window.matchMedia ? window.matchMedia('(max-width: 768px)').matches : false;
+    return isNarrow || isMqlMobile;
+  };
+
+  const [isMobile, setIsMobile] = useState(() => checkMobile());
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const mql = window.matchMedia('(max-width: 767px)');
-    const onChange = (e) => setIsMobile(e.matches);
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
+    const update = () => setIsMobile(checkMobile());
+
+    window.addEventListener('resize', update, { passive: true });
+    window.addEventListener('orientationchange', update, { passive: true });
+
+    const mql = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    if (mql) {
+      if (mql.addEventListener) {
+        mql.addEventListener('change', update);
+      } else if (mql.addListener) {
+        mql.addListener(update);
+      }
+    }
+
+    update();
+
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+      if (mql) {
+        if (mql.removeEventListener) {
+          mql.removeEventListener('change', update);
+        } else if (mql.removeListener) {
+          mql.removeListener(update);
+        }
+      }
+    };
   }, []);
 
   return isMobile;
@@ -827,6 +856,7 @@ export default function App() {
       ...entryData,
       rating: Number(entryData.rating),
       verdict: entryData.verdict || ratingMeta[entryData.rating]?.title || 'Verdict',
+      notes: normalizeNotesString(entryData.notes),
       updatedAt: new Date().toISOString()
     };
 
