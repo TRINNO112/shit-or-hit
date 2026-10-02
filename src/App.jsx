@@ -262,7 +262,12 @@ export default function App() {
   const [editingDay, setEditingDay] = useState(null); // { dateStr, dayIndex, entry }
   const [sphereSettingsVer, setSphereSettingsVer] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeDesktopTab, setActiveDesktopTab] = useState('today');
+  const [activeDesktopTab, setActiveDesktopTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('daily_verdict_desktop_active_tab') || 'today';
+    }
+    return 'today';
+  });
   const [isVaultLocked, setIsVaultLocked] = useState(() => isVaultPinActive());
   const [isMotivationalOpen, setIsMotivationalOpen] = useState(false);
   const [notificationVerdictFeedback, setNotificationVerdictFeedback] = useState(null);
@@ -1163,7 +1168,14 @@ export default function App() {
             EXIT PREVIEW
           </button>
         </div>
-        <SkeletonLoader isMobile={isMobile} />
+        <SkeletonLoader
+          isMobile={isMobile}
+          tab={
+            isMobile
+              ? (typeof window !== 'undefined' ? (localStorage.getItem('daily_verdict_mobile_active_tab') || 'log') : 'log')
+              : activeDesktopTab
+          }
+        />
       </div>
     );
   }
@@ -1280,10 +1292,16 @@ export default function App() {
   }
 
   if (isInitialLoading) {
-    return <SkeletonLoader isMobile={isMobile} />;
+    const currentTab = isMobile
+      ? (typeof window !== 'undefined' ? (localStorage.getItem('daily_verdict_mobile_active_tab') || 'log') : 'log')
+      : activeDesktopTab;
+    return <SkeletonLoader isMobile={isMobile} tab={currentTab} />;
   }
 
   const handleDesktopTabChange = (tabId) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('daily_verdict_desktop_active_tab', tabId);
+    }
     startTransition(() => {
       setActiveDesktopTab(tabId);
     });

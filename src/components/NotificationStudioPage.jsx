@@ -48,6 +48,7 @@ import {
   detectActiveEngine,
   getEngineNotificationContent
 } from '../services/notifications';
+import RadialClockPicker from './RadialClockPicker';
 
 const NOTIFICATION_MODES = [
   {
@@ -245,6 +246,11 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   const [inlineInputVal, setInlineInputVal] = useState(() => DEFAULT_PRESET_TEXTS[detectActiveEngine()] || DEFAULT_PRESET_TEXTS.standard);
   const [simulatorFeedback, setSimulatorFeedback] = useState(null);
   const [slotFeedback, setSlotFeedback] = useState(null);
+  const [radialPicker, setRadialPicker] = useState({
+    isOpen: false,
+    slotIndex: null, // number (0..4) or 'new'
+    initialTime: '21:00'
+  });
 
   const triggerSlotFeedback = (type, message) => {
     setSlotFeedback({ type, message });
@@ -414,6 +420,34 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
     setReminderTimesState(getReminderTimes());
     soundEngine.playSuccess();
     triggerSlotFeedback('success', `Updated Slot ${index + 1} to ${formatTime12h(newTime)}.`);
+  };
+
+  const handleOpenRadialForSlot = (idx, timeStr) => {
+    soundEngine.playClick();
+    setRadialPicker({
+      isOpen: true,
+      slotIndex: idx,
+      initialTime: timeStr || '21:00'
+    });
+  };
+
+  const handleOpenRadialForNew = () => {
+    soundEngine.playClick();
+    const nextTime = getNextAvailableTime(reminderTimes);
+    setRadialPicker({
+      isOpen: true,
+      slotIndex: 'new',
+      initialTime: nextTime
+    });
+  };
+
+  const handleSaveRadialTime = (newTimeStr) => {
+    if (radialPicker.slotIndex === 'new') {
+      handleAddSlot(newTimeStr);
+    } else if (typeof radialPicker.slotIndex === 'number') {
+      handleUpdateTimeSlot(radialPicker.slotIndex, newTimeStr);
+    }
+    setRadialPicker({ isOpen: false, slotIndex: null, initialTime: '21:00' });
   };
 
   const handleRemoveSlot = (t) => {
@@ -659,18 +693,34 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                     <span className="px-1.5 py-0.5 bg-black text-[#FDC800] text-[10px] rounded font-black shrink-0">
                       SLOT {idx + 1}
                     </span>
-                    <span className="text-sm font-black text-black whitespace-nowrap">
-                      {formatTime12h(timeStr)}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRadialForSlot(idx, timeStr)}
+                      className="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-xs font-black text-black whitespace-nowrap cursor-pointer shadow-[1px_1px_0px_#000] active:translate-x-px active:translate-y-px transition-all"
+                      title="Open mechanical radial dial to change time"
+                      aria-label={`Open radial clock dial for Slot ${idx + 1}, currently ${formatTime12h(timeStr)}`}
+                    >
+                      <Clock className="w-3.5 h-3.5 stroke-[2.5] text-black shrink-0" />
+                      <span>{formatTime12h(timeStr)}</span>
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRadialForSlot(idx, timeStr)}
+                      className="h-7 px-2 bg-[#FDC800] hover:bg-[#ffe066] border border-black rounded font-mono text-[11px] font-black cursor-pointer flex items-center gap-1 shadow-[1px_1px_0px_#000] active:scale-95 transition-all"
+                      title="Open mechanical radial clock dial"
+                      aria-label={`Dial time for Slot ${idx + 1}`}
+                    >
+                      <span>DIAL</span>
+                    </button>
                     <input
                       type="time"
                       value={timeStr}
                       onChange={(e) => handleUpdateTimeSlot(idx, e.target.value)}
-                      className="h-7 px-1.5 bg-white border border-black rounded text-[11px] font-mono font-bold cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-1 focus:ring-black"
-                      title="Click to change alarm time"
+                      className="h-7 w-20 px-1 bg-white border border-black rounded text-[11px] font-mono font-bold cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-1 focus:ring-black"
+                      title="Click to type time"
                       aria-label={`Change time for Slot ${idx + 1}`}
                     />
                     {reminderTimes.length > 1 && (
@@ -688,17 +738,29 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 </div>
               ))}
 
-              {/* Add Next Free Slot Button */}
+              {/* Add Next Free Slot Button + Radial Dial Add Button */}
               {reminderTimes.length < 5 && (
-                <button
-                  type="button"
-                  onClick={() => handleAddSlot()}
-                  className="h-[52px] min-h-[52px] max-h-[52px] px-3 bg-[#00E599]/20 hover:bg-[#00E599] border-2 border-dashed hover:border-solid border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer transition-all flex items-center justify-center gap-1.5 active:translate-x-px active:translate-y-px whitespace-nowrap shadow-[2px_2px_0px_#000]"
-                  aria-label="Add next check-in alarm slot"
-                >
-                  <Plus className="w-4 h-4 stroke-3 shrink-0" />
-                  <span>+ ADD SLOT ({formatTime12h(getNextAvailableTime(reminderTimes))})</span>
-                </button>
+                <div className="flex items-center gap-1.5 h-[52px] min-h-[52px] max-h-[52px]">
+                  <button
+                    type="button"
+                    onClick={() => handleAddSlot()}
+                    className="flex-1 h-full px-3 bg-[#00E599]/20 hover:bg-[#00E599] border-2 border-dashed hover:border-solid border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer transition-all flex items-center justify-center gap-1.5 active:translate-x-px active:translate-y-px whitespace-nowrap shadow-[2px_2px_0px_#000]"
+                    aria-label="Add next check-in alarm slot"
+                  >
+                    <Plus className="w-4 h-4 stroke-3 shrink-0" />
+                    <span>+ ADD ({formatTime12h(getNextAvailableTime(reminderTimes))})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenRadialForNew}
+                    className="h-full px-3 bg-[#FDC800] hover:bg-[#ffe066] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer transition-all flex items-center justify-center gap-1 active:translate-x-px active:translate-y-px shadow-[2px_2px_0px_#000] shrink-0"
+                    title="Pick time with mechanical radial dial"
+                    aria-label="Add slot using radial dial"
+                  >
+                    <Clock className="w-4 h-4 stroke-[2.5]" />
+                    <span>DIAL</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1382,6 +1444,14 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
         </section>
 
       </main>
+
+      {/* 🕰️ Mechanical Radial Clock Dial Modal */}
+      <RadialClockPicker
+        isOpen={radialPicker.isOpen}
+        onClose={() => setRadialPicker(prev => ({ ...prev, isOpen: false }))}
+        initialTime={radialPicker.initialTime}
+        onSave={handleSaveRadialTime}
+      />
     </div>
   );
 }

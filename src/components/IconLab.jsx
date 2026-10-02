@@ -275,6 +275,7 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
     return 'year_pixels';
   });
   const [skeletonMode, setSkeletonMode] = useState('desktop');
+  const [skeletonTab, setSkeletonTab] = useState('log');
   const [selectedStudioDesign, setSelectedStudioDesign] = useState('darkroom'); // 'darkroom' | 'deepseek'
   const [isWallpaperModalOpen, setIsWallpaperModalOpen] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState('shield_volt');
@@ -505,25 +506,50 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
                   Zero-layout-shift static panel containers with linear shimmer bone placeholders.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSkeletonMode('desktop')}
-                  className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-black uppercase border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] transition-all ${
-                    skeletonMode === 'desktop' ? 'bg-[#FDC800] text-black shadow-none translate-x-px translate-y-px' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-                  }`}
-                >
-                  Desktop View
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSkeletonMode('mobile')}
-                  className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-black uppercase border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] transition-all ${
-                    skeletonMode === 'mobile' ? 'bg-[#00E599] text-black shadow-none translate-x-px translate-y-px' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-                  }`}
-                >
-                  Mobile View
-                </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Tab Target Switcher */}
+                <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1px_1px_0px_#000]">
+                  {[
+                    { id: 'log', label: 'Today' },
+                    { id: 'timeline', label: 'Timeline' },
+                    { id: 'dossier', label: 'Dossier' },
+                    { id: 'settings', label: 'Settings' }
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setSkeletonTab(t.id)}
+                      className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-black uppercase cursor-pointer transition-all ${
+                        skeletonTab === t.id
+                          ? 'bg-[#FDC800] text-black border border-black shadow-[1px_1px_0px_#000]'
+                          : 'text-neutral-600 hover:text-black'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setSkeletonMode('desktop')}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-xs font-black uppercase border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] transition-all ${
+                      skeletonMode === 'desktop' ? 'bg-[#FDC800] text-black shadow-none translate-x-px translate-y-px' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                    }`}
+                  >
+                    Desktop
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSkeletonMode('mobile')}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-xs font-black uppercase border-2 border-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] transition-all ${
+                      skeletonMode === 'mobile' ? 'bg-[#00E599] text-black shadow-none translate-x-px translate-y-px' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                    }`}
+                  >
+                    Mobile
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -531,10 +557,10 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
             <div className="border-3 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_#000000] bg-[#FFFDF5]">
               {skeletonMode === 'mobile' ? (
                 <div className="max-w-md mx-auto border-x-3 border-black min-h-160 shadow-2xl">
-                  <SkeletonLoader isMobile={true} delayMs={0} />
+                  <SkeletonLoader isMobile={true} delayMs={0} tab={skeletonTab} />
                 </div>
               ) : (
-                <SkeletonLoader isMobile={false} delayMs={0} />
+                <SkeletonLoader isMobile={false} delayMs={0} tab={skeletonTab === 'log' ? 'today' : skeletonTab} />
               )}
             </div>
           </div>
