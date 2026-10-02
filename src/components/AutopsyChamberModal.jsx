@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { AutopsyBadge } from './AutopsyBadge';
-import { getAutopsyAnalysis } from '../services/autopsyIntelligence';
+import { getAutopsyAnalysis, generateLocalAutopsy } from '../services/autopsyIntelligence';
 
 // Re-export for seamless backward compatibility
 export { AutopsyBadge };
@@ -105,7 +105,7 @@ export default function AutopsyChamberModal({
       console.warn('Autopsy retrieval exception, fallback engaged:', err);
       setErrorMsg(err.message || 'Failed to generate autopsy analysis');
       // Fallback: use local autopsy directly if exception occurred
-      const fallback = getAutopsyAnalysis.generateLocalAutopsy ? getAutopsyAnalysis.generateLocalAutopsy({ notes, rating, spheres, anchors, date: entryDate }) : null;
+      const fallback = generateLocalAutopsy({ notes, rating, spheres, anchors, date: entryDate });
       if (fallback) {
         setAutopsyData(fallback);
         setStage('interrogating');
