@@ -164,6 +164,33 @@ const ENGINE_FORMAT_TIPS = {
   }
 };
 
+const SIMULATOR_QUICK_PILLS = {
+  standard: [
+    { label: '5★ Hit (Peak)', text: '5 Shipped auth feature, crushed gym, feeling unstoppable' },
+    { label: '4★ Good Day', text: '4 Solid work day, made steady progress on goals' },
+    { label: '3★ Meh / Neutral', text: '3 Average day, nothing special but survived' },
+    { label: '1★ Shit (Rough)', text: '1 Rough day, missed all targets, need rest' }
+  ],
+  spheres: [
+    { label: '5, 5, 5 (Peak)', text: '5, 5, 5 Crushed career, fitness, and deep sleep' },
+    { label: '3, 2, 1 (Mixed)', text: '3, 2, 1 Code sprint done, workout heavy, reading pending' },
+    { label: '1, 1, 1 (Exhausted)', text: '1, 1, 1 Burnt out across all domains, early night' }
+  ],
+  'non-negotiables': [
+    { label: '111 (All Done)', text: '111 Crushed all habits, zero excuses' },
+    { label: '101 (2 of 3 Done)', text: '101 Crushed workout and deep work, skipped cold shower' },
+    { label: '000 (Zero Done)', text: '000 Missed daily anchors, restarting tomorrow' }
+  ],
+  sabbatical: [
+    { label: 'River Reflection', text: 'Spent the afternoon writing by the river, completely unplugged' },
+    { label: 'Reading Notes', text: 'Finished 3 chapters of philosophy, zero stress' }
+  ],
+  sanctuary: [
+    { label: 'Vagus Nerve Reset', text: 'Practiced 4-2-6 vagus nerve breathing for 10 minutes, anxiety eased' },
+    { label: 'Somatic Rest', text: 'Phone in drawer for 4 hours, walked barefoot in the grass' }
+  ]
+};
+
 export default function NotificationStudioPage({ onBack, entries = {}, todayStr = '' }) {
   const [bannerMode, setBannerModeState] = useState(() => getNotificationBannerMode());
   const [selectedEngine, setSelectedEngine] = useState(() => detectActiveEngine());
@@ -178,6 +205,12 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   const [permissionState, setPermissionState] = useState(() => getNotificationPermission());
   const [inlineInputVal, setInlineInputVal] = useState(() => DEFAULT_PRESET_TEXTS[detectActiveEngine()] || DEFAULT_PRESET_TEXTS.standard);
   const [simulatorFeedback, setSimulatorFeedback] = useState(null);
+  const [slotFeedback, setSlotFeedback] = useState(null);
+
+  const triggerSlotFeedback = (type, message) => {
+    setSlotFeedback({ type, message });
+    setTimeout(() => setSlotFeedback(null), 3500);
+  };
 
   const currentValidation = useMemo(() => {
     return validateNotificationReply(inlineInputVal, selectedEngine);
@@ -201,6 +234,57 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
     };
   }, []);
 
+  // Keyboard shortcut listener: keys 1 to 5
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const activeEl = document.activeElement;
+      const tagName = activeEl?.tagName;
+      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || activeEl?.isContentEditable) {
+        return;
+      }
+
+      if (['1', '2', '3', '4', '5'].includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const ratingNum = parseInt(e.key, 10);
+        soundEngine.playClick();
+        try {
+          playMood(ratingNum);
+        } catch (_) {}
+
+        if (bannerMode === 'polar') {
+          if (ratingNum === 1) {
+            handleSimulatorSubmit(1, 'Recorded 1★ Shit via keyboard shortcut [1]');
+          } else if (ratingNum === 5) {
+            handleSimulatorSubmit(5, 'Recorded 5★ Hit via keyboard shortcut [5]');
+          } else {
+            setSimulatorFeedback({
+              error: true,
+              message: '2-Button Quick mode only accepts 1★ or 5★. Press key 1 or 5.'
+            });
+            setTimeout(() => setSimulatorFeedback(null), 3500);
+          }
+        } else {
+          if (selectedEngine === 'spheres') {
+            setInlineInputVal(`${ratingNum}, ${ratingNum}, ${ratingNum} Logged via shortcut [${e.key}]`);
+          } else if (selectedEngine === 'non-negotiables') {
+            const habitStr = ratingNum >= 4 ? '111' : ratingNum >= 3 ? '101' : '000';
+            setInlineInputVal(`${habitStr} Rated ${ratingNum}★ via shortcut [${e.key}]`);
+          } else {
+            setInlineInputVal(`${ratingNum} Rated ${ratingNum}★ via shortcut [${e.key}]`);
+          }
+          setSimulatorFeedback({
+            rating: ratingNum,
+            engine: selectedEngine,
+            message: `KEYBOARD SHORTCUT [${e.key}]: ${ratingNum}★ LOADED IN SIMULATOR`
+          });
+          setTimeout(() => setSimulatorFeedback(null), 3000);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [bannerMode, selectedEngine]);
+
   const handleModeSelect = (modeId) => {
     setBannerModeState(modeId);
     setNotificationBannerMode(modeId);
@@ -208,24 +292,51 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   };
 
   const handleAddSlot = () => {
-    if (reminderTimes.length >= 5) return;
+    if (reminderTimes.length >= 5) {
+      soundEngine.playClick();
+      triggerSlotFeedback('warning', 'Maximum 5 reminder times reached. Remove one first.');
+      return;
+    }
+    if (reminderTimes.includes(newReminderTime)) {
+      soundEngine.playClick();
+      triggerSlotFeedback('warning', `Reminder time ${newReminderTime} is already in your schedule.`);
+      return;
+    }
     const ok = addReminderTime(newReminderTime);
     if (ok) {
       setReminderTimesState(getReminderTimes());
       soundEngine.playSuccess();
+      triggerSlotFeedback('success', `Added reminder at ${newReminderTime}.`);
     }
   };
 
   const handleRemoveSlot = (t) => {
+    if (reminderTimes.length <= 1) {
+      soundEngine.playClick();
+      triggerSlotFeedback('error', 'You must keep at least 1 reminder time active.');
+      return;
+    }
     removeReminderTime(t);
     setReminderTimesState(getReminderTimes());
     soundEngine.playClick();
+    triggerSlotFeedback('info', `Removed reminder at ${t}.`);
   };
 
   const handleApplyPreset = (timesList) => {
     setReminderTimes(timesList);
     setReminderTimesState(getReminderTimes());
     soundEngine.playSuccess();
+    triggerSlotFeedback('success', `Applied schedule with ${timesList.length} reminder times.`);
+  };
+
+  const handleRefreshPermissionCheck = () => {
+    const current = getNotificationPermission();
+    setPermissionState(current);
+    if (current === 'granted') {
+      soundEngine.playSuccess();
+    } else {
+      soundEngine.playClick();
+    }
   };
 
   const handleRequestPermission = async () => {
@@ -347,20 +458,56 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
             Set your reminder times and log your daily star rating and diary note directly from your notification banner without opening the app.
           </p>
 
-          {/* Quick Permission Bar (If not granted) */}
+          {/* Actionable Permission Recovery & Status Banner */}
           {permissionState !== 'granted' && (
-            <div className="mt-3 p-3 bg-[#FFFDF5] border-2 border-black rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[3px_3px_0px_#000000]">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-neutral-800">
-                <Info className="w-4 h-4 text-black shrink-0" />
-                <span>Notifications are currently disabled in this browser.</span>
+            <div
+              className={`mt-3 p-3.5 border-2 border-black rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[3px_3px_0px_#000000] ${
+                permissionState === 'denied' ? 'bg-[#FFF0F0]' : 'bg-[#FFFDF5]'
+              }`}
+            >
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs font-mono font-black text-black">
+                  {permissionState === 'denied' ? (
+                    <AlertTriangle className="w-4 h-4 text-[#FF4D4D] stroke-[2.5] shrink-0" />
+                  ) : (
+                    <Info className="w-4 h-4 text-black shrink-0" />
+                  )}
+                  <span>
+                    {permissionState === 'denied'
+                      ? 'NOTIFICATIONS BLOCKED IN BROWSER SETTINGS'
+                      : 'Notifications are currently disabled in this browser.'}
+                  </span>
+                </div>
+                <p className="text-[11px] font-mono text-neutral-700 leading-snug">
+                  {permissionState === 'denied'
+                    ? 'To enable: Tap the tune/padlock icon in your browser address bar → Permissions → Set Notifications to "Allow", then tap Re-check.'
+                    : 'Enable check-in notifications to log your daily evening verdict directly from your lockscreen.'}
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={handleRequestPermission}
-                className="w-full sm:w-auto px-4 py-2 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all"
-              >
-                ENABLE NOTIFICATIONS
-              </button>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {permissionState === 'denied' ? (
+                  <button
+                    type="button"
+                    onClick={handleRefreshPermissionCheck}
+                    className="w-full sm:w-auto px-4 py-2 bg-[#FDC800] hover:bg-[#ffe066] border-2 border-black rounded-xl font-mono font-black text-xs uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5"
+                    aria-label="Re-check browser notification permission"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                    <span>RE-CHECK PERMISSION</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleRequestPermission}
+                    className="w-full sm:w-auto px-4 py-2 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs uppercase cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5"
+                    aria-label="Request browser notification permission"
+                  >
+                    <Bell className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                    <span>ENABLE NOTIFICATIONS</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </section>
@@ -407,6 +554,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                       onClick={() => handleRemoveSlot(timeStr)}
                       className="p-1 hover:bg-[#FF4D4D] hover:text-white rounded border border-transparent hover:border-black cursor-pointer transition-all"
                       title="Remove time"
+                      aria-label={`Remove reminder time ${timeStr}`}
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -422,11 +570,13 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                     value={newReminderTime}
                     onChange={(e) => setNewReminderTime(e.target.value)}
                     className="px-2.5 py-1.5 bg-neutral-50 border-2 border-black rounded-xl font-mono font-black text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1.5px_1.5px_0px_#000]"
+                    aria-label="New reminder time"
                   />
                   <button
                     type="button"
                     onClick={handleAddSlot}
                     className="px-3 py-1.5 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px flex items-center gap-1"
+                    aria-label="Add reminder time slot"
                   >
                     <Plus className="w-3.5 h-3.5 stroke-3" />
                     <span>ADD TIME</span>
@@ -434,6 +584,24 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 </div>
               )}
             </div>
+
+            {/* Inline Slot Management Feedback Alert */}
+            {slotFeedback && (
+              <div
+                className={`p-2.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-2 shadow-[2px_2px_0px_#000] animate-fade-in ${
+                  slotFeedback.type === 'error' || slotFeedback.type === 'warning'
+                    ? 'bg-[#FF4D4D] text-black'
+                    : 'bg-[#00E599] text-black'
+                }`}
+              >
+                {slotFeedback.type === 'error' || slotFeedback.type === 'warning' ? (
+                  <AlertTriangle className="w-4 h-4 stroke-[2.5] text-black shrink-0" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 stroke-[2.5] text-black shrink-0" />
+                )}
+                <span>{slotFeedback.message}</span>
+              </div>
+            )}
 
             {/* Quick 1-Tap Presets */}
             <div className="pt-2 border-t border-black/10 flex items-center gap-2 flex-wrap">
@@ -488,8 +656,18 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
               return (
                 <div
                   key={mode.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
+                  aria-label={`Notification mode: ${mode.name}`}
                   onClick={() => handleModeSelect(mode.id)}
-                  className={`p-4 sm:p-5 rounded-2xl border-3 border-black cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleModeSelect(mode.id);
+                    }
+                  }}
+                  className={`p-4 sm:p-5 rounded-2xl border-3 border-black cursor-pointer transition-all flex flex-col justify-between gap-3 focus:outline-none focus:ring-2 focus:ring-[#FDC800] ${
                     isSelected
                       ? 'bg-[#FFFDF5] shadow-[5px_5px_0px_#000000] ring-2 ring-black'
                       : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
@@ -549,6 +727,9 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 <button
                   key={eng.id}
                   type="button"
+                  role="button"
+                  aria-pressed={isActive}
+                  aria-label={`Select tracking engine: ${eng.name}`}
                   onClick={() => {
                     setSelectedEngine(eng.id);
                     setInlineInputVal(DEFAULT_PRESET_TEXTS[eng.id] || '');
@@ -696,6 +877,30 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
               {/* MODE 1: Inline Number & Note Text Reply */}
               {bannerMode === 'inline' && (
                 <div className="space-y-3">
+                  {/* Quick Interactive Preset Pills */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-white/60">
+                      <span className="font-bold uppercase tracking-wider">TAP PRESET PILL TO TEST:</span>
+                      <span>Populates input instantly</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {(SIMULATOR_QUICK_PILLS[selectedEngine] || SIMULATOR_QUICK_PILLS.standard).map((pill) => (
+                        <button
+                          key={pill.label}
+                          type="button"
+                          onClick={() => {
+                            setInlineInputVal(pill.text);
+                            soundEngine.playClick();
+                          }}
+                          className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-[#FDC800] rounded-lg font-mono text-[10px] font-black text-white hover:text-[#FDC800] cursor-pointer transition-all active:scale-95"
+                          aria-label={`Load sample preset: ${pill.label}`}
+                        >
+                          {pill.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
