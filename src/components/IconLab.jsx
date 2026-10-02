@@ -508,11 +508,12 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Tab Target Switcher */}
-                <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1px_1px_0px_#000]">
+                <div className="flex items-center gap-1 bg-neutral-100 p-1 border-2 border-black rounded-xl shadow-[1px_1px_0px_#000] flex-wrap">
                   {[
                     { id: 'log', label: 'Today' },
                     { id: 'timeline', label: 'Timeline' },
                     { id: 'dossier', label: 'Dossier' },
+                    { id: 'stats', label: 'Stats' },
                     { id: 'settings', label: 'Settings' }
                   ].map((t) => (
                     <button
@@ -554,13 +555,15 @@ export default function IconLab({ onBack, defaultTab, entries = {} }) {
             </div>
 
             {/* Live Skeleton Render Frame */}
-            <div className="border-3 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_#000000] bg-[#FFFDF5]">
+            <div className="border-3 border-black rounded-3xl overflow-hidden shadow-[8px_8px_0px_#000000] bg-[#FFFDF5] p-3 sm:p-6">
               {skeletonMode === 'mobile' ? (
-                <div className="max-w-md mx-auto border-x-3 border-black min-h-160 shadow-2xl">
+                <div className="max-w-sm mx-auto border-3 border-black rounded-4xl min-h-160 shadow-[8px_8px_0px_#000000] relative overflow-hidden bg-[#FFFDF5]">
                   <SkeletonLoader isMobile={true} delayMs={0} tab={skeletonTab} />
                 </div>
               ) : (
-                <SkeletonLoader isMobile={false} delayMs={0} tab={skeletonTab === 'log' ? 'today' : skeletonTab} />
+                <div className="w-full">
+                  <SkeletonLoader isMobile={false} delayMs={0} tab={skeletonTab === 'log' ? 'today' : skeletonTab} />
+                </div>
               )}
             </div>
           </div>
