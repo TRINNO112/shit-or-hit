@@ -167,25 +167,70 @@ export const isStaticHost = typeof window !== 'undefined' && (
  * is cleanly and deterministically reconstituted into a valid JS string primitive.
  * Prevents React child crashes and string method type errors.
  */
+export function cleanAiEnhancedText(raw) {
+  if (!raw || typeof raw !== 'string') return raw || '';
+  let text = String(raw).trim();
+
+  // 1. Unescape literal \n or \r\n (if model output escaped characters)
+  if (text.includes('\\n')) {
+    text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+  }
+
+  // 2. Strip code fences (```markdown ... ``` or ``` ...)
+  if (text.startsWith('```') && text.endsWith('```')) {
+    text = text.replace(/^```[a-zA-Z]*\n([\s\S]*?)\n```$/i, '$1').trim();
+  }
+
+  // 3. Strip surrounding quotation marks
+  if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+    text = text.slice(1, -1).trim();
+  }
+
+  // 4. Strip leading date / title stamps (e.g. "2026-09-30\n\n", "September 30, 2026\n\n", "Dear Diary,\n\n")
+  text = text.replace(/^(?:(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|[A-Za-z]+ \d{1,2},? \d{4}|[A-Za-z]+, [A-Za-z]+ \d{1,2},? \d{4}|Day \d+|Dear Diary,?|Entry for [^\n:]+):?)\s*\n+/i, '');
+
+  // 5. Normalize multiple blank lines to clean double newlines (paragraph separation)
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+  return text;
+}
+
 export function normalizeNotesString(notes) {
-  if (typeof notes === 'string') return notes;
   if (!notes) return '';
-  if (typeof notes === 'object') {
+  let str = '';
+  if (typeof notes === 'string') {
+    str = notes;
+  } else if (typeof notes === 'object') {
     const keys = Object.keys(notes);
     const isCharMap = keys.length > 0 && keys.every(k => !isNaN(Number(k)));
     if (isCharMap) {
-      return keys.sort((a, b) => Number(a) - Number(b)).map(k => notes[k]).join('');
+      str = keys.sort((a, b) => Number(a) - Number(b)).map(k => notes[k]).join('');
+    } else if (typeof notes.text === 'string') {
+      str = notes.text;
+    } else if (typeof notes.content === 'string') {
+      str = notes.content;
+    } else if (typeof notes.notes === 'string') {
+      str = notes.notes;
+    } else {
+      try {
+        str = JSON.stringify(notes);
+      } catch (e) {
+        str = '';
+      }
     }
-    if (typeof notes.text === 'string') return notes.text;
-    if (typeof notes.content === 'string') return notes.content;
-    if (typeof notes.notes === 'string') return notes.notes;
-    try {
-      return JSON.stringify(notes);
-    } catch (e) {
-      return '';
-    }
+  } else {
+    str = String(notes);
   }
-  return String(notes);
+
+  // Unescape literal \n or \r\n if present as literal backslash-n
+  if (str.includes('\\n')) {
+    str = str.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+  }
+
+  // Strip leading date header if the AI prepended it (e.g. "2026-09-30\n\n")
+  str = str.replace(/^(?:(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|[A-Za-z]+ \d{1,2},? \d{4}|Day \d+):?)\s*\n+/i, '');
+
+  return str;
 }
 
 /**
@@ -854,7 +899,8 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
       if (res.ok) {
         const data = await res.json();
         if (data.enhancedText) {
-          const resultStr = new String(data.enhancedText);
+          const cleaned = cleanAiEnhancedText(data.enhancedText);
+          const resultStr = new String(cleaned);
           resultStr.isLocalFallback = Boolean(data.isLocalFallback);
           resultStr.fallbackReason = data.fallbackReason || null;
           resultStr.modelUsed = data.modelUsed || null;
@@ -924,6 +970,8 @@ CRITICAL INSTRUCTIONS:
 - ${languageRule}
 - Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic voice.
 - Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
+- DO NOT prepend any date, timestamp, or greeting (NEVER write "${date || '2026-09-30'}" or "Dear Diary" at the start). Start immediately with the first sentence of the reflection.
+- Use natural double line breaks between paragraphs for clean readability, NEVER output literal "\\n" text.
 
 Return ONLY the complete polished diary entry text without quotes or preamble.`;
 
@@ -951,7 +999,7 @@ Return ONLY the complete polished diary entry text without quotes or preamble.`;
       if (response.ok) {
         const result = await response.json();
         const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text && text.trim()) return text.trim();
+        if (text && text.trim()) return cleanAiEnhancedText(text);
       } else {
         const errJson = await response.json().catch(() => ({}));
         throw new Error(errJson?.error?.message || `Gemini API returned status ${response.status}`);

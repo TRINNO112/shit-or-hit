@@ -468,6 +468,8 @@ CRITICAL INSTRUCTIONS:
 - Structure the reflection with natural narrative flow: the morning inertia or momentum, the core frictions or breakthroughs of the day, and an honest closing reflection on holding the line.
 - ${languageRule}
 - Preserve all facts, names, and specific events mentioned by the user. Do not invent contradictory events.
+- DO NOT prepend any date, timestamp, or greeting (NEVER start with "${date || '2026-09-30'}" or "Dear Diary"). Start immediately with the first sentence of the reflection.
+- Separate paragraphs with clean double line breaks (\n\n) for natural breathing room, NEVER output literal "\\n" text.
 - Return ONLY the polished, immersive diary reflection text without quotes, markdown headers, or preambles.`;
 
   try {
@@ -481,7 +483,7 @@ CRITICAL INSTRUCTIONS:
     if (geminiResult.ok) {
       return res.json({
         success: true,
-        enhancedText: geminiResult.text,
+        enhancedText: cleanAiEnhancedText(geminiResult.text),
         modelUsed: geminiResult.model,
         isLocalFallback: false
       });
@@ -490,7 +492,7 @@ CRITICAL INSTRUCTIONS:
     console.warn('Gemini AI enhance unavailable, falling back to local sharpener:', geminiResult.error);
     return res.json({
       success: true,
-      enhancedText: sharpenReflectionLocally(notes, rating),
+      enhancedText: cleanAiEnhancedText(sharpenReflectionLocally(notes, rating)),
       isLocalFallback: true,
       fallbackReason: 'Google Gemini servers experiencing temporary high demand (503). Local sharpener applied.'
     });
@@ -498,12 +500,40 @@ CRITICAL INSTRUCTIONS:
     console.error('AI Enhance route exception:', err);
     res.json({
       success: true,
-      enhancedText: sharpenReflectionLocally(notes, rating),
+      enhancedText: cleanAiEnhancedText(sharpenReflectionLocally(notes, rating)),
       isLocalFallback: true,
       fallbackReason: err.message || 'AI service error. Local sharpener applied.'
     });
   }
 });
+
+function cleanAiEnhancedText(raw) {
+  if (!raw || typeof raw !== 'string') return raw || '';
+  let text = String(raw).trim();
+
+  // 1. Unescape literal \n or \r\n (if model output escaped characters)
+  if (text.includes('\\n')) {
+    text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+  }
+
+  // 2. Strip code fences (```markdown ... ``` or ``` ...)
+  if (text.startsWith('```') && text.endsWith('```')) {
+    text = text.replace(/^```[a-zA-Z]*\n([\s\S]*?)\n```$/i, '$1').trim();
+  }
+
+  // 3. Strip surrounding quotation marks
+  if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+    text = text.slice(1, -1).trim();
+  }
+
+  // 4. Strip leading date / title stamps (e.g. "2026-09-30\n\n", "September 30, 2026\n\n", "Dear Diary,\n\n")
+  text = text.replace(/^(?:(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|[A-Za-z]+ \d{1,2},? \d{4}|[A-Za-z]+, [A-Za-z]+ \d{1,2},? \d{4}|Day \d+|Dear Diary,?|Entry for [^\n:]+):?)\s*\n+/i, '');
+
+  // 5. Normalize multiple blank lines to clean double newlines (paragraph separation)
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+  return text;
+}
 
 function sharpenReflectionLocally(text, rating) {
   const clean = text.trim();
