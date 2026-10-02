@@ -922,12 +922,71 @@ export default function App() {
       const handleRemoteRating = (event) => {
         if (!event.data) return;
         if (event.data.type === 'REMOTE_NOTIFICATION_RATING') {
-          const { dateStr, rating, notes } = event.data;
+          const { dateStr, rating, notes, spheres, nonNegotiables } = event.data;
           const targetDate = dateStr || todayStr;
           console.log(`🔔 [Remote Notification Rating] Saving: ${rating !== null ? rating + '★' : 'note-only'} for ${targetDate}`);
           const payload = { date: targetDate };
           if (rating !== null && rating !== undefined) payload.rating = rating;
           if (notes) payload.notes = notes;
+
+          // Map spheres if passed as digit array or object
+          if (spheres) {
+            if (Array.isArray(spheres)) {
+              let sphereList = [
+                { id: 'work_school' },
+                { id: 'home_personal' },
+                { id: 'social_event' }
+              ];
+              try {
+                const saved = localStorage.getItem('daily_verdict_spheres_config');
+                if (saved) {
+                  const parsed = JSON.parse(saved);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    sphereList = parsed.filter(s => s && s.enabled !== false);
+                  }
+                }
+              } catch (e) {}
+              const mapped = {};
+              spheres.forEach((val, idx) => {
+                const sObj = sphereList[idx] || { id: `sphere_${idx + 1}` };
+                mapped[sObj.id] = { rating: Number(val), notes: '' };
+              });
+              payload.spheres = mapped;
+            } else if (typeof spheres === 'object') {
+              payload.spheres = spheres;
+            }
+          }
+
+          // Map non-negotiables if passed
+          if (nonNegotiables) {
+            let checkedState = nonNegotiables.checkedState;
+            if (!checkedState && Array.isArray(nonNegotiables.checked)) {
+              let anchorList = [
+                { id: 'anchor_1' },
+                { id: 'anchor_2' },
+                { id: 'anchor_3' }
+              ];
+              try {
+                const saved = localStorage.getItem('daily_verdict_custom_anchor_templates');
+                if (saved) {
+                  const parsed = JSON.parse(saved);
+                  if (Array.isArray(parsed) && parsed.length > 0) anchorList = parsed;
+                }
+              } catch (e) {}
+              checkedState = {};
+              nonNegotiables.checked.forEach((isDone, idx) => {
+                const aObj = anchorList[idx] || { id: `anchor_${idx + 1}` };
+                checkedState[aObj.id] = Boolean(isDone);
+              });
+            }
+            if (checkedState) {
+              try {
+                localStorage.setItem(`daily_verdict_anchors_${targetDate}`, JSON.stringify(checkedState));
+                window.dispatchEvent(new CustomEvent('daily_anchors_updated', { detail: { date: targetDate, checked: checkedState } }));
+              } catch (e) {}
+            }
+          }
+
           handleSaveEntry(payload);
           setActiveDesktopTab('today');
           triggerNotificationFeedback(rating || 5, notes ? '1-Tap Notification & Note' : '1-Tap Notification');
@@ -949,6 +1008,13 @@ export default function App() {
         const payload = { date: todayStr };
         if (event.detail.rating) payload.rating = Number(event.detail.rating);
         if (event.detail.notes) payload.notes = event.detail.notes;
+        if (event.detail.spheres) payload.spheres = event.detail.spheres;
+        if (event.detail.nonNegotiables && event.detail.nonNegotiables.checkedState) {
+          try {
+            localStorage.setItem(`daily_verdict_anchors_${todayStr}`, JSON.stringify(event.detail.nonNegotiables.checkedState));
+            window.dispatchEvent(new CustomEvent('daily_anchors_updated', { detail: { date: todayStr, checked: event.detail.nonNegotiables.checkedState } }));
+          } catch (e) {}
+        }
         console.log(`⚡ [Simulated Notification] Saving for ${todayStr}:`, payload);
         handleSaveEntry(payload);
         setActiveDesktopTab('today');
@@ -967,7 +1033,10 @@ export default function App() {
       const qRate = params.get('quickRate') || params.get('rate');
       const qNotes = params.get('notes');
       const qDate = params.get('date');
-      if (qRate || qNotes) {
+      const qSpheres = params.get('spheres');
+      const qAnchors = params.get('anchors');
+
+      if (qRate || qNotes || qSpheres || qAnchors) {
         const targetDate = qDate || todayStr;
         const payload = { date: targetDate };
         if (qRate) {
@@ -979,6 +1048,37 @@ export default function App() {
         if (qNotes) {
           payload.notes = decodeURIComponent(qNotes);
         }
+        if (qSpheres) {
+          try {
+            const parsed = JSON.parse(decodeURIComponent(qSpheres));
+            if (Array.isArray(parsed)) {
+              let sphereList = [
+                { id: 'work_school' },
+                { id: 'home_personal' },
+                { id: 'social_event' }
+              ];
+              const mapped = {};
+              parsed.forEach((val, idx) => {
+                const sObj = sphereList[idx] || { id: `sphere_${idx + 1}` };
+                mapped[sObj.id] = { rating: Number(val), notes: '' };
+              });
+              payload.spheres = mapped;
+            } else if (typeof parsed === 'object') {
+              payload.spheres = parsed;
+            }
+          } catch (e) {}
+        }
+        if (qAnchors) {
+          try {
+            const parsed = JSON.parse(decodeURIComponent(qAnchors));
+            const checked = parsed.checkedState || (parsed.checked ? parsed.checked.reduce((acc, curr, idx) => ({ ...acc, [`anchor_${idx + 1}`]: curr }), {}) : null);
+            if (checked) {
+              localStorage.setItem(`daily_verdict_anchors_${targetDate}`, JSON.stringify(checked));
+              window.dispatchEvent(new CustomEvent('daily_anchors_updated', { detail: { date: targetDate, checked } }));
+            }
+          } catch (e) {}
+        }
+
         console.log(`⚡ [URL Quick Rate] Recording for ${targetDate}:`, payload);
         handleSaveEntry(payload);
         setActiveDesktopTab('today');
@@ -989,6 +1089,8 @@ export default function App() {
         url.searchParams.delete('rate');
         url.searchParams.delete('notes');
         url.searchParams.delete('date');
+        url.searchParams.delete('spheres');
+        url.searchParams.delete('anchors');
         window.history.replaceState({}, '', url.toString());
       }
     } catch (e) {

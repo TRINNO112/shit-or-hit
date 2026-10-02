@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Bell, 
   Send, 
@@ -11,19 +11,32 @@ import {
   Monitor, 
   Settings,
   Sparkles,
-  Zap
+  Zap,
+  Layers,
+  ListTodo,
+  Flame,
+  Shield,
+  Clock,
+  VolumeX,
+  Volume2,
+  Info
 } from 'lucide-react';
 import { playMood } from '../services/soundEffects';
 import { soundEngine } from '../services/soundEngine';
 import { 
   showInstantReminderNotification, 
   getNotificationBannerMode, 
-  setNotificationBannerMode 
+  setNotificationBannerMode,
+  detectActiveEngine,
+  getEngineNotificationContent,
+  parseNotificationReply,
+  getReminderTimes,
+  isDayRated
 } from '../services/notifications';
 
 /* ------------------------------------------------------------------
    NOTIFICATION STAR SETTER & SMARTPHONE / PC SIMULATOR
-   Zero complex SVGs in push shade — Pure Unicode Stars & Neobrutalist
+   Zero complex SVGs in push shade — Pure Lucide Icons & Neobrutalist
    High-Contrast Color Tokens for 100% native mobile & desktop OS compatibility.
 ------------------------------------------------------------------- */
 
@@ -38,10 +51,10 @@ const STAR_TIERS = [
 const BANNER_MODES = [
   {
     id: 'inline',
-    name: '1. INLINE NUMBER & NOTE INPUT (1-5★)',
+    name: '1. INLINE TEXT REPLY (MULTI-ENGINE)',
     tag: 'TEXT REPLY (DEFAULT)',
     shortTitle: 'INLINE INPUT',
-    desc: 'Type 1 to 5 and an optional day summary note directly in the notification banner. (On Windows, click the reply arrow in the toast).'
+    desc: 'Type single star 1-5, sphere sequence (e.g. 321), or binary anchors (e.g. 101) directly with optional reflection notes.'
   },
   {
     id: 'polar',
@@ -62,11 +75,34 @@ export default function NotificationSetterCard() {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testSent, setTestSent] = useState(false);
   const [testSentMode, setTestSentMode] = useState(null);
+  const [activeEngine, setActiveEngine] = useState(() => detectActiveEngine());
+  const [reminderTimes, setReminderTimesState] = useState(() => getReminderTimes());
+  const [todayRated, setTodayRated] = useState(() => isDayRated());
 
   const [isMobileScreen, setIsMobileScreen] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 640 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   });
+
+  // Listen to engine configuration changes & auto-silence triggers
+  useEffect(() => {
+    const handleSync = () => {
+      setActiveEngine(detectActiveEngine());
+      setReminderTimesState(getReminderTimes());
+      setTodayRated(isDayRated());
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('verdict-sync-status', handleSync);
+    window.addEventListener('remote_notification_verdict', handleSync);
+    window.addEventListener('rehabilitation-updated', handleSync);
+
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('verdict-sync-status', handleSync);
+      window.removeEventListener('remote_notification_verdict', handleSync);
+      window.removeEventListener('rehabilitation-updated', handleSync);
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -108,6 +144,7 @@ export default function NotificationSetterCard() {
     const msg = `RECORDED ${tier.count} ${tier.label} TO TODAY'S DIARY (ZERO APP OPEN NEEDED)`;
     setFeedbackMessage(msg);
     setConfirmedRating(tier);
+    setTodayRated(true);
     setTimeout(() => setFeedbackMessage(null), 4500);
     setTimeout(() => setConfirmedRating(null), 6000);
 
@@ -124,7 +161,7 @@ export default function NotificationSetterCard() {
     setIsSendingTest(true);
     soundEngine.playClick();
     try {
-      const ok = await showInstantReminderNotification(null, targetMode);
+      const ok = await showInstantReminderNotification(null, targetMode, activeEngine);
       setIsSendingTest(false);
       if (ok) {
         setTestSent(true);
@@ -137,7 +174,55 @@ export default function NotificationSetterCard() {
     }
   };
 
+  // Real-time live parse for the simulator input
+  const parsedSimulatorResult = useMemo(() => {
+    if (!inlineInputVal.trim()) return null;
+    return parseNotificationReply(inlineInputVal.trim(), activeEngine);
+  }, [inlineInputVal, activeEngine]);
+
+  const handleSimulatorSubmit = (e) => {
+    e.preventDefault();
+    if (!inlineInputVal.trim()) return;
+
+    const parsed = parseNotificationReply(inlineInputVal.trim(), activeEngine);
+    if (!parsed) return;
+
+    if (parsed.rating !== null || parsed.notes !== null) {
+      const detail = {
+        rating: parsed.rating,
+        notes: parsed.notes,
+        spheres: parsed.spheres,
+        nonNegotiables: parsed.nonNegotiables,
+        timestamp: new Date().toISOString()
+      };
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('remote_notification_verdict', { detail }));
+      }
+
+      if (parsed.rating) {
+        try { playMood(parsed.rating); } catch (err) {}
+      }
+      soundEngine.playSuccess();
+
+      let label = parsed.rating ? `${parsed.rating}★` : 'NOTE';
+      if (parsed.type === 'spheres') {
+        label = `SPHERES COMPOSITE: ${parsed.rating}★`;
+      } else if (parsed.type === 'non-negotiables') {
+        label = `ANCHORS: ${parsed.nonNegotiables.completedCount}/${parsed.nonNegotiables.totalCount} (${parsed.rating}★)`;
+      }
+
+      setFeedbackMessage(`RECORDED ${label} VIA NOTIFICATION TEXT PARSER!`);
+      setConfirmedRating(STAR_TIERS.find(t => t.rating === parsed.rating) || { count: `${parsed.rating}★`, label: 'LOGGED', stars: '★'.repeat(parsed.rating || 3), color: '#FDC800' });
+      setInlineInputVal('');
+      setTodayRated(true);
+      setTimeout(() => setFeedbackMessage(null), 4500);
+      setTimeout(() => setConfirmedRating(null), 6000);
+    }
+  };
+
   const currentModeObj = BANNER_MODES.find(m => m.id === bannerMode) || BANNER_MODES[0];
+  const engineContent = getEngineNotificationContent(activeEngine);
 
   return (
     <div className="bg-[#FFFDF8] border-3 border-black rounded-3xl p-3.5 sm:p-6 text-black shadow-[6px_6px_0px_#000000] space-y-4">
@@ -153,12 +238,16 @@ export default function NotificationSetterCard() {
               {!isMobileScreen ? <Monitor className="w-3 h-3 text-[#FDC800]" /> : <Smartphone className="w-3 h-3 text-[#FDC800]" />}
               <span>ARMED: {currentModeObj.shortTitle}</span>
             </span>
+            <span className="px-2 py-0.5 bg-[#38BDF8] border border-black rounded font-mono font-black text-[10px] uppercase text-black flex items-center gap-1">
+              {activeEngine === 'spheres' ? <Layers className="w-3 h-3" /> : activeEngine === 'non-negotiables' ? <ListTodo className="w-3 h-3" /> : <Flame className="w-3 h-3" />}
+              <span>{activeEngine.toUpperCase()}</span>
+            </span>
           </div>
           <h2 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight">
-            Daily Notification &amp; Star Setter
+            Daily Notification &amp; Multi-Engine Parser
           </h2>
           <p className="text-xs font-mono text-black/70">
-            Log your daily mood directly from Windows notifications or smartphone shade without opening the app.
+            Log directly from Windows toasts or Android shade: 1-5★ numbers, multi-sphere sequences (e.g. <code>321</code>), or binary habit anchors (e.g. <code>101</code>).
           </p>
         </div>
 
@@ -212,6 +301,112 @@ export default function NotificationSetterCard() {
         </div>
       </div>
 
+      {/* 🚀 ANIMATED FORMAT GUIDE & ENGINE SYNTAX CHEAT SHEET */}
+      <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000] space-y-2.5">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 font-mono font-black text-xs uppercase text-black">
+            <Sparkles className="w-4 h-4 text-[#FDC800]" />
+            <span>HOW TO REPLY IN NOTIFICATION SHADE ({activeEngine.toUpperCase()}):</span>
+          </div>
+          <span className="font-mono text-[10px] bg-neutral-100 border border-black px-2 py-0.5 rounded font-black">
+            NATIVE TEXT PARSER
+          </span>
+        </div>
+
+        {/* Engine-Specific Syntax Banner */}
+        {activeEngine === 'spheres' ? (
+          <div className="bg-[#F0F9FF] border-2 border-black rounded-xl p-3 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap text-xs font-mono font-bold">
+              <span className="bg-black text-[#38BDF8] px-2 py-0.5 rounded font-black">MULTI-SPHERE SYNTAX:</span>
+              <span className="bg-white border border-black px-2 py-0.5 rounded font-mono font-black">
+                [3 2 1] [Optional Reflection Note]
+              </span>
+            </div>
+            <p className="text-[11px] font-mono text-neutral-700 leading-tight">
+              Type a continuous sequence of domain ratings (1-5★). The first digit rates <strong>Work/School</strong>, second rates <strong>Home/Sanctuary</strong>, third rates <strong>Social</strong>. The remaining text is saved as your reflection note!
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[10px] pt-1">
+              <div className="p-1.5 bg-white border border-black rounded-lg">
+                <span className="font-black text-[#FDC800]">Digit 1 (3):</span> Work &amp; School (3★)
+              </div>
+              <div className="p-1.5 bg-white border border-black rounded-lg">
+                <span className="font-black text-[#00E599]">Digit 2 (2):</span> Home &amp; Rest (2★)
+              </div>
+              <div className="p-1.5 bg-white border border-black rounded-lg">
+                <span className="font-black text-[#FF8A00]">Digit 3 (1):</span> Social &amp; Events (1★)
+              </div>
+            </div>
+            <div className="text-[10px] font-mono text-neutral-600 bg-white/70 p-2 rounded border border-black/20">
+              💡 Example: <code>321 Crushed project launch, skipped gym</code> &rarr; Composite: <strong>2★ (Rough)</strong> + note recorded.
+            </div>
+          </div>
+        ) : activeEngine === 'non-negotiables' ? (
+          <div className="bg-[#FFFDF5] border-2 border-black rounded-xl p-3 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap text-xs font-mono font-bold">
+              <span className="bg-black text-[#00E599] px-2 py-0.5 rounded font-black">HABIT ANCHORS SYNTAX:</span>
+              <span className="bg-white border border-black px-2 py-0.5 rounded font-mono font-black">
+                [1 0 1] [Optional Completion Note]
+              </span>
+            </div>
+            <p className="text-[11px] font-mono text-neutral-700 leading-tight">
+              Type binary digits for non-negotiables: <strong>1 = Done</strong>, <strong>0 = Incomplete</strong>. Automatically marks habits, computes deterministic or hybrid rating, and saves notes!
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[10px] pt-1">
+              <div className="p-1.5 bg-white border border-black rounded-lg">
+                <span className="font-black text-[#00E599]">Char 1 (1):</span> Anchor 1 (Done)
+              </div>
+              <div className="p-1.5 bg-white border border-black rounded-lg">
+                <span className="font-black text-[#FF4D4D]">Char 2 (0):</span> Anchor 2 (Skipped)
+              </div>
+              <div className="p-1.5 bg-white border border-black rounded-lg">
+                <span className="font-black text-[#00E599]">Char 3 (1):</span> Anchor 3 (Done)
+              </div>
+            </div>
+            <div className="text-[10px] font-mono text-neutral-600 bg-white/70 p-2 rounded border border-black/20">
+              💡 Example: <code>101 Crushed morning focus &amp; workout</code> &rarr; 2/3 Done (3.3★) + habits checked.
+            </div>
+          </div>
+        ) : (
+          <div className="bg-[#FFFDF5] border-2 border-black rounded-xl p-3 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap text-xs font-mono font-bold">
+              <span className="bg-black text-[#FDC800] px-2 py-0.5 rounded font-black">STANDARD VERDICT SYNTAX:</span>
+              <span className="bg-white border border-black px-2 py-0.5 rounded font-mono font-black">
+                [1 to 5] [Optional Evening Note]
+              </span>
+            </div>
+            <p className="text-[11px] font-mono text-neutral-700 leading-tight">
+              Type any digit from 1 to 5 followed by your evening journal note. Keywords like <code>hit</code>, <code>peak</code>, <code>good</code>, <code>ok</code>, <code>rough</code>, <code>shit</code> are also auto-recognized!
+            </p>
+            <div className="text-[10px] font-mono text-neutral-600 bg-white/70 p-2 rounded border border-black/20">
+              💡 Example: <code>5 Shipped new notification features, legendary momentum</code> &rarr; 5★ Peak + diary entry saved.
+            </div>
+          </div>
+        )}
+
+        {/* Multi-Pump Scheduler & Auto-Silence Stand-Down Status */}
+        <div className="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-black/10">
+          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+            <Clock className="w-3.5 h-3.5 text-black" />
+            <span className="font-black">SCHEDULED SLOTS:</span>
+            <span className="bg-neutral-100 px-2 py-0.5 rounded font-bold border border-black/30">
+              {reminderTimes.join(' • ')}
+            </span>
+          </div>
+
+          {todayRated ? (
+            <div className="flex items-center gap-1 font-mono text-[10px] font-black bg-[#00E599] text-black px-2 py-0.5 rounded border border-black">
+              <VolumeX className="w-3 h-3 text-black" />
+              <span>STAND-DOWN ACTIVE: TODAY RECORDED • ALARMS MUTED</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 font-mono text-[10px] font-black bg-[#FDC800] text-black px-2 py-0.5 rounded border border-black">
+              <Volume2 className="w-3 h-3 text-black" />
+              <span>PUMP ACTIVE: WAITING FOR TODAY'S LOG</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Undeniable Tactile Confirmation Banner */}
       {confirmedRating && (
         <div className="p-3.5 bg-[#00E599] border-3 border-black rounded-2xl shadow-[4px_4px_0px_#000000] text-black flex items-center justify-between gap-3 animate-fade-in">
@@ -254,7 +449,7 @@ export default function NotificationSetterCard() {
       {isExpanded && (
         <div className="pt-3 border-t-3 border-black space-y-6">
           
-          {/* Section 1: 3 Action Modes with Direct Test Triggers */}
+          {/* Section 1: 2 Action Modes with Direct Test Triggers */}
           <div className="space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-xs font-mono font-black uppercase text-neutral-800 tracking-wider flex items-center gap-1.5">
@@ -266,7 +461,7 @@ export default function NotificationSetterCard() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {BANNER_MODES.map((m) => {
                 const isSelected = bannerMode === m.id;
                 return (
@@ -335,7 +530,7 @@ export default function NotificationSetterCard() {
               </span>
               <div className="flex items-center gap-1.5 font-mono text-[10px] bg-black text-[#00E599] px-2 py-0.5 rounded font-black">
                 <Keyboard className="w-3 h-3 text-[#00E599]" />
-                <span>KEYS: 1-5</span>
+                <span>KEYS: 1-5 OR TYPE STRING</span>
               </div>
             </div>
 
@@ -363,38 +558,25 @@ export default function NotificationSetterCard() {
               {/* Notification Body Prompt */}
               <div>
                 <h4 className="font-display font-black text-sm uppercase text-white tracking-tight">
-                  How was your day? Log in 1 tap:
+                  {engineContent.title}
                 </h4>
                 <p className="text-[11px] font-mono text-white/70 mt-0.5">
                   {bannerMode === 'inline' 
-                    ? 'Type 1 to 5 directly in the box below to log your rating without opening the app:'
-                    : bannerMode === 'polar'
-                    ? 'Click 1★ Shit or 5★ Hit directly from your notification banner:'
-                    : 'Click any of the 5 stars to record your verdict directly:'}
+                    ? engineContent.placeholder
+                    : 'Click 1★ Shit or 5★ Hit directly from your notification banner:'}
                 </p>
               </div>
 
-              {/* MODE 1: Inline 1-5 Input Field */}
+              {/* MODE 1: Inline Multi-Engine Text Field */}
               {bannerMode === 'inline' && (
                 <div className="space-y-2 pt-1">
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const val = parseInt(inlineInputVal.trim(), 10);
-                      if (val >= 1 && val <= 5) {
-                        handleSelectRating(val);
-                        setInlineInputVal('');
-                      }
-                    }}
-                    className="flex items-center gap-2"
-                  >
+                  <form onSubmit={handleSimulatorSubmit} className="flex items-center gap-2">
                     <input
                       type="text"
                       value={inlineInputVal}
                       onChange={(e) => setInlineInputVal(e.target.value)}
-                      placeholder="Type 1, 2, 3, 4, or 5 & Enter..."
+                      placeholder={engineContent.placeholder}
                       className="flex-1 bg-black/60 border-2 border-white/30 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FDC800]"
-                      maxLength={2}
                     />
                     <button
                       type="submit"
@@ -403,8 +585,31 @@ export default function NotificationSetterCard() {
                       SEND
                     </button>
                   </form>
+
+                  {/* Live Parsed Preview Badge */}
+                  {parsedSimulatorResult && (
+                    <div className="p-2.5 bg-white/10 border border-white/20 rounded-xl font-mono text-[11px] flex items-center justify-between gap-2 animate-fade-in">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[#FDC800] font-black uppercase">
+                          DETECTED [{parsedSimulatorResult.type}]:
+                        </span>
+                        {parsedSimulatorResult.rating && (
+                          <span className="bg-[#00E599] text-black px-1.5 py-0.5 rounded font-black text-[10px]">
+                            {parsedSimulatorResult.rating}★ RATING
+                          </span>
+                        )}
+                        {parsedSimulatorResult.notes && (
+                          <span className="text-white/80 truncate max-w-[200px]">
+                            "{parsedSimulatorResult.notes}"
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-[#00E599] font-black shrink-0">READY TO SAVE</span>
+                    </div>
+                  )}
+
                   <p className="text-[10px] font-mono text-white/50">
-                    NOTE: On Windows PC notifications, type 1-5 and click the small reply arrow button if your Windows build doesn't bind Enter.
+                    NOTE: On Windows PC notifications, type into the reply field and click the arrow button (or press Enter on mobile).
                   </p>
                 </div>
               )}
@@ -448,17 +653,17 @@ export default function NotificationSetterCard() {
           <div className="p-4 bg-[#FDC800] border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000] space-y-2 text-black">
             <div className="flex items-center gap-2 font-mono text-xs font-black uppercase">
               <Smartphone className="w-4 h-4 stroke-[2.5]" />
-              <span>OS NOTIFICATION CAPABILITIES &amp; BUTTON LIMITS</span>
+              <span>OS NOTIFICATION CAPABILITIES &amp; MULTI-ENGINE COMPATIBILITY</span>
             </div>
             <div className="text-xs font-mono space-y-1.5 leading-relaxed">
+              <p>
+                • <strong>Inline Text Reply (Universal)</strong>: Supported natively on both Android notification shade and Windows Action Center toast. Allows capturing complex sphere ratings (<code>321</code>) and habit anchors (<code>101</code>) with zero app opening!
+              </p>
               <p>
                 • <strong>Windows Action Center Limit</strong>: Windows PC strictly caps notifications to <strong>2 action buttons</strong>. Mode 2 (<code>1★ Shit</code> &amp; <code>5★ Hit</code>) fits natively on Windows.
               </p>
               <p>
-                • <strong>Why Test Mode 2 on PC?</strong>: If typing in the Windows notification text field feels awkward or your Windows build doesn't bind Enter, switch to <strong>Mode 2</strong>. Both buttons click instantly!
-              </p>
-              <p>
-                • <strong>Mobile Lockscreen (Android PWA)</strong>: Supports up to 5 buttons natively (Mode 3), giving you all 5 mood ratings right on your lockscreen.
+                • <strong>Multi-Pump Auto-Silence</strong>: Reminders automatically stand down for the rest of today as soon as you record a verdict via notification, mobile, or desktop.
               </p>
             </div>
           </div>

@@ -190,37 +190,64 @@ self.addEventListener('notificationclick', (event) => {
   // 1-Tap Quick Rating Action from Lockscreen / Notification Shade (Button or Inline Input)
   let rating = null;
   let notes = null;
+  let spheres = null;
+  let nonNegotiables = null;
+
   if (event.action && event.action.startsWith('rate-')) {
     if (event.action === 'rate-inline' && event.reply) {
       const raw = event.reply.trim();
-      // 1. Check if input starts with a number 1-5 followed by optional note
-      const numMatch = raw.match(/^([1-5])(?:\s*[-:,.]?\s*(.*))?$/s);
-      if (numMatch) {
-        rating = parseInt(numMatch[1], 10);
-        if (numMatch[2] && numMatch[2].trim()) {
-          notes = numMatch[2].trim();
-        }
+
+      // 1. Non-Negotiables Binary Input (e.g. "101", "1 0 1", "1,0,1" followed by optional notes)
+      const binaryMatch = raw.match(/^([01]{2,8}|(?:[01][\s,/-]){1,7}[01])(?:\s*[-:,.]?\s*(.*))?$/s);
+      
+      // 2. Multi-Sphere Input (e.g. "321", "453", "5 4 3" followed by optional notes)
+      const sphereMatch = raw.match(/^([1-5]{2,6}|(?:[1-5][\s,/-]){1,5}[1-5])(?:\s*[-:,.]?\s*(.*))?$/s);
+
+      if (binaryMatch && !raw.match(/^[2-5]/)) {
+        const binDigits = binaryMatch[1].replace(/[\s,/-]/g, '').split('');
+        const ones = binDigits.filter(d => d === '1').length;
+        const total = binDigits.length;
+        const calc = total > 0 ? (ones / total) * 5.0 : 1;
+        rating = Math.max(1, Math.min(5, Math.round(calc)));
+        notes = (binaryMatch[2] && binaryMatch[2].trim()) ? binaryMatch[2].trim() : null;
+        nonNegotiables = { digits: binDigits.join(''), ones, total, checked: binDigits.map(d => d === '1') };
+      } else if (sphereMatch) {
+        const digits = sphereMatch[1].replace(/[\s,/-]/g, '').split('').map(d => parseInt(d, 10));
+        const sum = digits.reduce((a, b) => a + b, 0);
+        const avg = digits.length > 0 ? sum / digits.length : 3;
+        rating = Math.max(1, Math.min(5, Math.round(avg)));
+        notes = (sphereMatch[2] && sphereMatch[2].trim()) ? sphereMatch[2].trim() : null;
+        spheres = digits;
       } else {
-        // 2. Keyword fallback with remaining text as note
-        const lower = raw.toLowerCase();
-        if (lower.startsWith('shit') || lower.startsWith('rough') || lower.startsWith('bad') || lower.startsWith('terrible')) {
-          rating = 1;
-          notes = raw.replace(/^(shit|rough|bad|terrible)\s*[-:,.]?\s*/i, '').trim() || null;
-        } else if (lower.startsWith('down') || lower.startsWith('sad') || lower.startsWith('low')) {
-          rating = 2;
-          notes = raw.replace(/^(down|sad|low)\s*[-:,.]?\s*/i, '').trim() || null;
-        } else if (lower.startsWith('ok') || lower.startsWith('okay') || lower.startsWith('fine') || lower.startsWith('average') || lower.startsWith('meh')) {
-          rating = 3;
-          notes = raw.replace(/^(ok|okay|fine|average|meh)\s*[-:,.]?\s*/i, '').trim() || null;
-        } else if (lower.startsWith('good') || lower.startsWith('decent') || lower.startsWith('nice')) {
-          rating = 4;
-          notes = raw.replace(/^(good|decent|nice)\s*[-:,.]?\s*/i, '').trim() || null;
-        } else if (lower.startsWith('hit') || lower.startsWith('peak') || lower.startsWith('great') || lower.startsWith('awesome') || lower.startsWith('fire')) {
-          rating = 5;
-          notes = raw.replace(/^(hit|peak|great|awesome|fire)\s*[-:,.]?\s*/i, '').trim() || null;
+        // 3. Check if input starts with a single number 1-5 followed by optional note
+        const numMatch = raw.match(/^([1-5])(?:\s*[-:,.]?\s*(.*))?$/s);
+        if (numMatch) {
+          rating = parseInt(numMatch[1], 10);
+          if (numMatch[2] && numMatch[2].trim()) {
+            notes = numMatch[2].trim();
+          }
         } else {
-          // 3. Freeform text reflection (e.g. Sabbatical chronicle or Sanctuary check-in)
-          notes = raw;
+          // 4. Keyword fallback with remaining text as note
+          const lower = raw.toLowerCase();
+          if (lower.startsWith('shit') || lower.startsWith('rough') || lower.startsWith('bad') || lower.startsWith('terrible')) {
+            rating = 1;
+            notes = raw.replace(/^(shit|rough|bad|terrible)\s*[-:,.]?\s*/i, '').trim() || null;
+          } else if (lower.startsWith('down') || lower.startsWith('sad') || lower.startsWith('low')) {
+            rating = 2;
+            notes = raw.replace(/^(down|sad|low)\s*[-:,.]?\s*/i, '').trim() || null;
+          } else if (lower.startsWith('ok') || lower.startsWith('okay') || lower.startsWith('fine') || lower.startsWith('average') || lower.startsWith('meh')) {
+            rating = 3;
+            notes = raw.replace(/^(ok|okay|fine|average|meh)\s*[-:,.]?\s*/i, '').trim() || null;
+          } else if (lower.startsWith('good') || lower.startsWith('decent') || lower.startsWith('nice')) {
+            rating = 4;
+            notes = raw.replace(/^(good|decent|nice)\s*[-:,.]?\s*/i, '').trim() || null;
+          } else if (lower.startsWith('hit') || lower.startsWith('peak') || lower.startsWith('great') || lower.startsWith('awesome') || lower.startsWith('fire')) {
+            rating = 5;
+            notes = raw.replace(/^(hit|peak|great|awesome|fire)\s*[-:,.]?\s*/i, '').trim() || null;
+          } else {
+            // 5. Freeform text reflection (e.g. Sabbatical chronicle or Sanctuary check-in)
+            notes = raw;
+          }
         }
       }
     } else {
@@ -235,6 +262,8 @@ self.addEventListener('notificationclick', (event) => {
     const params = new URLSearchParams();
     if (rating !== null) params.set('quickRate', String(rating));
     if (notes) params.set('notes', notes);
+    if (spheres) params.set('spheres', JSON.stringify(spheres));
+    if (nonNegotiables) params.set('anchors', JSON.stringify(nonNegotiables));
     params.set('date', todayStr);
     const rateUrl = new URL(`/?${params.toString()}`, baseUrl).href;
 
@@ -247,7 +276,9 @@ self.addEventListener('notificationclick', (event) => {
             type: 'REMOTE_NOTIFICATION_RATING',
             dateStr: todayStr,
             rating: rating,
-            notes: notes
+            notes: notes,
+            spheres: spheres,
+            nonNegotiables: nonNegotiables
           });
           if ('focus' in client && !focusedClient) {
             focusedClient = client;

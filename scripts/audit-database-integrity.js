@@ -192,10 +192,30 @@ function reconcileEntryItems(baseItem, candidateItem) {
     return candidateItem;
   }
 
-  // Rule 3: Both have notes -> timestamp determines the winner
+  // Rule 3: Both have notes -> timestamp determines the winner with Note Richness Shield
   if (baseNotes && candNotes) {
     const baseTime = new Date(baseItem.updatedAt || baseItem.createdAt || 0).getTime();
     const candTime = new Date(candidateItem.updatedAt || candidateItem.createdAt || 0).getTime();
+    const timeDelta = Math.abs(candTime - baseTime);
+
+    // Note Richness Shield: preserve substantive reflections (>=30 chars) against concurrent tiny edits (<=15 chars)
+    const baseLen = baseNotes.length;
+    const candLen = candNotes.length;
+    if (baseLen >= 30 && candLen <= 15 && timeDelta < 4 * 60 * 60 * 1000) {
+      return {
+        ...(baseTime >= candTime ? baseItem : candidateItem),
+        notes: baseItem.notes,
+        spheres: candidateItem.spheres || baseItem.spheres
+      };
+    }
+    if (candLen >= 30 && baseLen <= 15 && timeDelta < 4 * 60 * 60 * 1000) {
+      return {
+        ...(candTime >= baseTime ? candidateItem : baseItem),
+        notes: candidateItem.notes,
+        spheres: candidateItem.spheres || baseItem.spheres
+      };
+    }
+
     if (baseTime >= candTime) {
       return baseItem;
     }
@@ -251,6 +271,15 @@ const ratingProtected = reconcileEntryItems(
 assert(
   ratingProtected.rating === 5 && ratingProtected.verdict === 'Peak',
   'Reconciliation Rule 4: Non-default rating 5★ protected against demotion to default 3★'
+);
+
+// Invariant R5: Note Richness Shield protects substantive entries against concurrent accidental tiny snippets
+const substantiveMobile = { date: '2026-09-05', rating: 4, notes: 'Completed full-stack dashboard sprint, 5km run in evening, read 30 pages of deep work.', updatedAt: '2026-09-05T20:00:00Z' };
+const tinyPcAccidental = { date: '2026-09-05', rating: 4, notes: 'ok fine', updatedAt: '2026-09-05T20:05:00Z' };
+const richnessProtected = reconcileEntryItems(substantiveMobile, tinyPcAccidental);
+assert(
+  richnessProtected.notes === 'Completed full-stack dashboard sprint, 5km run in evening, read 30 pages of deep work.',
+  'Reconciliation Rule 3b: Note Richness Shield protects substantive mobile diary entry from newer accidental tiny snippet'
 );
 
 // ---------------------------------------------------------------------------

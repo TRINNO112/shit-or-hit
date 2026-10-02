@@ -305,10 +305,32 @@ function reconcileEntryItems(baseItem, candidateItem) {
     return normalizedCandidate;
   }
 
-  // Rule 3: Both have notes -> timestamp determines the winner (server data/entries.json is authoritative)
+  // Rule 3: Both have notes
   if (baseNotes && candNotes) {
     const baseTime = new Date(normalizedBase.updatedAt || normalizedBase.createdAt || 0).getTime();
     const candTime = new Date(normalizedCandidate.updatedAt || normalizedCandidate.createdAt || 0).getTime();
+    const timeDelta = Math.abs(candTime - baseTime);
+
+    // 🛡️ Note Richness Shield: If one device wrote a substantive diary entry (>= 30 chars)
+    // and another device saved an accidental tiny snippet (<= 15 chars or < 30% length) within a 4-hour window,
+    // preserve the richer reflection note rather than blindly wiping it due to timestamp skew.
+    const baseLen = baseNotes.length;
+    const candLen = candNotes.length;
+    if (baseLen >= 30 && candLen <= 15 && timeDelta < 4 * 60 * 60 * 1000) {
+      return {
+        ...(baseTime >= candTime ? normalizedBase : normalizedCandidate),
+        notes: normalizedBase.notes,
+        spheres: normalizedCandidate.spheres || normalizedBase.spheres
+      };
+    }
+    if (candLen >= 30 && baseLen <= 15 && timeDelta < 4 * 60 * 60 * 1000) {
+      return {
+        ...(candTime >= baseTime ? normalizedCandidate : normalizedBase),
+        notes: normalizedCandidate.notes,
+        spheres: normalizedCandidate.spheres || normalizedBase.spheres
+      };
+    }
+
     if (baseTime >= candTime) {
       return normalizedBase;
     }

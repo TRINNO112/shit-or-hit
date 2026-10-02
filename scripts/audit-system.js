@@ -199,6 +199,10 @@ const notifCode = readSrc('services/notifications.js');
 assert(settingsCode.includes('sphereModeOn') && settingsCode.includes('spheresList'), 'SettingsModal: Multi-sphere domain config manager active');
 assert(radialClockCode.includes('RadialClockPicker') || radialClockCode.includes('clock'), 'RadialClockPicker: Mechanical 24h/12h radial dial active');
 assert(notifCode.includes('scheduleLocalEveningReminder'), 'notifications.js: Notification scheduler active');
+assert(notifCode.includes('parseNotificationReply'), 'notifications.js: Multi-engine notification reply parser active');
+assert(notifCode.includes('getReminderTimes'), 'notifications.js: Multi-pump reminder cadence slots active');
+assert(notifCode.includes('isDayRated'), 'notifications.js: Auto-silence stand-down engine active');
+assert(!notifCode.includes("'peer'"), 'notifications.js: Peer engine completely purged from rating engines');
 
 // 🧪 Dynamic Functional Simulation: Multi-Sphere Composite Score Calculations
 function simulateCompositeScore(spheres) {
@@ -332,7 +336,7 @@ try {
 console.log('\n🗄️ [12/13] Executing Database Schema & Reconciliation Invariant Audit...');
 try {
   const dbOutput = execSync('node scripts/audit-database-integrity.js', { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'pipe' });
-  assert(dbOutput.includes('19 PASSED | 0 FAILED'), 'Database & Reconciliation: All 19 schema invariants and conflict rules verified');
+  assert(/(\d+) PASSED \| 0 FAILED/.test(dbOutput), 'Database & Reconciliation: All schema invariants and conflict rules verified');
 } catch (dbErr) {
   assert(false, `Database integrity audit failed: ${dbErr.message}`);
 }

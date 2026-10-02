@@ -19,7 +19,11 @@ import {
   HeartHandshake,
   Heart,
   ListTodo,
-  Layers
+  Layers,
+  Plus,
+  Trash2,
+  VolumeX,
+  Volume2
 } from 'lucide-react';
 import { playMood } from '../services/soundEffects';
 import { soundEngine } from '../services/soundEngine';
@@ -33,6 +37,12 @@ import {
   showInstantReminderNotification,
   getReminderTime,
   setReminderTime,
+  getReminderTimes,
+  setReminderTimes,
+  addReminderTime,
+  removeReminderTime,
+  isDayRated,
+  parseNotificationReply,
   detectActiveEngine,
   getEngineNotificationContent
 } from '../services/notifications';
@@ -98,14 +108,6 @@ const ENGINES = [
     icon: Heart,
     color: '#00E599',
     description: 'Short-term nervous system reset. Vagus nerve 4-2-6 calming pacing and somatic comfort check-in.'
-  },
-  {
-    id: 'peer',
-    name: 'PEER ACCOUNTABILITY',
-    tag: 'P2P MIRROR',
-    icon: HeartHandshake,
-    color: '#A78BFA',
-    description: 'Direct P2P mutual accountability. Logging daily keeps your mutual partner streak shield alive.'
   }
 ];
 
@@ -121,6 +123,9 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   const [selectedEngine, setSelectedEngine] = useState(() => detectActiveEngine());
   const [simulatorDevice, setSimulatorDevice] = useState('phone'); // 'phone' | 'windows'
   const [reminderTimeVal, setReminderTimeVal] = useState(() => getReminderTime());
+  const [reminderTimes, setReminderTimesState] = useState(() => getReminderTimes());
+  const [newReminderTime, setNewReminderTime] = useState('20:00');
+  const [todayRated, setTodayRated] = useState(() => isDayRated());
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [testSent, setTestSent] = useState(false);
   const [testError, setTestError] = useState(null);
@@ -128,7 +133,24 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   const [inlineInputVal, setInlineInputVal] = useState('');
   const [simulatorFeedback, setSimulatorFeedback] = useState(null);
 
-  // Sync mode changes with localStorage & system
+  // Sync mode changes & auto-silence status with localStorage & system
+  useEffect(() => {
+    const handleSync = () => {
+      setSelectedEngine(detectActiveEngine());
+      setReminderTimesState(getReminderTimes());
+      setTodayRated(isDayRated());
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('verdict-sync-status', handleSync);
+    window.addEventListener('remote_notification_verdict', handleSync);
+
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('verdict-sync-status', handleSync);
+      window.removeEventListener('remote_notification_verdict', handleSync);
+    };
+  }, []);
+
   const handleModeSelect = (modeId) => {
     setBannerModeState(modeId);
     setNotificationBannerMode(modeId);
@@ -138,7 +160,29 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   const handleTimeChange = (newTime) => {
     setReminderTimeVal(newTime);
     setReminderTime(newTime);
+    setReminderTimesState(getReminderTimes());
     soundEngine.playClick();
+  };
+
+  const handleAddSlot = () => {
+    if (reminderTimes.length >= 5) return;
+    const ok = addReminderTime(newReminderTime);
+    if (ok) {
+      setReminderTimesState(getReminderTimes());
+      soundEngine.playSuccess();
+    }
+  };
+
+  const handleRemoveSlot = (t) => {
+    removeReminderTime(t);
+    setReminderTimesState(getReminderTimes());
+    soundEngine.playClick();
+  };
+
+  const handleApplyPreset = (timesList) => {
+    setReminderTimes(timesList);
+    setReminderTimesState(getReminderTimes());
+    soundEngine.playSuccess();
   };
 
   const handleRequestPermission = async () => {
@@ -171,7 +215,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   };
 
   // Interactive Simulator Submission Handler
-  const handleSimulatorSubmit = (simRating, simNotes = '') => {
+  const handleSimulatorSubmit = (simRating, simNotes = '', simSpheres = null, simNonNegotiables = null, engineType = null) => {
     try {
       if (simRating) playMood(simRating);
       soundEngine.playSuccess();
@@ -182,23 +226,33 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
     const detail = {
       rating: simRating,
       notes: simNotes || undefined,
-      engine: selectedEngine,
+      spheres: simSpheres || undefined,
+      nonNegotiables: simNonNegotiables || undefined,
+      engine: engineType || selectedEngine,
       timestamp: new Date().toISOString()
     };
+
+    let msg = simRating
+      ? `RECORDED ${simRating}★ ${simNotes ? `WITH NOTE: "${simNotes}"` : ''} TO TODAY'S DIARY`
+      : `SAVED DIARY NOTE: "${simNotes}" (ZERO APP OPEN NEEDED)`;
+    if (engineType === 'spheres') {
+      msg = `RECORDED SPHERES (${simRating}★ COMPOSITE) ${simNotes ? `NOTE: "${simNotes}"` : ''}`;
+    } else if (engineType === 'non-negotiables' && simNonNegotiables) {
+      msg = `RECORDED HABITS (${simNonNegotiables.completedCount}/${simNonNegotiables.totalCount} DONE, ${simRating}★) ${simNotes ? `NOTE: "${simNotes}"` : ''}`;
+    }
 
     setSimulatorFeedback({
       rating: simRating,
       notes: simNotes,
-      engine: selectedEngine,
-      message: simRating
-        ? `RECORDED ${simRating}★ ${simNotes ? `WITH NOTE: "${simNotes}"` : ''} TO TODAY'S DIARY`
-        : `SAVED DIARY NOTE: "${simNotes}" (ZERO APP OPEN NEEDED)`
+      engine: engineType || selectedEngine,
+      message: msg
     });
 
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('remote_notification_verdict', { detail }));
     }
 
+    setTodayRated(true);
     setTimeout(() => setSimulatorFeedback(null), 5500);
   };
 
@@ -506,39 +560,11 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                       const raw = inlineInputVal.trim();
                       if (!raw) return;
 
-                      let simRating = null;
-                      let simNotes = '';
-
-                      const match = raw.match(/^([1-5])(?:\s*[-:,.]?\s*(.*))?$/s);
-                      if (match) {
-                        simRating = parseInt(match[1], 10);
-                        simNotes = match[2]?.trim() || '';
-                      } else {
-                        // Word match fallback
-                        const lower = raw.toLowerCase();
-                        if (lower.startsWith('shit') || lower.startsWith('rough') || lower.startsWith('bad')) {
-                          simRating = 1;
-                          simNotes = raw.replace(/^(shit|rough|bad)\s*[-:,.]?\s*/i, '').trim();
-                        } else if (lower.startsWith('down') || lower.startsWith('sad') || lower.startsWith('low')) {
-                          simRating = 2;
-                          simNotes = raw.replace(/^(down|sad|low)\s*[-:,.]?\s*/i, '').trim();
-                        } else if (lower.startsWith('ok') || lower.startsWith('fine') || lower.startsWith('meh')) {
-                          simRating = 3;
-                          simNotes = raw.replace(/^(ok|fine|meh)\s*[-:,.]?\s*/i, '').trim();
-                        } else if (lower.startsWith('good') || lower.startsWith('decent')) {
-                          simRating = 4;
-                          simNotes = raw.replace(/^(good|decent)\s*[-:,.]?\s*/i, '').trim();
-                        } else if (lower.startsWith('hit') || lower.startsWith('peak') || lower.startsWith('great')) {
-                          simRating = 5;
-                          simNotes = raw.replace(/^(hit|peak|great)\s*[-:,.]?\s*/i, '').trim();
-                        } else {
-                          // Note only (e.g. Sabbatical chronicle)
-                          simNotes = raw;
-                        }
+                      const parsed = parseNotificationReply(raw, selectedEngine);
+                      if (parsed) {
+                        handleSimulatorSubmit(parsed.rating, parsed.notes, parsed.spheres, parsed.nonNegotiables, parsed.type);
+                        setInlineInputVal('');
                       }
-
-                      handleSimulatorSubmit(simRating, simNotes);
-                      setInlineInputVal('');
                     }}
                     className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
                   >
@@ -669,38 +695,102 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
             </div>
           )}
 
-          {/* Evening Reminder Time Setting */}
-          <div className="pt-4 border-t-2 border-black/15 space-y-3">
+          {/* Multi-Pump Reminder Scheduler & Stand-Down Setting */}
+          <div className="pt-4 border-t-2 border-black/15 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-black" />
                 <span className="font-mono font-black text-xs uppercase text-neutral-800">
-                  Scheduled Daily Reminder Time:
+                  Multi-Pump Daily Reminder Slots (Up to 5):
                 </span>
               </div>
-              <input
-                type="time"
-                value={reminderTimeVal}
-                onChange={(e) => handleTimeChange(e.target.value)}
-                className="w-full sm:w-auto px-3 py-1.5 bg-neutral-50 border-2 border-black rounded-xl font-mono font-black text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1.5px_1.5px_0px_#000]"
-              />
+              {todayRated ? (
+                <div className="flex items-center gap-1 font-mono text-[10px] font-black bg-[#00E599] text-black px-2 py-0.5 rounded border border-black">
+                  <VolumeX className="w-3.5 h-3.5 text-black" />
+                  <span>STAND-DOWN ACTIVE: TODAY RECORDED • ALARMS MUTED</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 font-mono text-[10px] font-black bg-[#FDC800] text-black px-2 py-0.5 rounded border border-black">
+                  <Volume2 className="w-3.5 h-3.5 text-black" />
+                  <span>PUMP ARMED: NEXT SLOT ACTIVE</span>
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {TIME_PRESETS.map((preset) => (
-                <button
-                  key={preset.value}
-                  type="button"
-                  onClick={() => handleTimeChange(preset.value)}
-                  className={`py-2 rounded-xl border border-black font-mono text-xs font-black cursor-pointer transition-all active:translate-x-px active:translate-y-px ${
-                    reminderTimeVal === preset.value
-                      ? 'bg-[#FDC800] text-black shadow-[2px_2px_0px_#000000] border-2 border-black'
-                      : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700 shadow-[1px_1px_0px_#000]'
-                  }`}
+            {/* Configured Slots List */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {reminderTimes.map((timeStr) => (
+                <div
+                  key={timeStr}
+                  className="px-3 py-1.5 bg-[#FFFDF5] border-2 border-black rounded-xl font-mono text-xs font-black flex items-center gap-2 shadow-[2px_2px_0px_#000]"
                 >
-                  {preset.label}
-                </button>
+                  <Clock className="w-3 h-3 text-black/70" />
+                  <span>{timeStr}</span>
+                  {reminderTimes.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSlot(timeStr)}
+                      className="p-1 hover:bg-[#FF4D4D] hover:text-white rounded border border-transparent hover:border-black cursor-pointer transition-all"
+                      title="Remove this slot"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
               ))}
+            </div>
+
+            {/* Add New Slot Input */}
+            {reminderTimes.length < 5 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <input
+                  type="time"
+                  value={newReminderTime}
+                  onChange={(e) => setNewReminderTime(e.target.value)}
+                  className="px-3 py-1.5 bg-neutral-50 border-2 border-black rounded-xl font-mono font-black text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1.5px_1.5px_0px_#000]"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddSlot}
+                  className="px-3.5 py-1.5 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-3" />
+                  <span>ADD SLOT</span>
+                </button>
+              </div>
+            )}
+
+            {/* Quick Multi-Pump Presets */}
+            <div className="pt-2 border-t border-black/10 space-y-1.5">
+              <span className="font-mono text-[10px] font-black uppercase text-neutral-600">
+                QUICK CADENCE PRESETS:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset(['21:00'])}
+                  className="p-2 bg-neutral-50 hover:bg-neutral-100 border border-black rounded-xl font-mono text-xs font-black text-left cursor-pointer transition-all shadow-[1px_1px_0px_#000]"
+                >
+                  <div className="text-[11px] font-black text-black">1. Standard Evening (9:00 PM)</div>
+                  <div className="text-[9px] text-neutral-600">Single slot reminder</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset(['14:00', '20:00', '22:30'])}
+                  className="p-2 bg-neutral-50 hover:bg-neutral-100 border border-black rounded-xl font-mono text-xs font-black text-left cursor-pointer transition-all shadow-[1px_1px_0px_#000]"
+                >
+                  <div className="text-[11px] font-black text-black">2. 3x Daily Pump</div>
+                  <div className="text-[9px] text-neutral-600">2:00 PM • 8:00 PM • 10:30 PM</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset(['20:00', '21:00', '22:00', '23:00'])}
+                  className="p-2 bg-neutral-50 hover:bg-neutral-100 border border-black rounded-xl font-mono text-xs font-black text-left cursor-pointer transition-all shadow-[1px_1px_0px_#000]"
+                >
+                  <div className="text-[11px] font-black text-black">3. Evening Blitz (Hourly)</div>
+                  <div className="text-[9px] text-neutral-600">8 PM • 9 PM • 10 PM • 11 PM</div>
+                </button>
+              </div>
             </div>
           </div>
 
