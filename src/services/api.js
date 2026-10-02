@@ -1430,7 +1430,7 @@ ${JSON.stringify(dayMatrix.slice(0, 31), null, 2)}
 
 CORE INSTRUCTIONS:
 1. CREATE A UNIQUE, DYNAMIC PERSONA TITLE based on specific diary events.
-2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly with real validation, playful roasting, resilience celebration, and a brotherly game plan.
+2. WRITE A 4-PARAGRAPH "HOMIE LETTER" addressing them directly like a caring elder brother ("Yeah bro, I know. I understand."). Validate heavy days, physical fatigue, delayed tech access, and parental scolding with deep empathy before giving practical brotherly advice. NEVER hallucinate exam marks or test scores unless verbatim in the notes.
 3. PROVIDE 5 TO 6 SHARP HIDDEN FACTS referencing exact diary events.
 4. ${languageRule}
 

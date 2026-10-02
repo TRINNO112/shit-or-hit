@@ -964,9 +964,9 @@ CORE MENTORSHIP & CHRONICLER INSTRUCTIONS:
    - narrative: A rich, honest narrative written directly to "You" ("You felt...", "You pushed through...")
    - turningPoint: The key moment or decision in this phase
    - tacticalTakeaway: Practical, grounded advice for this phase
-5. EXTRACT 3 TO 6 EXPLICIT ACHIEVEMENTS ("achievementsAndClutches"): Highlight real wins with details (exam marks, homework completed, domestic care, coding progress).
-6. 4-PARAGRAPH "HOMIE LETTER": A heartfelt, honest, witty mentor letter speaking directly to them. No sugarcoating, no corporate fluff, just real talk, genuine appreciation for their grit, and actionable guidance.
-7. 5 TO 6 "hiddenFacts": Specific correlations noticed across the month (e.g. sleep vs cold, handwriting pacing, weekend patterns).
+5. EXTRACT EXPLICIT ACHIEVEMENTS ("achievementsAndClutches"): Highlight ONLY real accomplishments strictly mentioned in this month's notes (e.g. coding progress, homework completed, domestic care). NEVER hallucinate or assume exam marks, test scores, or grades unless verbatim specified in this month's text! If it was a rough month with setbacks, honor their courage in recording honest logs rather than inventing fake victories.
+6. 4-PARAGRAPH "HOMIE LETTER": A heartfelt, honest, deeply validating mentor letter speaking directly to them like an elder brother. When they face rough days, fatigue, viral cold, or parental friction, lead with genuine empathy ("Yeah bro, I know. I understand.") acknowledging how heavy things feel before offering tactical steps. Never use hollow corporate cheerleading.
+7. 5 TO 6 "hiddenFacts": Specific behavioral correlations noticed strictly across this month's notes (e.g. sleep debt vs sickness, handwriting pacing, screen fatigue).
 8. ZERO RAW EMOJIS: Do NOT output any raw Unicode emojis in any titles, badges, or keys.
 9. ${languageRule}
 
@@ -1094,20 +1094,20 @@ Return ONLY a valid JSON object matching this exact schema:
       });
     }
 
-    // Extract real achievements from entries
+    // Extract real achievements from entries (strictly verified against verbatim context)
     const detectedWins = [];
     entriesSummary.forEach(e => {
       const note = e.notes || '';
-      if (/25\s*\/\s*25|perfect/i.test(note)) {
-        detectedWins.push({ title: 'Perfect 25/25 Exam Score', description: 'Secured flawless top marks in exam papers.', category: 'Academic' });
+      if (/(?:scored?|got|secured|marks?)\s*(?:of\s*)?25\s*\/\s*25\b/i.test(note) || /\b(full|perfect)\s+marks\b/i.test(note)) {
+        detectedWins.push({ title: 'Top Exam Performance', description: 'Secured top marks in academic evaluations.', category: 'Academic' });
       }
-      if (/22|highest|topped/i.test(note)) {
-        detectedWins.push({ title: 'Class Summit in Economics', description: 'Emerged as the class topper after the grading was finalized.', category: 'Academic' });
+      if (/\b(class\s+topper|topped\s+the\s+class)\b/i.test(note)) {
+        detectedWins.push({ title: 'Class Academic Milestone', description: 'Emerged as top performer in academic evaluations.', category: 'Academic' });
       }
-      if (/blueprint|anti-gravity|code|website|page/i.test(note)) {
+      if (/\b(blueprint|anti-gravity|code|website|page|repository|github|develop)\b/i.test(note)) {
         detectedWins.push({ title: 'Technical System Architecture', description: 'Engineered web blueprints and iterated system design.', category: 'Technical' });
       }
-      if (/car|tea|brother|puja|iron/i.test(note)) {
+      if (/\b(tea|puja|iron|cleaning|chores|household)\b/i.test(note)) {
         detectedWins.push({ title: 'Domestic Discipline & Family Support', description: 'Maintained domestic duties, brewed tea, and supported family logistics.', category: 'Domestic' });
       }
       if (e.rating >= 4) {
@@ -1117,7 +1117,7 @@ Return ONLY a valid JSON object matching this exact schema:
 
     const uniqueWins = detectedWins.filter((w, idx, self) => self.findIndex(t => t.title === w.title) === idx).slice(0, 4);
     if (uniqueWins.length === 0) {
-      uniqueWins.push({ title: 'Unbroken Logging Discipline', description: 'Consistently logged daily entries and maintained self-awareness.', category: 'Discipline' });
+      uniqueWins.push({ title: 'Unbroken Logging Discipline', description: 'Consistently logged daily entries and maintained self-awareness through friction.', category: 'Discipline' });
     }
 
     // Synthesize local fallback domino chains
@@ -1149,14 +1149,20 @@ Return ONLY a valid JSON object matching this exact schema:
       },
       achievementsAndClutches: uniqueWins,
       homieLetter: [
-        `Looking across the entire story of ${monthName}, one truth stands out above everything else: you are not a passive spectator in your own life. You faced real friction—heavy academic workloads, classroom vision strain, and family responsibilities—yet you consistently showed up and logged the raw truth every single day.`,
+        avgScore <= 2.5
+          ? `Yeah bro, I know. I understand. Looking at ${monthName}, I see how genuinely exhausting and heavy these days have been. When you're dealing with lingering viral colds, delayed laptop access, exam pressures, and getting scolded at home after waking up to broken sleep, it feels like the whole world is piling up on you at once. I want you to know: you don't have to put on a brave face or pretend everything is fine. What you're experiencing is real, and it makes complete sense that you feel drained.`
+          : `Looking across the entire story of ${monthName}, one truth stands out above everything else: you are not a passive spectator in your own life. You faced real friction—heavy academic workloads, classroom vision strain, and family responsibilities—yet you consistently showed up and logged the raw truth every single day.`,
         `Let's look at the friction points honestly: when pressure mounted, sleep debt and late-night work created avoidable morning fatigue. Trying to tackle all incomplete tasks late at night after waiting for the PC created compounding drag. But recognizing these avoidance loops as tactical adjustments—rather than personal failures—is the exact superpower that allows you to recalibrate.`,
-        `What makes this month powerful are the moments where your grit converted into undeniable victories. From academic marks and homework completions to managing domestic responsibilities, you proved that action immediately dispels paralysis. When you lock in, your execution is lethal.`,
-        `For the upcoming month, protect your evening shutdown so you aren't writing code past midnight, prioritize getting your spectacles checked to eliminate classroom eye strain, and remember: consistency in tracking your reality is building something real. Let's make the next month your cleanest run yet.`
+        avgScore <= 2.5
+          ? `Even in the thick of this exhaustion, you didn't run away from reality. You sat down and logged your honest truth into this journal. That takes serious courage. Most people would give up or lie to themselves; you didn't. You kept your self-awareness alive. Even when you felt like you had zero productivity, you kept your reflective anchor intact.`
+          : `What makes this month powerful are the moments where your grit converted into undeniable victories. From academic progress and coursework completions to managing domestic responsibilities, you proved that action immediately dispels paralysis. When you lock in, your execution is lethal.`,
+        `For the upcoming days, take a breath, bro. Protect your evening shutdown so you aren't writing code past midnight, prioritize getting your spectacles checked to eliminate classroom eye strain, and remember: one rough week or bad exam does not define your trajectory. Take it one day, one sleep reset at a time. I've got your back.`
       ],
       hiddenFacts: [
         `Discipline Under Pressure: Maintained logging discipline across ${loggedCount} entries, turning your diary into a profound self-awareness record.`,
-        `Academic Horsepower: Proved your focus by securing top marks and completing complex coursework assignments.`,
+        uniqueWins.some(w => w.category === 'Academic')
+          ? `Academic Focus: Completed coursework and faced academic evaluations with persistent effort.`
+          : `Courageous Honesty: Faced heavy days and documented the exact unvarnished reality without making excuses.`,
         `Domestic Baseline: Restored focus repeatedly through physical routines—helping family and holding morning structure.`,
         `Weekday Rhythm: Your ${bestWeekday}s provided strong momentum, while ${worstWeekday}s required extra defense against procrastination.`,
         `Resilience Against Friction: Refused to quit even during days with physical fatigue, cold symptoms, and classroom delays.`,
