@@ -200,6 +200,7 @@ assert(settingsCode.includes('sphereModeOn') && settingsCode.includes('spheresLi
 assert(radialClockCode.includes('RadialClockPicker') || radialClockCode.includes('clock'), 'RadialClockPicker: Mechanical 24h/12h radial dial active');
 assert(notifCode.includes('scheduleLocalEveningReminder'), 'notifications.js: Notification scheduler active');
 assert(notifCode.includes('parseNotificationReply'), 'notifications.js: Multi-engine notification reply parser active');
+assert(notifCode.includes('validateNotificationReply'), 'notifications.js: Multi-engine notification reply safety validator active');
 assert(notifCode.includes('getReminderTimes'), 'notifications.js: Multi-pump reminder cadence slots active');
 assert(notifCode.includes('isDayRated'), 'notifications.js: Auto-silence stand-down engine active');
 assert(!notifCode.includes("'peer'"), 'notifications.js: Peer engine completely purged from rating engines');

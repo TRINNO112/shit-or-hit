@@ -65,6 +65,18 @@ export default function AutopsyChamberModal({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   // Fetch AI or On-Device Heuristic Forensic Autopsy
   const fetchAutopsyAnalysis = async () => {
     setIsLoading(true);
@@ -87,11 +99,17 @@ export default function AutopsyChamberModal({
         setStage('interrogating');
         soundEngine?.playSuccessChime?.();
       } else {
-        throw new Error('Could not parse autopsy');
+        throw new Error('Could not parse autopsy response');
       }
     } catch (err) {
       console.warn('Autopsy retrieval exception, fallback engaged:', err);
-      // Fallback is handled automatically inside getAutopsyAnalysis
+      setErrorMsg(err.message || 'Failed to generate autopsy analysis');
+      // Fallback: use local autopsy directly if exception occurred
+      const fallback = getAutopsyAnalysis.generateLocalAutopsy ? getAutopsyAnalysis.generateLocalAutopsy({ notes, rating, spheres, anchors, date: entryDate }) : null;
+      if (fallback) {
+        setAutopsyData(fallback);
+        setStage('interrogating');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -222,41 +240,51 @@ export default function AutopsyChamberModal({
   const allQuestionsAnswered = questionsList.length === 0 || questionsList.every(q => !!userAnswers[q.id]);
 
   return (
-    <div
-      className="fixed inset-0 z-85 bg-[#0C0A09]/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
-      onClick={onClose}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-85 bg-[#0C0A09]/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+          onClick={onClose}
+        >
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 
-        .cia-manila-folder {
-          background-color: #E6D7B8;
-          background-image: radial-gradient(#D5C4A1 1px, transparent 1px);
-          background-size: 14px 14px;
-        }
+            .cia-manila-folder {
+              background-color: #E6D7B8;
+              background-image: radial-gradient(#D5C4A1 1px, transparent 1px);
+              background-size: 14px 14px;
+            }
 
-        .cia-tab {
-          background-color: #D8C7A5;
-          clip-path: polygon(0 0, 88% 0, 100% 100%, 0% 100%);
-        }
+            .cia-tab {
+              background-color: #D8C7A5;
+              clip-path: polygon(0 0, 88% 0, 100% 100%, 0% 100%);
+            }
 
-        .cia-paper-sheet {
-          background-color: #FAF6ED;
-          box-shadow: inset 0 0 40px rgba(180, 150, 110, 0.2);
-        }
+            .cia-paper-sheet {
+              background-color: #FAF6ED;
+              box-shadow: inset 0 0 40px rgba(180, 150, 110, 0.2);
+            }
 
-        .cia-redacted {
-          background-color: #1C1917;
-          color: #1C1917;
-          user-select: none;
-          padding: 0 4px;
-        }
-      `}</style>
+            .cia-redacted {
+              background-color: #1C1917;
+              color: #1C1917;
+              user-select: none;
+              padding: 0 4px;
+            }
+          `}</style>
 
-      <div
-        className="w-full max-w-xl cia-manila-folder rounded-3xl border-3 border-[#1C1917] shadow-[8px_8px_0px_#1C1917] p-4 sm:p-6 text-left max-h-[94vh] flex flex-col relative overflow-hidden text-[#1C1917]"
-        onClick={(e) => e.stopPropagation()}
-      >
+          <motion.div
+            initial={{ scale: 0.95, y: 15, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.95, y: 15, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="w-full max-w-xl cia-manila-folder rounded-3xl border-3 border-[#1C1917] shadow-[8px_8px_0px_#1C1917] p-4 sm:p-6 text-left max-h-[94vh] flex flex-col relative overflow-hidden text-[#1C1917]"
+            onClick={(e) => e.stopPropagation()}
+          >
+
         {/* Top Manila Folder File Tab */}
         <div className="flex items-center justify-between border-b-2 border-[#1C1917] pb-2.5 shrink-0">
           <div className="flex items-center gap-2">
@@ -326,6 +354,21 @@ export default function AutopsyChamberModal({
             <p className="font-mono text-xs text-neutral-600 max-w-xs">
               Deconstructing entry notes, failed habit anchors, and friction triggers.
             </p>
+            {errorMsg && (
+              <div className="mt-3 p-2.5 bg-[#FEE2E2] border-2 border-[#B91C1C] text-[#991B1B] rounded-xl text-xs font-mono max-w-sm">
+                <p className="font-bold flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-[#B91C1C]" />
+                  <span>Notice: {errorMsg}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={fetchAutopsyAnalysis}
+                  className="mt-2 px-3 py-1.5 bg-[#B91C1C] hover:bg-[#991B1B] text-[#FAF6ED] rounded-lg font-black uppercase text-[10px] cursor-pointer shadow-[1.5px_1.5px_0px_#1C1917]"
+                >
+                  Retry Forensic Scan
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -493,7 +536,9 @@ export default function AutopsyChamberModal({
             </div>
           </div>
         )}
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

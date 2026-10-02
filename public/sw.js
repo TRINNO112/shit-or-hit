@@ -197,6 +197,19 @@ self.addEventListener('notificationclick', (event) => {
     if (event.action === 'rate-inline' && event.reply) {
       const raw = event.reply.trim();
 
+      // Guard: Check for out-of-range initial numbers (e.g. 0, 6, 7, 8, 9)
+      const invalidNumMatch = raw.match(/^([06-9]+)/);
+      if (invalidNumMatch) {
+        event.waitUntil(
+          self.registration.showNotification('Format Error: Score Out of Range', {
+            body: `Ratings must be between 1★ and 5★. Found "${invalidNumMatch[1]}". Your entry was not recorded to protect your diary.`,
+            icon: './icon.svg',
+            badge: './icon.svg'
+          })
+        );
+        return;
+      }
+
       // 1. Non-Negotiables Binary Input (e.g. "101", "1 0 1", "1,0,1" followed by optional notes)
       const binaryMatch = raw.match(/^([01]{2,8}|(?:[01][\s,/-]){1,7}[01])(?:\s*[-:,.]?\s*(.*))?$/s);
       

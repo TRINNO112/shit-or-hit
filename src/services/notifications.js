@@ -415,6 +415,166 @@ export function parseNotificationReply(replyText, engineContext = null) {
   };
 }
 
+/**
+ * 🛡️ NOTIFICATION INPUT VALIDATOR & SAFETY NET
+ * Validates input syntax according to the active rating engine.
+ * Protects users from accidental typos, out-of-range numbers, or invalid formats.
+ */
+export function validateNotificationReply(replyText, engineContext = null) {
+  if (!replyText || typeof replyText !== 'string' || !replyText.trim()) {
+    return {
+      isValid: false,
+      error: 'Empty reply: Please enter a rating or reflection note before submitting.',
+      suggestion: 'Example: 5 Shipped project, great momentum'
+    };
+  }
+
+  const raw = replyText.trim();
+  const engine = engineContext || detectActiveEngine();
+
+  // 1. Sabbatical or Sanctuary: Accepts any text reflection
+  if (engine === 'sabbatical' || engine === 'sanctuary') {
+    return {
+      isValid: true,
+      error: null,
+      warning: null,
+      parsed: {
+        type: engine,
+        rating: null,
+        notes: raw
+      },
+      suggestion: null
+    };
+  }
+
+  // 2. Non-Negotiables Engine: Expects binary digits (1 and 0)
+  if (engine === 'non-negotiables') {
+    // Check if input begins with digits that are NOT 0 or 1 (e.g. 234 or 5)
+    const nonBinaryNumMatch = raw.match(/^([2-9]+)/);
+    if (nonBinaryNumMatch) {
+      return {
+        isValid: false,
+        error: `Invalid habit format: Habits are binary. Found "${nonBinaryNumMatch[1]}". Use 1 for Completed and 0 for Incomplete.`,
+        suggestion: 'Example: 101 Crushed workout and deep focus, skipped reading'
+      };
+    }
+
+    const binaryMatch = raw.match(/^([01]{2,8}|(?:[01][\s,/-]){1,7}[01])(?:\s*[-:,.]?\s*(.*))?$/s);
+    if (!binaryMatch) {
+      const singleBin = raw.match(/^([01])(?:\s*[-:,.]?\s*(.*))?$/s);
+      if (singleBin) {
+        return {
+          isValid: true,
+          warning: 'Notice: Logged 1 habit only. For multiple anchors, provide a digit per habit (e.g. 101).',
+          parsed: parseNotificationReply(raw, engine),
+          suggestion: 'Example: 101 for 3 habits'
+        };
+      }
+      return {
+        isValid: false,
+        error: 'Missing binary habit status: Non-Negotiables requires 1s and 0s (e.g. "101" for done/skipped) at the start.',
+        suggestion: 'Example: 101 Crushed gym and focus'
+      };
+    }
+
+    return {
+      isValid: true,
+      error: null,
+      warning: null,
+      parsed: parseNotificationReply(raw, engine),
+      suggestion: null
+    };
+  }
+
+  // 3. Multi-Sphere Engine: Expects 1-5 numbers per domain
+  if (engine === 'spheres') {
+    // Check for digits outside 1-5 (e.g. 0, 6, 7, 8, 9)
+    const outOfRangeMatch = raw.match(/^([0-9]{2,8}|(?:[0-9][\s,/-]){1,7}[0-9])/);
+    if (outOfRangeMatch) {
+      const digits = outOfRangeMatch[1].replace(/[\s,/-]/g, '').split('');
+      const invalidDigit = digits.find(d => d < '1' || d > '5');
+      if (invalidDigit) {
+        return {
+          isValid: false,
+          error: `Invalid sphere score: Domain scores must be between 1★ and 5★. Found "${invalidDigit}".`,
+          suggestion: 'Example: 321 Work=3★, Home=2★, Social=1★'
+        };
+      }
+    }
+
+    const sphereMatch = raw.match(/^([1-5]{2,6}|(?:[1-5][\s,/-]){1,5}[1-5])(?:\s*[-:,.]?\s*(.*))?$/s);
+    if (!sphereMatch) {
+      const singleNum = raw.match(/^([1-5])(?:\s*[-:,.]?\s*(.*))?$/s);
+      if (singleNum) {
+        return {
+          isValid: true,
+          warning: 'Notice: Logged single rating digit. To rate individual domains, provide a digit per domain (e.g. 321).',
+          parsed: parseNotificationReply(raw, engine),
+          suggestion: 'Example: 321 for 3 domains'
+        };
+      }
+      const lower = raw.toLowerCase();
+      if (/^(shit|rough|bad|down|sad|low|ok|fine|good|decent|hit|peak|great)/.test(lower)) {
+        return {
+          isValid: true,
+          warning: 'Notice: Keyword detected. Logged as overall verdict without individual domain breakdown.',
+          parsed: parseNotificationReply(raw, engine),
+          suggestion: 'Tip: For domain breakdown, type numbers like 432'
+        };
+      }
+
+      return {
+        isValid: false,
+        error: 'Missing sphere ratings: Multi-Sphere requires domain ratings (1-5★) at the start (e.g. 321).',
+        suggestion: 'Example: 321 Finished gym and coding sprint'
+      };
+    }
+
+    return {
+      isValid: true,
+      error: null,
+      warning: null,
+      parsed: parseNotificationReply(raw, engine),
+      suggestion: null
+    };
+  }
+
+  // 4. Standard Verdict Engine
+  const numStartMatch = raw.match(/^([0-9]+)/);
+  if (numStartMatch) {
+    const val = parseInt(numStartMatch[1], 10);
+    if (val < 1 || val > 5) {
+      return {
+        isValid: false,
+        error: `Invalid star rating: Score must be between 1★ and 5★. Found "${val}".`,
+        suggestion: 'Example: 5 Shipped new features, feeling great'
+      };
+    }
+  }
+
+  const parsed = parseNotificationReply(raw, engine);
+  const lower = raw.toLowerCase();
+  const hasKeyword = /^(shit|rough|bad|down|sad|low|ok|fine|good|decent|hit|peak|great)/.test(lower);
+  const hasRating = parsed && parsed.rating !== null;
+
+  if (!hasRating && !hasKeyword) {
+    return {
+      isValid: true,
+      warning: 'Notice: No 1-5★ star rating detected. Saved as a text-only reflection note without changing rating.',
+      parsed,
+      suggestion: 'Tip: Type a number 1-5 first (e.g. "5 Today was great") to record both star and note.'
+    };
+  }
+
+  return {
+    isValid: true,
+    error: null,
+    warning: null,
+    parsed,
+    suggestion: null
+  };
+}
+
 export const REMINDER_TIMES_KEY = 'daily_verdict_reminder_times';
 export const LEGACY_REMINDER_TIME_KEY = 'daily_verdict_reminder_time';
 
