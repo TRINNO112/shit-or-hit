@@ -571,8 +571,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
           <div className="flex items-center gap-2">
             <span
               className={`px-3 py-1 border-2 border-black rounded-xl font-mono font-black text-xs uppercase flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] ${permissionState === 'granted'
-                  ? 'bg-[#00E599] text-black'
-                  : 'bg-[#FDC800] text-black'
+                ? 'bg-[#00E599] text-black'
+                : 'bg-[#FDC800] text-black'
                 }`}
             >
               <Bell className="w-3.5 h-3.5 text-black" />
@@ -683,84 +683,70 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
               <span className="text-[10px] text-neutral-500">Tap time to edit directly</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {/* Active 12-Hour Time Slots - Full-Width Balanced Cassette Rack */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {reminderTimes.map((timeStr, idx) => (
                 <div
                   key={`${timeStr}-${idx}`}
-                  className="h-[52px] min-h-[52px] max-h-[52px] px-3 bg-[#FFFDF5] border-2 border-black rounded-xl font-mono text-xs font-black flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000]"
+                  className="bg-[#FFFDF5] border-2 border-black rounded-2xl p-2.5 shadow-[2px_2px_0px_#000] flex flex-col justify-between gap-2.5 min-h-[78px]"
                 >
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-1.5 py-0.5 bg-black text-[#FDC800] text-[10px] rounded font-black shrink-0">
+                  {/* Top Bar: Slot Badge & Delete */}
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 bg-black text-[#FDC800] text-[10px] rounded-lg font-black font-mono uppercase tracking-wide">
                       SLOT {idx + 1}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenRadialForSlot(idx, timeStr)}
-                      className="flex items-center gap-1.5 px-2 py-1 bg-white hover:bg-[#FDC800] border border-black rounded-lg text-xs font-black text-black whitespace-nowrap cursor-pointer shadow-[1px_1px_0px_#000] active:translate-x-px active:translate-y-px transition-all"
-                      title="Open mechanical radial dial to change time"
-                      aria-label={`Open radial clock dial for Slot ${idx + 1}, currently ${formatTime12h(timeStr)}`}
-                    >
-                      <Clock className="w-3.5 h-3.5 stroke-[2.5] text-black shrink-0" />
-                      <span>{formatTime12h(timeStr)}</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenRadialForSlot(idx, timeStr)}
-                      className="h-7 px-2 bg-[#FDC800] hover:bg-[#ffe066] border border-black rounded font-mono text-[11px] font-black cursor-pointer flex items-center gap-1 shadow-[1px_1px_0px_#000] active:scale-95 transition-all"
-                      title="Open mechanical radial clock dial"
-                      aria-label={`Dial time for Slot ${idx + 1}`}
-                    >
-                      <span>DIAL</span>
-                    </button>
-                    <input
-                      type="time"
-                      value={timeStr}
-                      onChange={(e) => handleUpdateTimeSlot(idx, e.target.value)}
-                      className="h-7 w-20 px-1 bg-white border border-black rounded text-[11px] font-mono font-bold cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-1 focus:ring-black"
-                      title="Click to type time"
-                      aria-label={`Change time for Slot ${idx + 1}`}
-                    />
-                    {reminderTimes.length > 1 && (
+                    {reminderTimes.length > 1 ? (
                       <button
                         type="button"
                         onClick={() => handleRemoveSlot(timeStr)}
-                        className="w-7 h-7 flex items-center justify-center hover:bg-[#FF4D4D] hover:text-white rounded border border-transparent hover:border-black cursor-pointer transition-all shrink-0"
+                        className="w-6 h-6 flex items-center justify-center hover:bg-[#FF4D4D] text-neutral-400 hover:text-white rounded-lg border border-transparent hover:border-black cursor-pointer transition-all shrink-0"
                         title="Remove this slot"
                         aria-label={`Remove slot ${idx + 1}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
+                    ) : (
+                      <span className="text-[9px] font-mono text-neutral-400 font-bold uppercase">
+                        PRIMARY
+                      </span>
                     )}
                   </div>
+
+                  {/* Main Action: Dial Time Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenRadialForSlot(idx, timeStr)}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 bg-white hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono font-black text-xs text-black cursor-pointer shadow-[1.5px_1.5px_0px_#000] active:translate-x-px active:translate-y-px transition-all group"
+                    title="Tap to change time with mechanical radial dial"
+                    aria-label={`Change time for Slot ${idx + 1}, currently ${formatTime12h(timeStr)}`}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Clock className="w-3.5 h-3.5 stroke-[2.5] text-black shrink-0" />
+                      <span className="truncate">{formatTime12h(timeStr)}</span>
+                    </div>
+                    <span className="px-1.5 py-0.2 bg-[#FDC800] group-hover:bg-black group-hover:text-white text-black border border-black rounded text-[9px] font-black uppercase shrink-0 transition-colors">
+                      DIAL
+                    </span>
+                  </button>
                 </div>
               ))}
 
-              {/* Add Next Free Slot Button + Radial Dial Add Button */}
+              {/* Add Next Slot Button: Equal Cassette in Grid */}
               {reminderTimes.length < 5 && (
-                <div className="flex items-center gap-1.5 h-[52px] min-h-[52px] max-h-[52px]">
-                  <button
-                    type="button"
-                    onClick={() => handleAddSlot()}
-                    className="flex-1 h-full px-3 bg-[#00E599]/20 hover:bg-[#00E599] border-2 border-dashed hover:border-solid border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer transition-all flex items-center justify-center gap-1.5 active:translate-x-px active:translate-y-px whitespace-nowrap shadow-[2px_2px_0px_#000]"
-                    aria-label="Add next check-in alarm slot"
-                  >
-                    <Plus className="w-4 h-4 stroke-3 shrink-0" />
-                    <span>+ ADD ({formatTime12h(getNextAvailableTime(reminderTimes))})</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleOpenRadialForNew}
-                    className="h-full px-3 bg-[#FDC800] hover:bg-[#ffe066] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer transition-all flex items-center justify-center gap-1 active:translate-x-px active:translate-y-px shadow-[2px_2px_0px_#000] shrink-0"
-                    title="Pick time with mechanical radial dial"
-                    aria-label="Add slot using radial dial"
-                  >
-                    <Clock className="w-4 h-4 stroke-[2.5]" />
-                    <span>DIAL</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenRadialForNew}
+                  className="bg-[#00E599]/15 hover:bg-[#00E599]/30 border-2 border-dashed hover:border-solid border-black rounded-2xl p-2.5 shadow-[2px_2px_0px_#000] flex flex-col items-center justify-center gap-1.5 min-h-[78px] cursor-pointer transition-all active:translate-x-px active:translate-y-px text-black group"
+                  aria-label="Add next check-in alarm slot with radial clock"
+                  title="Open mechanical radial dial to choose alarm time"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000] group-hover:bg-[#00E599] transition-colors">
+                    <Plus className="w-4 h-4 stroke-3 text-black" />
+                  </div>
+                  <span className="font-mono font-black text-[10px] uppercase text-black text-center leading-tight">
+                    + ADD SLOT ({formatTime12h(getNextAvailableTime(reminderTimes))})
+                  </span>
+                </button>
               )}
             </div>
 
@@ -768,8 +754,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
             {slotFeedback && (
               <div
                 className={`p-2.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-2 shadow-[2px_2px_0px_#000] animate-fade-in ${slotFeedback.type === 'error' || slotFeedback.type === 'warning'
-                    ? 'bg-[#FF4D4D] text-black'
-                    : 'bg-[#00E599] text-black'
+                  ? 'bg-[#FF4D4D] text-black'
+                  : 'bg-[#00E599] text-black'
                   }`}
               >
                 {slotFeedback.type === 'error' || slotFeedback.type === 'warning' ? (
@@ -798,8 +784,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                       type="button"
                       onClick={() => handleApplyPreset(p.times)}
                       className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs cursor-pointer transition-all flex items-center gap-1.5 active:translate-x-px active:translate-y-px ${isSelected
-                          ? 'bg-[#FDC800] text-black font-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
-                          : 'bg-white hover:bg-neutral-100 text-neutral-800 font-bold shadow-[1px_1px_0px_#000000]'
+                        ? 'bg-[#FDC800] text-black font-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
+                        : 'bg-white hover:bg-neutral-100 text-neutral-800 font-bold shadow-[1px_1px_0px_#000000]'
                         }`}
                       aria-label={`Select cadence: ${p.label}`}
                     >
@@ -855,8 +841,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                     }
                   }}
                   className={`p-4 sm:p-5 rounded-2xl border-3 border-black cursor-pointer transition-all flex flex-col justify-between gap-3 focus:outline-none focus:ring-2 focus:ring-[#FDC800] ${isSelected
-                      ? 'bg-[#FFFDF5] shadow-[5px_5px_0px_#000000] ring-2 ring-black'
-                      : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
+                    ? 'bg-[#FFFDF5] shadow-[5px_5px_0px_#000000] ring-2 ring-black'
+                    : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
                     }`}
                 >
                   <div className="space-y-2">
@@ -922,8 +908,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                     soundEngine.playClick();
                   }}
                   className={`p-2.5 rounded-xl border-2 border-black font-mono font-black text-[11px] uppercase cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 text-center active:translate-x-px active:translate-y-px ${isActive
-                      ? 'bg-black text-[#FDC800] shadow-[3px_3px_0px_#000000]'
-                      : 'bg-white hover:bg-neutral-100 text-black shadow-[2px_2px_0px_#000000]'
+                    ? 'bg-black text-[#FDC800] shadow-[3px_3px_0px_#000000]'
+                    : 'bg-white hover:bg-neutral-100 text-black shadow-[2px_2px_0px_#000000]'
                     }`}
                 >
                   <IconComp className={`w-4 h-4 ${isActive ? 'text-[#FDC800]' : 'text-black'}`} />
@@ -991,8 +977,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                   soundEngine.playClick();
                 }}
                 className={`px-3 py-1 rounded-lg font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1 ${simulatorDevice === 'phone'
-                    ? 'bg-black text-[#00E599] shadow-[1px_1px_0px_#000]'
-                    : 'text-neutral-700 hover:text-black'
+                  ? 'bg-black text-[#00E599] shadow-[1px_1px_0px_#000]'
+                  : 'text-neutral-700 hover:text-black'
                   }`}
               >
                 <Smartphone className="w-3.5 h-3.5" />
@@ -1005,8 +991,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                   soundEngine.playClick();
                 }}
                 className={`px-3 py-1 rounded-lg font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1 ${simulatorDevice === 'windows'
-                    ? 'bg-black text-[#FDC800] shadow-[1px_1px_0px_#000]'
-                    : 'text-neutral-700 hover:text-black'
+                  ? 'bg-black text-[#FDC800] shadow-[1px_1px_0px_#000]'
+                  : 'text-neutral-700 hover:text-black'
                   }`}
               >
                 <Monitor className="w-3.5 h-3.5" />
@@ -1200,8 +1186,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                                         <span
                                           key={idx}
                                           className={`px-2 py-0.5 border rounded-md font-mono text-[10px] font-black ${isDone
-                                              ? 'bg-[#00E599]/25 border-black text-black'
-                                              : 'bg-neutral-100 border-neutral-300 text-neutral-400 line-through'
+                                            ? 'bg-[#00E599]/25 border-black text-black'
+                                            : 'bg-neutral-100 border-neutral-300 text-neutral-400 line-through'
                                             }`}
                                         >
                                           {habitTitle}: {isDone ? 'DONE' : 'SKIPPED'}
@@ -1349,8 +1335,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
             {simulatorFeedback && (
               <div
                 className={`p-3 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000] animate-fade-in ${simulatorFeedback.error
-                    ? 'bg-[#FF4D4D] text-black'
-                    : 'bg-[#00E599] text-black'
+                  ? 'bg-[#FF4D4D] text-black'
+                  : 'bg-[#00E599] text-black'
                   }`}
               >
                 <div className="flex items-center gap-2">
@@ -1388,8 +1374,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
               onClick={handleFireTestNotification}
               disabled={isSendingTest}
               className={`w-full sm:w-auto px-5 py-2.5 border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] cursor-pointer transition-all flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px shrink-0 ${testSent
-                  ? 'bg-[#00E599] text-black'
-                  : 'bg-[#FDC800] hover:bg-[#ffe066] text-black'
+                ? 'bg-[#00E599] text-black'
+                : 'bg-[#FDC800] hover:bg-[#ffe066] text-black'
                 }`}
             >
               {isSendingTest ? (

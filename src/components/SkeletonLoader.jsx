@@ -148,37 +148,33 @@ function MobileHeaderSkeleton() {
 function MobileBottomNavSkeleton({ activeTab = 'log' }) {
   const normalized = activeTab === 'today' ? 'log' : activeTab === 'history' ? 'timeline' : activeTab;
   const tabs = [
-    { id: 'log', label: 'TODAY', Icon: Calendar },
-    { id: 'timeline', label: 'TIMELINE', Icon: Clock },
-    { id: 'dossier', label: 'DOSSIER', Icon: Sparkles },
-    { id: 'stats', label: 'STATS', Icon: BarChart2 },
-    { id: 'settings', label: 'SETTINGS', Icon: Settings }
+    { id: 'log', label: 'Log', Icon: Zap },
+    { id: 'timeline', label: 'Calendar', Icon: Calendar },
+    { id: 'dossier', label: 'Dossier', Icon: Sparkles },
+    { id: 'stats', label: 'Stats', Icon: BarChart2 }
   ];
 
   return (
     <nav
       aria-hidden="true"
-      className="sticky bottom-0 left-0 right-0 w-full bg-white border-t-3 border-black px-2 py-2 flex items-center justify-around z-30 shadow-[0_-2px_0px_#000000] shrink-0"
-      style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+      className="sticky bottom-0 left-0 right-0 w-full bg-white border-t-3 border-black py-2.5 px-4 flex items-center justify-around z-30 shadow-[0_-4px_0px_#000000] shrink-0"
+      style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom))' }}
     >
       {tabs.map((t) => {
         const isSelected = normalized === t.id;
         return (
-          <div key={t.id} className="flex flex-col items-center gap-0.5 min-w-12">
-            <div
-              className={`p-1.5 rounded-xl border-2 border-black flex items-center justify-center transition-all ${
-                isSelected
-                  ? 'bg-[#FDC800] shadow-[1.5px_1.5px_0px_#000000]'
-                  : 'bg-neutral-100'
-              }`}
-            >
-              <t.Icon className="w-4 h-4 text-black stroke-[2.5]" />
-            </div>
-            <span
-              className={`font-mono text-[9px] uppercase ${
-                isSelected ? 'font-black text-black' : 'font-bold text-neutral-500'
-              }`}
-            >
+          <div
+            key={t.id}
+            className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-all ${
+              isSelected
+                ? t.id === 'dossier'
+                  ? 'bg-[#00E599] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                  : 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                : 'text-neutral-500'
+            }`}
+          >
+            <t.Icon className="w-5 h-5 stroke-[2.5]" />
+            <span className="font-mono font-black text-[11px] uppercase mt-0.5">
               {t.label}
             </span>
           </div>
@@ -1102,6 +1098,103 @@ function DesktopStudioSkeleton() {
   );
 }
 
+function DesktopSettingsSkeleton() {
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Settings Modal Header Card */}
+      <div className="bg-white border-3 border-black rounded-4xl p-6 sm:p-8 shadow-[4px_4px_0px_#000000] space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-black/10">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-[#FDC800] border-2 border-black shadow-[2px_2px_0px_#000000]">
+              <Settings className="w-6 h-6 text-black" />
+            </div>
+            <div>
+              <h2 className="font-display font-black text-2xl uppercase tracking-tight text-black">
+                System Control &amp; Privacy Vault
+              </h2>
+              <p className="font-mono text-xs text-neutral-600">
+                Local cryptographic sovereignty, Firestore cloud sync, and behavioral frameworks.
+              </p>
+            </div>
+          </div>
+          <div className="px-3 py-1 bg-black text-[#FDC800] font-mono text-xs font-black rounded-xl uppercase">
+            STABLE v2.4
+          </div>
+        </div>
+
+        {/* Grid of Settings Cards mirroring SettingsModal */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* Card 1: Cloud Sync & Storage Sovereignty */}
+          <div className="p-5 rounded-3xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Cloud className="w-5 h-5 text-black" />
+                <span className="font-display font-black text-sm uppercase text-black">Storage Sovereignty</span>
+              </div>
+              <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded font-mono text-[9px] font-black uppercase">
+                CONNECTED
+              </span>
+            </div>
+            <div className="p-3 bg-white border border-black/20 rounded-2xl space-y-1.5">
+              <Bone strong className="h-3 w-32 rounded" />
+              <Bone className="h-2.5 w-44 rounded" />
+            </div>
+          </div>
+
+          {/* Card 2: Lockscreen Reminders */}
+          <div className="p-5 rounded-3xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="w-5 h-5 text-black" />
+                <span className="font-display font-black text-sm uppercase text-black">Daily Check-in Cadence</span>
+              </div>
+              <span className="px-2 py-0.5 bg-[#FDC800] border border-black rounded font-mono text-[9px] font-black uppercase">
+                ARMED
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Bone className="h-6 w-20 rounded-lg bg-neutral-200" />
+              <Bone className="h-6 w-20 rounded-lg bg-neutral-200" />
+            </div>
+          </div>
+
+          {/* Card 3: AES-256 PIN Vault */}
+          <div className="p-5 rounded-3xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Lock className="w-5 h-5 text-black" />
+                <span className="font-display font-black text-sm uppercase text-black">AES-256 PIN Vault</span>
+              </div>
+              <span className="px-2 py-0.5 bg-neutral-200 border border-black rounded font-mono text-[9px] font-black uppercase">
+                PBKDF2
+              </span>
+            </div>
+            <Bone className="h-2.5 w-4/5 rounded" />
+            <Bone strong className="h-7 w-28 rounded-xl" />
+          </div>
+
+          {/* Card 4: Behavioral Frameworks */}
+          <div className="p-5 rounded-3xl border-2 border-black bg-[#FFFDF5] shadow-[2px_2px_0px_#000000] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-black" />
+                <span className="font-display font-black text-sm uppercase text-black">Behavioral Modes</span>
+              </div>
+              <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded font-mono text-[9px] font-black uppercase">
+                3 ACTIVE
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              <Bone className="h-2.5 w-full rounded" />
+              <Bone className="h-2.5 w-5/6 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DesktopSkeleton({ tab = 'today', modes = {} }) {
   const activeTab = tab || getSavedActiveTab(false);
   const normalized = activeTab === 'log' ? 'today' : activeTab;
@@ -1166,7 +1259,7 @@ function DesktopSkeleton({ tab = 'today', modes = {} }) {
         {normalized === 'timeline' && <DesktopTimelineSkeleton />}
         {normalized === 'dossier' && <DesktopDossierSkeleton />}
         {normalized === 'studio' && <DesktopStudioSkeleton />}
-        {normalized === 'settings' && <DesktopStudioSkeleton />}
+        {normalized === 'settings' && <DesktopSettingsSkeleton />}
         {normalized !== 'timeline' && normalized !== 'dossier' && normalized !== 'studio' && normalized !== 'settings' && (
           <DesktopTodaySkeleton modes={modes} />
         )}

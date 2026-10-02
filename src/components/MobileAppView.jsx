@@ -2494,32 +2494,14 @@ export default function MobileAppView({
             triggerHaptic('light');
             setActiveTab('stats');
           }}
-          className={`flex flex-col items-center justify-center px-2 py-1.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'stats' 
               ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]' 
               : 'text-neutral-500 hover:text-black'
           }`}
         >
           <BarChart2 className="w-5 h-5 stroke-[2.5]" />
-          <span className="font-mono font-black text-[10px] uppercase mt-0.5">Stats</span>
-        </button>
-
-        {/* Tab 5: Settings */}
-        <button
-          type="button"
-          onClick={() => {
-            soundEngine.playClick();
-            triggerHaptic('light');
-            setActiveTab('settings');
-          }}
-          className={`flex flex-col items-center justify-center px-2 py-1.5 rounded-xl transition-all cursor-pointer ${
-            activeTab === 'settings' 
-              ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]' 
-              : 'text-neutral-500 hover:text-black'
-          }`}
-        >
-          <Settings className="w-5 h-5 stroke-[2.5]" />
-          <span className="font-mono font-black text-[10px] uppercase mt-0.5">Settings</span>
+          <span className="font-mono font-black text-[11px] uppercase mt-0.5">Stats</span>
         </button>
       </nav>
 
