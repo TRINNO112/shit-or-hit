@@ -23,7 +23,8 @@ import {
   HelpCircle,
   AlertTriangle,
   RotateCcw,
-  Lightbulb
+  Lightbulb,
+  Keyboard
 } from 'lucide-react';
 import { playMood } from '../services/soundEffects';
 import { soundEngine } from '../services/soundEngine';
@@ -191,6 +192,44 @@ const SIMULATOR_QUICK_PILLS = {
   ]
 };
 
+export function formatTime12h(timeStr) {
+  if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return timeStr || '';
+  const [hStr, mStr] = timeStr.split(':');
+  let h = parseInt(hStr, 10);
+  if (isNaN(h)) return timeStr;
+  const m = (mStr || '00').padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${ampm}`;
+}
+
+export function getNextAvailableTime(currentTimes = []) {
+  const candidates = ['21:00', '20:00', '22:00', '19:00', '22:30', '18:00', '23:00', '14:00', '12:00', '17:00'];
+  return candidates.find(c => !currentTimes.includes(c)) || '19:30';
+}
+
+const REMINDER_PRESETS = [
+  {
+    id: '1x',
+    label: '1x Daily (9:00 PM)',
+    times: ['21:00'],
+    desc: 'Standard single evening check-in'
+  },
+  {
+    id: '3x',
+    label: '3x Daily (2 PM • 8 PM • 10:30 PM)',
+    times: ['14:00', '20:00', '22:30'],
+    desc: 'Afternoon, early evening, & bedtime'
+  },
+  {
+    id: '4x',
+    label: 'Hourly Evening (8 PM - 11 PM)',
+    times: ['20:00', '21:00', '22:00', '23:00'],
+    desc: 'Continuous evening reminder cadence'
+  }
+];
+
 export default function NotificationStudioPage({ onBack, entries = {}, todayStr = '' }) {
   const [bannerMode, setBannerModeState] = useState(() => getNotificationBannerMode());
   const [selectedEngine, setSelectedEngine] = useState(() => detectActiveEngine());
@@ -234,6 +273,90 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
     };
   }, []);
 
+  const configuredSpheres = useMemo(() => {
+    let list = [
+      { id: 'work_school', name: 'Work & School' },
+      { id: 'home_personal', name: 'Home & Sanctuary' },
+      { id: 'social_event', name: 'Social & Events' }
+    ];
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('daily_verdict_spheres_config');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            list = parsed.filter(s => s && s.enabled !== false);
+          }
+        }
+      } catch (e) { }
+    }
+    return list;
+  }, []);
+
+  const configuredAnchors = useMemo(() => {
+    let list = [
+      { id: 'anchor_1', title: 'Physical Training / Workout' },
+      { id: 'anchor_2', title: '3L Hydration & Clean Diet' },
+      { id: 'anchor_3', title: 'Deep Focus / Learning' }
+    ];
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('daily_verdict_custom_anchor_templates');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+        }
+      } catch (e) { }
+    }
+    return list;
+  }, []);
+
+  const activePresetId = useMemo(() => {
+    for (const p of REMINDER_PRESETS) {
+      if (p.times.length === reminderTimes.length && p.times.every((t, i) => t === reminderTimes[i])) {
+        return p.id;
+      }
+    }
+    return null;
+  }, [reminderTimes]);
+
+  const applyShortcutKey = (key) => {
+    const ratingNum = parseInt(key, 10);
+    soundEngine.playClick();
+    try {
+      playMood(ratingNum);
+    } catch (_) { }
+
+    if (bannerMode === 'polar') {
+      if (ratingNum === 1) {
+        handleSimulatorSubmit(1, 'Recorded 1★ Shit via quick-key [1]');
+      } else if (ratingNum === 5) {
+        handleSimulatorSubmit(5, 'Recorded 5★ Hit via quick-key [5]');
+      } else {
+        setSimulatorFeedback({
+          error: true,
+          message: '2-Button Quick mode only accepts 1★ or 5★. Press key 1 or 5.'
+        });
+        setTimeout(() => setSimulatorFeedback(null), 3500);
+      }
+    } else {
+      if (selectedEngine === 'spheres') {
+        setInlineInputVal(`${ratingNum}, ${ratingNum}, ${ratingNum} Logged via shortcut [${key}]`);
+      } else if (selectedEngine === 'non-negotiables') {
+        const habitStr = ratingNum >= 4 ? '111' : ratingNum >= 3 ? '101' : '000';
+        setInlineInputVal(`${habitStr} Rated ${ratingNum}★ via shortcut [${key}]`);
+      } else {
+        setInlineInputVal(`${ratingNum} Rated ${ratingNum}★ via shortcut [${key}]`);
+      }
+      setSimulatorFeedback({
+        rating: ratingNum,
+        engine: selectedEngine,
+        message: `KEYBOARD SHORTCUT [${key}]: ${ratingNum}★ LOADED IN SIMULATOR`
+      });
+      setTimeout(() => setSimulatorFeedback(null), 3000);
+    }
+  };
+
   // Keyboard shortcut listener: keys 1 to 5
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -244,40 +367,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
       }
 
       if (['1', '2', '3', '4', '5'].includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const ratingNum = parseInt(e.key, 10);
-        soundEngine.playClick();
-        try {
-          playMood(ratingNum);
-        } catch (_) {}
-
-        if (bannerMode === 'polar') {
-          if (ratingNum === 1) {
-            handleSimulatorSubmit(1, 'Recorded 1★ Shit via keyboard shortcut [1]');
-          } else if (ratingNum === 5) {
-            handleSimulatorSubmit(5, 'Recorded 5★ Hit via keyboard shortcut [5]');
-          } else {
-            setSimulatorFeedback({
-              error: true,
-              message: '2-Button Quick mode only accepts 1★ or 5★. Press key 1 or 5.'
-            });
-            setTimeout(() => setSimulatorFeedback(null), 3500);
-          }
-        } else {
-          if (selectedEngine === 'spheres') {
-            setInlineInputVal(`${ratingNum}, ${ratingNum}, ${ratingNum} Logged via shortcut [${e.key}]`);
-          } else if (selectedEngine === 'non-negotiables') {
-            const habitStr = ratingNum >= 4 ? '111' : ratingNum >= 3 ? '101' : '000';
-            setInlineInputVal(`${habitStr} Rated ${ratingNum}★ via shortcut [${e.key}]`);
-          } else {
-            setInlineInputVal(`${ratingNum} Rated ${ratingNum}★ via shortcut [${e.key}]`);
-          }
-          setSimulatorFeedback({
-            rating: ratingNum,
-            engine: selectedEngine,
-            message: `KEYBOARD SHORTCUT [${e.key}]: ${ratingNum}★ LOADED IN SIMULATOR`
-          });
-          setTimeout(() => setSimulatorFeedback(null), 3000);
-        }
+        applyShortcutKey(e.key);
       }
     };
 
@@ -291,23 +381,39 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
     soundEngine.playClick();
   };
 
-  const handleAddSlot = () => {
+  const handleAddSlot = (preferredTime = null) => {
     if (reminderTimes.length >= 5) {
       soundEngine.playClick();
       triggerSlotFeedback('warning', 'Maximum 5 reminder times reached. Remove one first.');
       return;
     }
-    if (reminderTimes.includes(newReminderTime)) {
+    const timeToAdd = preferredTime || getNextAvailableTime(reminderTimes);
+    if (reminderTimes.includes(timeToAdd)) {
       soundEngine.playClick();
-      triggerSlotFeedback('warning', `Reminder time ${newReminderTime} is already in your schedule.`);
+      triggerSlotFeedback('warning', `Reminder time ${formatTime12h(timeToAdd)} is already in your schedule.`);
       return;
     }
-    const ok = addReminderTime(newReminderTime);
+    const ok = addReminderTime(timeToAdd);
     if (ok) {
       setReminderTimesState(getReminderTimes());
       soundEngine.playSuccess();
-      triggerSlotFeedback('success', `Added reminder at ${newReminderTime}.`);
+      triggerSlotFeedback('success', `Added reminder at ${formatTime12h(timeToAdd)} (${reminderTimes.length + 1} of 5 active).`);
     }
+  };
+
+  const handleUpdateTimeSlot = (index, newTime) => {
+    if (!newTime || !/^\d{1,2}:\d{2}$/.test(newTime)) return;
+    if (reminderTimes.includes(newTime) && reminderTimes[index] !== newTime) {
+      soundEngine.playClick();
+      triggerSlotFeedback('warning', `Reminder time ${formatTime12h(newTime)} is already in your schedule.`);
+      return;
+    }
+    const updated = [...reminderTimes];
+    updated[index] = newTime;
+    setReminderTimes(updated);
+    setReminderTimesState(getReminderTimes());
+    soundEngine.playSuccess();
+    triggerSlotFeedback('success', `Updated Slot ${index + 1} to ${formatTime12h(newTime)}.`);
   };
 
   const handleRemoveSlot = (t) => {
@@ -319,14 +425,14 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
     removeReminderTime(t);
     setReminderTimesState(getReminderTimes());
     soundEngine.playClick();
-    triggerSlotFeedback('info', `Removed reminder at ${t}.`);
+    triggerSlotFeedback('info', `Removed reminder at ${formatTime12h(t)}.`);
   };
 
   const handleApplyPreset = (timesList) => {
     setReminderTimes(timesList);
     setReminderTimesState(getReminderTimes());
     soundEngine.playSuccess();
-    triggerSlotFeedback('success', `Applied schedule with ${timesList.length} reminder times.`);
+    triggerSlotFeedback('success', `Applied schedule with ${timesList.length} reminder ${timesList.length === 1 ? 'time' : 'times'}.`);
   };
 
   const handleRefreshPermissionCheck = () => {
@@ -430,11 +536,10 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
 
           <div className="flex items-center gap-2">
             <span
-              className={`px-3 py-1 border-2 border-black rounded-xl font-mono font-black text-xs uppercase flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] ${
-                permissionState === 'granted'
+              className={`px-3 py-1 border-2 border-black rounded-xl font-mono font-black text-xs uppercase flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] ${permissionState === 'granted'
                   ? 'bg-[#00E599] text-black'
                   : 'bg-[#FDC800] text-black'
-              }`}
+                }`}
             >
               <Bell className="w-3.5 h-3.5 text-black" />
               <span>{permissionState === 'granted' ? 'Reminders Ready' : 'Permission Needed'}</span>
@@ -445,7 +550,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
 
       {/* Main Studio Workspace Container */}
       <main className="max-w-4xl mx-auto px-3.5 sm:px-6 pt-6 sm:pt-8 space-y-6 sm:space-y-8">
-        
+
         {/* Simple Clean Hero Section */}
         <section className="bg-white border-3 border-black rounded-3xl p-4 sm:p-6 shadow-[5px_5px_0px_#000000] space-y-2">
           <span className="px-2.5 py-0.5 bg-[#FDC800] border-2 border-black rounded-md font-mono font-black text-[10px] uppercase shadow-[1.5px_1.5px_0px_#000000] inline-block">
@@ -461,9 +566,8 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
           {/* Actionable Permission Recovery & Status Banner */}
           {permissionState !== 'granted' && (
             <div
-              className={`mt-3 p-3.5 border-2 border-black rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[3px_3px_0px_#000000] ${
-                permissionState === 'denied' ? 'bg-[#FFF0F0]' : 'bg-[#FFFDF5]'
-              }`}
+              className={`mt-3 p-3.5 border-2 border-black rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[3px_3px_0px_#000000] ${permissionState === 'denied' ? 'bg-[#FFF0F0]' : 'bg-[#FFFDF5]'
+                }`}
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs font-mono font-black text-black">
@@ -521,78 +625,90 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 <span>1. Set Your Reminder Times</span>
               </h2>
               <p className="text-xs font-mono text-neutral-600">
-                Choose the times you want to receive evening check-in reminders (up to 5).
+                Set up to 5 daily reminder check-ins. If you log early, all later alarms stand down automatically.
               </p>
             </div>
 
             {todayRated ? (
               <div className="flex items-center gap-1 font-mono text-[10px] font-black bg-[#00E599] text-black px-2.5 py-1 rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000] self-start sm:self-auto">
                 <VolumeX className="w-3.5 h-3.5 text-black" />
-                <span>TODAY LOGGED • REMINDERS MUTED</span>
+                <span>TODAY&apos;S VERDICT LOGGED • AUTO-SILENCE ENGAGED (ZERO SPAM)</span>
               </div>
             ) : (
               <div className="flex items-center gap-1 font-mono text-[10px] font-black bg-[#FDC800] text-black px-2.5 py-1 rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000] self-start sm:self-auto">
                 <Volume2 className="w-3.5 h-3.5 text-black" />
-                <span>REMINDERS ARMED</span>
+                <span>REMINDERS ARMED ({reminderTimes.length} ACTIVE)</span>
               </div>
             )}
           </div>
 
-          {/* Active Time Slots */}
+          {/* Active 12-Hour Time Slots */}
           <div className="space-y-3 pt-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              {reminderTimes.map((timeStr) => (
+            <div className="flex items-center justify-between text-[11px] font-mono font-bold text-neutral-600">
+              <span className="uppercase">ACTIVE ALARM SLOTS ({reminderTimes.length} OF 5 CONFIGURED):</span>
+              <span className="text-[10px] text-neutral-500">Tap time to edit directly</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {reminderTimes.map((timeStr, idx) => (
                 <div
-                  key={timeStr}
-                  className="px-3 py-1.5 bg-[#FFFDF5] border-2 border-black rounded-xl font-mono text-xs font-black flex items-center gap-2 shadow-[2px_2px_0px_#000]"
+                  key={`${timeStr}-${idx}`}
+                  className="h-[52px] min-h-[52px] max-h-[52px] px-3 bg-[#FFFDF5] border-2 border-black rounded-xl font-mono text-xs font-black flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000]"
                 >
-                  <Clock className="w-3.5 h-3.5 text-black/70" />
-                  <span>{timeStr}</span>
-                  {reminderTimes.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSlot(timeStr)}
-                      className="p-1 hover:bg-[#FF4D4D] hover:text-white rounded border border-transparent hover:border-black cursor-pointer transition-all"
-                      title="Remove time"
-                      aria-label={`Remove reminder time ${timeStr}`}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="px-1.5 py-0.5 bg-black text-[#FDC800] text-[10px] rounded font-black shrink-0">
+                      SLOT {idx + 1}
+                    </span>
+                    <span className="text-sm font-black text-black whitespace-nowrap">
+                      {formatTime12h(timeStr)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <input
+                      type="time"
+                      value={timeStr}
+                      onChange={(e) => handleUpdateTimeSlot(idx, e.target.value)}
+                      className="h-7 px-1.5 bg-white border border-black rounded text-[11px] font-mono font-bold cursor-pointer hover:bg-neutral-50 focus:outline-none focus:ring-1 focus:ring-black"
+                      title="Click to change alarm time"
+                      aria-label={`Change time for Slot ${idx + 1}`}
+                    />
+                    {reminderTimes.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSlot(timeStr)}
+                        className="w-7 h-7 flex items-center justify-center hover:bg-[#FF4D4D] hover:text-white rounded border border-transparent hover:border-black cursor-pointer transition-all shrink-0"
+                        title="Remove this slot"
+                        aria-label={`Remove slot ${idx + 1}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
 
-              {/* Add New Time Slot */}
+              {/* Add Next Free Slot Button */}
               {reminderTimes.length < 5 && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="time"
-                    value={newReminderTime}
-                    onChange={(e) => setNewReminderTime(e.target.value)}
-                    className="px-2.5 py-1.5 bg-neutral-50 border-2 border-black rounded-xl font-mono font-black text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1.5px_1.5px_0px_#000]"
-                    aria-label="New reminder time"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSlot}
-                    className="px-3 py-1.5 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-px active:translate-y-px flex items-center gap-1"
-                    aria-label="Add reminder time slot"
-                  >
-                    <Plus className="w-3.5 h-3.5 stroke-3" />
-                    <span>ADD TIME</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAddSlot()}
+                  className="h-[52px] min-h-[52px] max-h-[52px] px-3 bg-[#00E599]/20 hover:bg-[#00E599] border-2 border-dashed hover:border-solid border-black rounded-xl font-mono font-black text-xs text-black uppercase cursor-pointer transition-all flex items-center justify-center gap-1.5 active:translate-x-px active:translate-y-px whitespace-nowrap shadow-[2px_2px_0px_#000]"
+                  aria-label="Add next check-in alarm slot"
+                >
+                  <Plus className="w-4 h-4 stroke-3 shrink-0" />
+                  <span>+ ADD SLOT ({formatTime12h(getNextAvailableTime(reminderTimes))})</span>
+                </button>
               )}
             </div>
 
             {/* Inline Slot Management Feedback Alert */}
             {slotFeedback && (
               <div
-                className={`p-2.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-2 shadow-[2px_2px_0px_#000] animate-fade-in ${
-                  slotFeedback.type === 'error' || slotFeedback.type === 'warning'
+                className={`p-2.5 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center gap-2 shadow-[2px_2px_0px_#000] animate-fade-in ${slotFeedback.type === 'error' || slotFeedback.type === 'warning'
                     ? 'bg-[#FF4D4D] text-black'
                     : 'bg-[#00E599] text-black'
-                }`}
+                  }`}
               >
                 {slotFeedback.type === 'error' || slotFeedback.type === 'warning' ? (
                   <AlertTriangle className="w-4 h-4 stroke-[2.5] text-black shrink-0" />
@@ -603,32 +719,41 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
               </div>
             )}
 
-            {/* Quick 1-Tap Presets */}
-            <div className="pt-2 border-t border-black/10 flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-[10px] font-black uppercase text-neutral-500">
-                QUICK PRESETS:
-              </span>
-              <button
-                type="button"
-                onClick={() => handleApplyPreset(['21:00'])}
-                className="px-2.5 py-1 bg-neutral-100 hover:bg-[#FDC800] border border-black rounded-lg font-mono text-[11px] font-bold cursor-pointer transition-all shadow-[1px_1px_0px_#000]"
-              >
-                9:00 PM (Standard)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApplyPreset(['14:00', '20:00', '22:30'])}
-                className="px-2.5 py-1 bg-neutral-100 hover:bg-[#FDC800] border border-black rounded-lg font-mono text-[11px] font-bold cursor-pointer transition-all shadow-[1px_1px_0px_#000]"
-              >
-                3x Daily (2 PM • 8 PM • 10:30 PM)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleApplyPreset(['20:00', '21:00', '22:00', '23:00'])}
-                className="px-2.5 py-1 bg-neutral-100 hover:bg-[#FDC800] border border-black rounded-lg font-mono text-[11px] font-bold cursor-pointer transition-all shadow-[1px_1px_0px_#000]"
-              >
-                Hourly Evening (8 - 11 PM)
-              </button>
+            {/* Quick 1-Tap Presets with Active State Indication */}
+            <div className="pt-2 border-t border-black/10 space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] font-mono font-black uppercase text-neutral-500">
+                <span>QUICK PRESETS (TAP TO APPLY):</span>
+                <span>
+                  {activePresetId ? 'PRESET ACTIVE' : 'CUSTOM SCHEDULE ACTIVE'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {REMINDER_PRESETS.map((p) => {
+                  const isSelected = activePresetId === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleApplyPreset(p.times)}
+                      className={`px-3 py-1.5 rounded-xl border-2 border-black font-mono text-xs cursor-pointer transition-all flex items-center gap-1.5 active:translate-x-px active:translate-y-px ${isSelected
+                          ? 'bg-[#FDC800] text-black font-black shadow-[2px_2px_0px_#000000] ring-2 ring-black'
+                          : 'bg-white hover:bg-neutral-100 text-neutral-800 font-bold shadow-[1px_1px_0px_#000000]'
+                        }`}
+                      aria-label={`Select cadence: ${p.label}`}
+                    >
+                      {isSelected && <Check className="w-3.5 h-3.5 stroke-3 text-black shrink-0" />}
+                      <span>{p.label}</span>
+                    </button>
+                  );
+                })}
+
+                {!activePresetId && (
+                  <span className="px-2.5 py-1 bg-black text-[#00E599] rounded-xl font-mono text-[10px] font-black uppercase flex items-center gap-1 border border-black shadow-[1px_1px_0px_#000]">
+                    <CheckCircle2 className="w-3 h-3 text-[#00E599]" />
+                    <span>CUSTOM CADENCE ({reminderTimes.length} / 5 ACTIVE)</span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -642,7 +767,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 <span>2. Choose How You Reply</span>
               </h2>
               <p className="text-xs font-mono text-neutral-600">
-                Choose how notifications interact with your lockscreen.
+                Pick your lockscreen weapon: direct inline typing or lightning 1-tap buttons.
               </p>
             </div>
             <span className="font-mono text-[10px] bg-black text-[#00E599] px-2.5 py-1 rounded-lg font-black self-start sm:self-auto">
@@ -667,11 +792,10 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                       handleModeSelect(mode.id);
                     }
                   }}
-                  className={`p-4 sm:p-5 rounded-2xl border-3 border-black cursor-pointer transition-all flex flex-col justify-between gap-3 focus:outline-none focus:ring-2 focus:ring-[#FDC800] ${
-                    isSelected
+                  className={`p-4 sm:p-5 rounded-2xl border-3 border-black cursor-pointer transition-all flex flex-col justify-between gap-3 focus:outline-none focus:ring-2 focus:ring-[#FDC800] ${isSelected
                       ? 'bg-[#FFFDF5] shadow-[5px_5px_0px_#000000] ring-2 ring-black'
                       : 'bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_#000000]'
-                  }`}
+                    }`}
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
@@ -710,7 +834,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 <span>3. Choose Your Tracking Engine</span>
               </h2>
               <p className="text-xs font-mono text-neutral-600">
-                Select your active tracking engine to see how to write your reply.
+                Your active engine dictates the reply syntax. Match the format and log without opening the app.
               </p>
             </div>
             <span className="font-mono text-[10px] bg-black text-[#FDC800] px-2.5 py-1 rounded-lg font-black self-start sm:self-auto">
@@ -735,11 +859,10 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                     setInlineInputVal(DEFAULT_PRESET_TEXTS[eng.id] || '');
                     soundEngine.playClick();
                   }}
-                  className={`p-2.5 rounded-xl border-2 border-black font-mono font-black text-[11px] uppercase cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 text-center active:translate-x-px active:translate-y-px ${
-                    isActive
+                  className={`p-2.5 rounded-xl border-2 border-black font-mono font-black text-[11px] uppercase cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 text-center active:translate-x-px active:translate-y-px ${isActive
                       ? 'bg-black text-[#FDC800] shadow-[3px_3px_0px_#000000]'
                       : 'bg-white hover:bg-neutral-100 text-black shadow-[2px_2px_0px_#000000]'
-                  }`}
+                    }`}
                 >
                   <IconComp className={`w-4 h-4 ${isActive ? 'text-[#FDC800]' : 'text-black'}`} />
                   <span className="leading-tight">{eng.name}</span>
@@ -805,11 +928,10 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                   setSimulatorDevice('phone');
                   soundEngine.playClick();
                 }}
-                className={`px-3 py-1 rounded-lg font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1 ${
-                  simulatorDevice === 'phone'
+                className={`px-3 py-1 rounded-lg font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1 ${simulatorDevice === 'phone'
                     ? 'bg-black text-[#00E599] shadow-[1px_1px_0px_#000]'
                     : 'text-neutral-700 hover:text-black'
-                }`}
+                  }`}
               >
                 <Smartphone className="w-3.5 h-3.5" />
                 <span>SMARTPHONE</span>
@@ -820,11 +942,10 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                   setSimulatorDevice('windows');
                   soundEngine.playClick();
                 }}
-                className={`px-3 py-1 rounded-lg font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1 ${
-                  simulatorDevice === 'windows'
+                className={`px-3 py-1 rounded-lg font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center gap-1 ${simulatorDevice === 'windows'
                     ? 'bg-black text-[#FDC800] shadow-[1px_1px_0px_#000]'
                     : 'text-neutral-700 hover:text-black'
-                }`}
+                  }`}
               >
                 <Monitor className="w-3.5 h-3.5" />
                 <span>WINDOWS PC</span>
@@ -834,7 +955,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
 
           {/* The Simulator Canvas */}
           <div className="p-4 sm:p-7 rounded-3xl border-3 border-black bg-[#1C1814] text-white shadow-[6px_6px_0px_#000000] space-y-4">
-            
+
             {/* Simulator Header */}
             <div className="flex items-center justify-between border-b border-white/15 pb-3 flex-wrap gap-2">
               <div className="flex items-center gap-2.5">
@@ -873,7 +994,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
 
             {/* SIMULATOR ACTION AREA */}
             <div className="pt-2 border-t border-white/10">
-              
+
               {/* MODE 1: Inline Number & Note Text Reply */}
               {bannerMode === 'inline' && (
                 <div className="space-y-3">
@@ -945,7 +1066,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                   {inlineInputVal.trim() && (
                     <div className="space-y-2">
                       {currentValidation.error ? (
-                        <div className="p-3 bg-[#FF4D4D] border-2 border-black rounded-xl text-black font-mono text-xs space-y-1.5 shadow-[2px_2px_0px_#000] animate-fade-in">
+                        <div className="p-3.5 bg-[#FF4D4D] border-2 border-black rounded-2xl text-black font-mono text-xs space-y-2 shadow-[2px_2px_0px_#000] animate-fade-in">
                           <div className="flex items-center justify-between font-black uppercase text-[11px]">
                             <div className="flex items-center gap-1.5">
                               <AlertTriangle className="w-4 h-4 text-black stroke-[2.5] shrink-0" />
@@ -963,12 +1084,28 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                               type="button"
                               onClick={() => {
                                 setInlineInputVal(DEFAULT_PRESET_TEXTS[selectedEngine] || '');
+                                soundEngine.playSuccess();
+                                setSimulatorFeedback({
+                                  engine: selectedEngine,
+                                  message: 'AUTO-FIXED: Pasted valid format template.'
+                                });
+                                setTimeout(() => setSimulatorFeedback(null), 3000);
+                              }}
+                              className="px-3 py-1.5 bg-[#00E599] hover:bg-[#00c785] border-2 border-black rounded-xl text-[10px] font-black uppercase text-black cursor-pointer flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000] active:translate-x-px active:translate-y-px transition-all"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+                              <span>INSTANTLY FIX &amp; PASTE CORRECT FORMAT</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setInlineInputVal(DEFAULT_PRESET_TEXTS[selectedEngine] || '');
                                 soundEngine.playClick();
                               }}
-                              className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-black rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center gap-1 shadow-[1px_1px_0px_#000] active:translate-x-px active:translate-y-px"
+                              className="px-2.5 py-1.5 bg-white hover:bg-neutral-100 border border-black rounded-lg text-[10px] font-black uppercase cursor-pointer flex items-center gap-1 shadow-[1px_1px_0px_#000] active:translate-x-px active:translate-y-px"
                             >
                               <RotateCcw className="w-3 h-3 text-black" />
-                              <span>Restore Example (&quot;{DEFAULT_PRESET_TEXTS[selectedEngine]}&quot;)</span>
+                              <span>Restore Example</span>
                             </button>
                           </div>
                         </div>
@@ -986,27 +1123,53 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                             {/* Numerical / Anchor Part */}
-                            <div className="p-2.5 bg-white border border-black rounded-xl space-y-1">
+                            <div className="p-2.5 bg-white border border-black rounded-xl space-y-1.5">
                               <span className="text-[10px] font-black uppercase text-neutral-500 block">
-                                1. Star Rating / Habit Score:
+                                1. Star Rating / Habit Breakdown:
                               </span>
                               {currentValidation.parsed.type === 'non-negotiables' && currentValidation.parsed.nonNegotiables ? (
-                                <div>
-                                  <span className="px-1.5 py-0.5 bg-[#FF9500] text-black font-black rounded text-[11px] border border-black mr-1">
-                                    {currentValidation.parsed.nonNegotiables.digits}
-                                  </span>
-                                  <span className="font-bold">
-                                    {currentValidation.parsed.nonNegotiables.completedCount} of {currentValidation.parsed.nonNegotiables.totalCount} Habits Completed ({currentValidation.parsed.rating}★)
-                                  </span>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    {currentValidation.parsed.nonNegotiables.digits.split('').map((digit, idx) => {
+                                      const habit = configuredAnchors[idx];
+                                      const habitTitle = habit?.title || habit?.label || `Habit ${idx + 1}`;
+                                      const isDone = digit === '1';
+                                      return (
+                                        <span
+                                          key={idx}
+                                          className={`px-2 py-0.5 border rounded-md font-mono text-[10px] font-black ${isDone
+                                              ? 'bg-[#00E599]/25 border-black text-black'
+                                              : 'bg-neutral-100 border-neutral-300 text-neutral-400 line-through'
+                                            }`}
+                                        >
+                                          {habitTitle}: {isDone ? 'DONE' : 'SKIPPED'}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="text-[11px] font-bold text-neutral-800">
+                                    Completed: {currentValidation.parsed.nonNegotiables.completedCount} of {currentValidation.parsed.nonNegotiables.totalCount} Habits ({currentValidation.parsed.rating}★ Verdict)
+                                  </div>
                                 </div>
                               ) : currentValidation.parsed.type === 'spheres' && currentValidation.parsed.spheres ? (
-                                <div>
-                                  <span className="px-1.5 py-0.5 bg-[#38BDF8] text-black font-black rounded text-[11px] border border-black mr-1">
-                                    {Object.values(currentValidation.parsed.spheres).map(s => s.score).join('')}
-                                  </span>
-                                  <span className="font-bold">
-                                    Spheres [{Object.values(currentValidation.parsed.spheres).map(s => `${s.score}★`).join(', ')}] • Composite: {currentValidation.parsed.compositeScore}★
-                                  </span>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    {Object.entries(currentValidation.parsed.spheres).map(([id, s], idx) => {
+                                      const sphere = configuredSpheres[idx];
+                                      const sphereName = sphere?.name || id;
+                                      return (
+                                        <span
+                                          key={id}
+                                          className="px-2 py-0.5 bg-[#38BDF8]/20 border border-black rounded-md font-mono text-[10px] font-black text-black"
+                                        >
+                                          {sphereName}: <strong>{s.score || s.rating}★</strong>
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="text-[11px] font-bold text-neutral-800">
+                                    Composite Score: <strong>{currentValidation.parsed.compositeScore || currentValidation.parsed.rating}★</strong>
+                                  </div>
                                 </div>
                               ) : currentValidation.parsed.rating ? (
                                 <div>
@@ -1056,12 +1219,39 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-[10px] font-mono text-white/50 flex-wrap gap-1">
-                    <span className="flex items-center gap-1">
-                      <Lightbulb className="w-3.5 h-3.5 text-[#FDC800] shrink-0" />
-                      <span>Tip: Type a number alone (&quot;5&quot;) or with notes (&quot;5 Hit chest and closed sales&quot;).</span>
-                    </span>
-                    <span className="text-[#FDC800]">Keyboard shortcut 1-5 supported</span>
+                  {/* Tactile Keyboard Test Hotkey Row (Demystifies 1-5 keys) */}
+                  <div className="p-3 bg-white/5 border border-white/15 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-black text-[#FDC800] uppercase flex items-center gap-1.5">
+                        <Keyboard className="w-3.5 h-3.5 text-[#FDC800]" />
+                        <span>QUICK RATING TEST HOTKEYS (KEYS 1 TO 5):</span>
+                      </span>
+                      <span className="text-white/60 text-[10px]">Press key on keyboard or click pill</span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {[
+                        { key: '1', label: '1★ Shit', color: '#FF4D4D' },
+                        { key: '2', label: '2★ Bad', color: '#FF9500' },
+                        { key: '3', label: '3★ Meh', color: '#FDC800' },
+                        { key: '4', label: '4★ Good', color: '#A3E635' },
+                        { key: '5', label: '5★ Hit', color: '#00E599' }
+                      ].map((k) => (
+                        <button
+                          key={k.key}
+                          type="button"
+                          onClick={() => applyShortcutKey(k.key)}
+                          className="p-1.5 bg-black/70 hover:bg-black border border-white/30 hover:border-[#FDC800] rounded-xl text-center cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center gap-1"
+                          aria-label={`Test rating ${k.label} (Press ${k.key})`}
+                        >
+                          <span className="font-mono font-black text-xs text-white bg-white/20 px-2 py-0.5 rounded border border-white/25">
+                            KEY {k.key}
+                          </span>
+                          <span className="font-mono text-[10px] font-black" style={{ color: k.color }}>
+                            {k.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1096,11 +1286,10 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
             {/* In-Simulator Feedback Toast */}
             {simulatorFeedback && (
               <div
-                className={`p-3 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000] animate-fade-in ${
-                  simulatorFeedback.error
+                className={`p-3 rounded-xl border-2 border-black font-mono text-xs font-black flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000] animate-fade-in ${simulatorFeedback.error
                     ? 'bg-[#FF4D4D] text-black'
                     : 'bg-[#00E599] text-black'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   {simulatorFeedback.error ? (
@@ -1136,11 +1325,10 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
               type="button"
               onClick={handleFireTestNotification}
               disabled={isSendingTest}
-              className={`w-full sm:w-auto px-5 py-2.5 border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] cursor-pointer transition-all flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px shrink-0 ${
-                testSent
+              className={`w-full sm:w-auto px-5 py-2.5 border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] cursor-pointer transition-all flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px shrink-0 ${testSent
                   ? 'bg-[#00E599] text-black'
                   : 'bg-[#FDC800] hover:bg-[#ffe066] text-black'
-              }`}
+                }`}
             >
               {isSendingTest ? (
                 <>
