@@ -205,6 +205,20 @@ export function formatTime12h(timeStr) {
   return `${h}:${m} ${ampm}`;
 }
 
+export function splitTime12h(timeStr) {
+  if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) {
+    return { time: timeStr || '--:--', period: 'PM' };
+  }
+  const [hStr, mStr] = timeStr.split(':');
+  let h = parseInt(hStr, 10);
+  if (isNaN(h)) return { time: timeStr, period: 'PM' };
+  const m = (mStr || '00').padStart(2, '0');
+  const period = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return { time: `${h}:${m}`, period };
+}
+
 export function getNextAvailableTime(currentTimes = []) {
   const candidates = ['21:00', '20:00', '22:00', '19:00', '22:30', '18:00', '23:00', '14:00', '12:00', '17:00'];
   return candidates.find(c => !currentTimes.includes(c)) || '19:30';
@@ -683,71 +697,90 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
               <span className="text-[10px] text-neutral-500">Tap time to edit directly</span>
             </div>
 
-            {/* Active 12-Hour Time Slots - Full-Width Balanced Cassette Rack */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {reminderTimes.map((timeStr, idx) => (
-                <div
-                  key={`${timeStr}-${idx}`}
-                  className="bg-[#FFFDF5] border-2 border-black rounded-2xl p-2.5 shadow-[2px_2px_0px_#000] flex flex-col justify-between gap-2.5 min-h-[78px]"
-                >
-                  {/* Top Bar: Slot Badge & Delete */}
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 bg-black text-[#FDC800] text-[10px] rounded-lg font-black font-mono uppercase tracking-wide">
-                      SLOT {idx + 1}
-                    </span>
-                    {reminderTimes.length > 1 ? (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSlot(timeStr)}
-                        className="w-6 h-6 flex items-center justify-center hover:bg-[#FF4D4D] text-neutral-400 hover:text-white rounded-lg border border-transparent hover:border-black cursor-pointer transition-all shrink-0"
-                        title="Remove this slot"
-                        aria-label={`Remove slot ${idx + 1}`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <span className="text-[9px] font-mono text-neutral-400 font-bold uppercase">
-                        PRIMARY
+            {/* Active 12-Hour Time Slots - Dynamic Space-Distributed Rack */}
+            <div className="flex flex-wrap gap-3 w-full">
+              {reminderTimes.map((timeStr, idx) => {
+                const { time, period } = splitTime12h(timeStr);
+                return (
+                  <div
+                    key={`${timeStr}-${idx}`}
+                    className="flex-1 min-w-[200px] sm:min-w-[220px] max-w-full bg-[#FFFDF5] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between gap-2.5 min-h-[84px]"
+                  >
+                    {/* Top Bar: Slot Badge & Delete */}
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 bg-black text-[#FDC800] text-[10px] rounded-lg font-black font-mono uppercase tracking-wider">
+                        SLOT {idx + 1}
                       </span>
-                    )}
-                  </div>
+                      {reminderTimes.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSlot(timeStr)}
+                          className="w-6 h-6 flex items-center justify-center hover:bg-[#FF4D4D] text-neutral-400 hover:text-white rounded-lg border border-transparent hover:border-black cursor-pointer transition-all shrink-0"
+                          title="Remove this slot"
+                          aria-label={`Remove slot ${idx + 1}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <span className="text-[9px] font-mono text-neutral-400 font-bold uppercase">
+                          PRIMARY
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Main Action: Dial Time Button */}
+                    {/* Main Action: Dial Time Button with dedicated AM/PM badge */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRadialForSlot(idx, timeStr)}
+                      className="w-full flex items-center justify-between px-3 py-1.5 bg-white hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-black cursor-pointer shadow-[1.5px_1.5px_0px_#000] active:translate-x-px active:translate-y-px transition-all group"
+                      title="Tap to change time with mechanical radial dial"
+                      aria-label={`Change time for Slot ${idx + 1}, currently ${time} ${period}`}
+                    >
+                      <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <Clock className="w-3.5 h-3.5 stroke-[2.5] text-black shrink-0" />
+                        <span className="font-mono font-black text-sm text-black tracking-tight">{time}</span>
+                        <span className="px-1.5 py-0.5 bg-black text-[#FDC800] rounded text-[10px] font-black font-mono uppercase">
+                          {period}
+                        </span>
+                      </div>
+                      <span className="px-2 py-0.5 bg-[#FDC800] group-hover:bg-black group-hover:text-white text-black border border-black rounded text-[9px] font-black uppercase shrink-0 transition-colors ml-1">
+                        DIAL
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
+
+              {/* Add Next Slot Button: Shares Row Space Dynamically */}
+              {reminderTimes.length < 5 && (() => {
+                const nextTimeStr = getNextAvailableTime(reminderTimes);
+                const { time, period } = splitTime12h(nextTimeStr);
+                return (
                   <button
                     type="button"
-                    onClick={() => handleOpenRadialForSlot(idx, timeStr)}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 bg-white hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono font-black text-xs text-black cursor-pointer shadow-[1.5px_1.5px_0px_#000] active:translate-x-px active:translate-y-px transition-all group"
-                    title="Tap to change time with mechanical radial dial"
-                    aria-label={`Change time for Slot ${idx + 1}, currently ${formatTime12h(timeStr)}`}
+                    onClick={handleOpenRadialForNew}
+                    className="flex-1 min-w-[200px] sm:min-w-[220px] max-w-full bg-[#00E599]/15 hover:bg-[#00E599]/30 border-2 border-dashed hover:border-solid border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col items-center justify-center gap-1.5 min-h-[84px] cursor-pointer transition-all active:translate-x-px active:translate-y-px text-black group"
+                    aria-label="Add next check-in alarm slot with radial clock"
+                    title="Open mechanical radial dial to choose alarm time"
                   >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <Clock className="w-3.5 h-3.5 stroke-[2.5] text-black shrink-0" />
-                      <span className="truncate">{formatTime12h(timeStr)}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-white border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000] group-hover:bg-[#00E599] transition-colors">
+                        <Plus className="w-3.5 h-3.5 stroke-3 text-black" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-black">
+                        + ADD SLOT
+                      </span>
                     </div>
-                    <span className="px-1.5 py-0.2 bg-[#FDC800] group-hover:bg-black group-hover:text-white text-black border border-black rounded text-[9px] font-black uppercase shrink-0 transition-colors">
-                      DIAL
-                    </span>
+                    <div className="flex items-center gap-1.5 font-mono text-[11px] text-neutral-600 font-bold">
+                      <span>NEXT:</span>
+                      <span className="font-black text-black">{time}</span>
+                      <span className="px-1 py-0.2 bg-black text-[#FDC800] rounded text-[9px] font-black uppercase">
+                        {period}
+                      </span>
+                    </div>
                   </button>
-                </div>
-              ))}
-
-              {/* Add Next Slot Button: Equal Cassette in Grid */}
-              {reminderTimes.length < 5 && (
-                <button
-                  type="button"
-                  onClick={handleOpenRadialForNew}
-                  className="bg-[#00E599]/15 hover:bg-[#00E599]/30 border-2 border-dashed hover:border-solid border-black rounded-2xl p-2.5 shadow-[2px_2px_0px_#000] flex flex-col items-center justify-center gap-1.5 min-h-[78px] cursor-pointer transition-all active:translate-x-px active:translate-y-px text-black group"
-                  aria-label="Add next check-in alarm slot with radial clock"
-                  title="Open mechanical radial dial to choose alarm time"
-                >
-                  <div className="w-7 h-7 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000] group-hover:bg-[#00E599] transition-colors">
-                    <Plus className="w-4 h-4 stroke-3 text-black" />
-                  </div>
-                  <span className="font-mono font-black text-[10px] uppercase text-black text-center leading-tight">
-                    + ADD SLOT ({formatTime12h(getNextAvailableTime(reminderTimes))})
-                  </span>
-                </button>
-              )}
+                );
+              })()}
             </div>
 
             {/* Inline Slot Management Feedback Alert */}

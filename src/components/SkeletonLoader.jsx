@@ -32,7 +32,8 @@ import {
   ListTodo,
   TrendingUp,
   Activity,
-  Wind
+  Wind,
+  MessageSquareQuote
 } from 'lucide-react';
 import ShieldVoltIcon from './ShieldVoltIcon';
 
@@ -974,33 +975,108 @@ function DesktopLifetimeMetricsSkeleton() {
 
 function DesktopTimelineSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="bg-white border-3 border-black rounded-4xl p-6 sm:p-8 shadow-[4px_4px_0px_#000000] space-y-6">
-        <div className="flex items-center justify-between pb-3 border-b border-black/10">
-          <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#00E599] border-2 border-black font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000]">
-              YEAR IN PIXELS
-            </span>
-            <h2 className="font-display font-black text-2xl uppercase tracking-tight text-black mt-1">
-              365-Day Chronological Heatmap
-            </h2>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Column 1 (lg:col-span-7): CalendarModal Embedded Month Matrix Wireframe */}
+      <div className="lg:col-span-7 space-y-4 bg-white border-3 border-black rounded-4xl p-6 sm:p-7 shadow-[4px_4px_0px_#000000]">
+        {/* Month Header & Quick Navigation */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000]">
+              <Calendar className="w-4 h-4 text-black" />
+            </div>
+            <div>
+              <Bone strong className="h-6 w-36 rounded-lg" />
+              <span className="text-[10px] font-mono font-bold text-neutral-500 block mt-0.5">
+                Click any active day to view or edit reflection
+              </span>
+            </div>
           </div>
-          <Bone strong className="h-8 w-28 rounded-xl" />
+
+          <div className="flex items-center gap-2">
+            <div className="px-3 py-1.5 bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>AI REPORT</span>
+            </div>
+            <div className="p-1.5 rounded-xl border-2 border-black bg-white shadow-[1.5px_1.5px_0px_#000]">
+              <ChevronLeft className="w-4 h-4 text-black" />
+            </div>
+            <div className="p-1.5 rounded-xl border-2 border-black bg-white shadow-[1.5px_1.5px_0px_#000]">
+              <ChevronRight className="w-4 h-4 text-black" />
+            </div>
+          </div>
         </div>
 
-        {/* 12-Month Year in Pixels Grid Placeholder */}
-        <div className="p-4 bg-neutral-50 rounded-2xl border-2 border-black/10 space-y-2">
-          <div className="grid grid-cols-12 gap-2 text-center font-mono text-[10px] font-bold text-neutral-500">
-            {['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'].map((m) => (
-              <span key={m}>{m}</span>
-            ))}
+        {/* 7 Days of the Week Headers */}
+        <div className="grid grid-cols-7 gap-2 text-center font-mono font-black text-xs text-neutral-500 uppercase">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+            <div key={day} className="py-1 bg-neutral-100 border border-black/10 rounded-lg">
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* 7x5 Days Grid Matrix Wireframe */}
+        <div className="grid grid-cols-7 gap-2">
+          {Array.from({ length: 35 }).map((_, i) => (
+            <div
+              key={i}
+              className={`min-h-16 sm:min-h-20 p-2 rounded-xl border-2 border-black flex flex-col justify-between ${
+                i === 14 ? 'bg-[#FFFDF5] ring-2 ring-black shadow-[2px_2px_0px_#000]' : 'bg-white shadow-[1px_1px_0px_#000]'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-black text-neutral-400">
+                  {i < 31 ? i + 1 : ''}
+                </span>
+                {i < 15 && (
+                  <div
+                    className="w-3.5 h-3.5 rounded-full border border-black"
+                    style={{ backgroundColor: i % 4 === 0 ? '#00E599' : i % 3 === 0 ? '#FDC800' : '#FF4D4D' }}
+                  />
+                )}
+              </div>
+              {i < 15 && <Bone className="h-2 w-full rounded" />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Column 2 (lg:col-span-5): JourneyTimeline Stream Wireframe */}
+      <div className="lg:col-span-5 space-y-4">
+        <div className="bg-white border-3 border-black rounded-4xl p-5 sm:p-6 shadow-[4px_4px_0px_#000000] space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-black/10">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-black" />
+              <h3 className="font-display font-black text-lg uppercase tracking-tight text-black">
+                JOURNEY TIMELINE
+              </h3>
+            </div>
+            <Bone className="h-4 w-20 rounded" />
           </div>
-          <div className="grid grid-cols-12 gap-2 h-44">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="h-full bg-white border border-black/20 rounded-xl p-1 grid grid-cols-3 gap-1">
-                {Array.from({ length: 15 }).map((_, j) => (
-                  <div key={j} className="aspect-square bg-neutral-200 rounded-sm" />
-                ))}
+
+          {/* List of Day Cards Wireframe */}
+          <div className="space-y-2.5">
+            {[1, 2, 3, 4, 5].map((idx) => (
+              <div
+                key={idx}
+                className="p-3 rounded-2xl border-2 border-black bg-white flex items-center justify-between shadow-[2px_2px_0px_#000000] gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex flex-col items-center justify-center shrink-0 shadow-[1px_1px_0px_#000]">
+                    <span className="text-[8px] font-mono font-black">DAY</span>
+                    <span className="font-display font-black text-xs leading-none">
+                      {42 - idx}
+                    </span>
+                  </div>
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <Bone strong className="h-3 w-28 rounded" />
+                    <Bone className="h-2.5 w-3/4 rounded" />
+                  </div>
+                </div>
+
+                <div className="w-16 h-7 rounded-xl border-2 border-black bg-neutral-100 flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000]">
+                  <Bone className="h-3 w-8 rounded" />
+                </div>
               </div>
             ))}
           </div>
@@ -1013,13 +1089,13 @@ function DesktopTimelineSkeleton() {
 function DesktopDossierSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Month Header Card */}
-      <div className="bg-white border-3 border-black rounded-4xl p-6 shadow-[4px_4px_0px_#000000] flex items-center justify-between">
+      {/* Month Header Card Wireframe */}
+      <div className="bg-white border-3 border-black rounded-4xl p-6 shadow-[4px_4px_0px_#000000] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="px-2.5 py-0.5 bg-[#FDC800] border-2 border-black rounded font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000]">
             MONTHLY DOSSIER
           </span>
-          <h2 className="font-display font-black text-3xl uppercase tracking-tight text-black mt-1">
+          <h2 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black mt-1">
             Performance Intelligence
           </h2>
         </div>
@@ -1036,7 +1112,7 @@ function DesktopDossierSkeleton() {
         </div>
       </div>
 
-      {/* Persona Archetype Banner */}
+      {/* Persona Archetype Banner Wireframe */}
       <div className="bg-[#FDC800] border-3 border-black rounded-4xl p-6 sm:p-8 shadow-[4px_4px_0px_#000000] space-y-4">
         <span className="px-3 py-1 bg-black text-white rounded-lg font-mono text-xs font-black uppercase">
           MONTHLY PERSONA ARCHETYPE
@@ -1046,13 +1122,51 @@ function DesktopDossierSkeleton() {
           <Bone className="h-3.5 w-full rounded bg-black/15" />
           <Bone className="h-3.5 w-4/5 rounded bg-black/15" />
         </div>
-        <div className="grid grid-cols-4 gap-4 pt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-2">
           {['HIT RATE %', 'LONGEST STREAK', 'FRICTION SCORE', 'HABIT COMPLETION'].map((label, idx) => (
             <div key={idx} className="p-4 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000] space-y-1">
               <span className="font-mono text-[10px] font-bold text-neutral-500">{label}</span>
               <Bone strong className="h-6 w-16 rounded" />
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* 2-Column Intelligence Grid Wireframe */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Homie Tough Love Letter */}
+        <div className="lg:col-span-7 bg-[#FFFDF5] border-3 border-black rounded-4xl p-6 sm:p-7 shadow-[4px_4px_0px_#000000] space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-black/10">
+            <MessageSquareQuote className="w-5 h-5 text-black" />
+            <h3 className="font-display font-black text-lg uppercase tracking-tight text-black">
+              STRAIGHT TALK FROM TRINNO
+            </h3>
+          </div>
+          <div className="space-y-2.5">
+            <Bone className="h-3.5 w-full rounded" />
+            <Bone className="h-3.5 w-11/12 rounded" />
+            <Bone className="h-3.5 w-4/5 rounded" />
+            <Bone className="h-3.5 w-full rounded" />
+            <Bone className="h-3.5 w-2/3 rounded" />
+          </div>
+        </div>
+
+        {/* 4-Week Phase Velocity */}
+        <div className="lg:col-span-5 bg-white border-3 border-black rounded-4xl p-6 shadow-[4px_4px_0px_#000000] space-y-3">
+          <div className="flex items-center gap-2 pb-2 border-b border-black/10">
+            <Activity className="w-5 h-5 text-black" />
+            <h3 className="font-display font-black text-lg uppercase tracking-tight text-black">
+              WEEKLY VELOCITY
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map((wk) => (
+              <div key={wk} className="p-3 bg-neutral-50 border-2 border-black rounded-2xl flex items-center justify-between shadow-[1.5px_1.5px_0px_#000]">
+                <span className="font-mono text-xs font-black text-black">WEEK {wk}</span>
+                <Bone className="h-4 w-20 rounded" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
