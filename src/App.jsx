@@ -65,6 +65,7 @@ const StorageSovereigntyPage = safeLazy(() => import('./components/StorageSovere
 const NotificationStudioPage = safeLazy(() => import('./components/NotificationStudioPage'));
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
+const ArchitectureProjectionModal = safeLazy(() => import('./components/ArchitectureProjectionModal'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -254,6 +255,43 @@ export default function App() {
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(() => previewModal === 'stickers');
   const [isExportStudioOpen, setIsExportStudioOpen] = useState(() => previewModal === 'export');
   const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
+  const [isArchitectureProjectionOpen, setIsArchitectureProjectionOpen] = useState(false);
+  const [isAcademicMode, setIsAcademicMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('daily_verdict_academic_mode') === 'true' || window.location.search.includes('mode=academic');
+  });
+
+  const toggleAcademicMode = useCallback(() => {
+    setIsAcademicMode(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('daily_verdict_academic_mode', next ? 'true' : 'false');
+      }
+      try {
+        if (next) soundEngine.playSuccessChime();
+        else soundEngine.playClick();
+      } catch (e) {}
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalHotkeys = (e) => {
+      // Ctrl + Shift + P: Academic Presentation Mode Toggle
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'P' || e.key === 'p')) {
+        e.preventDefault();
+        toggleAcademicMode();
+      }
+      // Ctrl + Shift + A: Architecture Blueprint Projection Modal
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setIsArchitectureProjectionOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalHotkeys);
+    return () => window.removeEventListener('keydown', handleGlobalHotkeys);
+  }, [toggleAcademicMode]);
+
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
     year: new Date().getFullYear(),
@@ -274,11 +312,11 @@ export default function App() {
 
   const triggerNotificationFeedback = useCallback((rating, source = 'System Notification') => {
     const meta = {
-      1: { label: '1★ ROUGH (SHIT)', color: '#FF4D4D' },
-      2: { label: '2★ DOWN', color: '#FF9500' },
-      3: { label: '3★ OKAY', color: '#FDC800' },
-      4: { label: '4★ GOOD', color: '#00D4FF' },
-      5: { label: '5★ PEAK (HIT)', color: '#00E599' }
+      1: { label: isAcademicMode ? '1★ DYSREGULATED' : '1★ ROUGH (SHIT)', color: '#FF4D4D' },
+      2: { label: isAcademicMode ? '2★ OVERWHELMED' : '2★ DOWN', color: '#FF9500' },
+      3: { label: isAcademicMode ? '3★ EQUILIBRIUM' : '3★ OKAY', color: '#FDC800' },
+      4: { label: isAcademicMode ? '4★ PROGRESSION' : '4★ GOOD', color: '#00D4FF' },
+      5: { label: isAcademicMode ? '5★ PEAK FLOW' : '5★ PEAK (HIT)', color: '#00E599' }
     }[rating] || { label: `${rating}★`, color: '#FDC800' };
 
     setNotificationVerdictFeedback({ rating, label: meta.label, color: meta.color, source });
@@ -1403,6 +1441,8 @@ export default function App() {
             onOpenStickerVault={() => setIsStickerVaultOpen(true)}
             onOpenExportStudio={() => setIsExportStudioOpen(true)}
             onOpenRehab={() => setShowSanctuary(true)}
+            onOpenWallpaperEngine={() => handleOpenWallpaper(null, todayStr)}
+            onOpenArchitectureProjection={() => setIsArchitectureProjectionOpen(true)}
             sphereSettingsVer={sphereSettingsVer}
           />
         </FaultBoundary>
@@ -1778,6 +1818,15 @@ export default function App() {
                   declineSanctuaryInvitation();
                   setIsSanctuaryInvitationOpen(false);
                 }}
+              />
+            )}
+
+            {/* 🎓 GCERT RBVP Science Fair Animated Sketch Architecture Projector */}
+            {isArchitectureProjectionOpen && (
+              <ArchitectureProjectionModal
+                key="architecture-projection-modal"
+                isOpen={isArchitectureProjectionOpen}
+                onClose={() => setIsArchitectureProjectionOpen(false)}
               />
             )}
 

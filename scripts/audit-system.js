@@ -367,6 +367,59 @@ const fileMirrorCode = readSrc('services/fileMirrorEngine.js');
 assert(storagePageCode.includes('kaushtubh457@gmail.com') && fileMirrorCode.includes('AES-256-GCM'), 'StorageSovereigntyPage: Whitelist enlistment & AES-256 Device File Mirror operational');
 
 // ----------------------------------------------------------------------
+// 14. STATIC JSX IMPORT & LUCIDE ICON INTEGRITY SCANNER
+// ----------------------------------------------------------------------
+console.log('\n🔍 [14/14] Executing Static JSX Import & Lucide Icon Integrity Audit...');
+const componentsDir = path.join(SRC_DIR, 'components');
+const jsxFiles = fs.readdirSync(componentsDir).filter(f => f.endsWith('.jsx'));
+
+let missingImportErrors = [];
+for (const file of jsxFiles) {
+  const filePath = path.join(componentsDir, file);
+  const content = fs.readFileSync(filePath, 'utf8');
+
+  // Extract all imported identifiers
+  const imported = new Set();
+  const importRegex = /import\s+(?:(?:\*\s+as\s+([A-Za-z0-9_]+))|(?:\{([^}]+)\})|([A-Za-z0-9_]+))/g;
+  let m;
+  while ((m = importRegex.exec(content)) !== null) {
+    if (m[1]) imported.add(m[1].trim());
+    if (m[2]) {
+      m[2].split(',').forEach(item => {
+        const parts = item.trim().split(/\s+as\s+/);
+        imported.add((parts[1] || parts[0]).trim());
+      });
+    }
+    if (m[3]) imported.add(m[3].trim());
+  }
+
+  // Extract locally declared functions, classes, constants, and destructured param identifiers
+  const declared = new Set();
+  const declRegex = /(?:function|class|const|let|var)\s+([A-Z][A-Za-z0-9_]*)/g;
+  while ((m = declRegex.exec(content)) !== null) {
+    declared.add(m[1]);
+  }
+  const destructureRegex = /(?:\{|,|\()\s*([A-Z][A-Za-z0-9_]*)\s*(?::|\}|,|\))/g;
+  while ((m = destructureRegex.exec(content)) !== null) {
+    declared.add(m[1]);
+  }
+
+  // Standard React globals and recognized wrappers
+  const standardGlobals = new Set(['React', 'Fragment', 'Suspense', 'AnimatePresence', 'motion', 'ErrorBoundary', 'FaultBoundary']);
+
+  // Extract JSX element names <CapitalizedTag
+  const jsxRegex = /<([A-Z][A-Za-z0-9_]*)/g;
+  while ((m = jsxRegex.exec(content)) !== null) {
+    const tag = m[1];
+    if (!imported.has(tag) && !declared.has(tag) && !standardGlobals.has(tag)) {
+      missingImportErrors.push(`${file}: <${tag} /> is not imported or declared`);
+    }
+  }
+}
+
+assert(missingImportErrors.length === 0, `Static JSX Import Scanner: ${missingImportErrors.length === 0 ? 'All JSX tags across all 33+ components have valid imports' : missingImportErrors.join(', ')}`);
+
+// ----------------------------------------------------------------------
 // COMPILER VERIFICATION
 // ----------------------------------------------------------------------
 console.log('\n⚡ [FINAL] Running Vite Production Bundle Verification...');

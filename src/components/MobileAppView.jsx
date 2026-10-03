@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShieldVoltIcon from './ShieldVoltIcon';
 import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
+import MobileSettingsView from './MobileSettingsView';
 import { 
   Zap, 
   Flame, 
@@ -46,7 +47,9 @@ import {
   Database,
   MessageSquareQuote,
   HelpCircle,
-  Bell
+  Bell,
+  Sliders,
+  Loader2
 } from 'lucide-react';
 import HitRateInfoModal from './HitRateInfoModal';
 import { 
@@ -129,7 +132,9 @@ export default function MobileAppView({
   onOpenStickerVault,
   sphereSettingsVer = 0,
   onOpenExportStudio,
-  onOpenRehab
+  onOpenRehab,
+  onOpenArchitectureProjection,
+  onOpenWallpaperEngine
 }) {
   const [activeTab, setActiveTabState] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -137,6 +142,7 @@ export default function MobileAppView({
     }
     return 'log';
   });
+  const [previousTab, setPreviousTab] = useState('log');
   const [historySubView, setHistorySubViewState] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('daily_verdict_mobile_history_subview') || 'calendar';
@@ -145,6 +151,9 @@ export default function MobileAppView({
   });
 
   const setActiveTab = (tab) => {
+    if (tab !== 'settings' && activeTab !== 'settings') {
+      setPreviousTab(activeTab);
+    }
     setActiveTabState(tab);
     if (typeof window !== 'undefined') {
       localStorage.setItem('daily_verdict_mobile_active_tab', tab);
@@ -792,14 +801,23 @@ export default function MobileAppView({
             onClick={() => {
               triggerHaptic('light');
               soundEngine.playClick();
-              setActiveTab('settings');
+              if (activeTab === 'settings') {
+                setActiveTab(previousTab || 'log');
+              } else {
+                setPreviousTab(activeTab);
+                setActiveTab('settings');
+              }
             }}
             className={`p-1.5 sm:p-2 rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 transition-colors ${
-              activeTab === 'settings' ? 'bg-[#FDC800]' : 'bg-white hover:bg-[#FDC800]'
+              activeTab === 'settings' ? 'bg-[#FF4D4D] text-white' : 'bg-white hover:bg-[#FDC800] text-black'
             }`}
-            title="Settings & Reminders"
+            title={activeTab === 'settings' ? 'Close Settings' : 'Settings & Architecture'}
           >
-            <Settings className="w-4 h-4 text-black" />
+            {activeTab === 'settings' ? (
+              <X className="w-4 h-4 stroke-[2.5]" />
+            ) : (
+              <Settings className="w-4 h-4" />
+            )}
           </button>
 
           {/* Sticker Vault Button - hidden on xs */}
@@ -1910,247 +1928,27 @@ export default function MobileAppView({
       )}
 
       {/* ========================================================= */}
-      {/* ⚙️ TAB 5: COMPREHENSIVE NATIVE MOBILE SETTINGS MENU */}
+      {/* ⚙️ TAB 5: DEDICATED FULL-PAGE MOBILE SETTINGS VIEW */}
       {/* ========================================================= */}
       {activeTab === 'settings' && (
-        <main className="flex-1 px-4 py-3.5 max-w-lg mx-auto w-full space-y-4 pb-12">
-          {/* Header Card */}
-          <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] space-y-1">
-            <span className="px-2 py-0.5 bg-[#FDC800] border border-black rounded font-mono text-[10px] font-black uppercase shadow-[1px_1px_0px_#000]">
-              SYSTEM CONFIGURATION
-            </span>
-            <h2 className="font-display font-black text-xl uppercase tracking-tight text-black mt-1">
-              Settings &amp; Architecture
-            </h2>
-            <p className="text-xs font-mono font-bold text-neutral-600">
-              Manage lockscreen reminders, PIN vault security, cloud sync, and behavioral modes.
-            </p>
-          </div>
-
-          {/* 1. Daily Notifications & Radial Clock Cadence */}
-          <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000]">
-                  <Bell className="w-4 h-4 text-black stroke-[2.5]" />
-                </div>
-                <div>
-                  <h3 className="font-display font-black text-sm uppercase text-black">
-                    Daily Reminders &amp; Cadence
-                  </h3>
-                  <span className="text-[10px] font-mono text-neutral-500">
-                    Radial clock time setter &amp; lockscreen verdict
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-xs font-mono text-neutral-700 leading-snug">
-              Set up to 5 reminder check-ins using our mechanical radial clock dial. Rate your day without opening the app.
-            </p>
-
-            {onOpenNotificationStudio ? (
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic('medium');
-                  soundEngine.playClick();
-                  onOpenNotificationStudio();
-                }}
-                className="w-full py-2.5 bg-[#FDC800] hover:bg-[#ffe066] text-black font-display font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px transition-all"
-              >
-                <Clock className="w-4 h-4 stroke-[2.5]" />
-                <span>OPEN NOTIFICATION STUDIO &amp; RADIAL DIAL</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic('light');
-                  if (onOpenSettings) onOpenSettings();
-                }}
-                className="w-full py-2 bg-neutral-100 hover:bg-neutral-200 text-black font-mono text-xs font-black rounded-xl border border-black cursor-pointer"
-              >
-                CONFIG REMINDERS
-              </button>
-            )}
-          </div>
-
-          {/* 2. Cloud Sync & Multi-User Identity */}
-          <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000]">
-                  <Cloud className="w-4 h-4 text-black stroke-[2.5]" />
-                </div>
-                <div>
-                  <h3 className="font-display font-black text-sm uppercase text-black">
-                    Cloud Sync &amp; Identity
-                  </h3>
-                  <span className="text-[10px] font-mono text-neutral-500">
-                    Firebase Firestore bidirectional sync
-                  </span>
-                </div>
-              </div>
-              <span
-                className={`px-2 py-0.5 border border-black rounded font-mono text-[9px] font-black uppercase ${
-                  isWhitelisted ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-600'
-                }`}
-              >
-                {isWhitelisted ? 'WHITELISTED' : 'LOCAL DEVICE'}
-              </span>
-            </div>
-
-            {user ? (
-              <div className="p-3 bg-neutral-50 border border-black/20 rounded-xl flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="font-display font-black text-xs block text-black truncate">
-                    {user.displayName || 'Authorized User'}
-                  </span>
-                  <span className="font-mono text-[10px] text-neutral-500 truncate block">
-                    {user.email}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowUserModal(true)}
-                  className="px-2.5 py-1 bg-white border border-black rounded-lg font-mono text-[10px] font-black uppercase hover:bg-neutral-100 cursor-pointer shadow-[1px_1px_0px_#000] shrink-0"
-                >
-                  MANAGE
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={authLoading}
-                className="w-full py-2.5 bg-[#00E599] hover:bg-emerald-400 text-black font-display font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000] cursor-pointer flex items-center justify-center gap-2"
-              >
-                <LogIn className="w-4 h-4 stroke-[2.5]" />
-                <span>{authLoading ? 'CONNECTING...' : 'CONNECT GOOGLE ACCOUNT'}</span>
-              </button>
-            )}
-          </div>
-
-          {/* 3. AES-256 PIN Vault Security */}
-          <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000]">
-                  <Lock className="w-4 h-4 text-black stroke-[2.5]" />
-                </div>
-                <div>
-                  <h3 className="font-display font-black text-sm uppercase text-black">
-                    AES-256 PIN Vault
-                  </h3>
-                  <span className="text-[10px] font-mono text-neutral-500">
-                    Client-side PBKDF2 encryption shield
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-xs font-mono text-neutral-700 leading-snug">
-              Lock sensitive diary notes with a 4-digit PIN. Decryption occurs purely in local browser memory.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic('light');
-                soundEngine.playClick();
-                if (onOpenSettings) onOpenSettings();
-              }}
-              className="w-full py-2.5 bg-white hover:bg-neutral-100 text-black font-mono font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px transition-all"
-            >
-              <ShieldCheck className="w-4 h-4 text-black stroke-[2.5]" />
-              <span>CONFIGURE PIN VAULT &amp; SECURITY</span>
-            </button>
-          </div>
-
-          {/* 4. Behavioral Modes & Life Pause */}
-          <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#00D4FF] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000]">
-                <Sliders className="w-4 h-4 text-black stroke-[2.5]" />
-              </div>
-              <div>
-                <h3 className="font-display font-black text-sm uppercase text-black">
-                  Behavioral Frameworks
-                </h3>
-                <span className="text-[10px] font-mono text-neutral-500">
-                  Spheres &bull; Habits &bull; Sanctuary Stasis
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic('light');
-                  if (onOpenSettings) onOpenSettings();
-                }}
-                className="p-2.5 rounded-xl border-2 border-black bg-neutral-50 hover:bg-[#FDC800] text-left cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000]"
-              >
-                <div className="flex items-center gap-1.5 font-display font-black text-xs uppercase text-black">
-                  <Target className="w-3.5 h-3.5" />
-                  <span>Multi-Sphere</span>
-                </div>
-                <span className="text-[10px] font-mono text-neutral-600 block mt-0.5">
-                  {sphereModeActive ? 'Active' : 'Disabled'}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic('light');
-                  if (onOpenRehab) onOpenRehab();
-                }}
-                className="p-2.5 rounded-xl border-2 border-black bg-neutral-50 hover:bg-emerald-100 text-left cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000]"
-              >
-                <div className="flex items-center gap-1.5 font-display font-black text-xs uppercase text-black">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Sanctuary</span>
-                </div>
-                <span className="text-[10px] font-mono text-neutral-600 block mt-0.5">
-                  {isSanctuaryActive ? 'Active' : 'Standby'}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* 5. Data Sovereignty & Export Studio */}
-          <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[3px_3px_0px_#000000] space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-neutral-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000]">
-                <Download className="w-4 h-4 text-black stroke-[2.5]" />
-              </div>
-              <div>
-                <h3 className="font-display font-black text-sm uppercase text-black">
-                  Data Sovereignty
-                </h3>
-                <span className="text-[10px] font-mono text-neutral-500">
-                  Export CSV &bull; Markdown &bull; JSON
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic('light');
-                if (onOpenExportStudio) onOpenExportStudio();
-              }}
-              className="w-full py-2.5 bg-neutral-100 hover:bg-neutral-200 text-black font-mono font-black text-xs uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px active:translate-y-px transition-all"
-            >
-              <Download className="w-4 h-4 text-black stroke-[2.5]" />
-              <span>OPEN EXPORT STUDIO &amp; BACKUP</span>
-            </button>
-          </div>
-        </main>
+        <MobileSettingsView
+          user={user}
+          isWhitelisted={isWhitelisted}
+          todayStr={todayStr}
+          dayCount={dayCount}
+          startDate={startDate}
+          entries={entries}
+          onClose={() => setActiveTab(previousTab || 'log')}
+          onOpenNotificationStudio={onOpenNotificationStudio}
+          onOpenExportStudio={onOpenExportStudio}
+          onOpenRehab={onOpenRehab}
+          onOpenArchitectureProjection={onOpenArchitectureProjection}
+          onOpenWallpaperEngine={onOpenWallpaperEngine}
+          triggerHaptic={triggerHaptic}
+        />
       )}
+
+
 
       {/* ========================================================= */}
       {/* 📝 FULLY VISIBLE MOBILE REFLECTION NOTE DRAWER (PINNED SAVE BUTTON) */}

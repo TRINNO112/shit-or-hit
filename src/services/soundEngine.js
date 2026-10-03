@@ -31,6 +31,11 @@ class SoundEngine {
     return localStorage.getItem('daily_verdict_sound_fx') === 'enabled';
   }
 
+  // Backward-compatible alias
+  isEnabled() {
+    return this.isSoundEnabled();
+  }
+
   setSoundEnabled(enable) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('daily_verdict_sound_fx', enable ? 'enabled' : 'muted');
@@ -40,6 +45,11 @@ class SoundEngine {
         this.playClick();
       }
     }
+  }
+
+  // Backward-compatible alias
+  setEnabled(enable) {
+    this.setSoundEnabled(enable);
   }
 
   // Haptic feedback trigger for tactile mobile satisfaction
