@@ -45,7 +45,8 @@ import {
   Shield,
   Database,
   MessageSquareQuote,
-  HelpCircle
+  HelpCircle,
+  Bell
 } from 'lucide-react';
 import HitRateInfoModal from './HitRateInfoModal';
 import { 
