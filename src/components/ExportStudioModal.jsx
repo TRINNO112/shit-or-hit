@@ -257,48 +257,7 @@ export default function ExportStudioModal({ isOpen, onClose, entries = {}, start
               </div>
             </button>
 
-            {/* 5. 365-Day Year in Pixels Wallpaper Engine (4K / Mobile HD) */}
-            {onOpenWallpaperEngine && (
-              <button
-                type="button"
-                onClick={() => {
-                  soundEngine.playClick();
-                  onOpenWallpaperEngine();
-                }}
-                className="w-full text-left p-4 bg-white hover:bg-amber-50/60 border-2 border-black shadow-[3px_3px_0px_#000000] hover:shadow-[1px_1px_0px_#000000] hover:translate-x-px hover:translate-y-px active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-start gap-3.5 cursor-pointer group"
-              >
-                <div className="p-2.5 bg-[#FDC800] border-2 border-black shrink-0 mt-0.5 shadow-[1px_1px_0px_#000000]">
-                  <Calendar className="w-5 h-5 text-black stroke-[2.5]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between flex-wrap gap-1.5 mb-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-black text-sm text-black uppercase tracking-wide">
-                        365-Day Year in Pixels Wallpaper Engine
-                      </span>
-                      <span className="text-[9px] font-mono font-black bg-[#FDC800] text-black px-1.5 py-0.5 border border-black">
-                        4K ULTRA-HD
-                      </span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
-                  </div>
-                  <p className="text-xs font-mono text-black/70 mb-2 leading-relaxed">
-                    Render and download your entire 365-day discipline matrix as high-resolution wallpapers for iPhone, Android, and 4K desktop screens.
-                  </p>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[9px] font-mono font-black bg-neutral-100 text-black px-1.5 py-0.5 border border-black">
-                      4K DESKTOP (16:9)
-                    </span>
-                    <span className="text-[9px] font-mono font-black bg-neutral-100 text-black px-1.5 py-0.5 border border-black">
-                      MOBILE (9:16)
-                    </span>
-                    <span className="text-[9px] font-mono font-black bg-neutral-100 text-black px-1.5 py-0.5 border border-black">
-                      4 THEMES
-                    </span>
-                  </div>
-                </div>
-              </button>
-            )}
+
           </div>
 
           {/* Pinned Footer (Guaranteed Never Cut Off) */}

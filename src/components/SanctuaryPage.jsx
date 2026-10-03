@@ -407,7 +407,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                       </span>
                     </motion.div>
                   ) : (
-                    <span className="text-xs font-mono text-neutral-400 font-bold">
+                    <span className="text-xs font-mono text-neutral-400 font-bold text-center block w-full px-3 leading-relaxed">
                       Click 'Start Pacer' for 30-second autonomic reset
                     </span>
                   )}
@@ -539,12 +539,16 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                     className="w-full h-full object-cover object-[center_45%]"
                   />
                   {/* Floating Top Badges (Preserves Cat, Tea & Foreground Artwork) */}
-                  <div className="absolute top-3 left-3 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000]">
-                    <Droplets className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5]" />
-                    <span>Tranquility Sanctuary • Calm Japanese Veranda</span>
-                  </div>
-                  <div className="absolute top-3 right-3 bg-[#00E599] text-black px-2.5 py-1 rounded-lg border border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000]">
-                    <span>Rest & Recovery</span>
+                  <div className="absolute top-2.5 inset-x-2.5 sm:top-3 sm:inset-x-3 flex items-center justify-between gap-2 pointer-events-none">
+                    <div className="bg-black/90 backdrop-blur-xs text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000] min-w-0">
+                      <Droplets className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5] shrink-0" />
+                      <span className="truncate">
+                        <span className="hidden sm:inline">Tranquility Sanctuary • </span>Veranda Rest
+                      </span>
+                    </div>
+                    <div className="bg-[#00E599] text-black px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-black font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] shrink-0 whitespace-nowrap">
+                      <span>Rest &amp; Recovery</span>
+                    </div>
                   </div>
                 </div>
 
@@ -655,12 +659,16 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                     className="w-full h-full object-cover object-[center_45%]"
                   />
                   {/* Floating Top Badges (Preserves Cat, Journal & Sunset Panorama) */}
-                  <div className="absolute top-3 left-3 bg-black/85 backdrop-blur-xs text-white px-3 py-1.5 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000]">
-                    <Sun className="w-3.5 h-3.5 text-[#FFB800] stroke-[2.5]" />
-                    <span>Grand Sabbatical Horizon • Sovereign Exploration</span>
-                  </div>
-                  <div className="absolute top-3 right-3 bg-[#FFB800] text-black px-2.5 py-1 rounded-lg border border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000]">
-                    <span>Unplugged Horizon</span>
+                  <div className="absolute top-2.5 inset-x-2.5 sm:top-3 sm:inset-x-3 flex items-center justify-between gap-2 pointer-events-none">
+                    <div className="bg-black/90 backdrop-blur-xs text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-white/20 flex items-center gap-1.5 font-mono text-[10px] font-black uppercase shadow-[2px_2px_0px_#000000] min-w-0">
+                      <Sun className="w-3.5 h-3.5 text-[#FFB800] stroke-[2.5] shrink-0" />
+                      <span className="truncate">
+                        <span className="hidden sm:inline">Grand Sabbatical • </span>Sovereign Summit
+                      </span>
+                    </div>
+                    <div className="bg-[#FFB800] text-black px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-black font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] shrink-0 whitespace-nowrap">
+                      <span>Unplugged Horizon</span>
+                    </div>
                   </div>
                 </div>
 

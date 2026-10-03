@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShieldVoltIcon from './ShieldVoltIcon';
 import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
-import MobileSettingsView from './MobileSettingsView';
+import QuickSettingsDrawer from './QuickSettingsDrawer';
+import DetailedSettingsView from './DetailedSettingsView';
+import NonNegotiablesStudioModal from './NonNegotiablesStudioModal';
 import { 
   Zap, 
   Flame, 
@@ -133,8 +135,13 @@ export default function MobileAppView({
   sphereSettingsVer = 0,
   onOpenExportStudio,
   onOpenRehab,
+  onOpenPrivacyPage = null,
+  onOpenErasurePage = null,
+  onOpenStoragePage = null,
   onOpenArchitectureProjection,
-  onOpenWallpaperEngine
+  onOpenWallpaperEngine,
+  onOpenSync = null,
+  user: userProp = null
 }) {
   const [activeTab, setActiveTabState] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -142,7 +149,9 @@ export default function MobileAppView({
     }
     return 'log';
   });
-  const [previousTab, setPreviousTab] = useState('log');
+  const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
+  const [isDetailedSettingsOpen, setIsDetailedSettingsOpen] = useState(false);
+  const [isNonNegotiablesOpen, setIsNonNegotiablesOpen] = useState(false);
   const [historySubView, setHistorySubViewState] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('daily_verdict_mobile_history_subview') || 'calendar';
@@ -151,9 +160,6 @@ export default function MobileAppView({
   });
 
   const setActiveTab = (tab) => {
-    if (tab !== 'settings' && activeTab !== 'settings') {
-      setPreviousTab(activeTab);
-    }
     setActiveTabState(tab);
     if (typeof window !== 'undefined') {
       localStorage.setItem('daily_verdict_mobile_active_tab', tab);
@@ -173,7 +179,11 @@ export default function MobileAppView({
   const [activeSphereId, setActiveSphereId] = useState('');
   const [spheresData, setSpheresData] = useState({});
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(userProp);
+
+  useEffect(() => {
+    if (userProp) setUser(userProp);
+  }, [userProp]);
   const [showNoteDrawer, setShowNoteDrawer] = useState(false);
   const [noteText, setNoteText] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -221,6 +231,9 @@ export default function MobileAppView({
   // Embedded Calendar State
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [receiptEnabled, setReceiptEnabled] = useState(() => isReceiptOfTruthEnabled());
+  const [localSphereVer, setLocalSphereVer] = useState(0);
+  const [isAnchorsActiveMobile, setIsAnchorsActiveMobile] = useState(() => typeof window !== 'undefined' && isNonNegotiablesActive());
+  const [anchorsModeMobile, setAnchorsModeMobile] = useState(() => typeof window !== 'undefined' ? getNonNegotiablesMode() : 'checklist');
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -233,6 +246,37 @@ export default function MobileAppView({
       window.removeEventListener('storage', handleUpdate);
     };
   }, []);
+
+  // Instant reactive synchronization for Multi-Sphere & Non-Negotiables
+  useEffect(() => {
+    const handleSphereModeUpdate = () => {
+      const isEnabled = isSphereModeEnabled();
+      setSphereModeActive(isEnabled);
+      const cfg = getSphereConfig().filter(s => s.enabled);
+      setSpheresConfig(cfg);
+      if (cfg.length > 0 && !activeSphereId) {
+        setActiveSphereId(cfg[0].id);
+      }
+      setLocalSphereVer(v => v + 1);
+    };
+
+    const handleAnchorsUpdate = () => {
+      setIsAnchorsActiveMobile(isNonNegotiablesActive());
+      setAnchorsModeMobile(getNonNegotiablesMode());
+    };
+
+    window.addEventListener('sphere-mode-updated', handleSphereModeUpdate);
+    window.addEventListener('non-negotiables-updated', handleAnchorsUpdate);
+    window.addEventListener('storage', handleSphereModeUpdate);
+    window.addEventListener('storage', handleAnchorsUpdate);
+
+    return () => {
+      window.removeEventListener('sphere-mode-updated', handleSphereModeUpdate);
+      window.removeEventListener('non-negotiables-updated', handleAnchorsUpdate);
+      window.removeEventListener('storage', handleSphereModeUpdate);
+      window.removeEventListener('storage', handleAnchorsUpdate);
+    };
+  }, [activeSphereId]);
   
   // Embedded Dossier State
   const [dossierYear, setDossierYear] = useState(new Date().getFullYear());
@@ -264,7 +308,7 @@ export default function MobileAppView({
       };
     });
     setSpheresData(initialSpheres);
-  }, [entries, todayStr, sphereSettingsVer]);
+  }, [entries, todayStr, sphereSettingsVer, localSphereVer]);
 
   useEffect(() => {
     const unsub = subscribeAuthState((currentUser) => {
@@ -451,8 +495,6 @@ export default function MobileAppView({
     }
   };
 
-  const isAnchorsActiveMobile = typeof window !== 'undefined' && isNonNegotiablesActive();
-  const anchorsModeMobile = typeof window !== 'undefined' ? getNonNegotiablesMode() : 'checklist';
   const isDeterministicLockedMobile = isAnchorsActiveMobile && anchorsModeMobile === 'deterministic_100';
 
   const handleRate = async (val) => {
@@ -707,6 +749,8 @@ export default function MobileAppView({
     }
   };
 
+
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-28 select-none relative">
       
@@ -796,28 +840,17 @@ export default function MobileAppView({
             <Download className="w-4 h-4 stroke-[2.5]" />
           </button>
 
-          {/* Settings Button */}
+          {/* Settings Button (Opens Quick Drawer) */}
           <button
             onClick={() => {
               triggerHaptic('light');
               soundEngine.playClick();
-              if (activeTab === 'settings') {
-                setActiveTab(previousTab || 'log');
-              } else {
-                setPreviousTab(activeTab);
-                setActiveTab('settings');
-              }
+              setIsQuickSettingsOpen(true);
             }}
-            className={`p-1.5 sm:p-2 rounded-xl border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 transition-colors ${
-              activeTab === 'settings' ? 'bg-[#FF4D4D] text-white' : 'bg-white hover:bg-[#FDC800] text-black'
-            }`}
-            title={activeTab === 'settings' ? 'Close Settings' : 'Settings & Architecture'}
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer shrink-0 transition-colors"
+            title="Quick Controls"
           >
-            {activeTab === 'settings' ? (
-              <X className="w-4 h-4 stroke-[2.5]" />
-            ) : (
-              <Settings className="w-4 h-4" />
-            )}
+            <Settings className="w-4 h-4 text-black" />
           </button>
 
           {/* Sticker Vault Button - hidden on xs */}
@@ -1927,28 +1960,73 @@ export default function MobileAppView({
         </main>
       )}
 
-      {/* ========================================================= */}
-      {/* ⚙️ TAB 5: DEDICATED FULL-PAGE MOBILE SETTINGS VIEW */}
-      {/* ========================================================= */}
-      {activeTab === 'settings' && (
-        <MobileSettingsView
-          user={user}
-          isWhitelisted={isWhitelisted}
-          todayStr={todayStr}
-          dayCount={dayCount}
-          startDate={startDate}
-          entries={entries}
-          onClose={() => setActiveTab(previousTab || 'log')}
-          onOpenNotificationStudio={onOpenNotificationStudio}
-          onOpenExportStudio={onOpenExportStudio}
-          onOpenRehab={onOpenRehab}
-          onOpenArchitectureProjection={onOpenArchitectureProjection}
-          onOpenWallpaperEngine={onOpenWallpaperEngine}
-          triggerHaptic={triggerHaptic}
+      {/* ⚡ TIER 1: QUICK SETTINGS DRAWER */}
+      <QuickSettingsDrawer
+        isOpen={isQuickSettingsOpen}
+        onClose={() => setIsQuickSettingsOpen(false)}
+        onOpenDetailedSettings={() => setIsDetailedSettingsOpen(true)}
+        onOpenNotificationStudio={onOpenNotificationStudio}
+        onOpenNonNegotiablesStudio={() => setIsNonNegotiablesOpen(true)}
+        onOpenSync={onOpenSync}
+        user={user || userProp}
+        onSettingsChanged={() => {
+          setLocalSphereVer(v => v + 1);
+          setIsAnchorsActiveMobile(isNonNegotiablesActive());
+          setAnchorsModeMobile(getNonNegotiablesMode());
+        }}
+        triggerHaptic={triggerHaptic}
+      />
+
+      {/* Non-Negotiables Studio Modal */}
+      {isNonNegotiablesOpen && (
+        <NonNegotiablesStudioModal
+          isOpen={isNonNegotiablesOpen}
+          onClose={() => setIsNonNegotiablesOpen(false)}
+          onSettingsChanged={() => {
+            setIsAnchorsActiveMobile(isNonNegotiablesActive());
+            setAnchorsModeMobile(getNonNegotiablesMode());
+            window.dispatchEvent(new Event('non-negotiables-updated'));
+            window.dispatchEvent(new Event('storage'));
+          }}
         />
       )}
 
-
+      {/* 🛠️ TIER 2: DETAILED SETTINGS VIEW (Mounted as fixed overlay so MobileAppView stays mounted) */}
+      <AnimatePresence>
+        {isDetailedSettingsOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-70 bg-[#FFFDF5] overflow-y-auto"
+          >
+            <DetailedSettingsView
+              user={user || userProp}
+              onClose={() => setIsDetailedSettingsOpen(false)}
+              onOpenStickerVault={onOpenStickerVault}
+              onOpenExportStudio={onOpenExportStudio}
+              onOpenPrivacyPage={onOpenPrivacyPage || (() => {
+                if (typeof window !== 'undefined') window.location.href = '/?view=privacy';
+              })}
+              onOpenErasurePage={onOpenErasurePage || (() => {
+                if (typeof window !== 'undefined') window.location.href = '/?view=erasure';
+              })}
+              onOpenStoragePage={onOpenStoragePage || (() => {
+                if (typeof window !== 'undefined') window.location.href = '/?view=storage';
+              })}
+              onOpenNotificationStudio={onOpenNotificationStudio}
+              onOpenRehab={onOpenRehab}
+              onSettingsChanged={() => {
+                setLocalSphereVer(v => v + 1);
+                setIsAnchorsActiveMobile(isNonNegotiablesActive());
+                setAnchorsModeMobile(getNonNegotiablesMode());
+              }}
+              triggerHaptic={triggerHaptic}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ========================================================= */}
       {/* 📝 FULLY VISIBLE MOBILE REFLECTION NOTE DRAWER (PINNED SAVE BUTTON) */}

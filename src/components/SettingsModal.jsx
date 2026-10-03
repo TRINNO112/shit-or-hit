@@ -55,7 +55,8 @@ import {
   RefreshCw,
   LogIn,
   ExternalLink,
-  Send
+  Send,
+  ChevronDown
 } from 'lucide-react';
 import {
   getStorageStatus,
@@ -146,6 +147,7 @@ export default function SettingsModal({
   const [isVerdictGalleryOpen, setIsVerdictGalleryOpen] = useState(false);
   const [isNotificationSetterOpen, setIsNotificationSetterOpen] = useState(false);
   const [aiLanguage, setAiLanguage] = useState('auto');
+  const [isUserDataOpen, setIsUserDataOpen] = useState(true);
 
   // Behavioral Trilogy Preferences (Off by Default)
   const [ransomCapsuleOn, setRansomCapsuleOn] = useState(false);
@@ -524,16 +526,19 @@ export default function SettingsModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.94, y: 15 }}
+            initial={{ scale: 0.95, y: 20 }}
             animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.94, y: 15 }}
-            className="w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#FFFDF5] rounded-3xl border-3 border-black p-3.5 sm:p-7 shadow-[8px_8px_0px_#000000] space-y-3.5 sm:space-y-4 max-h-[92vh] flex flex-col overflow-hidden"
+            exit={{ scale: 0.95, y: 20 }}
+            className="w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#FFFDF5] rounded-t-3xl sm:rounded-3xl border-t-3 sm:border-3 border-black p-3.5 sm:p-7 shadow-[0px_-4px_0px_#000000] sm:shadow-[8px_8px_0px_#000000] space-y-3.5 sm:space-y-4 max-h-[90vh] sm:max-h-[92vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Mobile Drag Indicator */}
+            <div className="w-12 h-1.5 bg-black/25 rounded-full mx-auto sm:hidden shrink-0 -mt-1 mb-1" />
+
             {/* Pinned Header with High-Contrast Desktop & Mobile Close ✕ Button */}
             <div className="flex items-center justify-between border-b-2 border-black/10 pb-3 shrink-0">
               <div className="flex items-center gap-2.5">
@@ -1887,25 +1892,6 @@ export default function SettingsModal({
                   </div>
                 )}
 
-                {/* 365-Day Year in Pixels Wallpaper Engine Launcher */}
-                {onOpenWallpaperEngine && (
-                  <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onClose();
-                        onOpenWallpaperEngine();
-                      }}
-                      className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-yellow-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:translate-x-px"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 stroke-[2.5]" />
-                        <span>365-Day Wallpaper Engine (4K & Mobile HD)</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                    </button>
-                  </div>
-                )}
 
                 {/* 📂 Stored Data Files Inspector Toggle */}
                 <div className="pt-1 border-t border-black/15">
@@ -1984,8 +1970,38 @@ export default function SettingsModal({
                 </div>
               </div>
 
-              {/* 15. Time Machine: 3 Rolling Automated Snapshots */}
-              <div className="p-3.5 bg-amber-50/85 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
+              {/* 📦 USER DATA & SOVEREIGNTY COLLAPSIBLE BOX (Restore Data, Download Data, Delete Account) */}
+              <div className="bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsUserDataOpen(!isUserDataOpen)}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-neutral-50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                      <Database className="w-5 h-5 text-black stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h4 className="font-display font-black text-sm uppercase text-black">
+                        User Data &amp; Sovereignty
+                      </h4>
+                      <p className="text-[11px] font-mono text-neutral-600">
+                        Restore backups, download archives &amp; permanent account deletion
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 rounded border border-black bg-[#00E599] text-black">
+                      3 MODULES
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isUserDataOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+
+                {isUserDataOpen && (
+                  <div className="p-3.5 pt-2 space-y-3.5 border-t-2 border-black/10 bg-[#FFFDF8]">
+                    {/* 1. RESTORE DATA: Time Machine: 3 Rolling Automated Snapshots */}
+                    <div className="p-3.5 bg-amber-50/85 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
@@ -2113,43 +2129,92 @@ export default function SettingsModal({
                 </div>
               </div>
 
-              {/* 14. Nuclear Data Erasure: Indian DPDPA Right to Erasure */}
-              <div className="flex items-center justify-between p-3.5 bg-red-50/80 border-2 border-red-500 rounded-2xl shadow-[2px_2px_0px_#ef4444] gap-3">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-10 h-10 rounded-xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                    <AlertOctagon className="w-5 h-5 text-white stroke-[2.5]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-display font-black text-sm uppercase truncate text-red-700">
-                        Right to Erasure (DPDPA)
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full bg-red-200 border border-red-800 text-[9px] font-mono font-black uppercase text-red-900">
-                        PERMANENT
-                      </span>
+                    {/* 2. DOWNLOAD DATA: Data Export Studio & Full Database Backup */}
+                    <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-2.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                            <Download className="w-5 h-5 text-black stroke-[2.5]" />
+                          </div>
+                          <div>
+                            <h4 className="font-display font-black text-sm uppercase text-black">
+                              Download &amp; Export Data
+                            </h4>
+                            <p className="text-[11px] font-mono text-neutral-600">
+                              Export your diary without vendor lock-in (CSV, Digest TXT &amp; Full JSON)
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              soundEngine.playClick();
+                              exportDatabaseBackup();
+                            }}
+                            className="py-2 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:translate-x-px"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>JSON DB</span>
+                          </button>
+                          {onOpenExportStudio && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onClose();
+                                onOpenExportStudio();
+                              }}
+                              className="py-2 px-3.5 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:translate-x-px"
+                            >
+                              <span>EXPORT STUDIO</span>
+                              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[11px] font-mono text-red-600 truncate">
-                      Purge all local storage and Firestore cloud records
-                    </p>
+
+                    {/* 3. DELETE ACCOUNT: Nuclear Data Erasure: Indian DPDPA Right to Erasure */}
+                    <div className="flex items-center justify-between p-3.5 bg-red-50/80 border-2 border-red-500 rounded-2xl shadow-[2px_2px_0px_#ef4444] gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                          <AlertOctagon className="w-5 h-5 text-white stroke-[2.5]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-display font-black text-sm uppercase truncate text-red-700">
+                              Right to Erasure (DPDPA)
+                            </h4>
+                            <span className="px-2 py-0.5 rounded-full bg-red-200 border border-red-800 text-[9px] font-mono font-black uppercase text-red-900">
+                              PERMANENT
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-mono text-red-600 truncate">
+                            Purge all local storage and Firestore cloud records
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onOpenErasurePage) {
+                            onClose();
+                            onOpenErasurePage();
+                          } else if (typeof window !== 'undefined') {
+                            window.location.href = '/?view=erasure';
+                          } else {
+                            setErasureInput('');
+                            setIsErasureConfirmOpen(true);
+                          }
+                        }}
+                        className="py-1.5 px-3 bg-[#FF4D4D] hover:bg-red-600 text-white border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap"
+                      >
+                        ERASE ALL
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onOpenErasurePage) {
-                      onClose();
-                      onOpenErasurePage();
-                    } else if (typeof window !== 'undefined') {
-                      window.location.href = '/?view=erasure';
-                    } else {
-                      setErasureInput('');
-                      setIsErasureConfirmOpen(true);
-                    }
-                  }}
-                  className="py-1.5 px-3 bg-[#FF4D4D] hover:bg-red-600 text-white border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 whitespace-nowrap"
-                >
-                  ERASE ALL
-                </button>
+                )}
               </div>
 
             </div>

@@ -698,34 +698,41 @@ export default function P2PDeviceSyncModal({
             <div className="space-y-3 pt-1">
               {/* 1. Sub-Tab Switcher: PLACED AT THE VERY TOP OF DEVICE SYNC */}
               {user?.email ? (
-                <div className="flex items-center gap-2 p-1.5 bg-neutral-100 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000]">
+                <div className="flex flex-col gap-2 p-2 bg-neutral-100 border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000]">
                   <button
                     type="button"
                     onClick={() => { soundEngine.playClick(); setSyncSubTab('google'); }}
-                    className={`flex-1 py-2 px-2.5 rounded-xl font-mono text-xs font-black uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    className={`w-full py-2.5 px-3 rounded-xl font-mono text-xs font-black uppercase transition-all flex items-center justify-between cursor-pointer ${
                       syncSubTab === 'google'
-                        ? 'bg-[#00E599] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
-                        : 'text-neutral-600 hover:text-black border-2 border-transparent'
+                        ? 'bg-[#00E599] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                        : 'bg-white text-neutral-700 hover:text-black hover:bg-neutral-50 border-2 border-black/20 shadow-[1px_1px_0px_rgba(0,0,0,0.1)]'
                     }`}
                   >
-                    <Monitor className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Google Account Sync</span>
-                    {isOwner && (
-                      <span className="text-[9px] px-1.5 py-0.5 bg-black text-[#00E599] rounded font-mono font-black shrink-0">CLOUD LIVE</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Monitor className="w-4 h-4 stroke-[2.5] shrink-0" />
+                      <span className="truncate">Google Account Sync</span>
+                    </div>
+                    {isOwner ? (
+                      <span className="text-[9px] px-2 py-0.5 bg-black text-[#00E599] rounded-md font-mono font-black shrink-0 shadow-[1px_1px_0px_#000000]">CLOUD LIVE</span>
+                    ) : (
+                      <span className="text-[9px] px-2 py-0.5 bg-black/10 text-neutral-800 rounded-md font-mono font-black shrink-0">CLOUD HUB</span>
                     )}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { soundEngine.playClick(); setSyncSubTab('mesh'); }}
-                    className={`flex-1 py-2 px-2.5 rounded-xl font-mono text-xs font-black uppercase transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    className={`w-full py-2.5 px-3 rounded-xl font-mono text-xs font-black uppercase transition-all flex items-center justify-between cursor-pointer ${
                       syncSubTab === 'mesh'
-                        ? 'bg-[#FDC800] text-black border-2 border-black shadow-[1.5px_1.5px_0px_#000000]'
-                        : 'text-neutral-600 hover:text-black border-2 border-transparent'
+                        ? 'bg-[#FDC800] text-black border-2 border-black shadow-[2px_2px_0px_#000000]'
+                        : 'bg-white text-neutral-700 hover:text-black hover:bg-neutral-50 border-2 border-black/20 shadow-[1px_1px_0px_rgba(0,0,0,0.1)]'
                     }`}
                   >
-                    <KeyRound className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Private Mesh Key (Offline)</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <KeyRound className="w-4 h-4 stroke-[2.5] shrink-0" />
+                      <span className="truncate">Private Mesh Key (Offline)</span>
+                    </div>
+                    <span className="text-[9px] px-2 py-0.5 bg-black/10 text-neutral-800 rounded-md font-mono font-black shrink-0">OFFLINE P2P</span>
                   </button>
                 </div>
               ) : (

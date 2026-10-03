@@ -1441,8 +1441,16 @@ export default function App() {
             onOpenStickerVault={() => setIsStickerVaultOpen(true)}
             onOpenExportStudio={() => setIsExportStudioOpen(true)}
             onOpenRehab={() => setShowSanctuary(true)}
+            onOpenPrivacyPage={() => setShowPrivacy(true)}
+            onOpenErasurePage={() => setShowErasure(true)}
+            onOpenStoragePage={() => setShowStoragePage(true)}
             onOpenWallpaperEngine={() => handleOpenWallpaper(null, todayStr)}
             onOpenArchitectureProjection={() => setIsArchitectureProjectionOpen(true)}
+            onOpenSync={(section = 'sync') => {
+              setP2PSyncSection(section);
+              setIsP2PSyncOpen(true);
+            }}
+            user={currentUser}
             sphereSettingsVer={sphereSettingsVer}
           />
         </FaultBoundary>

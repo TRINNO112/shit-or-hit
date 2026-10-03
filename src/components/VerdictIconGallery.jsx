@@ -304,7 +304,7 @@ export function VerdictIcon({ rating, size = 20, className = '', strokeWidth = 2
 
 /* ============================= Main Gallery ============================= */
 
-export default function VerdictIconGallery({ onSelectCustomVariant }) {
+export default function VerdictIconGallery({ onSelectCustomVariant, isEmbedded = false }) {
   const [picks, setPicks] = useState(getSavedVerdictVariants);
   const [copied, setCopied] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
@@ -370,7 +370,7 @@ export default function VerdictIconGallery({ onSelectCustomVariant }) {
   };
 
   return (
-    <div className="bg-[#FFFDF8] border-3 border-black rounded-3xl p-3.5 sm:p-7 text-black shadow-[6px_6px_0px_#000000] space-y-6">
+    <div className={isEmbedded ? "space-y-6 text-black" : "bg-[#FFFDF8] border-3 border-black rounded-3xl p-3.5 sm:p-7 text-black shadow-[6px_6px_0px_#000000] space-y-6"}>
       
       {/* Header & Main Primary Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-3 border-black pb-5">
@@ -567,17 +567,17 @@ export default function VerdictIconGallery({ onSelectCustomVariant }) {
                       type="button"
                       onClick={() => handlePickVariant(r, v)}
                       aria-pressed={active}
-                      className={`p-2 sm:p-3 rounded-xl border-2 border-black flex flex-col items-center gap-1.5 sm:gap-2 cursor-pointer transition-all ${
+                      className={`p-2 sm:p-3 rounded-xl border-2 border-black flex flex-col items-center gap-2 cursor-pointer transition-all ${
                         active
-                          ? 'bg-[#FFFDF5] shadow-[4px_4px_0px_#000000] -translate-y-0.5 ring-2 ring-black'
-                          : 'bg-neutral-50 hover:bg-white shadow-[2px_2px_0px_#000000]'
+                          ? 'bg-amber-50 shadow-[3px_3px_0px_#000000] ring-2 ring-black -translate-y-0.5'
+                          : 'bg-neutral-50 hover:bg-white shadow-[1.5px_1.5px_0px_#000000]'
                       }`}
                     >
                       <div
-                        className="w-full aspect-square max-w-14 sm:max-w-17.5 rounded-lg border-2 border-black flex items-center justify-center transition-all"
+                        className="w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-[1px_1px_0px_rgba(0,0,0,0.12)]"
                         style={{ backgroundColor: meta.color }}
                       >
-                        <Icon size={32} className="text-black stroke-2" />
+                        <Icon size={26} className="text-black stroke-[2.2]" />
                       </div>
                       <span className="font-mono font-black text-[9px] sm:text-[10px] uppercase text-center truncate max-w-full">
                         {VARIANT_LABELS[v]}
