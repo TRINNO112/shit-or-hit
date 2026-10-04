@@ -540,6 +540,39 @@ export async function fetchCloudGeminiApiKey() {
   }
 }
 
+export async function fetchCloudResendApiKey() {
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return null;
+  try {
+    const configRef = fb.firestoreMod.doc(fb.db, 'config', 'resend');
+    const snap = await fb.firestoreMod.getDoc(configRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return data?.apiKey || null;
+    }
+    return null;
+  } catch (err) {
+    console.warn('Could not fetch cloud Resend API key:', err.message);
+    return null;
+  }
+}
+
+export async function saveCloudResendApiKey(apiKey) {
+  const fb = await getFirebase();
+  if (!fb || !fb.db || !apiKey) return false;
+  try {
+    const configRef = fb.firestoreMod.doc(fb.db, 'config', 'resend');
+    await fb.firestoreMod.setDoc(configRef, {
+      apiKey: apiKey.trim(),
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    console.warn('Could not save cloud Resend API key:', err.message);
+    return false;
+  }
+}
+
 export async function saveCloudUserSettings(userId, settingsData) {
   if (!userId || !settingsData) return;
   const fb = await getFirebase();

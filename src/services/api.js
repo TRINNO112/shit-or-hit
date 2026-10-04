@@ -3089,13 +3089,24 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
       quota
     };
   }
-
   try {
+    let activeResendKey = (guardianConfig?.resendApiKey || '').trim();
+    if (!activeResendKey) {
+      try {
+        const { fetchCloudResendApiKey } = await import('./firebase');
+        const cloudKey = await fetchCloudResendApiKey();
+        if (cloudKey) activeResendKey = cloudKey.trim();
+      } catch (e) {}
+    }
+    if (!activeResendKey && typeof window !== 'undefined') {
+      activeResendKey = localStorage.getItem('daily_verdict_resend_api_key') || '';
+    }
+
     const payload = {
       guardianName: guardianConfig.guardianName,
       guardianEmail: guardianConfig.guardianEmail,
       studentName: guardianConfig.studentName || user?.displayName || 'Student',
-      resendApiKey: guardianConfig.resendApiKey || (typeof window !== 'undefined' ? localStorage.getItem('daily_verdict_resend_api_key') || '' : ''),
+      resendApiKey: activeResendKey || undefined,
       briefing: {
         ...briefing,
         isTest: Boolean(isTest)
@@ -3141,6 +3152,4 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
     };
   }
 }
-
-
-
+export { fetchCloudResendApiKey, saveCloudResendApiKey } from './firebase';
