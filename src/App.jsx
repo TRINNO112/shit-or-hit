@@ -65,7 +65,6 @@ const StorageSovereigntyPage = safeLazy(() => import('./components/StorageSovere
 const NotificationStudioPage = safeLazy(() => import('./components/NotificationStudioPage'));
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
-const ArchitectureProjectionPage = safeLazy(() => import('./components/ArchitectureProjectionPage'));
 const GuardianContactModal = safeLazy(() => import('./components/GuardianContactModal'));
 import { soundEngine } from './services/soundEngine';
 import {
@@ -207,12 +206,6 @@ export default function App() {
     const view = params.get('view') || params.get('preview') || '';
     return view === 'notifications' || view === 'notification-studio' || window.location.hash === '#notifications' || window.location.hash === '#notification-studio';
   });
-  const [showArchitecturePage, setShowArchitecturePage] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const params = new URLSearchParams(window.location.search);
-    const view = params.get('view') || params.get('preview') || '';
-    return view === 'architecture' || view === 'blueprint' || view === 'flowchart' || window.location.hash === '#architecture' || window.location.hash === '#blueprint' || window.location.hash === '#flowchart';
-  });
   const [pendingDeletion, setPendingDeletion] = useState(() => getPendingDeletionStatus());
   const [showNotFound, setShowNotFound] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -288,11 +281,6 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'P' || e.key === 'p')) {
         e.preventDefault();
         toggleAcademicMode();
-      }
-      // Ctrl + Shift + A: Architecture Blueprint Flowchart Projection Page
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
-        e.preventDefault();
-        setShowArchitecturePage(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleGlobalHotkeys);
@@ -536,7 +524,6 @@ export default function App() {
       setShowPrivacy(v === 'privacy' || window.location.hash === '#privacy');
       setShowErasure(v === 'erasure' || window.location.hash === '#erasure');
       setShowStoragePage(v === 'storage' || window.location.hash === '#storage');
-      setShowArchitecturePage(v === 'architecture' || v === 'blueprint' || v === 'flowchart' || window.location.hash === '#architecture' || window.location.hash === '#blueprint' || window.location.hash === '#flowchart');
       setPendingDeletion(getPendingDeletionStatus());
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
@@ -1337,20 +1324,7 @@ export default function App() {
     );
   }
 
-  if (showArchitecturePage) {
-    return (
-      <ErrorBoundary>
-        <Suspense fallback={<div className="min-h-screen bg-[#FFFDF8] flex items-center justify-center font-mono text-sm font-black">ENTERING ARCHITECTURE BLUEPRINT...</div>}>
-          <ArchitectureProjectionPage
-            onBack={() => {
-              setShowArchitecturePage(false);
-              window.history.replaceState(null, '', window.location.pathname);
-            }}
-          />
-        </Suspense>
-      </ErrorBoundary>
-    );
-  }
+
 
   if (isInitialLoading) {
     const currentTab = isMobile
