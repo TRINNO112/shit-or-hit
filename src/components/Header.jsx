@@ -22,7 +22,6 @@ export default function Header({
   onOpenRehab,
   onOpenIconLab,
   isAcademicMode = false,
-  onOpenArchitectureProjection = null,
   onOpenGuardianContact = null
 }) {
   const [user, setUser] = useState(null);

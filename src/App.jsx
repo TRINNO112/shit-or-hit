@@ -1468,8 +1468,6 @@ export default function App() {
             onOpenErasurePage={() => setShowErasure(true)}
             onOpenStoragePage={() => setShowStoragePage(true)}
             onOpenWallpaperEngine={() => handleOpenWallpaper(null, todayStr)}
-            onOpenArchitectureProjection={() => setShowArchitecturePage(true)}
-            onOpenArchitecturePage={() => setShowArchitecturePage(true)}
             onOpenSync={(section = 'sync') => {
               setP2PSyncSection(section);
               setIsP2PSyncOpen(true);
@@ -1498,7 +1496,6 @@ export default function App() {
                 onOpenRehab={() => setShowSanctuary(true)}
                 onSyncRefresh={loadData}
                 isAcademicMode={isAcademicMode}
-                onOpenArchitectureProjection={() => setIsArchitectureProjectionOpen(true)}
                 onOpenGuardianContact={() => setIsGuardianContactOpen(true)}
               />
             </div>
@@ -1716,10 +1713,6 @@ export default function App() {
                 onOpenPrivacyPage={() => setShowPrivacy(true)}
                 onOpenErasurePage={() => setShowErasure(true)}
                 onOpenStoragePage={() => setShowStoragePage(true)}
-                onOpenArchitecturePage={() => {
-                  setIsSettingsOpen(false);
-                  setShowArchitecturePage(true);
-                }}
                 onOpenExportStudio={() => setIsExportStudioOpen(true)}
               />
             )}

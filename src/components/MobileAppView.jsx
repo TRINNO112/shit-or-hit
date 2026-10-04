@@ -139,7 +139,6 @@ export default function MobileAppView({
   onOpenPrivacyPage = null,
   onOpenErasurePage = null,
   onOpenStoragePage = null,
-  onOpenArchitectureProjection,
   onOpenWallpaperEngine,
   onOpenSync = null,
   isAcademicMode = false,
@@ -2043,9 +2042,6 @@ export default function MobileAppView({
               })}
               onOpenStoragePage={onOpenStoragePage || (() => {
                 if (typeof window !== 'undefined') window.location.href = '/?view=storage';
-              })}
-              onOpenArchitecturePage={onOpenArchitecturePage || onOpenArchitectureProjection || (() => {
-                if (typeof window !== 'undefined') window.location.href = '/?view=architecture';
               })}
               onOpenNotificationStudio={onOpenNotificationStudio}
               onOpenRehab={onOpenRehab}
