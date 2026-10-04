@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass, FlaskConical, AlertTriangle } from 'lucide-react';
+import { Zap, Flame, Download, Calendar, Sparkles, Cloud, LogIn, LogOut, User, CheckCircle2, Settings, Palette, Printer, Shield, Compass, FlaskConical, AlertTriangle, Workflow } from 'lucide-react';
 import { exportDatabaseBackup, isReceiptOfTruthEnabled, isRehabilitationActive, getRehabilitationConfig } from '../services/api';
 import { loginWithGoogle, logoutUser, isEmailWhitelisted, subscribeAuthState, getUserDisplayName, isOwnerAccount } from '../services/firebase';
 import { soundEngine } from '../services/soundEngine';
@@ -22,7 +22,8 @@ export default function Header({
   onOpenRehab,
   onOpenIconLab,
   isAcademicMode = false,
-  onOpenGuardianContact = null
+  onOpenGuardianContact = null,
+  onOpenArchitectureFlowchart = null
 }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -352,6 +353,21 @@ export default function Header({
             className="p-2 rounded-xl bg-white hover:bg-[#00E599] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0"
           >
             <Printer className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        )}
+
+        {/* System Architecture Flowchart Map */}
+        {onOpenArchitectureFlowchart && (
+          <button
+            type="button"
+            onClick={() => {
+              soundEngine.playClick();
+              onOpenArchitectureFlowchart();
+            }}
+            title="System Architecture Map (Ctrl + Shift + A)"
+            className="p-2 rounded-xl bg-white hover:bg-[#00C2FF] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0"
+          >
+            <Workflow className="w-4 h-4 text-black stroke-[2.5]" />
           </button>
         )}
 

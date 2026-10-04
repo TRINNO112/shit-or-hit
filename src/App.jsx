@@ -66,6 +66,7 @@ const NotificationStudioPage = safeLazy(() => import('./components/NotificationS
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
 const GuardianContactModal = safeLazy(() => import('./components/GuardianContactModal'));
+const ArchitectureFlowchartModal = safeLazy(() => import('./components/ArchitectureFlowchartModal'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -206,6 +207,12 @@ export default function App() {
     const view = params.get('view') || params.get('preview') || '';
     return view === 'notifications' || view === 'notification-studio' || window.location.hash === '#notifications' || window.location.hash === '#notification-studio';
   });
+  const [showArchitectureFlowchart, setShowArchitectureFlowchart] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') || params.get('preview') || '';
+    return view === 'architecture' || view === 'flowchart' || window.location.hash === '#architecture' || window.location.hash === '#flowchart';
+  });
   const [pendingDeletion, setPendingDeletion] = useState(() => getPendingDeletionStatus());
   const [showNotFound, setShowNotFound] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -281,6 +288,11 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'P' || e.key === 'p')) {
         e.preventDefault();
         toggleAcademicMode();
+      }
+      // Ctrl + Shift + A: System Architecture Flowchart
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setShowArchitectureFlowchart(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleGlobalHotkeys);
@@ -524,6 +536,7 @@ export default function App() {
       setShowPrivacy(v === 'privacy' || window.location.hash === '#privacy');
       setShowErasure(v === 'erasure' || window.location.hash === '#erasure');
       setShowStoragePage(v === 'storage' || window.location.hash === '#storage');
+      setShowArchitectureFlowchart(v === 'architecture' || v === 'flowchart' || window.location.hash === '#architecture' || window.location.hash === '#flowchart');
       setPendingDeletion(getPendingDeletionStatus());
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
@@ -1471,6 +1484,7 @@ export default function App() {
                 onSyncRefresh={loadData}
                 isAcademicMode={isAcademicMode}
                 onOpenGuardianContact={() => setIsGuardianContactOpen(true)}
+                onOpenArchitectureFlowchart={() => setShowArchitectureFlowchart(true)}
               />
             </div>
           </div>
@@ -1845,6 +1859,20 @@ export default function App() {
             {/* Simulated Crash Harness for ErrorBoundary */}
             {simulatedCrash && (
               <SimulatedCrashTrigger shouldCrash={simulatedCrash} />
+            )}
+
+            {/* 🗺️ Architecture Flowchart Modal (Interactive Hand-Drawn Canvas) */}
+            {showArchitectureFlowchart && (
+              <Suspense fallback={<div className="fixed inset-0 z-90 bg-[#FFFDF8] flex items-center justify-center font-mono font-black text-sm">OPENING ARCHITECTURE MAP...</div>}>
+                <ArchitectureFlowchartModal
+                  onClose={() => {
+                    setShowArchitectureFlowchart(false);
+                    if (['#architecture', '#flowchart'].includes(window.location.hash)) {
+                      window.history.replaceState(null, '', window.location.pathname);
+                    }
+                  }}
+                />
+              </Suspense>
             )}
           </AnimatePresence>
         </Suspense>
