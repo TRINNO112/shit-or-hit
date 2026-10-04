@@ -1223,38 +1223,27 @@ export default function MobileAppView({
 
           {/* Active Verdict Status & Reflection Button */}
           <div className="pt-1.5 space-y-2.5">
-            {!isSanctuaryActive && (() => {
+            {/* Multi-Sphere Composite Banner (Only shown when Sphere Mode is actively calculating composite score) */}
+            {sphereModeActive && !isSanctuaryActive && (() => {
               const comp = calculateCompositeScore(spheresData);
-              const activeR = comp ? comp.rating : selectedRating;
-              const activeScore = comp ? comp.score : null;
-
-              if (activeR) {
-                return (
-                  <div className="space-y-2.5">
-                    <div 
-                      className="p-3 rounded-xl border-2 border-black text-xs font-mono font-bold text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
-                      style={{ backgroundColor: ratingMeta[activeR]?.bg }}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <CheckCircle2 className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
-                        <span className="truncate">
-                          <strong>{ratingMeta[activeR]?.title.toUpperCase()}</strong>
-                          {activeScore && ` (${activeScore}/5.0)`}: {ratingMeta[activeR]?.desc}
-                        </span>
-                      </div>
-                      {savedFlash && (
-                        <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shrink-0 flex items-center gap-1">
-                          <Zap className="w-2.5 h-2.5 text-[#FDC800] fill-current" />
-                          <span>SAVED</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
+              if (!comp) return null;
               return (
-                <div className="p-3 rounded-xl border-2 border-black bg-neutral-100 text-neutral-700 text-xs font-mono font-bold text-center">
-                  Tap any card above to record today.
+                <div 
+                  className="p-3 rounded-xl border-2 border-black text-xs font-mono font-bold text-black flex items-center justify-between shadow-[2px_2px_0px_#000000]"
+                  style={{ backgroundColor: ratingMeta[comp.rating]?.bg }}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-black stroke-[2.5]" />
+                    <span className="truncate">
+                      <strong>COMPOSITE: {ratingMeta[comp.rating]?.title.toUpperCase()}</strong> ({comp.score}/5.0)
+                    </span>
+                  </div>
+                  {savedFlash && (
+                    <span className="px-2 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase shrink-0 flex items-center gap-1">
+                      <Zap className="w-2.5 h-2.5 text-[#FDC800] fill-current" />
+                      <span>SAVED</span>
+                    </span>
+                  )}
                 </div>
               );
             })()}
