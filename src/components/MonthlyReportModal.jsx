@@ -581,66 +581,34 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                   soundEngine?.playSelect?.();
                                 }}
                                 className="px-2.5 py-1.5 rounded-lg border-2 border-black bg-[#FDC800] hover:bg-[#ebd000] active:translate-x-px active:translate-y-px text-black font-mono text-[9px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] transition-all self-start sm:self-auto shrink-0 w-full sm:w-auto"
-                                title="Open dedicated multi-stage chain inspector dialog"
+                                title="Open full architectural domino map"
                               >
                                 <GitBranch className="w-3.5 h-3.5 stroke-[2.5]" />
-                                <span>INSPECT CHAIN ({chainNodes.length} STAGES)</span>
+                                <span>DOMINO EFFECT INSPECT ({chainNodes.length} STAGES)</span>
                               </button>
                             </div>
 
-                            {/* Small Screen Helper Callout */}
-                            <div className="flex sm:hidden items-center justify-between px-2.5 py-1.5 rounded-lg bg-neutral-100 border border-black/20 text-[9px] font-mono">
-                              <span className="font-bold text-neutral-600">
-                                {chainNodes.length} stages linked • swipe horizontal
-                              </span>
-                              <button
-                                onClick={() => {
-                                  setInspectingChainIndex(cIdx);
-                                  soundEngine?.playSelect?.();
-                                }}
-                                className="font-black text-black underline uppercase"
-                              >
-                                DIALOG VIEW ➔
-                              </button>
-                            </div>
+                            {/* Domino Nodes Sequence - Continuous Connected Domino Stream with Directional Arrows */}
+                            <div className="flex items-center gap-2.5 overflow-x-auto py-2 px-1 scrollbar-thin">
+                              {chainNodes.map((node, nIdx, arr) => {
+                                const isLast = nIdx === arr.length - 1;
+                                const stageColors = {
+                                  'ROOT TRIGGER': 'bg-[#FF4D4D] text-white',
+                                  'RIPPLE EFFECT': 'bg-[#FF8A00] text-black',
+                                  'COMPOUNDING DRAG': 'bg-[#FDC800] text-black',
+                                  'ACCELERATION': 'bg-[#FF8A00] text-black',
+                                  'CRITICAL FRICTION': 'bg-[#FF4D4D] text-white',
+                                  'COLLAPSE / RESET': 'bg-black text-[#FF4D4D]',
+                                  'COLLAPSE / RECOVERY': 'bg-black text-[#FF4D4D]',
+                                  'RESOLUTION': 'bg-[#00E599] text-black',
+                                  'RECOVERY / RESOLUTION': 'bg-[#00E599] text-black'
+                                };
+                                const badgeClass = stageColors[node.stage] || 'bg-neutral-800 text-white';
 
-                            {/* Domino Nodes Sequence - Adaptive (Mobile Snap Reel / Desktop Flow & Grid) */}
-                            <div className="space-y-2">
-                              {/* Desktop/Tablet Grid for 4+ cards, Flex row for <= 3 cards, Mobile Snap Reel */}
-                              <div className={`
-                                flex sm:grid items-stretch gap-2.5 overflow-x-auto sm:overflow-visible py-1.5 px-0.5 scrollbar-thin snap-x snap-mandatory
-                                ${chainNodes.length >= 4 
-                                  ? 'sm:grid-cols-2 lg:grid-cols-3' 
-                                  : chainNodes.length === 3 
-                                  ? 'sm:grid-cols-3' 
-                                  : 'sm:grid-cols-2'}
-                              `}>
-                                {chainNodes.map((node, nIdx, arr) => {
-                                  const isLast = nIdx === arr.length - 1;
-                                  const stageColors = {
-                                    'ROOT TRIGGER': 'bg-[#FF4D4D] text-white',
-                                    'RIPPLE EFFECT': 'bg-[#FF8A00] text-black',
-                                    'COMPOUNDING DRAG': 'bg-[#FDC800] text-black',
-                                    'ACCELERATION': 'bg-[#FF8A00] text-black',
-                                    'CRITICAL FRICTION': 'bg-[#FF4D4D] text-white',
-                                    'COLLAPSE / RESET': 'bg-black text-[#FF4D4D]',
-                                    'COLLAPSE / RECOVERY': 'bg-black text-[#FF4D4D]',
-                                    'RESOLUTION': 'bg-[#00E599] text-black',
-                                    'RECOVERY / RESOLUTION': 'bg-[#00E599] text-black'
-                                  };
-                                  const badgeClass = stageColors[node.stage] || 'bg-neutral-800 text-white';
-
-                                  return (
-                                    <div 
-                                      key={nIdx}
-                                      onClick={() => {
-                                        setInspectingChainIndex(cIdx);
-                                        soundEngine?.playSelect?.();
-                                      }}
-                                      className="w-[82vw] max-w-[285px] sm:w-auto sm:max-w-none shrink-0 snap-center p-3 sm:p-3.5 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-3 cursor-pointer hover:border-neutral-900 hover:shadow-[3px_3px_0px_#000000] transition-all active:translate-x-px active:translate-y-px"
-                                      title="Click to inspect this stage in detail"
-                                    >
-                                      {/* Top: Stage Badge & Date Rating */}
+                                return (
+                                  <React.Fragment key={nIdx}>
+                                    <div className="w-[230px] sm:w-[260px] min-w-[210px] max-w-[280px] shrink-0 p-3 sm:p-3.5 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5">
+                                      {/* Stage Badge & Date Rating */}
                                       <div className="flex items-center justify-between gap-1 pb-1 border-b border-black/10">
                                         <div className="flex items-center gap-1.5 min-w-0">
                                           <span className="w-4 h-4 rounded-full bg-black text-white font-mono text-[8px] font-black flex items-center justify-center shrink-0">
@@ -664,36 +632,33 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                         </div>
                                       </div>
 
-                                      {/* Middle: Narrative Summary */}
+                                      {/* Summary Description */}
                                       <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-relaxed break-words">
                                         {node.summary}
                                       </p>
 
-                                      {/* Bottom: Progression Hook */}
-                                      <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-black/10 text-[8px] font-mono font-black">
-                                        <span className="text-neutral-500 uppercase">
-                                          {isLast ? 'STAGE FINAL' : `RIPPLES ➔ STEP ${nIdx + 2}`}
-                                        </span>
-                                        <span className="text-black bg-neutral-100 hover:bg-[#FDC800] px-1.5 py-0.5 rounded border border-black transition-colors uppercase flex items-center gap-0.5">
-                                          <span>INSPECT</span>
-                                          <ArrowRight className="w-2.5 h-2.5" />
-                                        </span>
+                                      {/* Bottom Stage Progress Indicator */}
+                                      <div className="flex items-center justify-between gap-1 pt-1 border-t border-black/10 text-[8px] font-mono font-bold text-neutral-500">
+                                        <span>STAGE {nIdx + 1} OF {arr.length}</span>
+                                        {node.frictionTag && (
+                                          <span className="uppercase truncate max-w-[120px] text-neutral-600 font-black">
+                                            {node.frictionTag}
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
-                                  );
-                                })}
-                              </div>
 
-                              {/* Mobile Snap Indicator Pills */}
-                              <div className="flex sm:hidden items-center justify-center gap-1.5 pt-1">
-                                {chainNodes.map((_, i) => (
-                                  <div 
-                                    key={i} 
-                                    className="w-2 h-2 rounded-full border border-black bg-neutral-300"
-                                    title={`Step ${i + 1}`}
-                                  />
-                                ))}
-                              </div>
+                                    {/* The Directional Stream Arrow */}
+                                    {!isLast && (
+                                      <div className="flex items-center justify-center shrink-0 px-0.5">
+                                        <div className="w-7 h-7 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
+                                          <ArrowRight className="w-3.5 h-3.5 text-black stroke-[3]" />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </React.Fragment>
+                                );
+                              })}
                             </div>
 
                             {/* Tactical Circuit Breaker */}
