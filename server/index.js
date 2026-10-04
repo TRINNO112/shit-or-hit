@@ -1227,6 +1227,34 @@ app.post('/api/entries/bulk', validateBody(bulkEntriesSchema), (req, res) => {
   });
 });
 
+// 🛡️ Guardian SOS Family Triage Dispatch (GCERT RBVP 2026-27 Subtheme 1A)
+app.post('/api/guardian-sos/dispatch', (req, res) => {
+  const { guardianName, guardianEmail, guardianPhone, studentName, briefing } = req.body || {};
+  
+  if (!briefing || typeof briefing !== 'object') {
+    return res.status(400).json({ success: false, error: 'Invalid or missing briefing payload' });
+  }
+
+  logger.info(`[Guardian SOS Dispatch] Student "${studentName || 'Student'}" alert generated for guardian "${guardianName || 'Guardian'}" (${guardianEmail || 'no-email'}, ${guardianPhone || 'no-phone'})`);
+
+  // Return formatted confirmation with dispatch receipt
+  res.json({
+    success: true,
+    message: 'Guardian compassionate briefing generated and logged successfully',
+    dispatchedAt: new Date().toISOString(),
+    recipient: {
+      guardianName: guardianName || 'Parent / Guardian',
+      guardianEmail: guardianEmail || null,
+      guardianPhone: guardianPhone || null
+    },
+    briefingSummary: {
+      headline: briefing.headline || 'Wellness Check-In',
+      avgScore: briefing.avgScore || '3.0',
+      lowDayStreak: briefing.lowDayStreak || 0
+    }
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({

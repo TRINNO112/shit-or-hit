@@ -18,8 +18,10 @@ import {
   CheckCircle2,
   ChevronRight,
   Info,
-  Sun
+  Sun,
+  HeartHandshake
 } from 'lucide-react';
+import GuardianContactModal from './GuardianContactModal';
 import {
   getRehabilitationConfig,
   activateRehabilitation,
@@ -103,6 +105,7 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
   const [toastMessage, setToastMessage] = useState('');
   const [breathingPhase, setBreathingPhase] = useState('IDLE'); // 'IDLE' | 'INHALE_1' | 'INHALE_2' | 'EXHALE'
   const [breathingActive, setBreathingActive] = useState(false);
+  const [isGuardianModalOpen, setIsGuardianModalOpen] = useState(false);
 
   const activeConfig = isSandboxDemo ? demoConfig : realConfig;
   const activeResponses = isSandboxDemo ? demoResponses : realResponses;
@@ -642,6 +645,30 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
                     );
                   })}
                 </div>
+
+                {/* 🛡️ Guardian SOS Family Triage Banner */}
+                <div className="bg-[#FFFDF8] border-2 border-black rounded-2xl p-3.5 sm:p-4 shadow-[3px_3px_0px_#000000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#FFE4E4] border-2 border-black flex items-center justify-center shrink-0 text-[#FF4D4D] shadow-[1px_1px_0px_#000]">
+                      <HeartHandshake className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-mono text-[9px] font-black text-neutral-500 uppercase block">
+                        BURNOUT TRIAGE PROTOCOL
+                      </span>
+                      <h4 className="font-display font-black text-xs sm:text-sm uppercase text-black truncate">
+                        Need family understanding without academic pressure?
+                      </h4>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsGuardianModalOpen(true)}
+                    className="w-full sm:w-auto py-2 px-3.5 bg-[#FF4D4D] hover:bg-red-500 text-white border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0 active:translate-x-px"
+                  >
+                    DRAFT GUARDIAN BRIEFING
+                  </button>
+                </div>
               </div>
             )}
 
@@ -802,6 +829,15 @@ export default function SanctuaryPage({ onBack, isDemo = false, activeStreak = 7
 
         </div>
       </main>
+
+      {/* 🛡️ Guardian SOS & Compassionate Family Emergency Dispatch Modal */}
+      {isGuardianModalOpen && (
+        <GuardianContactModal
+          isOpen={true}
+          onClose={() => setIsGuardianModalOpen(false)}
+          todayStr={todayStr}
+        />
+      )}
     </div>
   );
 }

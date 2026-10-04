@@ -27,7 +27,8 @@ import {
   RefreshCw,
   Radio,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  HeartHandshake
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { 
@@ -73,6 +74,7 @@ export default function DetailedSettingsView({
   onOpenStoragePage,
   onOpenExportStudio,
   onOpenRehab,
+  onOpenGuardianContact = null,
   onSettingsChanged = () => {},
   triggerHaptic = () => {}
 }) {
@@ -685,7 +687,46 @@ export default function DetailedSettingsView({
         )}
 
         {/* ========================================================= */}
-        {/* 4. AI GHOSTWRITER LANGUAGE & DIRECTIVES */}
+        {/* 5. GUARDIAN SOS & COMPASSIONATE FAMILY TRIAGE PROTOCOL */}
+        {/* ========================================================= */}
+        {onOpenGuardianContact && (
+          <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[#FFE4E4] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000] text-[#FF4D4D]">
+                  <HeartHandshake className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h4 className="font-display font-black text-sm uppercase text-black truncate">
+                      Guardian SOS &amp; Family Triage
+                    </h4>
+                    <span className="px-1.5 py-0.5 bg-black text-[#00E599] rounded font-mono text-[9px] font-black uppercase">
+                      GCERT 1(A)
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-600 truncate">
+                    Compassionate family check-ins during acute burnout
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  try { soundEngine.playClick(); } catch (e) {}
+                  onOpenGuardianContact();
+                }}
+                className="py-1.5 px-3 bg-[#FF4D4D] hover:bg-red-500 text-white border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 shrink-0 active:translate-x-px"
+              >
+                <span>CONFIG SOS</span>
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* 6. AI GHOSTWRITER LANGUAGE & DIRECTIVES */}
         {/* ========================================================= */}
         <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
           <div className="flex items-center gap-2.5">

@@ -66,6 +66,7 @@ const NotificationStudioPage = safeLazy(() => import('./components/NotificationS
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
 const ArchitectureProjectionModal = safeLazy(() => import('./components/ArchitectureProjectionModal'));
+const GuardianContactModal = safeLazy(() => import('./components/GuardianContactModal'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -256,6 +257,7 @@ export default function App() {
   const [isExportStudioOpen, setIsExportStudioOpen] = useState(() => previewModal === 'export');
   const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
   const [isArchitectureProjectionOpen, setIsArchitectureProjectionOpen] = useState(false);
+  const [isGuardianContactOpen, setIsGuardianContactOpen] = useState(false);
   const [isAcademicMode, setIsAcademicMode] = useState(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('daily_verdict_academic_mode') === 'true' || window.location.search.includes('mode=academic');
@@ -1450,6 +1452,9 @@ export default function App() {
               setP2PSyncSection(section);
               setIsP2PSyncOpen(true);
             }}
+            isAcademicMode={isAcademicMode}
+            toggleAcademicMode={toggleAcademicMode}
+            onOpenGuardianContact={() => setIsGuardianContactOpen(true)}
             user={currentUser}
             sphereSettingsVer={sphereSettingsVer}
           />
@@ -1470,6 +1475,9 @@ export default function App() {
                 onOpenExportStudio={() => setIsExportStudioOpen(true)}
                 onOpenRehab={() => setShowSanctuary(true)}
                 onSyncRefresh={loadData}
+                isAcademicMode={isAcademicMode}
+                onOpenArchitectureProjection={() => setIsArchitectureProjectionOpen(true)}
+                onOpenGuardianContact={() => setIsGuardianContactOpen(true)}
               />
             </div>
           </div>
@@ -1835,6 +1843,18 @@ export default function App() {
                 key="architecture-projection-modal"
                 isOpen={isArchitectureProjectionOpen}
                 onClose={() => setIsArchitectureProjectionOpen(false)}
+              />
+            )}
+
+            {/* 🛡️ Guardian SOS & Compassionate Family Emergency Dispatch Modal */}
+            {isGuardianContactOpen && (
+              <GuardianContactModal
+                key="guardian-contact-modal"
+                isOpen={isGuardianContactOpen}
+                onClose={() => setIsGuardianContactOpen(false)}
+                entries={entries}
+                todayStr={todayStr}
+                user={currentUser}
               />
             )}
 

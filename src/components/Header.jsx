@@ -20,7 +20,10 @@ export default function Header({
   onSyncRefresh,
   onOpenExportStudio,
   onOpenRehab,
-  onOpenIconLab
+  onOpenIconLab,
+  isAcademicMode = false,
+  onOpenArchitectureProjection = null,
+  onOpenGuardianContact = null
 }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -119,12 +122,25 @@ export default function Header({
           </div>
           <div>
             <h1 className="font-display font-black text-lg sm:text-xl 3xl:text-2xl 4k:text-3xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
-              SHIT OR HIT
+              {isAcademicMode ? 'DAILY VERDICT' : 'SHIT OR HIT'}
             </h1>
             <span className="text-[10px] 3xl:text-xs font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
-              {isWhitelisted ? `Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Daily Verdict OS'}
+              {isAcademicMode
+                ? 'COGNITIVE REFLECTION & TELEMETRY ENGINE'
+                : isWhitelisted ? `Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Daily Verdict OS'}
             </span>
           </div>
+          {isAcademicMode && onOpenArchitectureProjection && (
+            <button
+              type="button"
+              onClick={onOpenArchitectureProjection}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black text-[#FDC800] border-2 border-black font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer hover:bg-neutral-900 active:translate-x-px shrink-0 ml-2"
+              title="Open Architecture & Science Fair Blueprint Projector (Ctrl + Shift + A)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5]" />
+              <span>PRESENTATION PROTOCOL</span>
+            </button>
+          )}
         </div>
 
         {/* Right Controls for Tablet / Medium screens (hidden on xl desktop where it sits on the right) */}

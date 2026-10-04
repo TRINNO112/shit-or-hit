@@ -5,6 +5,7 @@ import AIDirectivesModal, { DIRECTIVES } from './AIDirectivesModal';
 import QuickSettingsDrawer from './QuickSettingsDrawer';
 import DetailedSettingsView from './DetailedSettingsView';
 import NonNegotiablesStudioModal from './NonNegotiablesStudioModal';
+import CognitiveDistortionScanner from './CognitiveDistortionScanner';
 import { 
   Zap, 
   Flame, 
@@ -141,6 +142,9 @@ export default function MobileAppView({
   onOpenArchitectureProjection,
   onOpenWallpaperEngine,
   onOpenSync = null,
+  isAcademicMode = false,
+  toggleAcademicMode = null,
+  onOpenGuardianContact = null,
   user: userProp = null
 }) {
   const [activeTab, setActiveTabState] = useState(() => {
@@ -170,6 +174,25 @@ export default function MobileAppView({
     setHistorySubViewState(view);
     if (typeof window !== 'undefined') {
       localStorage.setItem('daily_verdict_mobile_history_subview', view);
+    }
+  };
+
+  // 🎓 Stealth Academic Presentation Mode (Secret 3-Tap Mobile Header Gesture)
+  const headerTapCountRef = useRef(0);
+  const headerTapTimerRef = useRef(null);
+
+  const handleHeaderTripleTap = () => {
+    headerTapCountRef.current += 1;
+    if (headerTapTimerRef.current) clearTimeout(headerTapTimerRef.current);
+    if (headerTapCountRef.current >= 3) {
+      headerTapCountRef.current = 0;
+      if (toggleAcademicMode) {
+        toggleAcademicMode();
+      }
+    } else {
+      headerTapTimerRef.current = setTimeout(() => {
+        headerTapCountRef.current = 0;
+      }, 700);
     }
   };
   
@@ -755,20 +778,43 @@ export default function MobileAppView({
     <div className="flex flex-col min-h-screen bg-[#FFFDF5] text-black font-sans pb-28 select-none relative">
       
       {/* TOP COMPACT APP BAR (Single-Line Layout Guaranteed) */}
-      <header className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-2.5 py-2 sm:px-4 sm:py-3 flex items-center justify-between shadow-[0_2px_0px_#000000] gap-1.5">
+      <header 
+        onClick={handleHeaderTripleTap}
+        title="Triple-tap header to toggle Academic Science Presentation Mode"
+        className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-2.5 py-2 sm:px-4 sm:py-3 flex items-center justify-between shadow-[0_2px_0px_#000000] gap-1.5 cursor-pointer"
+      >
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
           <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0 p-0.5">
             <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
           </div>
           <div className="min-w-0">
             <h1 className="font-display font-black text-xs sm:text-base uppercase leading-none tracking-tight whitespace-nowrap">
-              VERDICT
+              {isAcademicMode ? 'DAILY VERDICT' : 'VERDICT'}
             </h1>
             <span className="text-[10px] sm:text-xs font-mono font-bold text-neutral-600 hidden xs:block mt-0.5 truncate max-w-24 sm:max-w-40">
-              {isWhitelisted ? (user.displayName || 'Cloud Synced') : 'Life Matrix OS'}
+              {isAcademicMode 
+                ? 'COGNITIVE REFLECTION AI' 
+                : isWhitelisted ? (user.displayName || 'Cloud Synced') : 'Life Matrix OS'}
             </span>
           </div>
         </div>
+
+        {/* Academic Presentation Mode Protocol Pill */}
+        {isAcademicMode && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onOpenArchitectureProjection) onOpenArchitectureProjection();
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded-xl bg-black text-[#FDC800] border-2 border-black font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0"
+            title="Open Interactive Architecture Blueprint Projector"
+          >
+            <Sparkles className="w-3 h-3 text-[#00E599] stroke-[2.5]" />
+            <span className="hidden xs:inline">ACADEMIC PROTOCOL</span>
+            <span className="xs:hidden">ACADEMIC</span>
+          </button>
+        )}
 
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Day Streak Pill */}
@@ -2017,6 +2063,7 @@ export default function MobileAppView({
               })}
               onOpenNotificationStudio={onOpenNotificationStudio}
               onOpenRehab={onOpenRehab}
+              onOpenGuardianContact={onOpenGuardianContact}
               onSettingsChanged={() => {
                 setLocalSphereVer(v => v + 1);
                 setIsAnchorsActiveMobile(isNonNegotiablesActive());
@@ -2123,6 +2170,14 @@ export default function MobileAppView({
                   onChange={(e) => setNoteText(e.target.value)}
                   placeholder="What went wrong? What went right? Write your unfiltered thoughts..."
                   className="flex-1 w-full p-3.5 sm:p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto min-h-35"
+                />
+
+                {/* 🧠 Real-Time Cognitive Distortion Scanner & CBT Reframing Mirror */}
+                <CognitiveDistortionScanner
+                  text={noteText}
+                  onApplyReframe={(reframed) => {
+                    setNoteText(prev => prev ? `${prev}\n\n[Cognitive Reframe]: ${reframed}` : reframed);
+                  }}
                 />
 
                 {/* AI Directives Modal Trigger & Polish Toolbar */}
