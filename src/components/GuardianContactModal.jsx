@@ -23,7 +23,8 @@ import {
   getGuardianConfig, 
   saveGuardianConfig, 
   generateGuardianBriefing, 
-  dispatchGuardianSOS 
+  dispatchGuardianSOS,
+  getGuardianEmailQuota
 } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 
@@ -39,6 +40,7 @@ export default function GuardianContactModal({
   const [briefing, setBriefing] = useState(null);
   const [dispatchStatus, setDispatchStatus] = useState(null); // 'idle' | 'sending' | 'success' | 'error'
   const [statusMessage, setStatusMessage] = useState('');
+  const [quota, setQuota] = useState(() => getGuardianEmailQuota());
 
   useEffect(() => {
     if (isOpen) {
@@ -48,6 +50,7 @@ export default function GuardianContactModal({
       setBriefing(generated);
       setDispatchStatus('idle');
       setStatusMessage('');
+      setQuota(getGuardianEmailQuota());
     }
   }, [isOpen, entries, todayStr]);
 
@@ -100,6 +103,17 @@ export default function GuardianContactModal({
 
   const handleEmailDispatch = async (isTest = false) => {
     if (!briefing) return;
+    const currentQuota = getGuardianEmailQuota();
+    if (!currentQuota.canSend) {
+      setDispatchStatus('error');
+      setStatusMessage(`Daily hard cap active (${currentQuota.sentCount}/${currentQuota.maxAllowed} sent). Automated emails locked for cooldown (${currentQuota.resetInHours}h remaining).`);
+      setTimeout(() => {
+        setDispatchStatus('idle');
+        setStatusMessage('');
+      }, 5000);
+      return;
+    }
+
     setDispatchStatus('sending');
     try { soundEngine.playClick(); } catch (e) {}
 
@@ -113,8 +127,12 @@ export default function GuardianContactModal({
         ...briefing,
         isTest
       },
-      user
+      user,
+      isTest
     });
+
+    const updatedQuota = getGuardianEmailQuota();
+    setQuota(updatedQuota);
 
     if (res.success) {
       setDispatchStatus('success');
@@ -136,14 +154,25 @@ export default function GuardianContactModal({
         );
         window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
       }
-      setStatusMessage(isTest ? `Test dispatch sent to ${targetEmail}` : 'Emergency briefing dispatched.');
+      setStatusMessage(isTest ? `Test dispatch sent to ${targetEmail} (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)` : `Emergency briefing dispatched (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used).`);
       setTimeout(() => {
         setDispatchStatus('idle');
         setStatusMessage('');
       }, 4000);
+    } else if (res.capReached) {
+      setDispatchStatus('error');
+      setStatusMessage(res.error || 'Daily hard cap reached (2/2 emails). Rate limit protection active.');
+      setTimeout(() => {
+        setDispatchStatus('idle');
+        setStatusMessage('');
+      }, 5000);
     } else {
       setDispatchStatus('error');
-      setTimeout(() => setDispatchStatus('idle'), 4000);
+      setStatusMessage(res.error || 'Dispatch failed.');
+      setTimeout(() => {
+        setDispatchStatus('idle');
+        setStatusMessage('');
+      }, 4000);
     }
   };
 
@@ -325,6 +354,19 @@ export default function GuardianContactModal({
                   </div>
                 )}
 
+                {/* 🛡️ 24-Hour Sustainable Hard Cap Quota Meter */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-[#FFF9EE] border-2 border-black rounded-xl text-xs font-mono shadow-[1.5px_1.5px_0px_#000000]">
+                  <div className="flex items-center gap-1.5 font-black uppercase text-black">
+                    <ShieldCheck className="w-4 h-4 text-black stroke-[2.5]" />
+                    <span>SUSTAINABLE 24H HARD CAP: 2 EMAILS MAX</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-lg border border-black font-black uppercase text-[10px] self-start sm:self-auto shadow-[1px_1px_0px_#000000] ${
+                    quota.canSend ? 'bg-[#00E599] text-black' : 'bg-[#FF4D4D] text-white'
+                  }`}>
+                    {quota.canSend ? `QUOTA: ${quota.sentCount}/${quota.maxAllowed} SENT (${quota.remaining} LEFT)` : `HARD CAP REACHED (2/2) • ${quota.resetInHours}H COOLDOWN`}
+                  </span>
+                </div>
+
                 {/* Dispatch Action Toolbar */}
                 <div className="flex flex-col sm:flex-row items-stretch gap-2.5 pt-1">
                   <button
@@ -339,8 +381,13 @@ export default function GuardianContactModal({
                   <button
                     type="button"
                     onClick={() => handleEmailDispatch(false)}
-                    disabled={dispatchStatus === 'sending'}
-                    className="flex-1 py-2.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px disabled:opacity-60"
+                    disabled={dispatchStatus === 'sending' || !quota.canSend}
+                    title={quota.canSend ? 'Dispatch emergency triage email' : 'Hard cap reached: 2 emails sent in last 24h'}
+                    className={`flex-1 py-2.5 px-3 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px ${
+                      !quota.canSend
+                        ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-400 shadow-none'
+                        : 'bg-[#FDC800] hover:bg-yellow-400 text-black'
+                    }`}
                   >
                     <Mail className="w-4 h-4 stroke-[2.5]" />
                     <span>{dispatchStatus === 'sending' ? 'DISPATCHING...' : 'DISPATCH EMAIL'}</span>
@@ -349,9 +396,13 @@ export default function GuardianContactModal({
                   <button
                     type="button"
                     onClick={() => handleEmailDispatch(true)}
-                    disabled={dispatchStatus === 'sending'}
-                    title="Send an immediate test dispatch to verify inbox delivery"
-                    className="py-2.5 px-3 bg-[#00C2FF] hover:bg-[#00a6db] text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 shrink-0 active:translate-x-px"
+                    disabled={dispatchStatus === 'sending' || !quota.canSend}
+                    title={quota.canSend ? 'Send an immediate test dispatch to verify inbox delivery' : 'Hard cap reached: 2 emails sent in last 24h'}
+                    className={`py-2.5 px-3 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 shrink-0 active:translate-x-px ${
+                      !quota.canSend
+                        ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-400 shadow-none'
+                        : 'bg-[#00C2FF] hover:bg-[#00a6db] text-black'
+                    }`}
                   >
                     <Send className="w-4 h-4 stroke-[2.5]" />
                     <span>TEST EMAIL</span>

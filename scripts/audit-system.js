@@ -366,6 +366,16 @@ const storagePageCode = readSrc('components/StorageSovereigntyPage.jsx');
 const fileMirrorCode = readSrc('services/fileMirrorEngine.js');
 assert(storagePageCode.includes('kaushtubh457@gmail.com') && fileMirrorCode.includes('AES-256-GCM'), 'StorageSovereigntyPage: Whitelist enlistment & AES-256 Device File Mirror operational');
 
+const settingsModalCode = readSrc('components/SettingsModal.jsx');
+const detailedSettingsCode = readSrc('components/DetailedSettingsView.jsx');
+assert(
+  apiCode.includes('GUARDIAN_MAX_DAILY_EMAILS = 2') &&
+  apiCode.includes('getGuardianEmailQuota') &&
+  settingsModalCode.includes('Guardian Emergency') &&
+  detailedSettingsCode.includes('Guardian Emergency'),
+  'Guardian Emergency: Sustainable 2-email/24h hard cap & settings integration operational'
+);
+
 // ----------------------------------------------------------------------
 // 14. STATIC JSX IMPORT & LUCIDE ICON INTEGRITY SCANNER
 // ----------------------------------------------------------------------

@@ -28,7 +28,12 @@ import {
   Radio,
   RotateCcw,
   Sparkles,
-  HeartHandshake
+  HeartHandshake,
+  Send,
+  Mail,
+  AlertCircle,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { 
@@ -50,7 +55,12 @@ import {
   getSafetyStashMeta,
   revertToLiveSafetyStash,
   exportDatabaseBackup,
-  getDbStorageKey
+  getDbStorageKey,
+  getGuardianConfig,
+  saveGuardianConfig,
+  getGuardianEmailQuota,
+  dispatchGuardianSOS,
+  generateGuardianBriefing
 } from '../services/api';
 import { getStorageStatus } from '../services/storageManager';
 import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../services/p2pSyncEngine';
@@ -133,6 +143,14 @@ export default function DetailedSettingsView({
   const [peerBackupMeta, setPeerBackupMeta] = useState(() => getMutualPeerBackupMeta());
   const [peerRestoreMsg, setPeerRestoreMsg] = useState('');
 
+  // 🛡️ Guardian Emergency & Hard-Capped Automated Email State
+  const [guardianConfig, setGuardianConfig] = useState(() => getGuardianConfig());
+  const [guardianQuota, setGuardianQuota] = useState(() => getGuardianEmailQuota());
+  const [guardianEmailInput, setGuardianEmailInput] = useState(() => getGuardianConfig()?.guardianEmail || '');
+  const [guardianNameInput, setGuardianNameInput] = useState(() => getGuardianConfig()?.guardianName || '');
+  const [guardianSending, setGuardianSending] = useState(false);
+  const [guardianFeedback, setGuardianFeedback] = useState(null);
+
   useEffect(() => {
     getStorageStatus().then(status => {
       setStorageTierState(status);
@@ -140,7 +158,129 @@ export default function DetailedSettingsView({
     setSnapshots(getRollingSnapshots());
     setSafetyMeta(getSafetyStashMeta());
     setPeerBackupMeta(getMutualPeerBackupMeta());
+    const gConf = getGuardianConfig();
+    setGuardianConfig(gConf);
+    setGuardianEmailInput(gConf?.guardianEmail || '');
+    setGuardianNameInput(gConf?.guardianName || '');
+    setGuardianQuota(getGuardianEmailQuota());
   }, []);
+
+  const handleToggleGuardianAutoDispatch = () => {
+    try { soundEngine.playClick(); } catch (e) {}
+    const updated = {
+      ...guardianConfig,
+      autoDispatch: !guardianConfig.autoDispatch,
+      enabled: true
+    };
+    saveGuardianConfig(updated);
+    setGuardianConfig(updated);
+    triggerHaptic('light');
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleSaveGuardianCredentials = (e) => {
+    if (e) e.preventDefault();
+    try { soundEngine.playClick(); } catch (e) {}
+    const updated = {
+      ...guardianConfig,
+      guardianEmail: guardianEmailInput.trim(),
+      guardianName: guardianNameInput.trim()
+    };
+    saveGuardianConfig(updated);
+    setGuardianConfig(updated);
+    setGuardianFeedback({
+      type: 'success',
+      message: 'Guardian credentials saved.'
+    });
+    triggerHaptic('success');
+    setTimeout(() => setGuardianFeedback(null), 3500);
+    if (onSettingsChanged) onSettingsChanged();
+  };
+
+  const handleTestGuardianEmail = async () => {
+    try { soundEngine.playClick(); } catch (e) {}
+    const quota = getGuardianEmailQuota();
+    if (!quota.canSend) {
+      setGuardianFeedback({
+        type: 'cap',
+        message: `Daily hard cap active (${quota.sentCount}/${quota.maxAllowed} sent). Automated emails locked (${quota.resetInHours}h cooldown).`
+      });
+      triggerHaptic('warning');
+      setTimeout(() => setGuardianFeedback(null), 5000);
+      return;
+    }
+
+    const emailToSend = guardianEmailInput.trim() || user?.email;
+    if (!emailToSend) {
+      setGuardianFeedback({
+        type: 'error',
+        message: 'Please enter a guardian email address first.'
+      });
+      triggerHaptic('error');
+      setTimeout(() => setGuardianFeedback(null), 3500);
+      return;
+    }
+
+    setGuardianSending(true);
+    setGuardianFeedback(null);
+
+    try {
+      const activeConf = {
+        ...guardianConfig,
+        guardianEmail: emailToSend,
+        guardianName: guardianNameInput.trim()
+      };
+      saveGuardianConfig(activeConf);
+      setGuardianConfig(activeConf);
+
+      const fakeBriefing = generateGuardianBriefing({}, activeConf, new Date().toISOString().slice(0, 10));
+      const res = await dispatchGuardianSOS({
+        guardianConfig: activeConf,
+        briefing: fakeBriefing,
+        user,
+        isTest: true
+      });
+
+      const updatedQuota = getGuardianEmailQuota();
+      setGuardianQuota(updatedQuota);
+
+      if (res.success) {
+        soundEngine.playSuccess();
+        triggerHaptic('success');
+        const subject = encodeURIComponent(`[Daily Verdict Triage] [TEST DISPATCH] Wellness Verification`);
+        const body = encodeURIComponent(
+          `Dear ${guardianNameInput.trim() || 'Parent / Guardian'},\n\n` +
+          `*** THIS IS A VERIFICATION TEST DISPATCH ***\n\n` +
+          `Your student has configured this address for emergency triage alerts under a strict hard cap of 2 emails/24h.\n\n` +
+          `Generated with zero-knowledge privacy protection (GCERT RBVP 2026-27).`
+        );
+        window.location.href = `mailto:${emailToSend}?subject=${subject}&body=${body}`;
+
+        setGuardianFeedback({
+          type: 'success',
+          message: `Verification test email sent to ${emailToSend}! (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)`
+        });
+      } else if (res.capReached) {
+        setGuardianFeedback({
+          type: 'cap',
+          message: res.error || 'Daily hard cap reached (2/2 emails). Rate limit protection active.'
+        });
+      } else {
+        setGuardianFeedback({
+          type: 'error',
+          message: res.error || 'Failed to dispatch test email.'
+        });
+      }
+    } catch (err) {
+      setGuardianFeedback({
+        type: 'error',
+        message: 'Dispatch error occurred.'
+      });
+    } finally {
+      setGuardianSending(false);
+      setTimeout(() => setGuardianFeedback(null), 6000);
+    }
+  };
 
   // Handlers for Behavioral Intelligence
   const handleToggleCapsule = () => {
@@ -687,43 +827,179 @@ export default function DetailedSettingsView({
         )}
 
         {/* ========================================================= */}
-        {/* 5. GUARDIAN SOS & COMPASSIONATE FAMILY TRIAGE PROTOCOL */}
+        {/* 5. GUARDIAN EMERGENCY & HARD-CAPPED AUTOMATED EMAIL */}
         {/* ========================================================= */}
-        {onOpenGuardianContact && (
-          <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-2.5">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-xl bg-[#FFE4E4] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000] text-[#FF4D4D]">
-                  <HeartHandshake className="w-5 h-5 stroke-[2.5]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <h4 className="font-display font-black text-sm uppercase text-black truncate">
-                      Guardian SOS &amp; Family Triage
-                    </h4>
-                    <span className="px-1.5 py-0.5 bg-black text-[#00E599] rounded font-mono text-[9px] font-black uppercase">
-                      GCERT 1(A)
-                    </span>
-                  </div>
-                  <p className="text-[11px] font-mono text-neutral-600 truncate">
-                    Compassionate family check-ins during acute burnout
-                  </p>
-                </div>
+        <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-black/10 pb-3">
+            <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-[#FFE4E4] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000] text-[#FF4D4D]">
+                <HeartHandshake className="w-5 h-5 stroke-[2.5]" />
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  onOpenGuardianContact();
-                }}
-                className="py-1.5 px-3 bg-[#FF4D4D] hover:bg-red-500 text-white border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center gap-1.5 shrink-0 active:translate-x-px"
-              >
-                <span>CONFIG SOS</span>
-                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-              </button>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h4 className="font-display font-black text-sm uppercase text-black truncate">
+                    Guardian Emergency &amp; Automated Email
+                  </h4>
+                  <span className="px-1.5 py-0.5 bg-black text-[#00E599] rounded font-mono text-[9px] font-black uppercase">
+                    GCERT 1(A)
+                  </span>
+                </div>
+                <p className="text-[11px] font-mono text-neutral-600 truncate">
+                  Zero-knowledge crisis triage with sustainable 2-email/24h hard cap
+                </p>
+              </div>
+            </div>
+
+            {/* Hard Cap Quota Badge */}
+            <div className="shrink-0 flex items-center gap-1.5">
+              <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] ${
+                guardianQuota.canSend
+                  ? 'bg-[#00E599] text-black'
+                  : 'bg-[#FF4D4D] text-white'
+              }`}>
+                {guardianQuota.canSend 
+                  ? `QUOTA: ${guardianQuota.sentCount}/${guardianQuota.maxAllowed} SENT • ${guardianQuota.remaining} LEFT` 
+                  : `HARD CAP REACHED (2/2) • ${guardianQuota.resetInHours}H COOLDOWN`}
+              </span>
             </div>
           </div>
-        )}
+
+          {/* Hard Cap & Resend API Details */}
+          <div className="p-3 bg-[#FFF9EE] border-2 border-black rounded-xl space-y-1 font-mono text-xs text-neutral-800 shadow-[1.5px_1.5px_0px_#000000]">
+            <div className="flex items-center gap-1.5 font-black uppercase text-black">
+              <ShieldCheck className="w-4 h-4 text-black stroke-[2.5]" />
+              <span>STRICT HARD CAP &amp; ZERO-SPAM GUARANTEE</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-neutral-700">
+              <strong>Rate Protection:</strong> Maximum <strong>2 emails per 24 hours</strong>. Dispatch locks automatically once quota is exhausted.
+            </p>
+            <p className="text-[11px] leading-relaxed text-neutral-700">
+              <strong>Delivery Engine:</strong> Powered by Resend API (<code className="bg-white px-1.5 py-0.5 border border-black rounded font-black text-black">RESEND_API_KEY</code>). Instant client-side mail fallback active if unconfigured.
+            </p>
+          </div>
+
+          {/* Master Auto-Dispatch Switch */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
+            <div className="min-w-0 flex-1">
+              <span className="font-mono text-xs font-black uppercase text-black block">
+                Automatic Crisis Email Dispatch
+              </span>
+              <span className="font-mono text-[10px] text-neutral-600 block mt-0.5">
+                Auto-transmits compassionate briefing on 2+ rough days or acute illness markers.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleGuardianAutoDispatch}
+              className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
+                guardianConfig.autoDispatch
+                  ? 'bg-[#00E599] text-black ring-2 ring-black'
+                  : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+              }`}
+            >
+              {guardianConfig.autoDispatch ? 'AUTOMATIC (ACTIVE)' : 'MANUAL ONLY (OFF)'}
+            </button>
+          </div>
+
+          {/* Guardian Credentials Form */}
+          <form onSubmit={handleSaveGuardianCredentials} className="space-y-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="space-y-1">
+                <label className="font-mono text-[10px] font-black uppercase text-neutral-700 block">
+                  Guardian / Parent Name:
+                </label>
+                <input
+                  type="text"
+                  value={guardianNameInput}
+                  onChange={(e) => setGuardianNameInput(e.target.value)}
+                  placeholder="e.g. Mom / Dad / Mentor"
+                  className="w-full px-3 py-2 bg-neutral-50 border-2 border-black rounded-xl font-mono text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1px_1px_0px_#000000]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-mono text-[10px] font-black uppercase text-neutral-700 block">
+                  Alert Email Address:
+                </label>
+                <input
+                  type="email"
+                  value={guardianEmailInput}
+                  onChange={(e) => setGuardianEmailInput(e.target.value)}
+                  placeholder="guardian@example.com"
+                  className="w-full px-3 py-2 bg-neutral-50 border-2 border-black rounded-xl font-mono text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1px_1px_0px_#000000]"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
+              <button
+                type="submit"
+                className="py-2 px-3.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all text-center"
+              >
+                SAVE DETAILS
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleTestGuardianEmail}
+                  disabled={guardianSending || !guardianQuota.canSend}
+                  className={`flex-1 sm:flex-none py-2 px-3.5 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                    !guardianQuota.canSend
+                      ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-400 shadow-none'
+                      : guardianSending
+                        ? 'bg-[#FDC800] text-black opacity-80'
+                        : 'bg-[#00C2FF] hover:bg-[#00abdf] text-black'
+                  }`}
+                >
+                  {guardianSending ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>TESTING...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>TEST EMAIL</span>
+                    </>
+                  )}
+                </button>
+
+                {onOpenGuardianContact && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try { soundEngine.playClick(); } catch (e) {}
+                      onOpenGuardianContact();
+                    }}
+                    className="flex-1 sm:flex-none py-2 px-3.5 bg-[#FF4D4D] hover:bg-red-500 text-white border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                  >
+                    <span>OPEN DOSSIER</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </form>
+
+          {/* Feedback Banner */}
+          {guardianFeedback && (
+            <div className={`p-2.5 border-2 border-black rounded-xl font-mono text-xs font-black flex items-center gap-2 shadow-[1.5px_1.5px_0px_#000000] ${
+              guardianFeedback.type === 'success'
+                ? 'bg-emerald-100 text-emerald-950 border-emerald-950'
+                : guardianFeedback.type === 'cap'
+                  ? 'bg-amber-100 text-amber-950 border-amber-950'
+                  : 'bg-red-100 text-red-950 border-red-950'
+            }`}>
+              {guardianFeedback.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-800" />
+              ) : (
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-800" />
+              )}
+              <span>{guardianFeedback.message}</span>
+            </div>
+          )}
+        </div>
 
         {/* ========================================================= */}
         {/* 6. AI GHOSTWRITER LANGUAGE & DIRECTIVES */}

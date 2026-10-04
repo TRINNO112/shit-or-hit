@@ -1230,11 +1230,64 @@ app.post('/api/entries/bulk', validateBody(bulkEntriesSchema), (req, res) => {
 });
 
 // 🛡️ Guardian SOS Family Triage Dispatch (GCERT RBVP 2026-27 Subtheme 1A)
+// Strict Hard Cap: Max 2 emergency emails per 24-hour rolling window per target address
+const guardianDispatchLog = []; // [{ timestamp: number, email: string }]
+
+app.get('/api/guardian-sos/quota', (req, res) => {
+  const email = (req.query.email || '').toLowerCase().trim();
+  const now = Date.now();
+  const windowMs = 24 * 60 * 60 * 1000;
+
+  // Prune entries older than 24h
+  while (guardianDispatchLog.length > 0 && (now - guardianDispatchLog[0].timestamp) >= windowMs) {
+    guardianDispatchLog.shift();
+  }
+
+  const matching = email ? guardianDispatchLog.filter(d => d.email === email) : guardianDispatchLog;
+  const sentCount = matching.length;
+  const maxAllowed = 2;
+  const remaining = Math.max(0, maxAllowed - sentCount);
+
+  res.json({
+    sentCount,
+    maxAllowed,
+    remaining,
+    canSend: sentCount < maxAllowed,
+    hardCap: maxAllowed
+  });
+});
+
 app.post('/api/guardian-sos/dispatch', (req, res) => {
   const { guardianName, guardianEmail, guardianPhone, studentName, briefing } = req.body || {};
   
   if (!briefing || typeof briefing !== 'object') {
     return res.status(400).json({ success: false, error: 'Invalid or missing briefing payload' });
+  }
+
+  const now = Date.now();
+  const windowMs = 24 * 60 * 60 * 1000;
+
+  // Prune expired entries
+  while (guardianDispatchLog.length > 0 && (now - guardianDispatchLog[0].timestamp) >= windowMs) {
+    guardianDispatchLog.shift();
+  }
+
+  const normalizedEmail = (guardianEmail || '').toLowerCase().trim();
+  const recentCount = normalizedEmail 
+    ? guardianDispatchLog.filter(d => d.email === normalizedEmail).length 
+    : guardianDispatchLog.length;
+
+  // 🛡️ Strict Server-Side Hard Cap: 2 emails / 24h maximum
+  if (recentCount >= 2) {
+    logger.warn(`[Guardian SOS Throttled] Hard cap reached for "${normalizedEmail || 'default'}": ${recentCount}/2 emails in last 24h.`);
+    return res.status(429).json({
+      success: false,
+      capReached: true,
+      error: 'DAILY_CAP_REACHED',
+      message: 'Daily hard cap reached: Maximum 2 emergency emails per 24 hours allowed. Rate limit protection active.',
+      maxAllowed: 2,
+      remaining: 0
+    });
   }
 
   logger.info(`[Guardian SOS Dispatch] Student "${studentName || 'Student'}" alert generated for guardian "${guardianName || 'Guardian'}" (${guardianEmail || 'no-email'}, ${guardianPhone || 'no-phone'})`);
@@ -1290,6 +1343,9 @@ app.post('/api/guardian-sos/dispatch', (req, res) => {
     }
   }
 
+  // Record dispatch in sliding window
+  guardianDispatchLog.push({ timestamp: now, email: normalizedEmail });
+
   // Return formatted confirmation with dispatch receipt
   res.json({
     success: true,
@@ -1306,6 +1362,11 @@ app.post('/api/guardian-sos/dispatch', (req, res) => {
       category: briefing.category || 'EQUILIBRIUM_CHECKIN',
       avgScore: briefing.avgScore || '3.0',
       lowDayStreak: briefing.lowDayStreak || 0
+    },
+    quota: {
+      sentCount: recentCount + 1,
+      maxAllowed: 2,
+      remaining: Math.max(0, 2 - (recentCount + 1))
     }
   });
 });

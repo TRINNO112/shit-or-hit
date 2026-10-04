@@ -2788,6 +2788,79 @@ export async function permanentlyDeleteAllUserData(shouldReload = true) {
 // ============================================================================
 
 const GUARDIAN_CONFIG_KEY = 'daily_verdict_guardian_config';
+export const GUARDIAN_DISPATCH_LOG_KEY = 'shit_guardian_email_dispatch_log';
+export const GUARDIAN_MAX_DAILY_EMAILS = 2; // Strict non-negotiable hard cap: 2 emails / 24h rolling
+
+/**
+ * Calculates current 24-hour rolling email quota for guardian dispatches.
+ * Strictly guarantees that no more than 2 automated emails can be transmitted in any 24h window.
+ */
+export function getGuardianEmailQuota() {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(GUARDIAN_DISPATCH_LOG_KEY) : null;
+    const log = raw ? JSON.parse(raw) : [];
+    const now = Date.now();
+    const windowMs = 24 * 60 * 60 * 1000; // 24 hours
+
+    // Clean entries older than 24 hours
+    const validLog = Array.isArray(log) ? log.filter(ts => (now - Number(ts)) < windowMs) : [];
+    if (typeof window !== 'undefined' && validLog.length !== (log?.length || 0)) {
+      localStorage.setItem(GUARDIAN_DISPATCH_LOG_KEY, JSON.stringify(validLog));
+    }
+
+    const maxAllowed = GUARDIAN_MAX_DAILY_EMAILS;
+    const sentCount = validLog.length;
+    const remaining = Math.max(0, maxAllowed - sentCount);
+    const canSend = sentCount < maxAllowed;
+
+    let nextResetMs = 0;
+    if (validLog.length > 0) {
+      const oldest = Math.min(...validLog.map(Number));
+      nextResetMs = Math.max(0, (oldest + windowMs) - now);
+    }
+    const resetInHours = (nextResetMs / (60 * 60 * 1000)).toFixed(1);
+
+    return {
+      sentCount,
+      maxAllowed,
+      remaining,
+      canSend,
+      nextResetMs,
+      resetInHours: Number(resetInHours),
+      isHardCapped: !canSend
+    };
+  } catch (e) {
+    return {
+      sentCount: 0,
+      maxAllowed: 2,
+      remaining: 2,
+      canSend: true,
+      nextResetMs: 0,
+      resetInHours: 0,
+      isHardCapped: false
+    };
+  }
+}
+
+/**
+ * Commits a new dispatch timestamp to the local rate ledger.
+ */
+export function recordGuardianEmailDispatch() {
+  try {
+    if (typeof window === 'undefined') return 0;
+    const raw = localStorage.getItem(GUARDIAN_DISPATCH_LOG_KEY);
+    const log = raw ? JSON.parse(raw) : [];
+    const now = Date.now();
+    const windowMs = 24 * 60 * 60 * 1000;
+    const validLog = Array.isArray(log) ? log.filter(ts => (now - Number(ts)) < windowMs) : [];
+    validLog.push(now);
+    localStorage.setItem(GUARDIAN_DISPATCH_LOG_KEY, JSON.stringify(validLog));
+    return validLog.length;
+  } catch (e) {
+    console.warn('Failed to record guardian dispatch:', e);
+    return 1;
+  }
+}
 
 export function getGuardianConfig() {
   try {
@@ -2800,6 +2873,7 @@ export function getGuardianConfig() {
         guardianEmail: '',
         guardianPhone: '',
         slumpThresholdDays: 2,
+        dailyHardCap: GUARDIAN_MAX_DAILY_EMAILS,
         categories: {
           severeIllness: true,
           repeatedBreakdown: true,
@@ -3003,14 +3077,29 @@ export function generateGuardianBriefing(entries = {}, guardianConfig = null, to
   };
 }
 
-export async function dispatchGuardianSOS({ guardianConfig, briefing, user = null }) {
+export async function dispatchGuardianSOS({ guardianConfig, briefing, user = null, isTest = false }) {
+  // 🛡️ Strict Hard Cap Enforcement: Block dispatch if quota (2 emails/24h) is exhausted
+  const quota = getGuardianEmailQuota();
+  if (!quota.canSend) {
+    return {
+      success: false,
+      capReached: true,
+      error: `Daily hard cap reached: Maximum ${quota.maxAllowed} emergency emails allowed per 24 hours. Dispatch locked for cooldown (${quota.resetInHours}h remaining).`,
+      remaining: 0,
+      quota
+    };
+  }
+
   try {
     const payload = {
       guardianName: guardianConfig.guardianName,
       guardianEmail: guardianConfig.guardianEmail,
       guardianPhone: guardianConfig.guardianPhone,
       studentName: guardianConfig.studentName || user?.displayName || 'Student',
-      briefing
+      briefing: {
+        ...briefing,
+        isTest: Boolean(isTest)
+      }
     };
 
     const res = await fetch(`${API_BASE}/api/guardian-sos/dispatch`, {
@@ -3019,19 +3108,39 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
       body: JSON.stringify(payload)
     });
 
+    if (res.status === 429) {
+      const err = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        capReached: true,
+        error: err.message || 'Daily hard cap reached: Maximum 2 emails per 24 hours allowed.',
+        remaining: 0,
+        quota: getGuardianEmailQuota()
+      };
+    }
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       return { success: false, error: err.error || 'Server dispatch error', offlineFallback: true };
     }
 
     const data = await res.json();
-    return { success: true, ...data };
+    if (data.capReached) {
+      return { success: false, capReached: true, ...data };
+    }
+
+    // Record successful dispatch into 24-hour rate ledger
+    recordGuardianEmailDispatch();
+    return { success: true, ...data, quota: getGuardianEmailQuota() };
   } catch (err) {
     console.warn('Network dispatch failed; offline fallback active:', err);
+    // Record into local dispatch log so rate limit is respected even in offline mode
+    recordGuardianEmailDispatch();
     return {
       success: true,
       offlineFallback: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      quota: getGuardianEmailQuota()
     };
   }
 }

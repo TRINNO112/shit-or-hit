@@ -1707,6 +1707,10 @@ export default function App() {
                 onOpenErasurePage={() => setShowErasure(true)}
                 onOpenStoragePage={() => setShowStoragePage(true)}
                 onOpenExportStudio={() => setIsExportStudioOpen(true)}
+                onOpenGuardianContact={() => {
+                  setIsSettingsOpen(false);
+                  setIsGuardianContactOpen(true);
+                }}
               />
             )}
 
