@@ -527,29 +527,6 @@ node bin/verdict.js list
 
 ---
 
-## 🎨 Design System Directive: Excalidraw-Style Hand-Drawn Whiteboard Architecture
-
-All technical flowcharts, visual explainer diagrams, and interactive architectural projections must adhere strictly to the **Excalidraw / Rough.js Hand-Drawn Cartoonist Whiteboard Design System**.
-
-### Core Visual Principles:
-1. **Procedural Wobbly Vector Strokes**:
-   - Lines must never appear mechanically laser-straight or rigid.
-   - Use procedural double-pass jitter algorithms with midpoint displacement so all borders, node outlines, and connector splines look authentically hand-drawn with black ink pen.
-2. **Warm Notebook Neobrutalist Palette**:
-   - Canvas background: `#FFFDF8` or `#FFF9EE` with a subtle grid or dot matrix.
-   - Ink: Solid black (`#111111`) with 2.5px – 3.5px line width.
-   - Vibrant accent fills: Yellow (`#FDC800`), Emerald Mint (`#00E599`), Coral Red (`#FF4D4D`), Cyan Sky (`#00C2FF`), and Lavender (`#B388FF`).
-   - Fills: Hand-sketched crosshatch / hachure fills with imperfect boundaries.
-3. **Typography**:
-   - Comic / hand-marker typography (`Caveat`, `Virgil`, or `Kalam` Google Fonts) paired with monospace technical metadata badges (`font-mono font-black text-xs uppercase`).
-4. **Living Vector Flow Animation**:
-   - Dynamic animated ink pulses or glowing energy dots travel continuously along the connection paths to indicate active real-time data flow.
-   - Interactive zoom & pan canvas, bouncy hover wobbles, and hand-sketched tooltip sticky notes on node click.
-5. **Zero Raw Emojis**:
-   - Maintain pure vector aesthetic: use Lucide React SVG vector glyphs or hand-sketched icons instead of Unicode emojis.
-
----
-
 ## 🚀 Quick Start & Tech Stack
 
 Get the Daily Verdict app up and running on your local machine.
