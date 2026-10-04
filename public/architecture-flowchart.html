@@ -123,9 +123,9 @@ const D=[
 ['n6',3100,1260,'u','c','Saved before you blink','Optimistic save in ~1 ms.','Works with zero internet.','disk',
  'Every rating and note lands on screen and on your device instantly. Nothing waits for a server, so there is no spinner and no lost entry on a bad connection.',
  'Fast, reliable saving removes the tiny frictions that make people quit logging.','Optimistic UI, localStorage, flat-file JSON'],
-['n7',2400,1260,'u','r','Make it a poster','Daily story or square card.','Year-in-pixels lockscreen.','poster',
- 'Turn today\'s verdict into a 1080p poster or square card with your mascot, score and streak right after saving. Or paint all 365 days as a pixel-grid lockscreen.',
- 'Seeing your daily progress on your own phone keeps the commitment visible and makes small wins feel worth celebrating tonight.','AestheticCardExportModal, YearInPixelsWallpaperEngine, StickerVault'],
+['n7',2400,1260,'u','r','Make it a poster','Daily story or square card.','Shareable aesthetic card.','poster',
+ 'Turn today\'s verdict into a 1080p story poster or square card with your mascot, score, streak and reflections right after saving.',
+ 'Seeing your daily progress on your own phone keeps the commitment visible and makes small wins feel worth celebrating tonight.','AestheticCardExportModal, AestheticCardVariantDeepseek, StickerVaultModal'],
 ['n8',1700,1260,'u','m','Look back at your days','Month grid, week, timeline.','Tap any day to fix it.','cal',
  'Your history opens as a month grid, a 7-day strip, or a scrolling timeline of reflections. Tap a day to edit a forgotten rating or add an outlier event.',
  'Seeing a trail of days is proof you are moving. Fixing a missed day takes seconds, so one gap never ends a streak.','CalendarModal, MonthCalendar, WeekView, JourneyTimeline, EditDayModal'],
@@ -360,7 +360,9 @@ const dotsEl=document.getElementById('dots'),hintEl=document.getElementById('hin
 TOUR.forEach((id,i)=>{const b=document.createElement('button');b.style.setProperty('--c',byId[id].col);b.title=byId[id].t;b.setAttribute('aria-label','Go to step '+(i+1)+': '+byId[id].t);b.onclick=()=>go(i);dotsEl.appendChild(b)});
 function hud(){[...dotsEl.children].forEach((b,i)=>{b.className=(mode=='tour'&&i===cur?'cur ':'')+(seen.has(i)?'seen':'')});
  hintEl.textContent=mode=='free'?'Free camera. Press an arrow key to rejoin the tour.':mode=='over'?'Overview. Press the Right arrow to resume your journey.':'Arrow keys steer the camera. Press ? for help.';
-document.getElementById('fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};document.getElementById('ai').onclick=()=>go(TI.a1);pvB.onclick=()=>step(-1);nxB.onclick=()=>step(1);document.getElementById('ov').onclick=overview;auB.onclick=()=>{auto=!auto;arriveAt=performance.now()/1000;if(auto&&mode!='tour')go(cur);hud()};
+ pvB.disabled=mode=='tour'&&cur==0;auB.textContent='Auto-play: '+(auto?'on':'off')}
+document.getElementById('fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};document.getElementById('ai').onclick=()=>go(TI.a1);pvB.onclick=()=>step(-1);nxB.onclick=()=>step(1);document.getElementById('ov').onclick=overview;
+auB.onclick=()=>{auto=!auto;arriveAt=performance.now()/1000;if(auto&&mode!='tour')go(cur);hud()};
 function zoomAt(sx,sy,f){const k=Math.max(.2,Math.min(2.6,cam.k*f));f=k/cam.k;cam.x=sx-(sx-cam.x)*f;cam.y=sy-(sy-cam.y)*f;cam.k=k}
 const kind={u:'YOUR EVENING',ai:'AI MENTOR STEP',f:'QUIET PROTECTION'};
 const fxEl=noteEl.querySelector('.fx'),fxSum=fxEl.querySelector('summary'),fxBody=fxEl.querySelector('.fx-body');
