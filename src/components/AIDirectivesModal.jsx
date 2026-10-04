@@ -213,6 +213,14 @@ export default function AIDirectivesModal({
             </div>
           </div>
 
+          {/* Non-Clinical Ethical Guarantee */}
+          <div className="p-2.5 bg-amber-50/80 border-2 border-black rounded-xl flex items-start gap-2 shadow-[1.5px_1.5px_0px_#000000]">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5 stroke-[2.5]" />
+            <p className="font-mono text-[9px] text-neutral-800 leading-snug font-bold">
+              <strong>Non-Clinical Guardrail:</strong> AI directives operate strictly as introspective writing and habit accountability mirrors. Never provides medical or psychiatric advice.
+            </p>
+          </div>
+
           {/* Action Footer */}
           <div className="flex items-center justify-end gap-2 pt-2 border-t-2 border-black/10 shrink-0">
             <button

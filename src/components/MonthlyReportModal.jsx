@@ -34,6 +34,7 @@ import {
   ArrowDown,
   GitBranch,
   ShieldCheck,
+  ShieldAlert,
   HelpCircle
 } from 'lucide-react';
 import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
@@ -1203,6 +1204,17 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* 🛡️ Non-Clinical Advisory & Mental Health Disclaimer Footer */}
+                <div className="p-3.5 bg-amber-50/90 border-2 border-black rounded-xl text-left shadow-[2px_2px_0px_#000000] space-y-1">
+                  <div className="flex items-center gap-1.5 text-black font-mono font-black text-[10px] uppercase">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 stroke-[2.5] shrink-0" />
+                    <span>Non-Clinical Advisory &amp; Mental Health Disclaimer</span>
+                  </div>
+                  <p className="font-mono text-[9px] text-neutral-800 leading-relaxed font-bold">
+                    This AI Executive Intelligence Dossier is an introspective cognitive mirror and behavioral accountability tool designed solely for lifestyle habit optimization. It does NOT provide medical, clinical, psychiatric, or psychological diagnosis, advice, or treatment. If you are experiencing acute distress, mental fatigue, or emotional crisis, please consult a certified healthcare professional or licensed counselor.
+                  </p>
                 </div>
 
                 {/* Subtitle attribution note */}

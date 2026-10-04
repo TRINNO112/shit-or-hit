@@ -470,6 +470,7 @@ CRITICAL INSTRUCTIONS:
 - Preserve all facts, names, and specific events mentioned by the user. Do not invent contradictory events.
 - DO NOT prepend any date, timestamp, or greeting (NEVER start with "${date || '2026-09-30'}" or "Dear Diary"). Start immediately with the first sentence of the reflection.
 - Separate paragraphs with clean double line breaks (\n\n) for natural breathing room, NEVER output literal "\\n" text.
+- STRICT NON-CLINICAL & NON-MEDICAL DIRECTIVE: You are an introspective personal diary ghostwriter. You must strictly NEVER provide medical, psychiatric, pharmacological, or clinical advice or diagnoses. Frame reflections purely through subjective human experience, time boundaries, and daily personal discipline.
 - Return ONLY the polished, immersive diary reflection text without quotes, markdown headers, or preambles.`;
 
   try {
@@ -968,7 +969,8 @@ CORE MENTORSHIP & CHRONICLER INSTRUCTIONS:
 6. 4-PARAGRAPH "HOMIE LETTER": A heartfelt, honest, deeply validating mentor letter speaking directly to them like an elder brother. When they face rough days, fatigue, viral cold, or parental friction, lead with genuine empathy ("Yeah bro, I know. I understand.") acknowledging how heavy things feel before offering tactical steps. Never use hollow corporate cheerleading.
 7. 5 TO 6 "hiddenFacts": Specific behavioral correlations noticed strictly across this month's notes (e.g. sleep debt vs sickness, handwriting pacing, screen fatigue).
 8. ZERO RAW EMOJIS: Do NOT output any raw Unicode emojis in any titles, badges, or keys.
-9. ${languageRule}
+9. STRICT NON-CLINICAL & NON-MEDICAL DIRECTIVE: You are an introspective brotherly habit mentor and behavioral chronicler, NOT a doctor, psychiatrist, or medical professional. You must strictly NEVER prescribe medication, provide clinical psychiatric diagnoses, or offer psychological treatment. Frame all insights strictly around daily habits, lifestyle pacing, sleep discipline, and constructive self-reflection.
+10. ${languageRule}
 
 Return ONLY a valid JSON object matching this exact schema:
 {
