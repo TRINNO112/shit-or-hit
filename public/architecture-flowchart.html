@@ -176,7 +176,7 @@ f2:['Google sign-in with Firestore backup','The save gives up waiting after 4 se
 f3:['Optional PIN protects diary text','cipherEngine handles the encryption','Without the PIN, stored text is unreadable'],
 f4:['Dial: hour, auto-jump to minute, then AM or PM','Local reminder schedule, no battery drain','Installed app works without internet'],
 f5:['Suites: navigation, calendar, analytics, dossier, studio, stickers, habits, settings, audio, isolation','Run any time with npm run audit','Log from terminal: node bin/verdict.js 5 "notes"'],
-f6:['Frontend: React 18, Vite 5, Tailwind, Framer Motion','Backend: Node and Express; AI: Gemini flash-lite','Cloud: Firebase Auth and Firestore'],
+f6:['Frontend: React 19, Vite 6, Tailwind v4, Framer Motion','Backend: Node and Express; AI: Gemini flash-lite','Cloud: Firebase Auth and Firestore'],
 a1:['Always first person: I, my, myself','Keeps 100% of names, facts and events','Mirrors pure English or Hinglish'],
 a2:['Auto Polish, Tactical Stoic Dossier, Root Causes, Action Bullets','Custom Lens: bring your own philosophy','Same diary, different way of seeing it'],
 a3:['Triggered by a Rough (1 star) or Down (2 star) rating','Diagnosis, 3 multiple-choice questions, 1 antidote','Built to avoid shame and denial'],
@@ -411,8 +411,8 @@ function guide(){if(mode!='tour')return;let a,b,p,al=1;
  else if(!TW&&cur<TOUR.length-1){a=byId[TOUR[cur]];b=byId[TOUR[cur+1]];p=(tNow*.3)%1;al=Math.pow(Math.sin(Math.PI*p),.6)}else return;
  const edge=E.find(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
  const edgeLen=edge?edge.len:700;
- const startP=Math.min(0.25,85/edgeLen);
- const stopP=Math.max(startP+0.1,1-92/edgeLen);
+ const startP=Math.min(0.2,62/edgeLen);
+ const stopP=Math.max(startP+0.05,1-56/edgeLen);
  const travelP=startP+Math.min(1,Math.max(0,p))*(stopP-startP);
  const R=route(a,b),q=R.pt(travelP);
  const t1=Math.max(0,travelP-0.02),t2=Math.min(1,travelP+0.02);
