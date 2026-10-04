@@ -2871,7 +2871,7 @@ export function getGuardianConfig() {
         guardianName: '',
         guardianRelationship: 'Parent / Guardian',
         guardianEmail: '',
-        guardianPhone: '',
+        resendApiKey: '',
         slumpThresholdDays: 2,
         dailyHardCap: GUARDIAN_MAX_DAILY_EMAILS,
         categories: {
@@ -2889,7 +2889,7 @@ export function getGuardianConfig() {
       guardianName: '',
       guardianRelationship: 'Parent / Guardian',
       guardianEmail: '',
-      guardianPhone: '',
+      resendApiKey: '',
       slumpThresholdDays: 2,
       categories: {
         severeIllness: true,
@@ -2914,7 +2914,7 @@ export function getGuardianConfig() {
       guardianName: '',
       guardianRelationship: 'Parent / Guardian',
       guardianEmail: '',
-      guardianPhone: '',
+      resendApiKey: '',
       slumpThresholdDays: 2,
       categories: {
         severeIllness: true,
@@ -3094,15 +3094,15 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
     const payload = {
       guardianName: guardianConfig.guardianName,
       guardianEmail: guardianConfig.guardianEmail,
-      guardianPhone: guardianConfig.guardianPhone,
       studentName: guardianConfig.studentName || user?.displayName || 'Student',
+      resendApiKey: guardianConfig.resendApiKey || (typeof window !== 'undefined' ? localStorage.getItem('daily_verdict_resend_api_key') || '' : ''),
       briefing: {
         ...briefing,
         isTest: Boolean(isTest)
       }
     };
 
-    const res = await fetch(`${API_BASE}/api/guardian-sos/dispatch`, {
+    const res = await fetch(`${API_BASE}/guardian-sos/dispatch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -3121,7 +3121,7 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      return { success: false, error: err.error || 'Server dispatch error', offlineFallback: true };
+      return { success: false, error: err.error || err.message || 'Server email dispatch failed', capReached: err.capReached };
     }
 
     const data = await res.json();
@@ -3133,13 +3133,10 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
     recordGuardianEmailDispatch();
     return { success: true, ...data, quota: getGuardianEmailQuota() };
   } catch (err) {
-    console.warn('Network dispatch failed; offline fallback active:', err);
-    // Record into local dispatch log so rate limit is respected even in offline mode
-    recordGuardianEmailDispatch();
+    console.warn('Network email dispatch failed:', err);
     return {
-      success: true,
-      offlineFallback: true,
-      timestamp: new Date().toISOString(),
+      success: false,
+      error: 'Backend email service offline or unreachable. Please ensure the server is running.',
       quota: getGuardianEmailQuota()
     };
   }

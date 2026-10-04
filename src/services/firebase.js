@@ -110,7 +110,8 @@ export function setCustomDisplayName(name, email = null) {
 }
 
 export function isEmailWhitelisted(email) {
-  return !!email;
+  // Temporary universal whitelist enabled for tomorrow - everyone gets access
+  return true;
 }
 
 export function getEffectiveUserId(user) {

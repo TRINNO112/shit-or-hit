@@ -247,18 +247,9 @@ export default function DetailedSettingsView({
       if (res.success) {
         soundEngine.playSuccess();
         triggerHaptic('success');
-        const subject = encodeURIComponent(`[Daily Verdict Triage] [TEST DISPATCH] Wellness Verification`);
-        const body = encodeURIComponent(
-          `Dear ${guardianNameInput.trim() || 'Parent / Guardian'},\n\n` +
-          `*** THIS IS A VERIFICATION TEST DISPATCH ***\n\n` +
-          `Your student has configured this address for emergency triage alerts under a strict hard cap of 2 emails/24h.\n\n` +
-          `Generated with zero-knowledge privacy protection (GCERT RBVP 2026-27).`
-        );
-        window.location.href = `mailto:${emailToSend}?subject=${subject}&body=${body}`;
-
         setGuardianFeedback({
           type: 'success',
-          message: `Verification test email sent to ${emailToSend}! (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)`
+          message: `Verification test email delivered automatically to ${emailToSend}! (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)`
         });
       } else if (res.capReached) {
         setGuardianFeedback({
@@ -874,7 +865,7 @@ export default function DetailedSettingsView({
               <strong>Rate Protection:</strong> Maximum <strong>2 emails per 24 hours</strong>. Dispatch locks automatically once quota is exhausted.
             </p>
             <p className="text-[11px] leading-relaxed text-neutral-700">
-              <strong>Delivery Engine:</strong> Powered by Resend API (<code className="bg-white px-1.5 py-0.5 border border-black rounded font-black text-black">RESEND_API_KEY</code>). Instant client-side mail fallback active if unconfigured.
+              <strong>Delivery Engine:</strong> Powered by Resend API (<code className="bg-white px-1.5 py-0.5 border border-black rounded font-black text-black">RESEND_API_KEY</code> on server). Automated, zero-device silent background dispatch.
             </p>
           </div>
 

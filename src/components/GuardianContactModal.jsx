@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HeartHandshake, 
   Send, 
-  Phone, 
   Mail, 
   User, 
   Sliders, 
@@ -13,7 +12,6 @@ import {
   Clock, 
   ShieldCheck, 
   X, 
-  MessageSquare,
   Sparkles,
   Zap,
   Activity,
@@ -81,26 +79,6 @@ export default function GuardianContactModal({
     setBriefing(regenerated);
   };
 
-  const handleWhatsAppDispatch = () => {
-    if (!briefing) return;
-    try { soundEngine.playClick(); } catch (e) {}
-
-    const text = `*${briefing.headline.toUpperCase()}*\n\n` +
-      `${briefing.salutation},\n\n` +
-      `*Observations:*\n` +
-      briefing.observations.map(o => `• ${o}`).join('\n') +
-      `\n\n*Suggested Support:*\n` +
-      briefing.suggestedActions.map((a, i) => `${i + 1}. ${a}`).join('\n') +
-      `\n\n_Generated via Daily Verdict Guardian SOS (GCERT Science Track)_`;
-
-    const cleanPhone = (config.guardianPhone || '').replace(/[^0-9]/g, '');
-    const url = cleanPhone 
-      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
-      : `https://wa.me/?text=${encodeURIComponent(text)}`;
-
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const handleEmailDispatch = async (isTest = false) => {
     if (!briefing) return;
     const currentQuota = getGuardianEmailQuota();
@@ -138,23 +116,7 @@ export default function GuardianContactModal({
       setDispatchStatus('success');
       try { soundEngine.playSuccess(); } catch (e) {}
       
-      // Also open local mail client as instant zero-setup fallback
-      if (targetEmail) {
-        const subject = encodeURIComponent(`[Daily Verdict Triage] ${isTest ? '[TEST DISPATCH] ' : ''}${briefing.headline}`);
-        const body = encodeURIComponent(
-          `${briefing.salutation},\n\n` +
-          `${isTest ? '*** THIS IS A VERIFICATION TEST DISPATCH ***\n\n' : ''}` +
-          `Category: ${briefing.categoryLabel || briefing.category}\n` +
-          (briefing.detectedKeywords?.length ? `Detected Indicators: ${briefing.detectedKeywords.join(', ')}\n\n` : '\n') +
-          `Observations:\n` +
-          briefing.observations.map(o => `- ${o}`).join('\n') +
-          `\n\nSuggested Restorative Actions:\n` +
-          briefing.suggestedActions.map((a, i) => `${i + 1}. ${a}`).join('\n') +
-          `\n\nGenerated with zero-knowledge privacy protection (GCERT RBVP 2026-27).`
-        );
-        window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
-      }
-      setStatusMessage(isTest ? `Test dispatch sent to ${targetEmail} (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)` : `Emergency briefing dispatched (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used).`);
+      setStatusMessage(isTest ? `Test dispatch delivered automatically via server to ${targetEmail} (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)` : `Emergency briefing dispatched automatically via server (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used).`);
       setTimeout(() => {
         setDispatchStatus('idle');
         setStatusMessage('');
@@ -371,15 +333,6 @@ export default function GuardianContactModal({
                 <div className="flex flex-col sm:flex-row items-stretch gap-2.5 pt-1">
                   <button
                     type="button"
-                    onClick={handleWhatsAppDispatch}
-                    className="flex-1 py-2.5 px-3 bg-[#00E599] hover:bg-[#00c985] text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px"
-                  >
-                    <MessageSquare className="w-4 h-4 stroke-[2.5]" />
-                    <span>WHATSAPP</span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => handleEmailDispatch(false)}
                     disabled={dispatchStatus === 'sending' || !quota.canSend}
                     title={quota.canSend ? 'Dispatch emergency triage email' : 'Hard cap reached: 2 emails sent in last 24h'}
@@ -544,32 +497,20 @@ export default function GuardianContactModal({
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-mono text-xs font-black uppercase text-black block">
-                      Target Email Address (or Your Test Email):
-                    </label>
-                    <input
-                      type="email"
-                      value={config.guardianEmail || ''}
-                      onChange={(e) => setConfig({ ...config, guardianEmail: e.target.value })}
-                      placeholder="parent@example.com (or test email)"
-                      className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#FDC800]"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-mono text-xs font-black uppercase text-black block">
-                      WhatsApp Phone:
-                    </label>
-                    <input
-                      type="tel"
-                      value={config.guardianPhone || ''}
-                      onChange={(e) => setConfig({ ...config, guardianPhone: e.target.value })}
-                      placeholder="+91 98765 43210"
-                      className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#FDC800]"
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <label className="font-mono text-xs font-black uppercase text-black block">
+                    Target Email Address (or Your Test Email):
+                  </label>
+                  <input
+                    type="email"
+                    value={config.guardianEmail || ''}
+                    onChange={(e) => setConfig({ ...config, guardianEmail: e.target.value })}
+                    placeholder="parent@example.com (or test email)"
+                    className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#FDC800]"
+                  />
+                  <p className="font-mono text-[10px] text-neutral-600">
+                    Dispatched automatically and silently in the background by the server with a strict 2 emails / 24h limit.
+                  </p>
                 </div>
 
                 <div className="space-y-1">

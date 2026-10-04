@@ -39,6 +39,12 @@ function safeLazy(importFn) {
   });
 }
 
+// Universal Whitelist & Cloud AI Access for Open Testing
+if (typeof window !== 'undefined') {
+  window.__ENABLE_CLOUD_AI__ = true;
+  window.__USER_IS_WHITELISTED__ = true;
+}
+
 // ⚡ Self-Healing Code Splitting for Heavy Modals & Sub-Views
 const CalendarModal = safeLazy(() => import('./components/CalendarModal'));
 const EditDayModal = safeLazy(() => import('./components/EditDayModal'));

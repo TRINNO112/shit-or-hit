@@ -444,19 +444,9 @@ export default function SettingsModal({
 
       if (res.success) {
         soundEngine.playSuccess();
-        // Also trigger mail client as fallback
-        const subject = encodeURIComponent(`[Daily Verdict Triage] [TEST DISPATCH] Wellness Verification`);
-        const body = encodeURIComponent(
-          `Dear ${guardianNameInput.trim() || 'Parent / Guardian'},\n\n` +
-          `*** THIS IS A VERIFICATION TEST DISPATCH ***\n\n` +
-          `Your student has configured this address for emergency triage alerts under a strict hard cap of 2 emails/24h.\n\n` +
-          `Generated with zero-knowledge privacy protection (GCERT RBVP 2026-27).`
-        );
-        window.location.href = `mailto:${emailToSend}?subject=${subject}&body=${body}`;
-
         setGuardianFeedback({
           type: 'success',
-          message: `Verification test email sent to ${emailToSend}! (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)`
+          message: `Verification test email delivered automatically to ${emailToSend}! (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)`
         });
       } else if (res.capReached) {
         setGuardianFeedback({
@@ -1195,7 +1185,7 @@ export default function SettingsModal({
                     <strong>Hard Cap Limit:</strong> Strictly limited to a maximum of <strong>2 automated emails per 24 hours</strong>. This prevents email inbox flooding and preserves API quota.
                   </p>
                   <p className="text-[11px] leading-relaxed text-neutral-700">
-                    <strong>Resend API Dispatch:</strong> Background automated delivery connects via <code className="bg-white px-1.5 py-0.5 border border-black rounded font-black text-black">RESEND_API_KEY</code> on the server. If not configured, the system automatically opens your device mail client with zero setup.
+                    <strong>Resend API Dispatch:</strong> Background automated delivery connects securely via <code className="bg-white px-1.5 py-0.5 border border-black rounded font-black text-black">RESEND_API_KEY</code> on your server. Automated, zero-device silent background dispatch.
                   </p>
                 </div>
 

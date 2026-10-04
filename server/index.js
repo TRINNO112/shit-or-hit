@@ -1233,7 +1233,7 @@ app.post('/api/entries/bulk', validateBody(bulkEntriesSchema), (req, res) => {
 // Strict Hard Cap: Max 2 emergency emails per 24-hour rolling window per target address
 const guardianDispatchLog = []; // [{ timestamp: number, email: string }]
 
-app.get('/api/guardian-sos/quota', (req, res) => {
+app.get(['/api/guardian-sos/quota', '/guardian-sos/quota', '/api/api/guardian-sos/quota'], (req, res) => {
   const email = (req.query.email || '').toLowerCase().trim();
   const now = Date.now();
   const windowMs = 24 * 60 * 60 * 1000;
@@ -1257,11 +1257,15 @@ app.get('/api/guardian-sos/quota', (req, res) => {
   });
 });
 
-app.post('/api/guardian-sos/dispatch', (req, res) => {
-  const { guardianName, guardianEmail, guardianPhone, studentName, briefing } = req.body || {};
+app.post(['/api/guardian-sos/dispatch', '/guardian-sos/dispatch', '/api/api/guardian-sos/dispatch'], async (req, res) => {
+  const { guardianName, guardianEmail, studentName, briefing, resendApiKey } = req.body || {};
   
   if (!briefing || typeof briefing !== 'object') {
     return res.status(400).json({ success: false, error: 'Invalid or missing briefing payload' });
+  }
+
+  if (!guardianEmail || !guardianEmail.includes('@')) {
+    return res.status(400).json({ success: false, error: 'Valid guardian email address is required' });
   }
 
   const now = Date.now();
@@ -1273,13 +1277,11 @@ app.post('/api/guardian-sos/dispatch', (req, res) => {
   }
 
   const normalizedEmail = (guardianEmail || '').toLowerCase().trim();
-  const recentCount = normalizedEmail 
-    ? guardianDispatchLog.filter(d => d.email === normalizedEmail).length 
-    : guardianDispatchLog.length;
+  const recentCount = guardianDispatchLog.filter(d => d.email === normalizedEmail).length;
 
   // 🛡️ Strict Server-Side Hard Cap: 2 emails / 24h maximum
   if (recentCount >= 2) {
-    logger.warn(`[Guardian SOS Throttled] Hard cap reached for "${normalizedEmail || 'default'}": ${recentCount}/2 emails in last 24h.`);
+    logger.warn(`[Guardian SOS Throttled] Hard cap reached for "${normalizedEmail}": ${recentCount}/2 emails in last 24h.`);
     return res.status(429).json({
       success: false,
       capReached: true,
@@ -1290,85 +1292,92 @@ app.post('/api/guardian-sos/dispatch', (req, res) => {
     });
   }
 
-  logger.info(`[Guardian SOS Dispatch] Student "${studentName || 'Student'}" alert generated for guardian "${guardianName || 'Guardian'}" (${guardianEmail || 'no-email'}, ${guardianPhone || 'no-phone'})`);
+  const activeResendKey = (resendApiKey || process.env.RESEND_API_KEY || '').trim();
 
-  // Optional background dispatch via Resend API if API key configured
-  let resendDispatched = false;
-  if (process.env.RESEND_API_KEY && guardianEmail) {
-    try {
-      const emailHtml = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #111; padding: 24px; border-radius: 12px; background: #FFFDF8;">
-          <div style="display: inline-block; background: #FDC800; border: 1px solid #000; padding: 4px 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 12px;">
-            ${briefing.categoryLabel || briefing.category || 'Triage Notice'}
-          </div>
-          <h2 style="margin-top: 0; color: #111;">${briefing.headline}</h2>
-          <p><strong>${briefing.salutation},</strong></p>
-          <div style="background: #FFF9EE; padding: 12px; border-left: 4px solid #FDC800; margin: 16px 0;">
-            <h4 style="margin: 0 0 8px;">Telemetry Observations:</h4>
-            ${(briefing.observations || []).map(o => `<p style="margin: 4px 0;">• ${o}</p>`).join('')}
-          </div>
-          <div style="background: #E8F5E9; padding: 12px; border-left: 4px solid #00E599; margin: 16px 0;">
-            <h4 style="margin: 0 0 8px;">Suggested Restorative Support:</h4>
-            ${(briefing.suggestedActions || []).map((a, i) => `<p style="margin: 4px 0;">${i + 1}. ${a}</p>`).join('')}
-          </div>
-          <p style="font-size: 11px; color: #777; margin-top: 24px; border-top: 1px dashed #ccc; padding-top: 8px;">
-            Daily Verdict Guardian Triage • Zero-Knowledge Student Privacy Protection (GCERT RBVP 2026-27)
-          </p>
-        </div>
-      `;
-
-      fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'Daily Verdict <onboarding@resend.dev>',
-          to: [guardianEmail],
-          subject: `[Daily Verdict Triage] ${briefing.headline}`,
-          html: emailHtml
-        })
-      })
-      .then(r => r.json())
-      .then(data => {
-        logger.info(`[Resend Email Dispatched] ID: ${data.id || 'ok'}`);
-      })
-      .catch(err => {
-        logger.warn(`[Resend Email Warning] ${err.message}`);
-      });
-      resendDispatched = true;
-    } catch (e) {
-      logger.warn(`[Resend Dispatch Init Error] ${e.message}`);
-    }
+  if (!activeResendKey) {
+    return res.status(400).json({
+      success: false,
+      error: 'RESEND_KEY_MISSING',
+      message: 'Resend API Key is required for automatic background email dispatch. Please enter your key in App Settings or configure RESEND_API_KEY in server environment.'
+    });
   }
 
-  // Record dispatch in sliding window
-  guardianDispatchLog.push({ timestamp: now, email: normalizedEmail });
+  logger.info(`[Guardian SOS Dispatch] Sending emergency briefing to "${normalizedEmail}" for student "${studentName || 'Student'}"`);
 
-  // Return formatted confirmation with dispatch receipt
-  res.json({
-    success: true,
-    message: resendDispatched ? 'Emergency email dispatched via Resend API and logged' : 'Guardian compassionate briefing generated and logged successfully',
-    dispatchedAt: new Date().toISOString(),
-    resendDispatched,
-    recipient: {
-      guardianName: guardianName || 'Parent / Guardian',
-      guardianEmail: guardianEmail || null,
-      guardianPhone: guardianPhone || null
-    },
-    briefingSummary: {
-      headline: briefing.headline || 'Wellness Check-In',
-      category: briefing.category || 'EQUILIBRIUM_CHECKIN',
-      avgScore: briefing.avgScore || '3.0',
-      lowDayStreak: briefing.lowDayStreak || 0
-    },
-    quota: {
-      sentCount: recentCount + 1,
-      maxAllowed: 2,
-      remaining: Math.max(0, 2 - (recentCount + 1))
+  try {
+    const emailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #111; padding: 24px; border-radius: 12px; background: #FFFDF8;">
+        <div style="display: inline-block; background: #FDC800; border: 1px solid #000; padding: 4px 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 12px;">
+          ${briefing.categoryLabel || briefing.category || 'Triage Notice'}
+        </div>
+        <h2 style="margin-top: 0; color: #111;">${briefing.headline}</h2>
+        <p><strong>${briefing.salutation},</strong></p>
+        <div style="background: #FFF9EE; padding: 12px; border-left: 4px solid #FDC800; margin: 16px 0;">
+          <h4 style="margin: 0 0 8px;">Telemetry Observations:</h4>
+          ${(briefing.observations || []).map(o => `<p style="margin: 4px 0;">• ${o}</p>`).join('')}
+        </div>
+        <div style="background: #E8F5E9; padding: 12px; border-left: 4px solid #00E599; margin: 16px 0;">
+          <h4 style="margin: 0 0 8px;">Suggested Restorative Support:</h4>
+          ${(briefing.suggestedActions || []).map((a, i) => `<p style="margin: 4px 0;">${i + 1}. ${a}</p>`).join('')}
+        </div>
+        <p style="font-size: 11px; color: #777; margin-top: 24px; border-top: 1px dashed #ccc; padding-top: 8px;">
+          Daily Verdict Guardian Triage • Zero-Knowledge Student Privacy Protection (GCERT RBVP 2026-27)
+        </p>
+      </div>
+    `;
+
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${activeResendKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Daily Verdict <onboarding@resend.dev>',
+        to: [normalizedEmail],
+        subject: `[Daily Verdict Triage] ${briefing.headline}`,
+        html: emailHtml
+      })
+    });
+
+    const resendData = await resendRes.json().catch(() => ({}));
+
+    if (!resendRes.ok) {
+      logger.warn(`[Resend Email Error] ${JSON.stringify(resendData)}`);
+      return res.status(400).json({
+        success: false,
+        error: resendData.message || 'Resend API rejected the email dispatch. Check your API key and recipient email.'
+      });
     }
-  });
+
+    logger.info(`[Resend Email Dispatched] ID: ${resendData.id || 'ok'}`);
+
+    // Commit to sliding window hard cap
+    guardianDispatchLog.push({ timestamp: now, email: normalizedEmail });
+
+    return res.json({
+      success: true,
+      message: 'Emergency briefing dispatched via Resend in the background',
+      dispatchedAt: new Date().toISOString(),
+      resendDispatched: true,
+      resendId: resendData.id,
+      recipient: {
+        guardianName: guardianName || 'Parent / Guardian',
+        guardianEmail: normalizedEmail
+      },
+      quota: {
+        sentCount: recentCount + 1,
+        maxAllowed: 2,
+        remaining: Math.max(0, 2 - (recentCount + 1))
+      }
+    });
+  } catch (err) {
+    logger.error(`[Resend Exception] ${err.message}`);
+    return res.status(500).json({
+      success: false,
+      error: `Failed to dispatch email: ${err.message}`
+    });
+  }
 });
 
 // Health check
