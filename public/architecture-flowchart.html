@@ -411,12 +411,18 @@ function guide(){if(mode!='tour')return;let a,b,p,al=1;
  else if(!TW&&cur<TOUR.length-1){a=byId[TOUR[cur]];b=byId[TOUR[cur+1]];p=(tNow*.3)%1;al=Math.pow(Math.sin(Math.PI*p),.6)}else return;
  const edge=E.find(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
  const edgeLen=edge?edge.len:700;
- const stopP=Math.max(0.1, 1 - 74/edgeLen);
- const effP=Math.min(p, stopP);
- const R=route(a,b),q=R.pt(effP),q2=R.pt(Math.min(stopP,effP+.02)),an=Math.atan2(q2[1]-q[1],q2[0]-q[0]);
- ctx.save();ctx.globalAlpha=.5*al;ctx.strokeStyle=C.r;ctx.lineWidth=12*lw;ctx.lineCap='round';ctx.beginPath();for(let i=0;i<=24;i++){const w=R.pt(effP*i/24);i?ctx.lineTo(w[0],w[1]):ctx.moveTo(w[0],w[1])}ctx.stroke();ctx.restore();
+ const startP=Math.min(0.25,85/edgeLen);
+ const stopP=Math.max(startP+0.1,1-92/edgeLen);
+ const travelP=startP+Math.min(1,Math.max(0,p))*(stopP-startP);
+ const R=route(a,b),q=R.pt(travelP);
+ const t1=Math.max(0,travelP-0.02),t2=Math.min(1,travelP+0.02);
+ const p1=R.pt(t1),p2=R.pt(t2);
+ const an=Math.atan2(p2[1]-p1[1],p2[0]-p1[0]);
+ ctx.save();ctx.globalAlpha=.5*al;ctx.strokeStyle=C.r;ctx.lineWidth=12*lw;ctx.lineCap='round';ctx.beginPath();
+ for(let i=0;i<=24;i++){const w=R.pt(startP+(travelP-startP)*i/24);i?ctx.lineTo(w[0],w[1]):ctx.moveTo(w[0],w[1])}
+ ctx.stroke();ctx.restore();
  bigArrow(q[0],q[1],an,al);
- if(!TW){const t='next: '+b.t;ctx.save();ctx.globalAlpha=al;ctx.font=F(700,28);ctx.textAlign='center';ctx.lineWidth=7;ctx.strokeStyle=PAPER;ctx.strokeText(t,q[0],q[1]-46);ctx.fillStyle=INK;ctx.fillText(t,q[0],q[1]-46);ctx.restore()}}
+ if(!TW){const mid=R.pt(0.5),t='next: '+b.t;ctx.save();ctx.globalAlpha=al;ctx.font=F(700,26);ctx.textAlign='center';ctx.lineWidth=7;ctx.strokeStyle=PAPER;ctx.strokeText(t,mid[0],mid[1]-46);ctx.fillStyle=INK;ctx.fillText(t,mid[0],mid[1]-46);ctx.restore()}}
 const mm=document.getElementById('mm'),mx=mm.getContext('2d'),MS=200/4330;
 mm.onclick=e=>{const r=mm.getBoundingClientRect(),wx=(e.clientX-r.left)/MS-650,wy=(e.clientY-r.top)/MS-20;let best=0,bd=1e9;N.forEach(n=>{const d=Math.hypot(n.x-wx,n.y-wy);if(d<bd){bd=d;best=n}});go(TI[best.id])};
 function drawMini(){mx.setTransform(1,0,0,1,0,0);mx.globalAlpha=1;mx.fillStyle='#FFFDF8';mx.fillRect(0,0,200,200);
