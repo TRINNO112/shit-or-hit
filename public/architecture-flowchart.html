@@ -360,10 +360,9 @@ const dotsEl=document.getElementById('dots'),hintEl=document.getElementById('hin
 TOUR.forEach((id,i)=>{const b=document.createElement('button');b.style.setProperty('--c',byId[id].col);b.title=byId[id].t;b.setAttribute('aria-label','Go to step '+(i+1)+': '+byId[id].t);b.onclick=()=>go(i);dotsEl.appendChild(b)});
 function hud(){[...dotsEl.children].forEach((b,i)=>{b.className=(mode=='tour'&&i===cur?'cur ':'')+(seen.has(i)?'seen':'')});
  hintEl.textContent=mode=='free'?'Free camera. Press an arrow key to rejoin the tour.':mode=='over'?'Overview. Press the Right arrow to resume your journey.':'Arrow keys steer the camera. Press ? for help.';
- pvB.disabled=mode=='tour'&&cur==0;auB.textContent='Auto-play: '+(auto?'on':'off')}
-document.getElementById('fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};document.getElementById('ai').onclick=()=>go(TI.a1);pvB.onclick=()=>step(-1);nxB.onclick=()=>step(1);document.getElementById('ov').onclick=overview;
-auB.onclick=()=>{auto=!auto;arriveAt=performance.now()/1000;if(auto&&mode!='tour')go(cur);hud()};
+document.getElementById('fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};document.getElementById('ai').onclick=()=>go(TI.a1);pvB.onclick=()=>step(-1);nxB.onclick=()=>step(1);document.getElementById('ov').onclick=overview;auB.onclick=()=>{auto=!auto;arriveAt=performance.now()/1000;if(auto&&mode!='tour')go(cur);hud()};
 function zoomAt(sx,sy,f){const k=Math.max(.2,Math.min(2.6,cam.k*f));f=k/cam.k;cam.x=sx-(sx-cam.x)*f;cam.y=sy-(sy-cam.y)*f;cam.k=k}
+const kind={u:'YOUR EVENING',ai:'AI MENTOR STEP',f:'QUIET PROTECTION'};
 const fxEl=noteEl.querySelector('.fx'),fxSum=fxEl.querySelector('summary'),fxBody=fxEl.querySelector('.fx-body');
 let fxAnim=null;
 fxSum.onclick=e=>{
