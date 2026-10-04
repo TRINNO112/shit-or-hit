@@ -402,9 +402,9 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   };
 
   const handleAddSlot = (preferredTime = null) => {
-    if (reminderTimes.length >= 5) {
+    if (reminderTimes.length >= 7) {
       soundEngine.playClick();
-      triggerSlotFeedback('warning', 'Maximum 5 reminder times reached. Remove one first.');
+      triggerSlotFeedback('warning', 'Maximum 7 reminder times reached. Remove one first.');
       return;
     }
     const timeToAdd = preferredTime || getNextAvailableTime(reminderTimes);
@@ -417,7 +417,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
     if (ok) {
       setReminderTimesState(getReminderTimes());
       soundEngine.playSuccess();
-      triggerSlotFeedback('success', `Added reminder at ${formatTime12h(timeToAdd)} (${reminderTimes.length + 1} of 5 active).`);
+      triggerSlotFeedback('success', `Added reminder at ${formatTime12h(timeToAdd)} (${reminderTimes.length + 1} of 7 active).`);
     }
   };
 
@@ -693,18 +693,18 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
           {/* Active 12-Hour Time Slots */}
           <div className="space-y-3 pt-1">
             <div className="flex items-center justify-between text-[11px] font-mono font-bold text-neutral-600">
-              <span className="uppercase">ACTIVE ALARM SLOTS ({reminderTimes.length} OF 5 CONFIGURED):</span>
+              <span className="uppercase">ACTIVE ALARM SLOTS ({reminderTimes.length} OF 7 CONFIGURED):</span>
               <span className="text-[10px] text-neutral-500">Tap time to edit directly</span>
             </div>
 
-            {/* Active 12-Hour Time Slots - Dynamic Space-Distributed Rack */}
-            <div className="flex flex-wrap gap-3 w-full">
+            {/* Active 12-Hour Time Slots - Responsive Grid Rack */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 w-full">
               {reminderTimes.map((timeStr, idx) => {
                 const { time, period } = splitTime12h(timeStr);
                 return (
                   <div
                     key={`${timeStr}-${idx}`}
-                    className="flex-1 min-w-200px sm:min-w-220px max-w-full bg-[#FFFDF5] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between gap-2.5 min-h-84px"
+                    className="bg-[#FFFDF5] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between gap-2.5 min-h-84px"
                   >
                     {/* Top Bar: Slot Badge & Delete */}
                     <div className="flex items-center justify-between">
@@ -751,15 +751,15 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 );
               })}
 
-              {/* Add Next Slot Button: Shares Row Space Dynamically */}
-              {reminderTimes.length < 5 && (() => {
+              {/* Add Next Slot Button */}
+              {reminderTimes.length < 7 && (() => {
                 const nextTimeStr = getNextAvailableTime(reminderTimes);
                 const { time, period } = splitTime12h(nextTimeStr);
                 return (
                   <button
                     type="button"
                     onClick={handleOpenRadialForNew}
-                    className="flex-1 min-w-200px sm:min-w-220px max-w-full bg-[#00E599]/15 hover:bg-[#00E599]/30 border-2 border-dashed hover:border-solid border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col items-center justify-center gap-1.5 min-h-[84px] cursor-pointer transition-all active:translate-x-px active:translate-y-px text-black group"
+                    className="bg-[#00E599]/15 hover:bg-[#00E599]/30 border-2 border-dashed hover:border-solid border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col items-center justify-center gap-1.5 min-h-84px cursor-pointer transition-all active:translate-x-px active:translate-y-px text-black group"
                     aria-label="Add next check-in alarm slot with radial clock"
                     title="Open mechanical radial dial to choose alarm time"
                   >

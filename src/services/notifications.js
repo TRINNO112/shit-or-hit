@@ -585,7 +585,7 @@ export function getReminderTimes() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.slice(0, 5); // Up to 5 multi-pump slots
+        return parsed.slice(0, 7); // Up to 7 multi-pump slots
       }
     }
     const legacy = localStorage.getItem(LEGACY_REMINDER_TIME_KEY);
@@ -599,7 +599,7 @@ export function setReminderTimes(timesList) {
   const sanitized = Array.isArray(timesList)
     ? [...new Set(timesList.filter(t => typeof t === 'string' && /^\d{1,2}:\d{2}$/.test(t)))]
         .sort()
-        .slice(0, 5)
+        .slice(0, 7)
     : ['21:00'];
   const finalTimes = sanitized.length > 0 ? sanitized : ['21:00'];
   localStorage.setItem(REMINDER_TIMES_KEY, JSON.stringify(finalTimes));
@@ -609,7 +609,7 @@ export function setReminderTimes(timesList) {
 
 export function addReminderTime(timeStr) {
   const current = getReminderTimes();
-  if (current.length >= 5) return false;
+  if (current.length >= 7) return false;
   if (!current.includes(timeStr)) {
     setReminderTimes([...current, timeStr]);
   }

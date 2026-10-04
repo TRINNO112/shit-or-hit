@@ -878,148 +878,74 @@ export default function DetailedSettingsView({
         </div>
 
         {/* ========================================================= */}
-        {/* 6. DATA TRANSFER & DEVICE SYNC SUITE */}
+        {/* 6. CONSOLIDATED DEVICE SYNC & DATA TRANSFER HUB */}
         {/* ========================================================= */}
         <div className="space-y-3">
           <div className="text-xs font-mono font-black uppercase text-neutral-700 px-1">
-            Data Transfer &amp; Device Synchronization
+            Device Sync &amp; Wireless Data Transfer
           </div>
 
-          {/* 6a. Device Sync (Google Account) */}
-          <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-2.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="p-4 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0 flex-1">
                 <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
                   <RefreshCw className="w-5 h-5 text-black stroke-[2.5]" />
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4 className="font-display font-black text-sm uppercase text-black">
-                      Device Sync
+                      Device Sync &amp; Data Transfer Hub
                     </h4>
                     {user?.email ? (
                       <span className="px-1.5 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
-                        GOOGLE ACCOUNT ACTIVE
+                        CLOUD SYNC ACTIVE
                       </span>
                     ) : (
-                      <span className="px-1.5 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 shrink-0">
-                        SIGN-IN REQUIRED
+                      <span className="px-1.5 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
+                        OFFLINE P2P / GUEST
                       </span>
                     )}
-                  </div>
-                  <p className="text-[11px] font-mono text-neutral-600">
-                    {user?.email
-                      ? `Syncs seamlessly with your phone & PC linked to ${user.email}. No QR codes needed.`
-                      : 'Connect multiple devices under your Google account for automatic 1-tap synchronization.'}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  setP2PModalSection('sync');
-                  setIsP2PModalOpen(true);
-                }}
-                className="py-1.5 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
-              >
-                <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>{user?.email ? 'OPEN DEVICE SYNC' : 'SETUP SYNC (GOOGLE)'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 6b. Data Transfer (Direct P2P Beam) */}
-          <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-2.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-xl bg-[#FDC800] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                  <Radio className="w-5 h-5 text-black stroke-[2.5]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-display font-black text-sm uppercase text-black">
-                      Data Transfer (Direct Beam)
-                    </h4>
-                    <span className="px-1.5 py-0.5 bg-neutral-100 border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
-                      GUEST FRIENDLY • ZERO CLOUD
-                    </span>
-                  </div>
-                  <p className="text-[11px] font-mono text-neutral-600">
-                    One-time wireless transfer between phone &amp; PC using QR codes. Works for everyone without signing in.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  setP2PModalSection('transfer');
-                  setIsP2PModalOpen(true);
-                }}
-                className="py-1.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
-              >
-                <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>TRANSFER DATA NOW</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 6c. Mutual Device Safety Net */}
-          <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[2px_2px_0px_#000000] space-y-2.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-xl bg-[#FFF5C2] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                  <Shield className="w-5 h-5 text-black stroke-[2.5]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-display font-black text-sm uppercase text-black">
-                      Mutual Device Safety Net
-                    </h4>
-                    {peerBackupMeta && peerBackupMeta.hasPayload ? (
-                      <span className="px-1.5 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
+                    {peerBackupMeta && peerBackupMeta.hasPayload && (
+                      <span className="px-1.5 py-0.5 bg-[#FDC800] border border-black rounded text-[9px] font-mono font-black uppercase text-black shrink-0">
                         BACKUP GUARD ACTIVE
                       </span>
-                    ) : (
-                      <span className="px-1.5 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-700 shrink-0">
-                        NOT PAIRED YET
-                      </span>
                     )}
                   </div>
-                  <p className="text-[11px] font-mono text-neutral-600">
-                    {peerBackupMeta && peerBackupMeta.hasPayload
-                      ? `Holds a safety backup of ${peerBackupMeta.entryCount} entries from "${peerBackupMeta.peerDeviceName}".`
-                      : 'Stores a safety backup of your secondary device. If one device loses data, the other restores it.'}
+                  <p className="text-[11px] font-mono text-neutral-600 leading-relaxed">
+                    {user?.email
+                      ? `Automatic Google sync linked to ${user.email} plus instant offline QR Beam &amp; device safety net.`
+                      : 'Wireless 1-tap transfer between phone &amp; PC, local peer safety net, and optional cloud sync.'}
                   </p>
                 </div>
               </div>
 
-              {peerBackupMeta && peerBackupMeta.hasPayload ? (
-                <button
-                  type="button"
-                  onClick={handleRestoreFromPeer}
-                  className="py-1.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>RESTORE FROM PAIRED DEVICE</span>
-                </button>
-              ) : (
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
                     try { soundEngine.playClick(); } catch (e) {}
-                    setP2PModalSection('transfer');
+                    setP2PModalSection('sync');
                     setIsP2PModalOpen(true);
                   }}
-                  className="py-1.5 px-3 bg-neutral-100 hover:bg-neutral-200 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5"
+                  className="py-2 px-3.5 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5"
                 >
-                  <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>TRANSFER &amp; PAIR NOW</span>
+                  <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>OPEN SYNC &amp; TRANSFER HUB</span>
                 </button>
-              )}
+
+                {peerBackupMeta && peerBackupMeta.hasPayload && (
+                  <button
+                    type="button"
+                    onClick={handleRestoreFromPeer}
+                    className="py-2 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                    title="Restore latest safety stash from paired peer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>RESTORE PEER BACKUP</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {peerRestoreMsg && (
