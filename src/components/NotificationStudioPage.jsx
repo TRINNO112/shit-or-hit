@@ -704,7 +704,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                 return (
                   <div
                     key={`${timeStr}-${idx}`}
-                    className="flex-1 min-w-[200px] sm:min-w-[220px] max-w-full bg-[#FFFDF5] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between gap-2.5 min-h-[84px]"
+                    className="flex-1 min-w-200px sm:min-w-220px max-w-full bg-[#FFFDF5] border-2 border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col justify-between gap-2.5 min-h-84px"
                   >
                     {/* Top Bar: Slot Badge & Delete */}
                     <div className="flex items-center justify-between">
@@ -759,7 +759,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                   <button
                     type="button"
                     onClick={handleOpenRadialForNew}
-                    className="flex-1 min-w-[200px] sm:min-w-[220px] max-w-full bg-[#00E599]/15 hover:bg-[#00E599]/30 border-2 border-dashed hover:border-solid border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col items-center justify-center gap-1.5 min-h-[84px] cursor-pointer transition-all active:translate-x-px active:translate-y-px text-black group"
+                    className="flex-1 min-w-200px sm:min-w-220px max-w-full bg-[#00E599]/15 hover:bg-[#00E599]/30 border-2 border-dashed hover:border-solid border-black rounded-2xl p-3 shadow-[2px_2px_0px_#000] flex flex-col items-center justify-center gap-1.5 min-h-[84px] cursor-pointer transition-all active:translate-x-px active:translate-y-px text-black group"
                     aria-label="Add next check-in alarm slot with radial clock"
                     title="Open mechanical radial dial to choose alarm time"
                   >

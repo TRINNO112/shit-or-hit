@@ -799,23 +799,6 @@ export default function MobileAppView({
           </div>
         </div>
 
-        {/* Academic Presentation Mode Protocol Pill */}
-        {isAcademicMode && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onOpenArchitectureProjection) onOpenArchitectureProjection();
-            }}
-            className="flex items-center gap-1 px-2 py-1 rounded-xl bg-black text-[#FDC800] border-2 border-black font-mono text-[9px] sm:text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer shrink-0"
-            title="Open Interactive Architecture Blueprint Projector"
-          >
-            <Sparkles className="w-3 h-3 text-[#00E599] stroke-[2.5]" />
-            <span className="hidden xs:inline">ACADEMIC PROTOCOL</span>
-            <span className="xs:hidden">ACADEMIC</span>
-          </button>
-        )}
-
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Day Streak Pill */}
           <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-[#00E599] border-2 border-black font-mono text-[10px] sm:text-xs font-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
@@ -2060,6 +2043,9 @@ export default function MobileAppView({
               })}
               onOpenStoragePage={onOpenStoragePage || (() => {
                 if (typeof window !== 'undefined') window.location.href = '/?view=storage';
+              })}
+              onOpenArchitecturePage={onOpenArchitecturePage || onOpenArchitectureProjection || (() => {
+                if (typeof window !== 'undefined') window.location.href = '/?view=architecture';
               })}
               onOpenNotificationStudio={onOpenNotificationStudio}
               onOpenRehab={onOpenRehab}

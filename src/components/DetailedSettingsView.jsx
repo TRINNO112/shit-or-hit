@@ -72,6 +72,7 @@ export default function DetailedSettingsView({
   onOpenPrivacyPage,
   onOpenErasurePage,
   onOpenStoragePage,
+  onOpenArchitecturePage,
   onOpenExportStudio,
   onOpenRehab,
   onOpenGuardianContact = null,
@@ -1106,6 +1107,29 @@ export default function DetailedSettingsView({
               </button>
             </div>
           )}
+
+          {/* GCERT RBVP 2026-27 Architecture Flowchart Portal Launcher */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                try { soundEngine.playClick(); } catch (e) {}
+                if (onOpenArchitecturePage) {
+                  onOpenArchitecturePage();
+                  onClose();
+                } else if (typeof window !== 'undefined') {
+                  window.location.href = '/?view=architecture';
+                }
+              }}
+              className="w-full py-2.5 px-3 bg-black hover:bg-neutral-800 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-[#00E599] flex items-center justify-between cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:translate-x-px"
+            >
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 stroke-[2.5] text-[#00E599]" />
+                <span>GCERT RBVP Architecture Flowchart</span>
+              </div>
+              <ArrowRight className="w-4 h-4 stroke-[2.5] text-[#00E599]" />
+            </button>
+          </div>
 
           {/* Stored Data Files Inspector Toggle */}
           <div className="pt-1 border-t border-black/15">

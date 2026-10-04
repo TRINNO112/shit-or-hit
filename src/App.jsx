@@ -65,7 +65,7 @@ const StorageSovereigntyPage = safeLazy(() => import('./components/StorageSovere
 const NotificationStudioPage = safeLazy(() => import('./components/NotificationStudioPage'));
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
-const ArchitectureProjectionModal = safeLazy(() => import('./components/ArchitectureProjectionModal'));
+const ArchitectureProjectionPage = safeLazy(() => import('./components/ArchitectureProjectionPage'));
 const GuardianContactModal = safeLazy(() => import('./components/GuardianContactModal'));
 import { soundEngine } from './services/soundEngine';
 import {
@@ -207,6 +207,12 @@ export default function App() {
     const view = params.get('view') || params.get('preview') || '';
     return view === 'notifications' || view === 'notification-studio' || window.location.hash === '#notifications' || window.location.hash === '#notification-studio';
   });
+  const [showArchitecturePage, setShowArchitecturePage] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') || params.get('preview') || '';
+    return view === 'architecture' || view === 'blueprint' || view === 'flowchart' || window.location.hash === '#architecture' || window.location.hash === '#blueprint' || window.location.hash === '#flowchart';
+  });
   const [pendingDeletion, setPendingDeletion] = useState(() => getPendingDeletionStatus());
   const [showNotFound, setShowNotFound] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -256,7 +262,6 @@ export default function App() {
   const [isStickerVaultOpen, setIsStickerVaultOpen] = useState(() => previewModal === 'stickers');
   const [isExportStudioOpen, setIsExportStudioOpen] = useState(() => previewModal === 'export');
   const [isRehabModalOpen, setIsRehabModalOpen] = useState(false);
-  const [isArchitectureProjectionOpen, setIsArchitectureProjectionOpen] = useState(false);
   const [isGuardianContactOpen, setIsGuardianContactOpen] = useState(false);
   const [isAcademicMode, setIsAcademicMode] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -284,10 +289,10 @@ export default function App() {
         e.preventDefault();
         toggleAcademicMode();
       }
-      // Ctrl + Shift + A: Architecture Blueprint Projection Modal
+      // Ctrl + Shift + A: Architecture Blueprint Flowchart Projection Page
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
         e.preventDefault();
-        setIsArchitectureProjectionOpen(prev => !prev);
+        setShowArchitecturePage(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleGlobalHotkeys);
@@ -531,6 +536,7 @@ export default function App() {
       setShowPrivacy(v === 'privacy' || window.location.hash === '#privacy');
       setShowErasure(v === 'erasure' || window.location.hash === '#erasure');
       setShowStoragePage(v === 'storage' || window.location.hash === '#storage');
+      setShowArchitecturePage(v === 'architecture' || v === 'blueprint' || v === 'flowchart' || window.location.hash === '#architecture' || window.location.hash === '#blueprint' || window.location.hash === '#flowchart');
       setPendingDeletion(getPendingDeletionStatus());
       if (window.location.search.includes('view=recovery') || window.location.search.includes('test=recovery')) {
         setIsMotivationalOpen(true);
@@ -1331,6 +1337,21 @@ export default function App() {
     );
   }
 
+  if (showArchitecturePage) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[#FFFDF8] flex items-center justify-center font-mono text-sm font-black">ENTERING ARCHITECTURE BLUEPRINT...</div>}>
+          <ArchitectureProjectionPage
+            onBack={() => {
+              setShowArchitecturePage(false);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   if (isInitialLoading) {
     const currentTab = isMobile
       ? (typeof window !== 'undefined' ? (localStorage.getItem('daily_verdict_mobile_active_tab') || 'log') : 'log')
@@ -1447,7 +1468,8 @@ export default function App() {
             onOpenErasurePage={() => setShowErasure(true)}
             onOpenStoragePage={() => setShowStoragePage(true)}
             onOpenWallpaperEngine={() => handleOpenWallpaper(null, todayStr)}
-            onOpenArchitectureProjection={() => setIsArchitectureProjectionOpen(true)}
+            onOpenArchitectureProjection={() => setShowArchitecturePage(true)}
+            onOpenArchitecturePage={() => setShowArchitecturePage(true)}
             onOpenSync={(section = 'sync') => {
               setP2PSyncSection(section);
               setIsP2PSyncOpen(true);
@@ -1694,6 +1716,10 @@ export default function App() {
                 onOpenPrivacyPage={() => setShowPrivacy(true)}
                 onOpenErasurePage={() => setShowErasure(true)}
                 onOpenStoragePage={() => setShowStoragePage(true)}
+                onOpenArchitecturePage={() => {
+                  setIsSettingsOpen(false);
+                  setShowArchitecturePage(true);
+                }}
                 onOpenExportStudio={() => setIsExportStudioOpen(true)}
               />
             )}
@@ -1834,15 +1860,6 @@ export default function App() {
                   declineSanctuaryInvitation();
                   setIsSanctuaryInvitationOpen(false);
                 }}
-              />
-            )}
-
-            {/* 🎓 GCERT RBVP Science Fair Animated Sketch Architecture Projector */}
-            {isArchitectureProjectionOpen && (
-              <ArchitectureProjectionModal
-                key="architecture-projection-modal"
-                isOpen={isArchitectureProjectionOpen}
-                onClose={() => setIsArchitectureProjectionOpen(false)}
               />
             )}
 
