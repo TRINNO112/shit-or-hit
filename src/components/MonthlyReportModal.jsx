@@ -41,7 +41,6 @@ import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 import confetti from 'canvas-confetti';
 import HitRateInfoModal from './HitRateInfoModal';
-import DominoChainInspectorModal from './DominoChainInspectorModal';
 
 export default function MonthlyReportModal({ 
   isOpen, 
@@ -60,7 +59,6 @@ export default function MonthlyReportModal({
   const [activeDayNote, setActiveDayNote] = useState(null);
   const [activeStoryChapter, setActiveStoryChapter] = useState('all');
   const [showHitRateInfo, setShowHitRateInfo] = useState(false);
-  const [inspectingChainIndex, setInspectingChainIndex] = useState(null);
 
   const scrollContainerRef = useRef(null);
 
@@ -574,18 +572,6 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                   </div>
                                 )}
                               </div>
-
-                              <button
-                                onClick={() => {
-                                  setInspectingChainIndex(cIdx);
-                                  soundEngine?.playSelect?.();
-                                }}
-                                className="px-2.5 py-1.5 rounded-lg border-2 border-black bg-[#FDC800] hover:bg-[#ebd000] active:translate-x-px active:translate-y-px text-black font-mono text-[9px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] transition-all self-start sm:self-auto shrink-0 w-full sm:w-auto"
-                                title="Open full architectural domino map"
-                              >
-                                <GitBranch className="w-3.5 h-3.5 stroke-[2.5]" />
-                                <span>DOMINO EFFECT INSPECT ({chainNodes.length} STAGES)</span>
-                              </button>
                             </div>
 
                             {/* Domino Nodes Sequence - Continuous Connected Domino Stream with Directional Arrows */}
@@ -1275,16 +1261,6 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         <HitRateInfoModal
           isOpen={showHitRateInfo}
           onClose={() => setShowHitRateInfo(false)}
-        />
-
-        {/* Behavioral Domino Chain Forensic Inspector Dialog */}
-        <DominoChainInspectorModal
-          isOpen={inspectingChainIndex !== null}
-          onClose={() => setInspectingChainIndex(null)}
-          chain={report?.dominoChains?.[inspectingChainIndex]}
-          allChains={report?.dominoChains || []}
-          currentIndex={inspectingChainIndex || 0}
-          onSelectChainIndex={(idx) => setInspectingChainIndex(idx)}
         />
       </>
   );
