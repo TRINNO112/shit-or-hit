@@ -957,258 +957,247 @@ export default function DetailedSettingsView({
         </div>
 
         {/* ========================================================= */}
-        {/* 7. DEVICE STORAGE, PROTECTION & STORED DATA FILES INSPECTOR */}
+        {/* 7. CONSOLIDATED STORAGE SOVEREIGNTY, DATABASE & TIME MACHINE SNAPSHOTS */}
         {/* ========================================================= */}
-        <div className="p-3.5 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-3">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-[#FFF5C2] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
-                <HardDrive className="w-5 h-5 text-black stroke-[2.5]" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-display font-black text-sm uppercase text-black">
-                    Device Storage &amp; Protection
-                  </h4>
-                  {storageTierState.persisted ? (
-                    <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
-                      PROTECTED STORAGE
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-800">
-                      STANDARD BROWSER STORAGE
-                    </span>
-                  )}
+        <div className="space-y-3">
+          <div className="text-xs font-mono font-black uppercase text-neutral-700 px-1">
+            Data Sovereignty, Storage &amp; Time Machine Snapshots
+          </div>
+
+          <div className="p-4 bg-white border-2 border-black rounded-2xl shadow-[3px_3px_0px_#000000] space-y-4">
+            {/* Top row: Device storage quota & status */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[#FFF5C2] border-2 border-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#000000]">
+                  <HardDrive className="w-5 h-5 text-black stroke-[2.5]" />
                 </div>
-                <p className="text-[11px] font-mono text-neutral-600">
-                  {storageTierState.quotaMb > 0 
-                    ? `Device Space: ~${storageTierState.usageKb} KB used of ~${storageTierState.quotaMb} MB available`
-                    : 'Your diary entries are preserved securely on your local device.'}
-                </p>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-display font-black text-sm uppercase text-black">
+                      Device Storage &amp; Data Sovereignty
+                    </h4>
+                    {storageTierState.persisted ? (
+                      <span className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase text-black">
+                        PROTECTED STORAGE
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-neutral-200 border border-black rounded text-[9px] font-mono font-black uppercase text-neutral-800">
+                        STANDARD BROWSER STORAGE
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-600 leading-relaxed">
+                    {storageTierState.quotaMb > 0 
+                      ? `Device Space: ~${storageTierState.usageKb} KB used of ~${storageTierState.quotaMb} MB available. 100% offline sovereign data.`
+                      : 'Your diary entries are preserved securely on your local device with zero mandatory cloud tracking.'}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Dedicated Storage Sovereignty Portal Launcher */}
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                try { soundEngine.playClick(); } catch (e) {}
-                if (onOpenStoragePage) {
-                  onOpenStoragePage();
-                  onClose();
-                } else if (typeof window !== 'undefined') {
-                  window.location.href = '/?view=storage';
-                }
-              }}
-              className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:translate-x-px"
-            >
-              <div className="flex items-center gap-2">
-                <FolderSync className="w-4 h-4 stroke-[2.5]" />
-                <span>Open Storage Protection &amp; File Mirror Portal</span>
-              </div>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-            </button>
-          </div>
-
-          {/* Multi-Format Data Export Studio Launcher */}
-          {onOpenExportStudio && (
-            <div className="pt-1">
+            {/* Quick Action Buttons: File Mirror + Export Studio / Download JSON */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => {
                   try { soundEngine.playClick(); } catch (e) {}
-                  onOpenExportStudio();
-                  onClose();
+                  if (onOpenStoragePage) {
+                    onOpenStoragePage();
+                    onClose();
+                  } else if (typeof window !== 'undefined') {
+                    window.location.href = '/?view=storage';
+                  }
                 }}
-                className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:translate-x-px"
+                className="py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px"
               >
                 <div className="flex items-center gap-2">
-                  <Download className="w-4 h-4 stroke-[2.5]" />
-                  <span>Data Export Studio (CSV, Digest &amp; JSON)</span>
+                  <FolderSync className="w-4 h-4 stroke-[2.5]" />
+                  <span>Storage &amp; File Mirror Portal</span>
                 </div>
-                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
-            </div>
-          )}
 
-
-          {/* Stored Data Files Inspector Toggle */}
-          <div className="pt-1 border-t border-black/15">
-            <button
-              type="button"
-              onClick={handleToggleInspector}
-              className="w-full py-2 px-3 bg-neutral-100 hover:bg-neutral-200 border border-black rounded-xl font-mono text-[11px] font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[1px_1px_0px_#000000] active:translate-x-px"
-            >
-              <div className="flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-black stroke-[2.5]" />
-                <span>{isInspectorOpen ? 'Hide Stored Data Files' : 'View Stored Data Files (Memory & Space)'}</span>
-              </div>
-              <span className="text-[10px] font-mono text-neutral-500">
-                {isInspectorOpen ? '▲ COLLAPSE' : '▼ EXPAND'}
-              </span>
-            </button>
-
-            {/* Expandable Inspector Panel */}
-            <AnimatePresence>
-              {isInspectorOpen && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-2 p-3 bg-[#FFFDF8] border-2 border-black rounded-xl space-y-2.5 shadow-[2px_2px_0px_#000000] overflow-hidden"
+              {onOpenExportStudio ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    try { soundEngine.playClick(); } catch (e) {}
+                    onOpenExportStudio();
+                    onClose();
+                  }}
+                  className="py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-mono">
-                    <div className="p-2 bg-white border border-black/20 rounded-lg">
-                      <span className="text-neutral-500 font-bold block">STORAGE SANDBOX:</span>
-                      <span className="font-black text-black">Browser Origin Sandbox (IndexedDB/localStorage)</span>
-                    </div>
-                    <div className="p-2 bg-white border border-black/20 rounded-lg">
-                      <span className="text-neutral-500 font-bold block">INTERNAL STORAGE KEY:</span>
-                      <code className="font-black text-black">{getDbStorageKey(user)}</code>
-                    </div>
-                    <div className="p-2 bg-white border border-black/20 rounded-lg">
-                      <span className="text-neutral-500 font-bold block">TOTAL STORED DAYS:</span>
-                      <span className="font-black text-black">
-                        {Object.keys(rawDbData?.entries || {}).length} recorded days
-                      </span>
-                    </div>
-                    <div className="p-2 bg-white border border-black/20 rounded-lg">
-                      <span className="text-neutral-500 font-bold block">ENCRYPTION STATE:</span>
-                      <span className="font-black text-black">
-                        {isVaultPinActive() ? 'AES-256 GCM (PIN Vault Active)' : 'Standard Readable JSON (Unencrypted)'}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Download className="w-4 h-4 stroke-[2.5]" />
+                    <span>Export Studio (CSV/TXT)</span>
                   </div>
-
-                  <div className="p-2 bg-amber-50 border border-amber-300 rounded-lg font-mono text-[10px] text-amber-950 font-bold leading-relaxed">
-                    <strong>Browser Sandbox Security:</strong> For user safety, web browsers prevent web pages from viewing private OS filesystem folders (e.g. C:\Users\... or Android root). All entries are held in your browser's dedicated storage sandbox. Click Copy or Export to save directly to your physical hard drive.
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    try { soundEngine.playClick(); } catch (e) {}
+                    exportDatabaseBackup(user);
+                    triggerHaptic('success');
+                  }}
+                  className="py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px"
+                >
+                  <div className="flex items-center gap-2">
+                    <Download className="w-4 h-4 stroke-[2.5]" />
+                    <span>Download JSON DB</span>
                   </div>
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
+              )}
+            </div>
 
-                  {/* Raw JSON Viewport */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] font-black uppercase text-neutral-600">
-                        Live Raw JSON Database:
-                      </span>
+            {/* Time Machine Rolling Snapshots Box */}
+            <div className="p-3 bg-amber-50/70 border border-black/40 rounded-xl space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <History className="w-4 h-4 text-black stroke-[2.5]" />
+                  <h5 className="font-display font-black text-xs uppercase text-black">Time Machine Snapshots</h5>
+                </div>
+                <span className="font-mono text-[9px] bg-black text-[#FDC800] px-2 py-0.5 rounded font-black uppercase">
+                  3 ROLLING COPIES
+                </span>
+              </div>
+              <p className="text-[10px] font-mono text-neutral-700">
+                Automated rolling snapshots generated on every diary write. Restore safely if accidental edits occur.
+              </p>
+
+              {safetyMeta && (
+                <div className="p-2 bg-white border border-black rounded-lg flex items-center justify-between">
+                  <div>
+                    <span className="font-mono text-[10px] font-black uppercase text-amber-900 block">Active Safety Stash</span>
+                    <span className="font-mono text-[8px] text-neutral-500 block">Pre-restore rollback safeguard</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRevertSafetyStash}
+                    className="px-2.5 py-1 bg-[#FDC800] border border-black rounded-lg font-mono text-[9px] font-black uppercase cursor-pointer"
+                  >
+                    Revert Stash
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                {snapshots.map(snap => (
+                  <div key={snap.id} className="p-2 bg-white border border-black/25 rounded-lg flex items-center justify-between">
+                    <div>
+                      <span className="font-mono text-[10px] font-black block">Snapshot #{snap.id} ({snap.entryCount} entries)</span>
+                      <span className="font-mono text-[8px] text-neutral-500 block">{new Date(snap.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div className="flex gap-1.5">
                       <button
                         type="button"
-                        onClick={handleCopyRawDb}
-                        className="px-2 py-0.5 bg-white hover:bg-neutral-100 border border-black rounded font-mono text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer"
+                        onClick={() => handlePreviewSnapshot(snap.id)}
+                        className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 border border-black rounded text-[9px] font-mono font-bold cursor-pointer"
                       >
-                        <Copy className="w-3 h-3 stroke-[2.5]" />
-                        <span>{copiedDb ? 'COPIED!' : 'COPY JSON'}</span>
+                        Preview
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreSnapshot(snap.id)}
+                        className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase cursor-pointer"
+                      >
+                        Restore
                       </button>
                     </div>
-                    <pre className="p-2.5 bg-neutral-900 text-[#00E599] border-2 border-black rounded-xl font-mono text-[10px] max-h-40 overflow-y-auto overflow-x-auto select-all leading-tight">
-                      {rawDbData ? JSON.stringify(rawDbData, null, 2) : 'Loading records...'}
-                    </pre>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 8. USER DATA & SOVEREIGNTY (Standard Non-Collapsible Cards) */}
-        {/* ========================================================= */}
-        {/* Card A: Time Machine Snapshots (Restore Data) */}
-        <div className="bg-amber-50/85 border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-black stroke-[2.5]" />
-              <h4 className="font-display font-black text-sm uppercase text-black">Time Machine Snapshots</h4>
-            </div>
-            <span className="font-mono text-[9px] bg-black text-[#FDC800] px-2 py-0.5 rounded font-black uppercase">
-              3 ROLLING COPIES
-            </span>
-          </div>
-          <p className="text-[11px] font-mono text-neutral-700">
-            Automated defensive rolling snapshots created on every write. Restore data safely at any time.
-          </p>
-
-          {safetyMeta && (
-            <div className="p-2.5 bg-white border border-black rounded-xl flex items-center justify-between">
-              <div>
-                <span className="font-mono text-[10px] font-black uppercase text-amber-900 block">Active Safety Stash</span>
-                <span className="font-mono text-[9px] text-neutral-500 block">Pre-restore fallback point</span>
+                ))}
               </div>
+            </div>
+
+            {/* Stored Data Files Inspector Toggle & Viewer */}
+            <div className="pt-1 border-t border-black/15">
               <button
                 type="button"
-                onClick={handleRevertSafetyStash}
-                className="px-2.5 py-1 bg-[#FDC800] border border-black rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer"
+                onClick={handleToggleInspector}
+                className="w-full py-2 px-3 bg-neutral-100 hover:bg-neutral-200 border border-black rounded-xl font-mono text-[11px] font-black uppercase text-black flex items-center justify-between cursor-pointer transition-all shadow-[1px_1px_0px_#000000] active:translate-x-px"
               >
-                Revert Stash
-              </button>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            {snapshots.map(snap => (
-              <div key={snap.id} className="p-2.5 bg-white border border-black/30 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="font-mono text-[10px] font-black block">Snapshot #{snap.id} ({snap.entryCount} entries)</span>
-                  <span className="font-mono text-[8px] text-neutral-500 block">{new Date(snap.timestamp).toLocaleTimeString()}</span>
+                <div className="flex items-center gap-1.5">
+                  <Database className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                  <span>{isInspectorOpen ? 'Hide Stored Data Files' : 'View Stored Data Files (Memory & Space)'}</span>
                 </div>
-                <div className="flex gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handlePreviewSnapshot(snap.id)}
-                    className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 border border-black rounded text-[9px] font-mono font-bold cursor-pointer"
-                  >
-                    Preview
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRestoreSnapshot(snap.id)}
-                    className="px-2 py-0.5 bg-[#00E599] border border-black rounded text-[9px] font-mono font-black uppercase cursor-pointer"
-                  >
-                    Restore
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Card B: Download & Export Data */}
-        <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Download className="w-4 h-4 text-black stroke-[2.5]" />
-              <h4 className="font-display font-black text-sm uppercase text-black">Download &amp; Export Data</h4>
-            </div>
-          </div>
-          <p className="text-[11px] font-mono text-neutral-600">
-            Export your complete diary entries anytime without vendor lock-in.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                try { soundEngine.playClick(); } catch (e) {}
-                exportDatabaseBackup(user);
-                triggerHaptic('success');
-              }}
-              className="flex-1 py-2 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
-            >
-              Download JSON DB
-            </button>
-            {onOpenExportStudio && (
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  onOpenExportStudio();
-                  onClose();
-                }}
-                className="flex-1 py-2 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer"
-              >
-                Export Studio (CSV/TXT)
+                <span className="text-[10px] font-mono text-neutral-500">
+                  {isInspectorOpen ? '▲ COLLAPSE' : '▼ EXPAND'}
+                </span>
               </button>
-            )}
+
+              <AnimatePresence>
+                {isInspectorOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 p-3 bg-[#FFFDF8] border-2 border-black rounded-xl space-y-2.5 shadow-[2px_2px_0px_#000000] overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-mono">
+                      <div className="p-2 bg-white border border-black/20 rounded-lg">
+                        <span className="text-neutral-500 font-bold block">STORAGE SANDBOX:</span>
+                        <span className="font-black text-black">Browser Origin Sandbox (IndexedDB/localStorage)</span>
+                      </div>
+                      <div className="p-2 bg-white border border-black/20 rounded-lg">
+                        <span className="text-neutral-500 font-bold block">INTERNAL STORAGE KEY:</span>
+                        <code className="font-black text-black">{getDbStorageKey(user)}</code>
+                      </div>
+                      <div className="p-2 bg-white border border-black/20 rounded-lg">
+                        <span className="text-neutral-500 font-bold block">TOTAL STORED DAYS:</span>
+                        <span className="font-black text-black">
+                          {Object.keys(rawDbData?.entries || {}).length} recorded days
+                        </span>
+                      </div>
+                      <div className="p-2 bg-white border border-black/20 rounded-lg">
+                        <span className="text-neutral-500 font-bold block">ENCRYPTION STATE:</span>
+                        <span className="font-black text-black">
+                          {isVaultPinActive() ? 'AES-256 GCM (PIN Vault Active)' : 'Standard Readable JSON (Unencrypted)'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-2 bg-amber-50 border border-amber-300 rounded-lg font-mono text-[10px] text-amber-950 font-bold leading-relaxed">
+                      <strong>Browser Sandbox Security:</strong> For user safety, web browsers prevent web pages from viewing private OS filesystem folders (e.g. C:\Users\... or Android root). All entries are held in your browser's dedicated storage sandbox. Click Copy or Export to save directly to your physical hard drive.
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[10px] font-black uppercase text-neutral-600">
+                          Live Raw JSON Database:
+                        </span>
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              try { soundEngine.playClick(); } catch (e) {}
+                              exportDatabaseBackup(user);
+                              triggerHaptic('success');
+                            }}
+                            className="px-2 py-0.5 bg-[#FFFDF0] hover:bg-neutral-100 border border-black rounded font-mono text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer"
+                          >
+                            <Download className="w-3 h-3 stroke-[2.5]" />
+                            <span>DOWNLOAD JSON</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCopyRawDb}
+                            className="px-2 py-0.5 bg-white hover:bg-neutral-100 border border-black rounded font-mono text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3 stroke-[2.5]" />
+                            <span>{copiedDb ? 'COPIED!' : 'COPY JSON'}</span>
+                          </button>
+                        </div>
+                      </div>
+                      <pre className="p-2.5 bg-neutral-900 text-[#00E599] border-2 border-black rounded-xl font-mono text-[10px] max-h-40 overflow-y-auto overflow-x-auto select-all leading-tight">
+                        {rawDbData ? JSON.stringify(rawDbData, null, 2) : 'Loading records...'}
+                      </pre>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 

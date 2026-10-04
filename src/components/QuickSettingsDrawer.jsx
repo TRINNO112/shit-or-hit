@@ -5,11 +5,9 @@ import {
   X, 
   Bell, 
   Layers, 
-  Volume2, 
-  VolumeX, 
-  ShieldCheck, 
-  ArrowRight, 
-  Sliders, 
+  ShieldCheck,
+  ArrowRight,
+  Sliders,
   RotateCcw,
   Target,
   RefreshCw,
@@ -46,15 +44,6 @@ export default function QuickSettingsDrawer({
   const [sphereMode, setSphereMode] = useState(() => isSphereModeEnabled());
   const [spheresList, setSpheresList] = useState(() => getSphereConfig());
   const [newDomainName, setNewDomainName] = useState('');
-
-  // Sensory State (Tactile Audio only, Mood Banner purged for mobile)
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    try {
-      return soundEngine.isSoundEnabled ? soundEngine.isSoundEnabled() : false;
-    } catch (e) {
-      return false;
-    }
-  });
 
   // Data Transfer & Peer Backup State
   const [peerBackupMeta, setPeerBackupMeta] = useState(() => getMutualPeerBackupMeta());
@@ -167,16 +156,6 @@ export default function QuickSettingsDrawer({
     }
   };
 
-  const handleToggleSound = () => {
-    const next = !soundEnabled;
-    setSoundEnabled(next);
-    try {
-      if (soundEngine.setSoundEnabled) soundEngine.setSoundEnabled(next);
-      if (next) soundEngine.playClick();
-    } catch (e) {}
-    triggerHaptic('light');
-    if (onSettingsChanged) onSettingsChanged();
-  };
 
   return (
     <AnimatePresence>
@@ -472,7 +451,7 @@ export default function QuickSettingsDrawer({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                <div className="pt-0.5">
                   <button
                     type="button"
                     onClick={() => {
@@ -485,53 +464,9 @@ export default function QuickSettingsDrawer({
                     className="w-full py-2.5 px-3 bg-[#00E599] hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:translate-x-px transition-all"
                   >
                     <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>DEVICE SYNC</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      try { soundEngine.playClick(); } catch (e) {}
-                      onClose();
-                      if (onOpenSync) onOpenSync('transfer');
-                      else if (typeof window !== 'undefined' && window.__openP2PSync) window.__openP2PSync('transfer');
-                      else if (typeof window !== 'undefined') window.location.href = '/?view=sync';
-                    }}
-                    className="w-full py-2.5 px-3 bg-[#FDC800] hover:bg-yellow-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:translate-x-px transition-all"
-                  >
-                    <Radio className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>DATA TRANSFER</span>
+                    <span>OPEN SYNC &amp; TRANSFER HUB</span>
                   </button>
                 </div>
-              </div>
-
-              {/* E. TACTILE WEB AUDIO (Clean Full-Width Box, Mood Banner Purged) */}
-              <div className={`p-3.5 rounded-2xl border-2 border-black shadow-[2px_2px_0px_#000000] flex items-center justify-between transition-all ${
-                soundEnabled ? 'bg-[#00E599]/20' : 'bg-white'
-              }`}>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-white border-2 border-black flex items-center justify-center shrink-0">
-                    {soundEnabled ? (
-                      <Volume2 className="w-4 h-4 text-black stroke-[2.5]" />
-                    ) : (
-                      <VolumeX className="w-4 h-4 text-neutral-400 stroke-[2.5]" />
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-display font-black text-xs uppercase block text-black">Tactile Web Audio</span>
-                    <span className="font-mono text-[9px] text-neutral-500 block">Mechanical click &amp; chime oscillators</span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleToggleSound}
-                  className={`px-3.5 py-1.5 rounded-xl border-2 border-black font-mono text-xs font-black uppercase transition-all shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:scale-95 ${
-                    soundEnabled ? 'bg-[#00E599] text-black' : 'bg-neutral-100 text-neutral-600'
-                  }`}
-                >
-                  {soundEnabled ? 'ON' : 'MUTED'}
-                </button>
               </div>
 
               {/* E. AES-256 PIN VAULT (Fully Integrated & Self-Contained) */}
