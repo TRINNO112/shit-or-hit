@@ -946,14 +946,14 @@ CORE MENTORSHIP & CHRONICLER INSTRUCTIONS:
 2. BAN ALL CORPORATE & PSEUDO-MILITARY ANIME JARGON: NEVER use hollow clichés like "relentless crucible", "morning reveille", "academic gauntlet", "valley of sluggish momentum", or "veteran's ledger". Talk about real life: eye strain, spectacles, handwriting pace, homework backlogs, late-night PC access, family chores, sibling tension, sleep debt, and physical exhaustion.
 3. DOMINO CHAINS & CAUSAL CHAIN MANDATE (CRITICAL):
    Human life does NOT happen in isolated daily bubbles. A bad Friday was almost always born on Tuesday night.
-   Analyze the dates carefully to identify 1 to 3 explicit "dominoChains" (causal ripple effects where an event, sleep debt, or physical friction on Day 1 triggered compounding friction on Day 2 and Day 3).
+   Analyze the dates carefully to identify 1 to 3 explicit "dominoChains" (causal ripple effects where an event, sleep debt, or physical friction on Day 1 triggered compounding friction on Day 2, Day 3, Day 4, up to Day 6).
    For each domino chain provide:
    - chainTitle: A sharp, insightful title (e.g. "The Circadian Deficit & Classroom Drag Cascade")
    - rootTrigger: The specific date and underlying habit/event that set the dominoes in motion
-   - links: An array of 2 to 4 chained days showing the progression:
+   - links: An array of 2 to 6 chained days (or as many consecutive linked days as the causal chain naturally spans without artificially cutting off after 3 cards):
        - date: "YYYY-MM-DD"
        - rating: number (1 to 5)
-       - stage: "ROOT TRIGGER" | "RIPPLE EFFECT" | "COMPOUNDING DRAG" | "COLLAPSE / RECOVERY"
+       - stage: "ROOT TRIGGER" | "RIPPLE EFFECT" | "COMPOUNDING DRAG" | "ACCELERATION" | "CRITICAL FRICTION" | "COLLAPSE / RECOVERY" | "RESOLUTION"
        - summary: A clear, plain-spoken sentence explaining what happened on this day and how it directly caused or accelerated the friction on subsequent days.
    - circuitBreaker: The single, highest-leverage, practical action that could have stopped this domino chain from cascading.
 4. CHRONOLOGICAL STORYLINE CHRONICLE:

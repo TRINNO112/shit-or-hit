@@ -41,6 +41,7 @@ import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 import confetti from 'canvas-confetti';
 import HitRateInfoModal from './HitRateInfoModal';
+import DominoChainInspectorModal from './DominoChainInspectorModal';
 
 export default function MonthlyReportModal({ 
   isOpen, 
@@ -59,6 +60,7 @@ export default function MonthlyReportModal({
   const [activeDayNote, setActiveDayNote] = useState(null);
   const [activeStoryChapter, setActiveStoryChapter] = useState('all');
   const [showHitRateInfo, setShowHitRateInfo] = useState(false);
+  const [inspectingChainIndex, setInspectingChainIndex] = useState(null);
 
   const scrollContainerRef = useRef(null);
 
@@ -551,94 +553,155 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                     {/* Chains List */}
                     <div className="space-y-4">
-                      {report.dominoChains.map((chain, cIdx) => (
-                        <div 
-                          key={cIdx}
-                          className="p-3 sm:p-4 rounded-xl border-2 border-black bg-[#FFFDF8] shadow-[2px_2px_0px_#000000] sm:shadow-[3px_3px_0px_#000000] space-y-3"
-                        >
-                          {/* Chain Title & Friction Tag */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-                            <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black wrap-break-word leading-snug">
-                              {chain.title || chain.chainTitle}
-                            </h5>
-                            {(chain.frictionPattern || chain.rootTrigger) && (
-                              <span className="self-start sm:self-auto max-w-full px-2 py-0.5 rounded bg-black text-white font-mono text-[9px] font-bold uppercase truncate sm:whitespace-normal">
-                                {chain.frictionPattern || chain.rootTrigger}
+                      {report.dominoChains.map((chain, cIdx) => {
+                        const chainNodes = chain.nodes || chain.links || [];
+                        return (
+                          <div 
+                            key={cIdx}
+                            className="p-3 sm:p-4 rounded-xl border-2 border-black bg-[#FFFDF8] shadow-[2px_2px_0px_#000000] sm:shadow-[3px_3px_0px_#000000] space-y-3"
+                          >
+                            {/* Chain Title & Friction Tag & Inspector Trigger */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <h5 className="font-display font-black text-xs sm:text-sm uppercase text-black wrap-break-word leading-snug">
+                                  {chain.title || chain.chainTitle}
+                                </h5>
+                                {(chain.frictionPattern || chain.rootTrigger) && (
+                                  <div className="mt-1">
+                                    <span className="inline-block max-w-full px-2 py-0.5 rounded bg-black text-white font-mono text-[9px] font-bold uppercase truncate sm:whitespace-normal">
+                                      TRIGGER: {chain.frictionPattern || chain.rootTrigger}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  setInspectingChainIndex(cIdx);
+                                  soundEngine?.playSelect?.();
+                                }}
+                                className="px-2.5 py-1.5 rounded-lg border-2 border-black bg-[#FDC800] hover:bg-[#ebd000] active:translate-x-px active:translate-y-px text-black font-mono text-[9px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[1.5px_1.5px_0px_#000000] transition-all self-start sm:self-auto shrink-0 w-full sm:w-auto"
+                                title="Open dedicated multi-stage chain inspector dialog"
+                              >
+                                <GitBranch className="w-3.5 h-3.5 stroke-[2.5]" />
+                                <span>INSPECT CHAIN ({chainNodes.length} STAGES)</span>
+                              </button>
+                            </div>
+
+                            {/* Small Screen Helper Callout */}
+                            <div className="flex sm:hidden items-center justify-between px-2.5 py-1.5 rounded-lg bg-neutral-100 border border-black/20 text-[9px] font-mono">
+                              <span className="font-bold text-neutral-600">
+                                {chainNodes.length} stages linked • swipe horizontal
                               </span>
-                            )}
-                          </div>
+                              <button
+                                onClick={() => {
+                                  setInspectingChainIndex(cIdx);
+                                  soundEngine?.playSelect?.();
+                                }}
+                                className="font-black text-black underline uppercase"
+                              >
+                                DIALOG VIEW ➔
+                              </button>
+                            </div>
 
-                          {/* Domino Nodes Sequence */}
-                          <div className="flex flex-col md:flex-row items-stretch gap-2.5 overflow-x-auto py-1">
-                            {(chain.nodes || chain.links || []).map((node, nIdx, arr) => {
-                              const isLast = nIdx === arr.length - 1;
-                              const stageColors = {
-                                'ROOT TRIGGER': 'bg-[#FF4D4D] text-white',
-                                'RIPPLE EFFECT': 'bg-[#FF8A00] text-black',
-                                'COMPOUNDING DRAG': 'bg-[#FDC800] text-black',
-                                'COLLAPSE / RESET': 'bg-black text-[#FF4D4D]',
-                                'COLLAPSE / RECOVERY': 'bg-black text-[#FF4D4D]'
-                              };
-                              const badgeClass = stageColors[node.stage] || 'bg-neutral-800 text-white';
+                            {/* Domino Nodes Sequence - Seamless Multi-card (2-6+ cards) Flow */}
+                            <div className="flex items-stretch gap-2.5 overflow-x-auto py-1.5 px-0.5 scrollbar-thin">
+                              {chainNodes.map((node, nIdx, arr) => {
+                                const isLast = nIdx === arr.length - 1;
+                                const stageColors = {
+                                  'ROOT TRIGGER': 'bg-[#FF4D4D] text-white',
+                                  'RIPPLE EFFECT': 'bg-[#FF8A00] text-black',
+                                  'COMPOUNDING DRAG': 'bg-[#FDC800] text-black',
+                                  'ACCELERATION': 'bg-[#FF8A00] text-black',
+                                  'CRITICAL FRICTION': 'bg-[#FF4D4D] text-white',
+                                  'COLLAPSE / RESET': 'bg-black text-[#FF4D4D]',
+                                  'COLLAPSE / RECOVERY': 'bg-black text-[#FF4D4D]',
+                                  'RESOLUTION': 'bg-[#00E599] text-black',
+                                  'RECOVERY / RESOLUTION': 'bg-[#00E599] text-black'
+                                };
+                                const badgeClass = stageColors[node.stage] || 'bg-neutral-800 text-white';
 
-                              return (
-                                <React.Fragment key={nIdx}>
-                                  <div className="w-full min-w-0 md:min-w-52.5 md:max-w-[320px] md:flex-1 p-3 rounded-lg border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5">
-                                    <div className="flex items-center justify-between gap-1">
-                                      <span className={`text-[8px] font-mono font-black px-1.5 py-0.5 rounded border border-black/30 uppercase ${badgeClass}`}>
-                                        {node.stage || `STAGE ${nIdx + 1}`}
-                                      </span>
-                                      <div className="flex items-center gap-1 shrink-0">
-                                        <span className="font-mono text-[9px] font-black text-neutral-500">
-                                          {node.date}
-                                        </span>
-                                        {node.rating && (
-                                          <span className={`text-[9px] font-mono font-black px-1 rounded border border-black ${
-                                            node.rating >= 4 ? 'bg-[#00E599] text-black' : node.rating === 3 ? 'bg-neutral-200 text-black' : 'bg-[#FF4D4D] text-white'
-                                          }`}>
-                                            {node.rating}★
+                                return (
+                                  <React.Fragment key={nIdx}>
+                                    <div 
+                                      onClick={() => {
+                                        setInspectingChainIndex(cIdx);
+                                        soundEngine?.playSelect?.();
+                                      }}
+                                      className="w-[230px] sm:w-[260px] min-w-[210px] max-w-[280px] shrink-0 p-3 rounded-lg border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5 cursor-pointer hover:border-neutral-900 hover:shadow-[3px_3px_0px_#000000] transition-all active:translate-x-px active:translate-y-px"
+                                      title="Click to inspect this stage in detail"
+                                    >
+                                      <div className="flex items-center justify-between gap-1">
+                                        <div className="flex items-center gap-1">
+                                          <span className="w-4 h-4 rounded-full bg-black text-white font-mono text-[8px] font-black flex items-center justify-center">
+                                            {nIdx + 1}
+                                          </span>
+                                          <span className={`text-[8px] font-mono font-black px-1.5 py-0.5 rounded border border-black/30 uppercase ${badgeClass}`}>
+                                            {node.stage || `STAGE ${nIdx + 1}`}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 shrink-0">
+                                          <span className="font-mono text-[9px] font-black text-neutral-500">
+                                            {node.date}
+                                          </span>
+                                          {node.rating && (
+                                            <span className={`text-[9px] font-mono font-black px-1 rounded border border-black ${
+                                              node.rating >= 4 ? 'bg-[#00E599] text-black' : node.rating === 3 ? 'bg-neutral-200 text-black' : 'bg-[#FF4D4D] text-white'
+                                            }`}>
+                                              {node.rating}★
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-snug wrap-break-word">
+                                        {node.summary}
+                                      </p>
+                                      <div className="flex items-center justify-between gap-1 pt-1 border-t border-black/10">
+                                        {node.frictionTag ? (
+                                          <span className="text-[8px] font-mono font-black text-neutral-500 uppercase truncate">
+                                            TAG: {node.frictionTag}
+                                          </span>
+                                        ) : (
+                                          <span className="text-[8px] font-mono font-bold text-neutral-400 uppercase">
+                                            STAGE {nIdx + 1} OF {arr.length}
                                           </span>
                                         )}
+                                        <span className="text-[8px] font-mono font-black text-neutral-500 hover:text-black uppercase">
+                                          INSPECT ➔
+                                        </span>
                                       </div>
                                     </div>
-                                    <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-snug wrap-break-word">
-                                      {node.summary}
-                                    </p>
-                                    {node.frictionTag && (
-                                      <span className="text-[8px] font-mono font-black text-neutral-500 uppercase truncate">
-                                        TAG: {node.frictionTag}
-                                      </span>
+                                    {!isLast && (
+                                      <div className="flex items-center justify-center px-0.5 shrink-0 self-center">
+                                        <div className="w-6 h-6 rounded-full bg-neutral-100 border border-black flex items-center justify-center shadow-[1px_1px_0px_#000000]">
+                                          <ArrowRight className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+                                        </div>
+                                      </div>
                                     )}
-                                  </div>
-                                  {!isLast && (
-                                    <div className="flex items-center justify-center py-1 md:py-0 md:px-0.5 shrink-0 self-center">
-                                      <ArrowRight className="hidden md:block w-4 h-4 text-black stroke-3" />
-                                      <ArrowDown className="block md:hidden w-4 h-4 text-black stroke-3" />
-                                    </div>
-                                  )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </div>
-
-                          {/* Tactical Circuit Breaker */}
-                          {chain.circuitBreaker && (
-                            <div className="p-3 sm:p-4 rounded-lg border-2 border-[#00A86B] bg-[#00E599]/15 flex items-start gap-2.5 sm:gap-3">
-                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-[#00E599] border border-black flex items-center justify-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#000000]">
-                                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black stroke-[2.5]" />
-                              </div>
-                              <div className="space-y-0.5 text-left min-w-0">
-                                <span className="block text-[9px] font-mono font-black uppercase text-[#007038] tracking-wider leading-tight">
-                                  TACTICAL CIRCUIT BREAKER • HOW TO SEVER THIS CHAIN
-                                </span>
-                                <p className="text-xs sm:text-sm font-mono font-bold text-neutral-900 leading-relaxed wrap-break-word mt-0.5">
-                                  {chain.circuitBreaker}
-                                </p>
-                              </div>
+                                  </React.Fragment>
+                                );
+                              })}
                             </div>
-                          )}
-                        </div>
-                      ))}
+
+                            {/* Tactical Circuit Breaker */}
+                            {chain.circuitBreaker && (
+                              <div className="p-3 sm:p-4 rounded-lg border-2 border-[#00A86B] bg-[#00E599]/15 flex items-start gap-2.5 sm:gap-3">
+                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-[#00E599] border border-black flex items-center justify-center shrink-0 mt-0.5 shadow-[1px_1px_0px_#000000]">
+                                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black stroke-[2.5]" />
+                                </div>
+                                <div className="space-y-0.5 text-left min-w-0">
+                                  <span className="block text-[9px] font-mono font-black uppercase text-[#007038] tracking-wider leading-tight">
+                                    TACTICAL CIRCUIT BREAKER • HOW TO SEVER THIS CHAIN
+                                  </span>
+                                  <p className="text-xs sm:text-sm font-mono font-bold text-neutral-900 leading-relaxed wrap-break-word mt-0.5">
+                                    {chain.circuitBreaker}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1234,6 +1297,16 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
         <HitRateInfoModal
           isOpen={showHitRateInfo}
           onClose={() => setShowHitRateInfo(false)}
+        />
+
+        {/* Behavioral Domino Chain Forensic Inspector Dialog */}
+        <DominoChainInspectorModal
+          isOpen={inspectingChainIndex !== null}
+          onClose={() => setInspectingChainIndex(null)}
+          chain={report?.dominoChains?.[inspectingChainIndex]}
+          allChains={report?.dominoChains || []}
+          currentIndex={inspectingChainIndex || 0}
+          onSelectChainIndex={(idx) => setInspectingChainIndex(idx)}
         />
       </>
   );
