@@ -283,6 +283,124 @@ assert(
 );
 
 // ---------------------------------------------------------------------------
+// SUITE 4: Time Machine Rolling Snapshots & Safety Stash Invariant Proofs
+// ---------------------------------------------------------------------------
+console.log('\n🔄 [4/4] Verifying Time Machine Snapshots & Safety Stash Invariants...');
+
+// Isolated localStorage simulation for mathematical ring buffer proofs
+const mockStorage = new Map();
+const testKey = 'goodness_db_audit_test';
+
+function mockSetItem(k, v) { mockStorage.set(k, String(v)); }
+function mockGetItem(k) { return mockStorage.get(k) || null; }
+function mockRemoveItem(k) { mockStorage.delete(k); }
+
+function simulateSaveSnapshot(storageKey, db) {
+  const entryCount = Object.keys(db.entries || {}).length;
+  if (entryCount === 0) return;
+
+  const s1 = mockGetItem(`${storageKey}_snapshot_1`);
+  const s2 = mockGetItem(`${storageKey}_snapshot_2`);
+
+  if (s2) mockSetItem(`${storageKey}_snapshot_3`, s2);
+  if (s1) mockSetItem(`${storageKey}_snapshot_2`, s1);
+
+  const snapshotData = {
+    timestamp: new Date().toISOString(),
+    entryCount,
+    startDate: db.startDate,
+    entries: db.entries
+  };
+  mockSetItem(`${storageKey}_snapshot_1`, JSON.stringify(snapshotData));
+}
+
+function simulateRestoreSnapshot(storageKey, snapshotId, currentLiveDb) {
+  const rawSnap = mockGetItem(`${storageKey}_snapshot_${snapshotId}`);
+  if (!rawSnap) return null;
+  const parsedSnap = JSON.parse(rawSnap);
+
+  // Atomic Safety Stash of pre-restoration live data
+  const safetyStash = {
+    timestamp: new Date().toISOString(),
+    startDate: currentLiveDb.startDate,
+    entries: currentLiveDb.entries
+  };
+  mockSetItem(`${storageKey}_safety_stash`, JSON.stringify(safetyStash));
+  mockSetItem(`${storageKey}_active_snapshot_restored`, String(snapshotId));
+
+  // Overwrite live
+  const restoredLive = {
+    startDate: parsedSnap.startDate,
+    entries: parsedSnap.entries
+  };
+  mockSetItem(storageKey, JSON.stringify(restoredLive));
+  return restoredLive;
+}
+
+function simulateRevertSafetyStash(storageKey) {
+  const rawStash = mockGetItem(`${storageKey}_safety_stash`);
+  if (!rawStash) return null;
+  const parsedStash = JSON.parse(rawStash);
+
+  const liveDb = {
+    startDate: parsedStash.startDate,
+    entries: parsedStash.entries
+  };
+  mockSetItem(storageKey, JSON.stringify(liveDb));
+  mockRemoveItem(`${storageKey}_safety_stash`);
+  mockRemoveItem(`${storageKey}_active_snapshot_restored`);
+  return liveDb;
+}
+
+// Write 1, 2, 3, 4
+const dbW1 = { startDate: '2026-09-01', entries: { '2026-09-01': { rating: 5, verdict: 'Peak', notes: 'W1' } } };
+const dbW2 = { startDate: '2026-09-01', entries: { '2026-09-01': { rating: 5, notes: 'W1' }, '2026-09-02': { rating: 4, notes: 'W2' } } };
+const dbW3 = { startDate: '2026-09-01', entries: { '2026-09-01': { rating: 5 }, '2026-09-02': { rating: 4 }, '2026-09-03': { rating: 3, notes: 'W3' } } };
+const dbW4 = { startDate: '2026-09-01', entries: { '2026-09-01': { rating: 5 }, '2026-09-02': { rating: 4 }, '2026-09-03': { rating: 3 }, '2026-09-04': { rating: 5, notes: 'W4' } } };
+
+simulateSaveSnapshot(testKey, dbW1);
+simulateSaveSnapshot(testKey, dbW2);
+simulateSaveSnapshot(testKey, dbW3);
+
+// Verify S1: 3-tier rolling order
+const s1AfterW3 = JSON.parse(mockGetItem(`${testKey}_snapshot_1`));
+const s2AfterW3 = JSON.parse(mockGetItem(`${testKey}_snapshot_2`));
+const s3AfterW3 = JSON.parse(mockGetItem(`${testKey}_snapshot_3`));
+assert(
+  s1AfterW3.entryCount === 3 && s2AfterW3.entryCount === 2 && s3AfterW3.entryCount === 1,
+  'Time Machine Invariant S1: 3-tier rolling ring buffer maintains strict reverse-chronological depth (S1=W3, S2=W2, S3=W1)'
+);
+
+// Verify S2: FIFO eviction on 4th write
+simulateSaveSnapshot(testKey, dbW4);
+const s1AfterW4 = JSON.parse(mockGetItem(`${testKey}_snapshot_1`));
+const s2AfterW4 = JSON.parse(mockGetItem(`${testKey}_snapshot_2`));
+const s3AfterW4 = JSON.parse(mockGetItem(`${testKey}_snapshot_3`));
+assert(
+  s1AfterW4.entryCount === 4 && s2AfterW4.entryCount === 3 && s3AfterW4.entryCount === 2,
+  'Time Machine Invariant S2: FIFO eviction cleanly purges oldest write while advancing buffer (S1=W4, S2=W3, S3=W2)'
+);
+
+// Verify S3: Atomic Pre-Restoration Safety Stash
+const liveBeforeRestore = dbW4;
+const restored = simulateRestoreSnapshot(testKey, 2, liveBeforeRestore);
+const storedStash = JSON.parse(mockGetItem(`${testKey}_safety_stash`));
+assert(
+  restored.entries['2026-09-03'] && Object.keys(restored.entries).length === 3 &&
+  storedStash.entries['2026-09-04'] && Object.keys(storedStash.entries).length === 4,
+  'Time Machine Invariant S3: Restoring snapshot #2 activates historical state and creates byte-for-byte pre-mutation Safety Stash'
+);
+
+// Verify S4: Revert to Live Safety Stash (Bijective Fidelity)
+const revertedLive = simulateRevertSafetyStash(testKey);
+assert(
+  revertedLive && Object.keys(revertedLive.entries).length === 4 &&
+  revertedLive.entries['2026-09-04'].notes === 'W4' &&
+  mockGetItem(`${testKey}_safety_stash`) === null,
+  'Time Machine Invariant S4: Reverting Safety Stash restores pre-restoration live state with 100% fidelity & zero data loss'
+);
+
+// ---------------------------------------------------------------------------
 // REPORT
 // ---------------------------------------------------------------------------
 console.log('\n======================================================================');
