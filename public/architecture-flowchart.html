@@ -475,7 +475,10 @@ function frame(ms){const t=ms/1000,dt=Math.min(.05,t-last);last=t;if(W!==innerWi
 fit();hud();requestAnimationFrame(frame);setTimeout(()=>go(0),700);
 if(document.fonts)document.fonts.load('700 30px Caveat');
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' || ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a'))) {
+  const isClose = e.key === 'Escape' ||
+    (e.altKey && (e.key === 'a' || e.key === 'A')) ||
+    ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'm' || e.key === 'M' || e.key === 'f' || e.key === 'F' || e.key === 'a' || e.key === 'A'));
+  if (isClose) {
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({ type: 'CLOSE_FLOWCHART' }, '*');
     }

@@ -1239,11 +1239,63 @@ app.post('/api/guardian-sos/dispatch', (req, res) => {
 
   logger.info(`[Guardian SOS Dispatch] Student "${studentName || 'Student'}" alert generated for guardian "${guardianName || 'Guardian'}" (${guardianEmail || 'no-email'}, ${guardianPhone || 'no-phone'})`);
 
+  // Optional background dispatch via Resend API if API key configured
+  let resendDispatched = false;
+  if (process.env.RESEND_API_KEY && guardianEmail) {
+    try {
+      const emailHtml = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #111; padding: 24px; border-radius: 12px; background: #FFFDF8;">
+          <div style="display: inline-block; background: #FDC800; border: 1px solid #000; padding: 4px 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 12px;">
+            ${briefing.categoryLabel || briefing.category || 'Triage Notice'}
+          </div>
+          <h2 style="margin-top: 0; color: #111;">${briefing.headline}</h2>
+          <p><strong>${briefing.salutation},</strong></p>
+          <div style="background: #FFF9EE; padding: 12px; border-left: 4px solid #FDC800; margin: 16px 0;">
+            <h4 style="margin: 0 0 8px;">Telemetry Observations:</h4>
+            ${(briefing.observations || []).map(o => `<p style="margin: 4px 0;">• ${o}</p>`).join('')}
+          </div>
+          <div style="background: #E8F5E9; padding: 12px; border-left: 4px solid #00E599; margin: 16px 0;">
+            <h4 style="margin: 0 0 8px;">Suggested Restorative Support:</h4>
+            ${(briefing.suggestedActions || []).map((a, i) => `<p style="margin: 4px 0;">${i + 1}. ${a}</p>`).join('')}
+          </div>
+          <p style="font-size: 11px; color: #777; margin-top: 24px; border-top: 1px dashed #ccc; padding-top: 8px;">
+            Daily Verdict Guardian Triage • Zero-Knowledge Student Privacy Protection (GCERT RBVP 2026-27)
+          </p>
+        </div>
+      `;
+
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'Daily Verdict <onboarding@resend.dev>',
+          to: [guardianEmail],
+          subject: `[Daily Verdict Triage] ${briefing.headline}`,
+          html: emailHtml
+        })
+      })
+      .then(r => r.json())
+      .then(data => {
+        logger.info(`[Resend Email Dispatched] ID: ${data.id || 'ok'}`);
+      })
+      .catch(err => {
+        logger.warn(`[Resend Email Warning] ${err.message}`);
+      });
+      resendDispatched = true;
+    } catch (e) {
+      logger.warn(`[Resend Dispatch Init Error] ${e.message}`);
+    }
+  }
+
   // Return formatted confirmation with dispatch receipt
   res.json({
     success: true,
-    message: 'Guardian compassionate briefing generated and logged successfully',
+    message: resendDispatched ? 'Emergency email dispatched via Resend API and logged' : 'Guardian compassionate briefing generated and logged successfully',
     dispatchedAt: new Date().toISOString(),
+    resendDispatched,
     recipient: {
       guardianName: guardianName || 'Parent / Guardian',
       guardianEmail: guardianEmail || null,
@@ -1251,6 +1303,7 @@ app.post('/api/guardian-sos/dispatch', (req, res) => {
     },
     briefingSummary: {
       headline: briefing.headline || 'Wellness Check-In',
+      category: briefing.category || 'EQUILIBRIUM_CHECKIN',
       avgScore: briefing.avgScore || '3.0',
       lowDayStreak: briefing.lowDayStreak || 0
     }

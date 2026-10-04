@@ -2799,11 +2799,40 @@ export function getGuardianConfig() {
         guardianRelationship: 'Parent / Guardian',
         guardianEmail: '',
         guardianPhone: '',
-        slumpThresholdDays: 3,
+        slumpThresholdDays: 2,
+        categories: {
+          severeIllness: true,
+          repeatedBreakdown: true,
+          sleepDeficit: true,
+          manualSos: true
+        },
         autoDispatch: false
       };
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return {
+      enabled: false,
+      guardianName: '',
+      guardianRelationship: 'Parent / Guardian',
+      guardianEmail: '',
+      guardianPhone: '',
+      slumpThresholdDays: 2,
+      categories: {
+        severeIllness: true,
+        repeatedBreakdown: true,
+        sleepDeficit: true,
+        manualSos: true
+      },
+      autoDispatch: false,
+      ...parsed,
+      categories: {
+        severeIllness: true,
+        repeatedBreakdown: true,
+        sleepDeficit: true,
+        manualSos: true,
+        ...(parsed.categories || {})
+      }
+    };
   } catch (e) {
     console.error('Failed to parse guardian config:', e);
     return {
@@ -2812,7 +2841,13 @@ export function getGuardianConfig() {
       guardianRelationship: 'Parent / Guardian',
       guardianEmail: '',
       guardianPhone: '',
-      slumpThresholdDays: 3,
+      slumpThresholdDays: 2,
+      categories: {
+        severeIllness: true,
+        repeatedBreakdown: true,
+        sleepDeficit: true,
+        manualSos: true
+      },
       autoDispatch: false
     };
   }
@@ -2844,13 +2879,28 @@ export function generateGuardianBriefing(entries = {}, guardianConfig = null, to
   let totalScore = 0;
   let sleepIssuesCount = 0;
   let examPressureCount = 0;
+  const detectedIllnessKeywords = [];
+  const detectedBreakdownKeywords = [];
+
+  const illnessRegex = /(fever|hospital|doctor|vomit|infection|flu|cough|dengue|typhoid|asthma|migraine|severe pain|ill|sick|medicine|prescription|disease|clinic|tablet|vomiting|stomach ache|nausea)/i;
+  const breakdownRegex = /(panic|cry|crying|breakdown|hopeless|cannot do this|overwhelmed|failing|scared|depressed|anxious|anxiety|give up|can't take it|exhausted mentally)/i;
 
   for (let i = sortedDates.length - 1; i >= 0; i--) {
     const d = sortedDates[i];
     const r = Number(entries[d]?.rating) || 3;
     totalScore += r;
-    const note = (entries[d]?.notes || '').toLowerCase();
+    const note = (entries[d]?.notes || '');
     
+    const illnessMatch = note.match(illnessRegex);
+    if (illnessMatch && !detectedIllnessKeywords.includes(illnessMatch[0].toLowerCase())) {
+      detectedIllnessKeywords.push(illnessMatch[0].toLowerCase());
+    }
+
+    const breakdownMatch = note.match(breakdownRegex);
+    if (breakdownMatch && !detectedBreakdownKeywords.includes(breakdownMatch[0].toLowerCase())) {
+      detectedBreakdownKeywords.push(breakdownMatch[0].toLowerCase());
+    }
+
     if (/(sleep|tired|exhaust|headache|late night|insomnia|restless)/i.test(note)) {
       sleepIssuesCount++;
     }
@@ -2868,28 +2918,79 @@ export function generateGuardianBriefing(entries = {}, guardianConfig = null, to
   const avgScore = sortedDates.length > 0 ? (totalScore / sortedDates.length).toFixed(1) : '3.0';
   const guardianSalutation = config.guardianName ? `Dear ${config.guardianName}` : 'Dear Guardian / Parent';
 
-  const headline = lowDayStreak >= 2 
-    ? 'Compassionate Student Check-In: Rest & Recovery Support' 
-    : 'Routine Student Wellness & Equilibrium Overview';
+  // Determine active emergency triage category
+  let detectedCategory = 'EQUILIBRIUM_CHECKIN';
+  let categoryLabel = 'Routine Equilibrium Overview';
+  let headline = 'Routine Student Wellness & Equilibrium Overview';
 
-  const observations = [
-    `Student is maintaining consistent daily self-reflection, averaging a ${avgScore}/5.0 equilibrium index across recent days.`,
-    lowDayStreak >= 2 
-      ? `Our behavioral monitor diagnosed a continuous ${lowDayStreak}-day slump caused by intense study hours and compounding sleep deficit.`
-      : 'No acute emergency diagnosed; student is navigating routine academic responsibilities.',
-    sleepIssuesCount > 0 
-      ? `Fatigue markers were identified in ${sleepIssuesCount} recent reflections, highlighting that the student needs a safe cognitive decompression window.`
-      : 'Rest rhythms are stable, though cognitive focus remains high.'
-  ];
+  if (detectedIllnessKeywords.length > 0 && config.categories?.severeIllness !== false) {
+    detectedCategory = 'SEVERE_ILLNESS';
+    categoryLabel = 'Severe Illness / Medical Notice';
+    headline = 'Urgent Student Health Notice: Rest & Medical Care Attention';
+  } else if ((lowDayStreak >= (config.slumpThresholdDays || 2) || detectedBreakdownKeywords.length > 0) && config.categories?.repeatedBreakdown !== false) {
+    detectedCategory = 'REPEATED_BREAKDOWN';
+    categoryLabel = 'Repeated Breakdown Alert';
+    headline = 'Compassionate Check-In: Rest & Emotional Recovery Support';
+  } else if (sleepIssuesCount >= 2 && config.categories?.sleepDeficit !== false) {
+    detectedCategory = 'SLEEP_DEFICIT';
+    categoryLabel = 'Severe Sleep Deficit Alert';
+    headline = 'Student Sleep Deficit Advisory: Cognitive Recovery Window Needed';
+  }
 
-  const suggestedActions = [
-    'Offer a calm, warm beverage or quiet meal without immediately interrogating exam scores or grades.',
-    'Help safeguard an uninterrupted 8-hour sleep window tonight by removing pressure around late-night household chores.',
-    'Acknowledge their persistent effort: remind them that setbacks in specific tests do not diminish their lifelong potential.'
-  ];
+  let observations = [];
+  let suggestedActions = [];
+
+  if (detectedCategory === 'SEVERE_ILLNESS') {
+    observations = [
+      `Health markers were detected in recent daily reflections: [${detectedIllnessKeywords.join(', ')}].`,
+      `Physical discomfort is currently intersecting with daily study routines, averaging a ${avgScore}/5.0 equilibrium score.`,
+      `The student needs clinical rest and relief from academic performance anxiety while their body recovers.`
+    ];
+    suggestedActions = [
+      'Check in on their physical symptoms and consider a consultation with a family doctor or medical professional.',
+      'Explicitly grant them permission to pause study hours without guilt to ensure immune recovery.',
+      'Ensure proper hydration, nourishing meals, and access to necessary prescribed rest.'
+    ];
+  } else if (detectedCategory === 'REPEATED_BREAKDOWN') {
+    observations = [
+      `Our behavioral monitor diagnosed a continuous ${lowDayStreak}-day slump with acute distress indicators: [${detectedBreakdownKeywords.join(', ') || 'consecutive rough scores'}].`,
+      `Equilibrium score has dropped to ${avgScore}/5.0, reflecting compounding cognitive exhaustion.`,
+      `The student is experiencing high friction and needs supportive decompression rather than performance interrogation.`
+    ];
+    suggestedActions = [
+      'Offer a calm, warm beverage or quiet meal without immediately interrogating exam scores or grades.',
+      'Help safeguard an uninterrupted 8-hour sleep window tonight by removing pressure around late-night household chores.',
+      'Acknowledge their persistent effort: remind them that setbacks in specific tests do not diminish their lifelong potential.'
+    ];
+  } else if (detectedCategory === 'SLEEP_DEFICIT') {
+    observations = [
+      `Sleep depletion markers appeared across ${sleepIssuesCount} recent check-ins.`,
+      `Cognitive fatigue from late-night study is creating diminishing returns on daytime retention.`,
+      `Current rolling equilibrium is ${avgScore}/5.0 with high mental strain.`
+    ];
+    suggestedActions = [
+      'Encourage closing books by 10:30 PM tonight for full circadian reset.',
+      'Keep the bedroom quiet and dark, away from phone and screen notifications.',
+      'Reassure the student that consistent sleep improves retention more than all-night cramming.'
+    ];
+  } else {
+    observations = [
+      `Student is maintaining consistent daily self-reflection, averaging a ${avgScore}/5.0 equilibrium index across recent days.`,
+      'No acute physical or emotional emergencies detected; student is navigating routine academic responsibilities.',
+      'Rest and study rhythms are currently balanced.'
+    ];
+    suggestedActions = [
+      'Continue providing steady, low-pressure encouragement for their daily habits.',
+      'Celebrate consistent daily attendance and honest journaling.',
+      'Maintain an open door for conversation whenever exam pressure intensifies.'
+    ];
+  }
 
   return {
     headline,
+    category: detectedCategory,
+    categoryLabel,
+    detectedKeywords: [...detectedIllnessKeywords, ...detectedBreakdownKeywords],
     salutation: guardianSalutation,
     studentName: config.studentName || 'Your Student',
     lowDayStreak,

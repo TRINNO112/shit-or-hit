@@ -37,14 +37,21 @@ export default function ArchitectureFlowchartModal({ onClose }) {
   }, []);
 
   // Keyboard shortcut listener (Escape or Ctrl+Shift+A)
+  // Keyboard shortcut listener (Escape, Alt+A, Ctrl+Shift+M, Ctrl+Shift+A)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         handleClose();
+        return;
       }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      const isCloseKey =
+        (e.altKey && (e.key === 'a' || e.key === 'A')) ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'm' || e.key === 'M' || e.key === 'f' || e.key === 'F' || e.key === 'a' || e.key === 'A'));
+
+      if (isCloseKey) {
         e.preventDefault();
+        e.stopPropagation();
         handleClose();
       }
     };
@@ -111,7 +118,7 @@ export default function ArchitectureFlowchartModal({ onClose }) {
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Keyboard shortcut hint */}
           <span className="hidden lg:inline-flex px-2 py-1 bg-zinc-100 border border-black font-mono font-bold text-[10px] text-zinc-700">
-            HOTKEY: CTRL + SHIFT + A
+            HOTKEY: ALT + A (OR CTRL + SHIFT + M)
           </span>
 
           {/* Open in Dedicated Window (Essential for Multi-Screen Presentations) */}

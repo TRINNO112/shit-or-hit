@@ -289,9 +289,14 @@ export default function App() {
         e.preventDefault();
         toggleAcademicMode();
       }
-      // Ctrl + Shift + A: System Architecture Flowchart
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      // Alt + A / Ctrl + Shift + M / Ctrl + Shift + A: System Architecture Flowchart
+      const isArchitectureKey =
+        (e.altKey && (e.key === 'a' || e.key === 'A')) ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'm' || e.key === 'M' || e.key === 'f' || e.key === 'F' || e.key === 'a' || e.key === 'A'));
+
+      if (isArchitectureKey) {
         e.preventDefault();
+        e.stopPropagation();
         setShowArchitectureFlowchart(prev => !prev);
       }
     };
