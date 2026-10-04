@@ -39,7 +39,13 @@ html,body{height:100%;margin:0;background:#FFF9EE;overflow:hidden;touch-action:n
 #mm{display:block;width:200px;height:200px;position:fixed;top:12px;right:12px;z-index:4;background:#FFFDF8;border:3px solid #111;box-shadow:4px 4px 0 #111;border-radius:10px 3px 10px 3px;cursor:pointer}
 .facts{margin:2px 0 0;padding-left:18px;font-size:14px}.facts li{margin:2px 0}
 #vig{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 160px 30px #d8c8a066;z-index:2}
-#note{max-height:min(540px,calc(100vh - 48px));overflow:auto}
+#note{max-height:min(680px,calc(100vh - 64px));overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
+#note::-webkit-scrollbar{display:none;width:0;height:0}
+#sheet{scrollbar-width:thin;scrollbar-color:#111 #FFE86B}
+#sheet::-webkit-scrollbar{width:7px}
+#sheet::-webkit-scrollbar-track{background:rgba(17,17,17,.08);border-radius:4px}
+#sheet::-webkit-scrollbar-thumb{background:#111;border-radius:4px;border:1px solid #FFE86B}
+#sheet::-webkit-scrollbar-thumb:hover{background:#FF4D4D}
 .fx summary{cursor:pointer;font-weight:700;margin-top:10px;text-decoration:underline wavy #FF4D4D}
 #hint{transition:opacity .6s}#mm{transition:opacity .4s}
 #menu{position:fixed;right:12px;bottom:62px;z-index:5;display:none;flex-direction:column;gap:8px;align-items:stretch}#menu.on{display:flex}
@@ -135,9 +141,9 @@ const D=[
 ['f4',300,2480,'f','y','Evening nudge','Radial dial sets your time.','Installable app, works offline.','bell',
  'A mechanical-style dial sets your nightly reminder time. The installed PWA opens like a native app and runs without internet, and the reminder pulls you back to step one.',
  'Habits need a cue. A gentle nudge at the same time each night builds the routine for you.','RadialClockPicker, NotificationOptInModal, PWA service worker'],
-['f5',1000,2480,'f','l','Tested and scriptable','10 audit suites, 33 parts.','CLI and procedural sound.','check',
- 'Ten built-in audit suites check 33 parts of the app: navigation, calendar, analytics, the monthly dossier, wallpapers, stickers, habits, settings, audio and user isolation. A terminal command lets you log a verdict without opening the app, and a procedural sound engine gives each rating its own click or chime.',
- 'Trust is a feature. A tool you rely on every night must not break, so it checks itself before it ever reaches you.','npm run audit, bin/verdict.js, soundEngine.js'],
+['f5',1000,2480,'f','l','Tested and scriptable','14 audit suites, 65 parts.','CLI and procedural sound.','check',
+ 'Fourteen automated audit suites check 65 components of the app: navigation, calendar, analytics, dossier, wallpapers, stickers, habits, settings, audio, rate limiting, invariants, DPDPA, sanctuary and JSX static imports. A terminal command lets you log a verdict without opening the app, and a procedural sound engine gives each rating its own click or chime.',
+ 'Trust is a feature. A tool you rely on every night must not break, so it checks itself before it ever reaches you.','npm run audit, 68 tests passing, bin/verdict.js, soundEngine.js'],
 ['f6',1700,2480,'f','m','Built with','React 19, Vite 6, Tailwind v4.','Express, Gemini, Firebase.','stack',
  'A React 19 and Vite 6 frontend with Tailwind v4 and Framer Motion for spring physics. A small Express server talks to the Gemini flash-lite model. Firebase handles sign-in and cloud backup, while the local-first engine keeps your data on your device.',
  'Light, open tools keep the app fast on any phone and keep your data in your hands.','React 19, Vite 6, Tailwind v4, Express, Gemini, Firebase'],
@@ -175,7 +181,7 @@ f1:['Keys: goodness_db_guest or goodness_db_uid','Logout reloads the page and fl
 f2:['Google sign-in with Firestore backup','The save gives up waiting after 4 seconds','Queued writes never block the screen'],
 f3:['Optional PIN protects diary text','cipherEngine handles the encryption','Without the PIN, stored text is unreadable'],
 f4:['Dial: hour, auto-jump to minute, then AM or PM','Local reminder schedule, no battery drain','Installed app works without internet'],
-f5:['Suites: navigation, calendar, analytics, dossier, studio, stickers, habits, settings, audio, isolation','Run any time with npm run audit','Log from terminal: node bin/verdict.js 5 "notes"'],
+f5:['14 suites: navigation, calendar, analytics, dossier, studio, stickers, habits, settings, audio, auth, DPDPA, sanctuary, invariants, JSX','Run any time with npm run audit (68 tests passing)','Log from terminal: node bin/verdict.js 5 "notes"'],
 f6:['Frontend: React 19, Vite 6, Tailwind v4, Framer Motion','Backend: Node and Express; AI: Gemini flash-lite','Cloud: Firebase Auth and Firestore'],
 a1:['Always first person: I, my, myself','Keeps 100% of names, facts and events','Mirrors pure English or Hinglish'],
 a2:['Auto Polish, Tactical Stoic Dossier, Root Causes, Action Bullets','Custom Lens: bring your own philosophy','Same diary, different way of seeing it'],
@@ -290,7 +296,7 @@ const DECO={
   for(let i=1;i<=12;i++){const a=i/12*6.283-1.57;T(String(i),cx+Math.cos(a)*50,cy+Math.sin(a)*50+7,F(700,20),INK,'center')}
   const hA=10/12*6.283,mA=47/60*6.283,a=(m?mA:hA)*e+(m?hA:mA)*(1-e)-1.57;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*36,cy+Math.sin(a)*36);ctx.lineWidth=5*lw;ctx.strokeStyle=INK;ctx.stroke();
   ctx.beginPath();ctx.arc(cx,cy,6,0,6.3);ctx.fillStyle=INK;ctx.fill();T(m?'10:47 PM':'10: --',x+210,y+128,F(700,40),INK);T(m?'minute mode':'hour mode',x+210,y+166,F(500,24),'#555')},
- f5:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'10 audit suites',23);for(let i=0;i<10;i++){const bx=x+24+(i%5)*76,by=y+64+((i/5)|0)*60,on=(tNow*1.6)%14>i;rb(bx,by,54,42,on?C.m+'99':'#fff',24+i);if(on)tick(bx+27,by+21)}T('33 parts checked',x+24,y+206,F(500,24),'#555')},
+ f5:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'14 audit suites',23);for(let i=0;i<14;i++){const bx=x+20+(i%7)*54,by=y+64+((i/7)|0)*56,on=(tNow*1.6)%18>i;rb(bx,by,46,40,on?C.m+'99':'#fff',24+i);if(on)tick(bx+23,by+20)}T('65 components • 68 tests passing',x+24,y+206,F(500,24),'#555')},
  a1:n=>{const x=OX(n),y=OB(n),M=F(500,20);panel(x,y,420,230,'Raw to polished',50);rb(x+24,y+62,170,72,'#fff',51);T('tired, skipped gym,',x+36,y+92,M,INK);T('mom call, exam...',x+36,y+118,M,INK);ar(x+204,y+98,x+240,y+98);rb(x+250,y+62,146,72,C.l+'88',52);T('I held the line',x+262,y+92,M,INK);T('and called mom.',x+262,y+118,M,INK);
   [['Facts kept',C.m],['Voice mirrored',C.c]].forEach((r,i)=>{rb(x+24+i*196,y+158,186,44,r[1]+'88',53+i);tick(x+46+i*196,y+180);T(r[0],x+68+i*196,y+187,F(700,21),INK)})},
  a2:n=>{const x=OX(n),y=OB(n);panel(x,y,420,250,'Five mental lenses',54);[['Auto Polish',C.c],['Tactical Stoic Dossier',C.y],['Root Causes',C.m],['Action Bullets',C.r],['Custom Lens',C.l]].forEach((r,i)=>{rb(x+24,y+58+i*38,372,32,r[1]+'88',55+i);T(r[0],x+42,y+81+i*38,F(700,22),INK)})},
