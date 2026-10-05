@@ -8,7 +8,8 @@
  * or typing the secret buffer 'demo' / 'fakedata'.
  */
 
-import { getDbStorageKey, getEffectiveUserId, getCurrentUser, fetchMonthlyReport } from './api';
+import { fetchMonthlyReport } from './api';
+import { getCurrentUser, getEffectiveUserId } from './firebase';
 
 const SAMPLE_DAILY_THEMES = [
   {

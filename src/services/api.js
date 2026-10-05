@@ -14,6 +14,8 @@ import {
 } from './firebase';
 import { encryptCapsuleMessage, decryptCapsuleMessage } from './cipherEngine';
 
+export { getCurrentUser, getEffectiveUserId };
+
 const API_BASE = '/api';
 
 export const ratingMeta = {
