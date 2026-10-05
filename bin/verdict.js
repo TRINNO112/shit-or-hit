@@ -3,7 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { exec, spawn } from 'child_process';
+import { exec, spawn, spawnSync } from 'child_process';
 import net from 'net';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -50,17 +50,38 @@ if (command === 'help' || command === '--help' || command === '-h') {
 Usage:
   verdict                          Auto-start dev servers & launch web app in browser
   verdict dev                      Start development servers and launch browser
+  verdict audit                    Run full 5-stage system audit (All components, perf, E2E)
+  verdict audit --quick            Run standard 33-component audit & build verification
   verdict log <1-5> [note...]      Quickly record today's mood rating & note
   verdict status                   View streak and today's logged verdict
   verdict help                     Display this help message
 
 Examples:
   verdict
+  verdict audit
   verdict log 5 Crushed all goals today!
   verdict log 1 Rough day, reset tomorrow
   verdict status
 `);
   process.exit(0);
+}
+
+// Run audit directly from CLI
+if (command === 'audit' || command === 'test' || command === 'check') {
+  const isQuick = args.includes('--quick') || args.includes('-q');
+  const targetScript = isQuick ? 'scripts/audit-system.js' : 'scripts/audit-full-system.js';
+  const modeLabel = isQuick ? 'Standard 33-Component Audit' : 'Full 5-Stage System Audit (Math, Integrity, Perf, E2E)';
+
+  console.log(`\n======================================================================`);
+  console.log(`🏛️  LAUNCHING TRINNO AUDIT: ${modeLabel}`);
+  console.log(`======================================================================\n`);
+
+  const result = spawnSync(process.execPath, [path.join(ROOT_DIR, targetScript)], {
+    cwd: ROOT_DIR,
+    stdio: 'inherit'
+  });
+
+  process.exit(result.status ?? 0);
 }
 
 // Log mood directly from CLI
