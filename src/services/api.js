@@ -2920,7 +2920,8 @@ export function getGuardianConfig() {
         severeIllness: true,
         repeatedBreakdown: true,
         sleepDeficit: true,
-        manualSos: true
+        manualSos: true,
+        slumpTrigger: true
       },
       autoDispatch: false
     };
@@ -3001,14 +3002,18 @@ export function generateGuardianBriefing(entries = {}, guardianConfig = null, to
     detectedCategory = 'SEVERE_ILLNESS';
     categoryLabel = 'Severe Illness / Medical Notice';
     headline = 'Urgent Student Health Notice: Rest & Medical Care Attention';
-  } else if ((lowDayStreak >= (config.slumpThresholdDays || 2) || detectedBreakdownKeywords.length > 0) && config.categories?.repeatedBreakdown !== false) {
+  } else if (detectedBreakdownKeywords.length > 0 && config.categories?.repeatedBreakdown !== false) {
     detectedCategory = 'REPEATED_BREAKDOWN';
-    categoryLabel = 'Repeated Breakdown Alert';
+    categoryLabel = 'Mental Exhaustion Alert';
     headline = 'Compassionate Check-In: Rest & Emotional Recovery Support';
   } else if (sleepIssuesCount >= 2 && config.categories?.sleepDeficit !== false) {
     detectedCategory = 'SLEEP_DEFICIT';
     categoryLabel = 'Severe Sleep Deficit Alert';
     headline = 'Student Sleep Deficit Advisory: Cognitive Recovery Window Needed';
+  } else if (lowDayStreak >= (config.slumpThresholdDays || 2) && config.categories?.slumpTrigger !== false) {
+    detectedCategory = 'SLUMP_TRIGGER';
+    categoryLabel = `Slump Sensitivity (${lowDayStreak} Sub-2★ Days)`;
+    headline = `Compassionate Slump Advisory: ${lowDayStreak} Consecutive Rough Days`;
   }
 
   let observations = [];
@@ -3027,8 +3032,8 @@ export function generateGuardianBriefing(entries = {}, guardianConfig = null, to
     ];
   } else if (detectedCategory === 'REPEATED_BREAKDOWN') {
     observations = [
-      `Our behavioral monitor diagnosed a continuous ${lowDayStreak}-day slump with acute distress indicators: [${detectedBreakdownKeywords.join(', ') || 'consecutive rough scores'}].`,
-      `Equilibrium score has dropped to ${avgScore}/5.0, reflecting compounding cognitive exhaustion.`,
+      `Our behavioral monitor diagnosed distress markers in recent reflections: [${detectedBreakdownKeywords.join(', ') || 'consecutive rough scores'}].`,
+      `Equilibrium score has dropped to ${avgScore}/5.0, reflecting acute cognitive exhaustion.`,
       `The student is experiencing high friction and needs supportive decompression rather than performance interrogation.`
     ];
     suggestedActions = [
@@ -3046,6 +3051,17 @@ export function generateGuardianBriefing(entries = {}, guardianConfig = null, to
       'Encourage closing books by 10:30 PM tonight for full circadian reset.',
       'Keep the bedroom quiet and dark, away from phone and screen notifications.',
       'Reassure the student that consistent sleep improves retention more than all-night cramming.'
+    ];
+  } else if (detectedCategory === 'SLUMP_TRIGGER') {
+    observations = [
+      `Our behavioral monitor detected a continuous ${lowDayStreak}-day slump in daily ratings.`,
+      `Student rolling equilibrium has dropped to ${avgScore}/5.0, reflecting compounding study fatigue.`,
+      `The student requires a supportive reset and calm decompression rather than academic performance interrogation.`
+    ];
+    suggestedActions = [
+      'Offer a warm meal and peaceful downtime without interrogating upcoming test scores or grades tonight.',
+      'Protect an uninterrupted 8-hour sleep window by removing late-night study pressures.',
+      'Acknowledge their effort: remind them that temporary dips in marks do not define their overall potential.'
     ];
   } else {
     observations = [
@@ -3074,6 +3090,122 @@ export function generateGuardianBriefing(entries = {}, guardianConfig = null, to
     observations,
     suggestedActions,
     generatedAt: new Date().toISOString()
+  };
+}
+
+/**
+ * Phase 1: Gemini AI Guardian Briefing Synthesis
+ * Analyzes journal notes and trigger categories with Gemini.
+ */
+export async function generateAiGuardianBriefing(entries = {}, guardianConfig = null, todayStr = null) {
+  const config = guardianConfig || getGuardianConfig();
+  const today = todayStr || new Date().toISOString().slice(0, 10);
+  
+  let apiKey = null;
+  try {
+    const { fetchCloudGeminiApiKey } = await import('./firebase');
+    apiKey = await fetchCloudGeminiApiKey();
+  } catch (e) {}
+
+  if (!apiKey && typeof import.meta !== 'undefined' && import.meta.env) {
+    apiKey = import.meta.env.VITE_GEMINI_API_KEY || null;
+  }
+
+  if (!apiKey) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  const recentEntries = Object.entries(entries || {})
+    .filter(([d]) => d <= today)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-7)
+    .map(([date, entry]) => ({
+      date,
+      rating: entry.rating || 3,
+      notes: entry.notes || ''
+    }));
+
+  const guardianName = config.guardianName || 'Parent / Guardian';
+  const studentName = config.studentName || 'Student';
+  const enabledTriggers = Object.entries(config.categories || {})
+    .filter(([_, enabled]) => enabled)
+    .map(([cat]) => cat);
+
+  const prompt = `You are a clinical adolescent wellness and academic triage advisor for an Indian student (GCERT Science Track).
+Evaluate whether the student is in acute distress or illness based on their recent daily diary entries:
+${JSON.stringify(recentEntries, null, 2)}
+
+Active Parent Opt-In Alert Triggers: ${enabledTriggers.join(', ')} (Slump threshold: ${config.slumpThresholdDays || 2} rough days).
+Parent/Guardian name: "${guardianName}". Student name: "${studentName}".
+
+Return STRICTLY a JSON object with this exact shape:
+{
+  "category": "SEVERE_ILLNESS" | "REPEATED_BREAKDOWN" | "SLEEP_DEFICIT" | "SLUMP_TRIGGER" | "MANUAL_SOS" | "EQUILIBRIUM_CHECKIN",
+  "categoryLabel": "Human readable title of trigger",
+  "headline": "Empathetic, clear email subject line without any emoji",
+  "salutation": "Dear ${guardianName}",
+  "observations": ["Clinical observation 1", "Observation 2", "Observation 3"],
+  "suggestedActions": ["Actionable compassionate parental step 1", "Step 2", "Step 3"]
+}
+
+CRITICAL RULES:
+- Zero emojis anywhere in the output.
+- Return ONLY the raw JSON object, without markdown code blocks or commentary.
+- Be clinically sound, compassionate, and focused on student relief without causing panic.`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.3, maxOutputTokens: 1024 }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Gemini API returned HTTP ${response.status}`);
+  }
+
+  const result = await response.json();
+  const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Empty Gemini response');
+
+  const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  const parsed = JSON.parse(cleaned);
+
+  return {
+    ...parsed,
+    studentName,
+    generatedAt: new Date().toISOString()
+  };
+}
+
+/**
+ * Two-Phase Guardian Briefing Synthesis:
+ * Phase 1: Gemini AI analyzes the diary entries against enabled triggers.
+ * Phase 2: If Gemini capabilities fail, quota runs out, or underwhelmed,
+ * seamlessly fall back to the deterministic hardcoded rule engine and send directly!
+ */
+export async function generateTwoPhaseGuardianBriefing(entries = {}, guardianConfig = null, todayStr = null) {
+  // Phase 1: Try Gemini AI
+  try {
+    const aiBriefing = await generateAiGuardianBriefing(entries, guardianConfig, todayStr);
+    if (aiBriefing && aiBriefing.headline && Array.isArray(aiBriefing.observations) && aiBriefing.observations.length > 0) {
+      return {
+        ...aiBriefing,
+        engine: 'gemini-cloud'
+      };
+    }
+  } catch (err) {
+    console.warn('[Two-Phase Guardian Dispatch] Gemini AI unavailable or underwhelmed, invoking Phase 2 hardcoded rule engine:', err.message);
+  }
+
+  // Phase 2: Robust Deterministic Hardcoded Fail-Safe Fallback
+  const fallback = generateGuardianBriefing(entries, guardianConfig, todayStr);
+  return {
+    ...fallback,
+    engine: 'hardcoded-deterministic'
   };
 }
 
