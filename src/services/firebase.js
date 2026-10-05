@@ -115,6 +115,9 @@ export function isEmailWhitelisted(email) {
 }
 
 export function getEffectiveUserId(user) {
+  if (typeof window !== 'undefined' && window.__DEMO_SANDBOX_ACTIVE__) {
+    return 'demo_sandbox';
+  }
   if (!user) return null;
 
   // 1. Deterministic Multi-Device Owner Clustering via Zero-Knowledge SHA-256 Hashes
@@ -344,7 +347,8 @@ export function cleanFirestorePayload(obj) {
 }
 
 export async function saveCloudEntry(userId, entry) {
-  if (!userId || !entry?.date) return;
+  if (typeof window !== 'undefined' && window.__DEMO_SANDBOX_ACTIVE__) return;
+  if (!userId || userId === 'demo_sandbox' || !entry?.date || entry?.isDemo) return;
   const fb = await getFirebase();
   if (!fb || !fb.db) return;
   try {
@@ -377,7 +381,8 @@ export async function saveCloudEntry(userId, entry) {
 }
 
 export async function batchSaveCloudEntries(userId, entriesMap) {
-  if (!userId || !entriesMap || Object.keys(entriesMap).length === 0) return;
+  if (typeof window !== 'undefined' && window.__DEMO_SANDBOX_ACTIVE__) return;
+  if (!userId || userId === 'demo_sandbox' || !entriesMap || Object.keys(entriesMap).length === 0) return;
   const fb = await getFirebase();
   if (!fb || !fb.db) return;
   try {
@@ -475,7 +480,8 @@ export async function fetchCloudEntries(userId) {
 }
 
 export async function saveCloudReport(userId, reportKey, reportData) {
-  if (!userId || !reportKey || !reportData) return;
+  if (typeof window !== 'undefined' && window.__DEMO_SANDBOX_ACTIVE__) return;
+  if (!userId || userId === 'demo_sandbox' || !reportKey || !reportData || reportData?.targetDataset === 'demo_exemplary') return;
   const fb = await getFirebase();
   if (!fb || !fb.db) return;
   try {

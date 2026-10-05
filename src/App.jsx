@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, startTransition } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Zap, Calendar, FlaskConical, Clock, Layers, CheckCircle2, X } from 'lucide-react';
+import { Zap, Calendar, FlaskConical, Clock, Layers, CheckCircle2, X, Sparkles, RotateCcw } from 'lucide-react';
 import { playMood } from './services/soundEffects';
 import Header from './components/Header';
 import TodayHero from './components/TodayHero';
@@ -98,6 +98,7 @@ import {
 } from './services/api';
 import { syncStoragePersistenceWithPreference } from './services/storageManager';
 import { scheduleLocalEveningReminder } from './services/notifications';
+import { populateExemplaryMonth, getDemoSandboxDb, isDemoSandboxActive, setDemoSandboxActive } from './services/demoDataGenerator';
 import { subscribeAuthState, getUserDisplayName, fetchCloudUserSettings, getEffectiveUserId, getCurrentUser, loginWithGoogle } from './services/firebase';
 import { decryptVaultPin, hashPinWithSalt } from './services/cipherEngine';
 
@@ -229,7 +230,16 @@ export default function App() {
 
   // ⚡ INSTANT FRAME-0 STATE INITIALIZATION (Sub-1ms Synchronous Cache Hydration)
   const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
-  const [startDate, setStartDate] = useState(() => {
+  const [isDemoSandbox, setIsDemoSandbox] = useState(() => isDemoSandboxActive());
+  const [demoEntries, setDemoEntries] = useState(() => {
+    try {
+      return getDemoSandboxDb(2026, 9).entries || {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const [realStartDate, setRealStartDate] = useState(() => {
     try {
       const u = getCurrentUser();
       const storageKey = getDbStorageKey(u);
@@ -241,7 +251,7 @@ export default function App() {
     } catch (e) { }
     return new Date().toISOString().slice(0, 10);
   });
-  const [entries, setEntries] = useState(() => {
+  const [realEntries, setRealEntries] = useState(() => {
     try {
       const u = getCurrentUser();
       const storageKey = getDbStorageKey(u);
@@ -253,6 +263,24 @@ export default function App() {
     } catch (e) { }
     return {};
   });
+
+  // Effective entries and startDate based strictly on sandbox isolation status
+  const entries = isDemoSandbox ? demoEntries : realEntries;
+  const startDate = isDemoSandbox ? '2026-09-01' : realStartDate;
+
+  const setEntries = useCallback((updater) => {
+    if (isDemoSandboxActive()) {
+      setDemoEntries(updater);
+    } else {
+      setRealEntries(updater);
+    }
+  }, []);
+
+  const setStartDate = useCallback((updater) => {
+    if (!isDemoSandboxActive()) {
+      setRealStartDate(updater);
+    }
+  }, []);
 
   const previewModal = (() => {
     if (typeof window === 'undefined') return '';
@@ -288,6 +316,68 @@ export default function App() {
     });
   }, []);
 
+  const [demoToastInfo, setDemoToastInfo] = useState(null);
+
+  const exitDemoSandbox = useCallback(() => {
+    setDemoSandboxActive(false);
+    setIsDemoSandbox(false);
+    try {
+      soundEngine.playClick();
+    } catch (e) {}
+    setDemoToastInfo({
+      show: true,
+      message: 'RETURNED TO REAL DIARY',
+      subtext: 'Demo sandbox closed. Your authentic personal diary and cloud sync remain 100% intact.',
+      isSandboxActive: false,
+      timestamp: Date.now()
+    });
+  }, []);
+
+  const triggerPopulateDemoData = useCallback(async () => {
+    try {
+      if (isDemoSandbox) {
+        // Toggle OFF: Return to real diary
+        exitDemoSandbox();
+        return;
+      }
+
+      // Toggle ON: Initialize isolated demo sandbox
+      soundEngine?.playClick?.();
+      setDemoSandboxActive(true);
+      setIsDemoSandbox(true);
+
+      const res = await populateExemplaryMonth({
+        year: 2026,
+        month: 9,
+        useAi: true
+      });
+      if (res.success) {
+        setDemoEntries(res.entries);
+        setReportTargetMonth({ year: 2026, month: 9 });
+        setDemoToastInfo({
+          show: true,
+          message: 'DEMO SANDBOX ACTIVE (SEPARATE DATA)',
+          subtext: 'Loaded 30 days of exemplary records & AI dossier for September 2026. Zero cloud upload. Your real diary is completely safe.',
+          year: 2026,
+          month: 9,
+          isSandboxActive: true,
+          timestamp: Date.now()
+        });
+        soundEngine?.playChime?.();
+      }
+    } catch (err) {
+      console.error('Failed to toggle demo sandbox:', err);
+    }
+  }, [isDemoSandbox, exitDemoSandbox]);
+
+  useEffect(() => {
+    if (!demoToastInfo) return;
+    const timer = setTimeout(() => {
+      setDemoToastInfo(null);
+    }, 7000);
+    return () => clearTimeout(timer);
+  }, [demoToastInfo]);
+
   useEffect(() => {
     const handleGlobalHotkeys = (e) => {
       // Ctrl + Shift + P: Academic Presentation Mode Toggle
@@ -305,10 +395,21 @@ export default function App() {
         e.stopPropagation();
         setShowArchitectureFlowchart(prev => !prev);
       }
+
+      // Ctrl + Shift + D / Alt + Shift + D: Populate Exemplary Month & AI Dossier
+      const isDemoKey =
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd')) ||
+        (e.altKey && e.shiftKey && (e.key === 'D' || e.key === 'd'));
+
+      if (isDemoKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerPopulateDemoData();
+      }
     };
     window.addEventListener('keydown', handleGlobalHotkeys);
     return () => window.removeEventListener('keydown', handleGlobalHotkeys);
-  }, [toggleAcademicMode]);
+  }, [toggleAcademicMode, triggerPopulateDemoData]);
 
   const [wallpaperTarget, setWallpaperTarget] = useState(null);
   const [reportTargetMonth, setReportTargetMonth] = useState({
@@ -504,11 +605,14 @@ export default function App() {
       } else if (keyBuffer.endsWith('autopsy')) {
         setIsAutopsyOpen(prev => !prev);
         keyBuffer = '';
+      } else if (keyBuffer.endsWith('demo') || keyBuffer.endsWith('fakedata') || keyBuffer.endsWith('exemplary')) {
+        triggerPopulateDemoData();
+        keyBuffer = '';
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [triggerPopulateDemoData]);
 
   useEffect(() => {
     const checkHash = () => {
@@ -953,28 +1057,34 @@ export default function App() {
       try {
         const u = getCurrentUser();
         const storageKey = getDbStorageKey(u);
-        const cached = JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem('goodness_db') || '{}');
+        const cached = JSON.parse(localStorage.getItem(storageKey) || (!isDemoSandbox ? localStorage.getItem('goodness_db') : null) || '{}');
         const updatedPayload = JSON.stringify({
           ...cached,
           entries: next
         });
         localStorage.setItem(storageKey, updatedPayload);
-        localStorage.setItem('goodness_db', updatedPayload);
+        if (!isDemoSandbox) {
+          localStorage.setItem('goodness_db', updatedPayload);
+        }
       } catch (e) { }
 
       // Check consecutive rough days & time capsule auto-triggers
-      checkConsecutiveRoughDays(next);
-      const s = calculateStreak(next);
-      checkAndTriggerCapsules(next, s);
+      if (!isDemoSandbox) {
+        checkConsecutiveRoughDays(next);
+        const s = calculateStreak(next);
+        checkAndTriggerCapsules(next, s);
+      }
 
       return next;
     });
 
-    // 2. Safe background network sync
-    try {
-      await saveEntry(formatted);
-    } catch (err) {
-      console.warn('Network sync pending, saved to local cache:', err);
+    // 2. Safe background network sync (Strictly bypassed in demo sandbox)
+    if (!isDemoSandbox) {
+      try {
+        await saveEntry(formatted);
+      } catch (err) {
+        console.warn('Network sync pending, saved to local cache:', err);
+      }
     }
   };
 
@@ -1368,6 +1478,33 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FFFDF5] text-black font-sans selection:bg-[#FDC800] selection:text-black">
+
+      {/* ⚡ Demo Sandbox Mode Active Banner (Isolated Test Data • Zero Cloud Upload) */}
+      {isDemoSandbox && (
+        <aside aria-label="Demo sandbox active notice" className="w-full bg-[#FDC800] border-b-3 border-black py-2.5 px-4 sticky top-0 z-60 shadow-[0_2px_0px_#000000]">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-black stroke-2 shrink-0 animate-pulse" />
+              <span className="font-mono font-black text-xs uppercase tracking-wide text-black">
+                DEMO SANDBOX ACTIVE • SEPARATE 30-DAY DATASET • ZERO CLOUD UPLOAD
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-[11px] font-bold text-neutral-800 hidden md:inline">
+                (Press Ctrl + Shift + D to toggle)
+              </span>
+              <button
+                type="button"
+                onClick={exitDemoSandbox}
+                className="py-1 px-3 bg-black hover:bg-neutral-800 text-[#FDC800] border-2 border-black rounded-lg font-mono font-black text-xs uppercase shadow-[2px_2px_0px_rgba(0,0,0,0.3)] active:translate-x-px active:translate-y-px cursor-pointer transition-all flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5 stroke-2" />
+                EXIT DEMO SANDBOX
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* DPDPA 2023 7-Day Cooling-Off Erasure Banner */}
       {pendingDeletion?.pending && (
@@ -1899,6 +2036,64 @@ export default function App() {
         isLocked={isVaultLocked}
         onUnlock={() => setIsVaultLocked(false)}
       />
+
+      {/* ⚡ Exemplary Demo Data Floating Toast */}
+      {demoToastInfo && (
+        <div className="fixed bottom-5 right-5 z-90 max-w-sm sm:max-w-md bg-[#FFFDF5] border-3 border-black p-4 rounded-2xl shadow-[4px_4px_0px_#000000] flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-[#FDC800] border-2 border-black rounded-lg shadow-[1.5px_1.5px_0px_#000000]">
+                <Sparkles className="w-4 h-4 text-black stroke-2" />
+              </div>
+              <span className="font-mono font-black text-xs uppercase tracking-wider text-black">
+                {demoToastInfo.message}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDemoToastInfo(null)}
+              className="p-1 hover:bg-neutral-200 rounded border border-black/20 text-neutral-600 hover:text-black cursor-pointer transition-colors"
+            >
+              <X className="w-3.5 h-3.5 stroke-2" />
+            </button>
+          </div>
+          <p className="font-mono text-xs text-neutral-700 font-bold leading-relaxed">
+            {demoToastInfo.subtext}
+          </p>
+          <div className="flex items-center gap-2 mt-1">
+            {demoToastInfo.isSandboxActive ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleOpenMonthlyReport({ year: demoToastInfo.year || 2026, month: demoToastInfo.month || 9 });
+                    setDemoToastInfo(null);
+                  }}
+                  className="flex-1 py-1.5 px-3 bg-[#00E599] hover:bg-[#00cc88] border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all text-center"
+                >
+                  VIEW DOSSIER NOW
+                </button>
+                <button
+                  type="button"
+                  onClick={exitDemoSandbox}
+                  className="py-1.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono font-bold text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all flex items-center gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 stroke-2" />
+                  EXIT DEMO
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setDemoToastInfo(null)}
+                className="py-1.5 px-4 bg-black text-[#FDC800] border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all"
+              >
+                DISMISS
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

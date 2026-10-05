@@ -397,6 +397,9 @@ function reconcileEntryItems(baseItem, candidateItem) {
 }
 
 export function getDbStorageKey(userId) {
+  if (typeof window !== 'undefined' && window.__DEMO_SANDBOX_ACTIVE__) {
+    return 'goodness_db_demo_sandbox';
+  }
   if (!userId) return 'goodness_db_guest';
   if (typeof userId === 'object') {
     return `goodness_db_${getEffectiveUserId(userId)}`;
@@ -805,6 +808,8 @@ export async function saveEntry(entryData) {
   const effectiveId = getEffectiveUserId(currentUser);
   const storageKey = getDbStorageKey(effectiveId);
 
+  const isDemoActive = typeof window !== 'undefined' && Boolean(window.__DEMO_SANDBOX_ACTIVE__);
+
   // 1. Always update user-scoped local storage database immediately
   try {
     const dbStr = localStorage.getItem(storageKey);
@@ -813,11 +818,13 @@ export async function saveEntry(entryData) {
     db.entries[formatted.date] = formatted;
     const serialized = JSON.stringify(db);
     safeStorageSetItem(storageKey, serialized);
-    safeStorageSetItem('goodness_db', serialized);
-    saveRollingSnapshot(storageKey, db);
+    if (!isDemoActive) {
+      safeStorageSetItem('goodness_db', serialized);
+      saveRollingSnapshot(storageKey, db);
+    }
 
     // 1b. Background auto-sync to physical Device File Mirror if connected
-    if (typeof window !== 'undefined') {
+    if (!isDemoActive && typeof window !== 'undefined') {
       import('./fileMirrorEngine.js').then(async ({ getPersistedFileHandle, writeToFileHandle, getFileMirrorFormatPreference }) => {
         try {
           const handle = await getPersistedFileHandle();
@@ -833,8 +840,8 @@ export async function saveEntry(entryData) {
   let cloudSuccess = false;
   let serverSuccess = false;
 
-  // 2. Cloud save with 4s timeout protection against slow connections
-  if (currentUser && isEmailWhitelisted(currentUser.email)) {
+  // 2. Cloud save with 4s timeout protection against slow connections (Strictly blocked in demo sandbox)
+  if (!isDemoActive && currentUser && isEmailWhitelisted(currentUser.email)) {
     try {
       const cloudPromise = saveCloudEntry(effectiveId, formatted);
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Cloud save timeout')), 4000));
@@ -845,9 +852,9 @@ export async function saveEntry(entryData) {
     }
   }
 
-  // 3. Local server save if available (and not on static host like GitHub Pages)
+  // 3. Local server save if available (Strictly blocked in demo sandbox)
   let serverEntry = null;
-  if (!isStaticHost) {
+  if (!isDemoActive && !isStaticHost) {
     try {
       const res = await fetch(`${API_BASE}/entries`, {
         method: 'POST',
@@ -1157,9 +1164,10 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
     localStorage.setItem(langKey, JSON.stringify(finalReport));
   } catch (e) {}
 
-  // 4. Save to Cloud Firestore
+  // 4. Save to Cloud Firestore (Strictly skipped in demo sandbox or demo dataset)
   try {
-    if (effectiveId && effectiveId !== 'guest') {
+    const isDemo = (typeof window !== 'undefined' && Boolean(window.__DEMO_SANDBOX_ACTIVE__)) || effectiveId === 'demo_sandbox' || finalReport?.targetDataset === 'demo_exemplary';
+    if (!isDemo && effectiveId && effectiveId !== 'guest') {
       await saveCloudReport(effectiveId, cloudKey, finalReport);
       if (preferredLanguage && preferredLanguage !== 'auto') {
         await saveCloudReport(effectiveId, `${cloudKey}_${preferredLanguage}`, finalReport);
