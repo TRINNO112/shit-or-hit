@@ -346,10 +346,17 @@ export default function App() {
       setDemoSandboxActive(true);
       setIsDemoSandbox(true);
 
+      try {
+        const cachedDemo = getDemoSandboxDb(2026, 9);
+        if (cachedDemo && cachedDemo.entries) {
+          setDemoEntries(cachedDemo.entries);
+        }
+      } catch (e) {}
+
       const res = await populateExemplaryMonth({
         year: 2026,
         month: 9,
-        useAi: true
+        useAi: false
       });
       if (res.success) {
         setDemoEntries(res.entries);
@@ -1638,6 +1645,41 @@ export default function App() {
           </div>
 
           <main className="flex-1 w-full max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto p-4 sm:p-6 3xl:p-8 4k:p-12 space-y-6 3xl:space-y-8">
+            {/* ⚡ Demo Sandbox Mode Notification Banner */}
+            {isDemoSandbox && (
+              <div className="w-full bg-[#FDC800] border-3 border-black p-3.5 sm:p-4 rounded-2xl shadow-[4px_4px_0px_#000000] flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 bg-black text-[#FDC800] border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
+                    <Sparkles className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-wider text-black block sm:inline mr-2">
+                      DEMO SANDBOX ACTIVE
+                    </span>
+                    <span className="font-mono text-[11px] font-bold text-neutral-800">
+                      Isolated demo database (Sept 2026) • Zero cloud syncing • Real diary shielded
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenMonthlyReport({ year: 2026, month: 9 })}
+                    className="px-3 py-1.5 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[2px_2px_0px_#000000] cursor-pointer"
+                  >
+                    VIEW DOSSIER
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exitDemoSandbox}
+                    className="px-3 py-1.5 bg-[#FF4D4D] hover:bg-red-500 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-white shadow-[2px_2px_0px_#000000] cursor-pointer"
+                  >
+                    EXIT DEMO
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* 🛡️ Sovereign Guest Intelligence Banner (Cleanly seated beneath sticky Navigation Panel) */}
             {showSovereignBanner && (
               <Suspense fallback={null}>

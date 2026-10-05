@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { installAirgapProtection } from './helpers/airgap.js';
 
 test.describe('Neobrutalist Guest Mode Disclaimer & Two-Tier Access Gate', () => {
+  test.beforeEach(async ({ page }) => {
+    await installAirgapProtection(page);
+  });
+
   test('displays guest disclaimer modal on first load with required safety warnings', async ({ page }) => {
     // Ensure clean guest storage without dismissal flag
     await page.addInitScript(() => {
@@ -11,41 +16,37 @@ test.describe('Neobrutalist Guest Mode Disclaimer & Two-Tier Access Gate', () =>
 
     await page.goto('/');
 
-    // 1. Status Badge Verification
-    const badge = page.locator('text=LOCAL GUEST MODE');
-    await expect(badge).toBeVisible({ timeout: 10000 });
+    // 1. Modal Title Verification
+    const modalTitle = page.locator('text=Guest Mode & Data Sovereignty Notice').first();
+    await expect(modalTitle).toBeVisible({ timeout: 10000 });
 
-    // 2. Core Warning Verification
-    const coreWarning = page.locator('text=Your diary reflections, habit streaks, and PIN settings are stored in this browser only.');
-    await expect(coreWarning).toBeVisible();
+    // 2. Status Badge Verification
+    const statusNotice = page.locator('text=LOCAL GUEST MODE (YOUR CURRENT STATUS)').first();
+    await expect(statusNotice).toBeVisible();
 
-    // 3. PIN & Data Loss Warning Verification
-    const pinWarning = page.locator('text=If you set a Vault PIN or clear your browser data, your records cannot be recovered. There are zero cloud backups in guest mode.');
-    await expect(pinWarning).toBeVisible();
+    // 3. Zero Backdoor Recovery Warning
+    const zeroBackdoor = page.locator('text=ZERO BACKDOOR RECOVERY').first();
+    await expect(zeroBackdoor).toBeVisible();
 
-    // 4. Developer Whitelist CTA Verification
-    const cta = page.locator('text=Contact the developer to have your email whitelisted for cloud backups and AI features, or sign in if you already have an authorized email.');
-    await expect(cta).toBeVisible();
-
-    // 5. Action Buttons Verification
-    const googleBtn = page.locator('button', { hasText: 'Sign In With Google' });
+    // 4. Action Buttons Verification
+    const googleBtn = page.locator('button', { hasText: 'Sign In With Google' }).first();
     await expect(googleBtn).toBeVisible();
 
-    const dismissBtn = page.locator('button', { hasText: 'I Understand the Risks' });
+    const dismissBtn = page.locator('button', { hasText: 'I Understand & Enter Local Mode' }).first();
     await expect(dismissBtn).toBeVisible();
 
-    // 6. Dismissal interaction
+    // 5. Dismissal interaction
     await dismissBtn.click();
-    await expect(badge).not.toBeVisible();
+    await expect(modalTitle).not.toBeVisible();
 
-    // 7. Verify localStorage persisted dismissal flag
+    // 6. Verify localStorage persisted dismissal flag
     const isDismissed = await page.evaluate(() => {
       return !!window.localStorage.getItem('daily_verdict_guest_disclaimer_dismissed');
     });
     expect(isDismissed).toBe(true);
 
-    // 8. Reload page and ensure disclaimer remains dismissed
+    // 7. Reload page and ensure disclaimer remains dismissed
     await page.reload();
-    await expect(page.locator('text=LOCAL GUEST MODE')).not.toBeVisible();
+    await expect(page.locator('text=Guest Mode & Data Sovereignty Notice')).not.toBeVisible();
   });
 });

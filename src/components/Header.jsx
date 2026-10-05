@@ -357,6 +357,20 @@ export default function Header({
         )}
 
 
+        {/* System Architecture Map Button */}
+        {onOpenArchitectureFlowchart && (
+          <button
+            onClick={() => {
+              try { soundEngine.playClick(); } catch (e) {}
+              onOpenArchitectureFlowchart();
+            }}
+            title="System Architecture Map & Security Lifecycle (Alt + A)"
+            className="p-2 rounded-xl bg-white hover:bg-[#38BDF8] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0"
+          >
+            <Compass className="w-4 h-4 text-black stroke-[2.5]" />
+          </button>
+        )}
+
         {/* Settings Button */}
         {onOpenSettings && (
           <button
