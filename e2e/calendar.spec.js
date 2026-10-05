@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { installAirgapProtection } from './helpers/airgap.js';
 
 test.describe('Calendar Matrix & Timeline Navigation Flow', () => {
   test.beforeEach(async ({ page }) => {
+    await installAirgapProtection(page);
     await page.addInitScript(() => {
       const sandboxEntries = {
         '2026-09-01': { date: '2026-09-01', rating: 5, verdict: 'Peak', notes: 'First day win' },

@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { installAirgapProtection } from './helpers/airgap.js';
 
 test.describe('Life Spheres & Database Archetype E2E Flows', () => {
   test.beforeEach(async ({ page }) => {
+    await installAirgapProtection(page);
     await page.addInitScript(() => {
       // Set sandbox state with Sphere Mode explicitly enabled
       window.localStorage.setItem('daily_verdict_sphere_mode_enabled', 'true');
