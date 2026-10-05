@@ -410,6 +410,18 @@ export function getDbStorageKey(userId) {
 }
 
 export async function fetchDatabase(userOverride = null) {
+  const isDemoActive = typeof window !== 'undefined' && Boolean(window.__DEMO_SANDBOX_ACTIVE__);
+  if (isDemoActive) {
+    const raw = localStorage.getItem('goodness_db_demo_sandbox');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.entries) return parsed;
+      } catch (e) {}
+    }
+    return { startDate: '2026-09-01', isDemoSandbox: true, entries: {} };
+  }
+
   const currentUser = userOverride || getCurrentUser();
   const effectiveId = getEffectiveUserId(currentUser);
   const storageKey = getDbStorageKey(effectiveId);

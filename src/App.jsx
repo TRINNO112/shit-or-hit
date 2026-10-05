@@ -72,7 +72,7 @@ const NotificationStudioPage = safeLazy(() => import('./components/NotificationS
 const P2PDeviceSyncModal = safeLazy(() => import('./components/P2PDeviceSyncModal'));
 const SovereignGuestBanner = safeLazy(() => import('./components/SovereignGuestBanner'));
 const GuardianContactModal = safeLazy(() => import('./components/GuardianContactModal'));
-const ArchitectureFlowchartModal = safeLazy(() => import('./components/ArchitectureFlowchartModal'));
+const ArchitectureModal = safeLazy(() => import('./components/ArchitectureModal'));
 import { soundEngine } from './services/soundEngine';
 import {
   fetchDatabase,
@@ -405,8 +405,8 @@ export default function App() {
 
       // Ctrl + Shift + D / Alt + Shift + D: Populate Exemplary Month & AI Dossier
       const isDemoKey =
-        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd')) ||
-        (e.altKey && e.shiftKey && (e.key === 'D' || e.key === 'd'));
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd' || e.code === 'KeyD')) ||
+        (e.altKey && e.shiftKey && (e.key === 'D' || e.key === 'd' || e.code === 'KeyD'));
 
       if (isDemoKey) {
         e.preventDefault();
@@ -1639,7 +1639,6 @@ export default function App() {
                 onSyncRefresh={loadData}
                 isAcademicMode={isAcademicMode}
                 onOpenGuardianContact={() => setIsGuardianContactOpen(true)}
-                onOpenArchitectureFlowchart={() => setShowArchitectureFlowchart(true)}
               />
             </div>
           </div>
@@ -2058,7 +2057,7 @@ export default function App() {
             {/* 🗺️ Architecture Flowchart Modal (Interactive Hand-Drawn Canvas) */}
             {showArchitectureFlowchart && (
               <Suspense fallback={<div className="fixed inset-0 z-90 bg-[#FFFDF8] flex items-center justify-center font-mono font-black text-sm">OPENING ARCHITECTURE MAP...</div>}>
-                <ArchitectureFlowchartModal
+                <ArchitectureModal
                   onClose={() => {
                     setShowArchitectureFlowchart(false);
                     if (['#architecture', '#flowchart'].includes(window.location.hash)) {

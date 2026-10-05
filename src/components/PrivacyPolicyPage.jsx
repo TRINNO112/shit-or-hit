@@ -374,7 +374,7 @@ export default function PrivacyPolicyPage({ onBack }) {
 
               {/* Contrast Table with Horizontal Scroll Container */}
               <div className="border-2 border-black rounded-2xl overflow-x-auto shadow-[2px_2px_0px_#000000] w-full">
-                <table className="w-full min-w-[540px] text-left font-mono text-xs border-collapse">
+                <table className="w-full min-w-135 text-left font-mono text-xs border-collapse">
                   <thead>
                     <tr className="bg-black text-white">
                       <th className="p-3 border-r border-white/20">DIMENSION</th>

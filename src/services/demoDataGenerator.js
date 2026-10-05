@@ -468,6 +468,7 @@ export function generateExemplaryDossier(year = 2026, month = 9, entries = null)
 
 /**
  * 🚀 POPULATE EXEMPLARY MONTH AND TRIGGER AI DOSSIER SYNTHESIS
+ */
 export const DEMO_STORAGE_KEY = 'goodness_db_demo_sandbox';
 export const DEMO_USER_ID = 'demo_sandbox';
 
@@ -487,6 +488,9 @@ export function setDemoSandboxActive(active) {
   window.__DEMO_SANDBOX_ACTIVE__ = Boolean(active);
   try {
     sessionStorage.setItem('shit_or_hit_demo_sandbox_active', active ? 'true' : 'false');
+    if (active) {
+      getDemoSandboxDb(2026, 9);
+    }
   } catch (e) {}
 }
 
