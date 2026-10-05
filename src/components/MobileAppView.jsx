@@ -52,7 +52,9 @@ import {
   HelpCircle,
   Bell,
   Sliders,
-  Loader2
+  Loader2,
+  GitBranch,
+  ArrowDown
 } from 'lucide-react';
 import HitRateInfoModal from './HitRateInfoModal';
 import { 
@@ -307,6 +309,34 @@ export default function MobileAppView({
   const [dossierLoading, setDossierLoading] = useState(false);
   const [dossierError, setDossierError] = useState(null);
   const [activeDayNote, setActiveDayNote] = useState(null);
+  const [showDominoDialog, setShowDominoDialog] = useState(false);
+
+  // Backward-compatible Domino Chain extractor (supports modern schema & synthesizes from legacy dayMatrix)
+  const getEffectiveDominoChains = (report) => {
+    if (report?.dominoChains && Array.isArray(report.dominoChains) && report.dominoChains.length > 0) {
+      return report.dominoChains;
+    }
+    // Backward compatibility: If an older cached report lacks dominoChains, synthesize from dayMatrix rough days
+    if (report?.dayMatrix && Array.isArray(report.dayMatrix)) {
+      const roughDays = report.dayMatrix.filter(d => Number(d.rating) <= 2);
+      if (roughDays.length >= 2) {
+        return [{
+          title: 'Consecutive Friction & Compounding Recovery Cascade',
+          chainTitle: 'Consecutive Friction & Compounding Recovery Cascade',
+          frictionPattern: 'Compounding cognitive drag across consecutive rough days',
+          rootTrigger: `${roughDays[0].date}: Compounding strain and rough score logged`,
+          circuitBreaker: 'Protecting evening shutdown and scheduling timely rest breaks prevents multi-day domino collapse.',
+          nodes: roughDays.slice(0, 4).map((e, idx) => ({
+            date: e.date,
+            rating: e.rating,
+            stage: idx === 0 ? 'ROOT TRIGGER' : idx === Math.min(roughDays.length - 1, 3) ? 'COLLAPSE / RECOVERY' : 'COMPOUNDING DRAG',
+            summary: e.notes ? e.notes.split('\n')[0].replace(/^[0-9.\-|\s]+/g, '').trim().slice(0, 100) : `Friction point recorded with ${e.rating}★ rating.`
+          }))
+        }];
+      }
+    }
+    return [];
+  };
 
   useEffect(() => {
     const isEnabled = isSphereModeEnabled();
@@ -1758,6 +1788,46 @@ export default function MobileAppView({
                 </div>
               )}
 
+              {/* BEHAVIORAL DOMINO MAP • COMPACT TRIGGER CARD */}
+              {getEffectiveDominoChains(dossierReport).length > 0 && (
+                <div className="p-3.5 sm:p-4 rounded-2xl border-2 border-black bg-white shadow-[2.5px_2.5px_0px_#000000] space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 pb-1 border-b border-black/10">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-xl bg-black text-[#FDC800] flex items-center justify-center border-2 border-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+                        <GitBranch className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-display font-black text-xs uppercase text-black truncate">
+                          BEHAVIORAL DOMINO MAP
+                        </h4>
+                        <span className="text-[9px] font-mono font-bold text-neutral-500 block truncate">
+                          Cross-Day Causal Chains &amp; Friction
+                        </span>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-[#FDC800] text-black border border-black font-mono text-[9px] font-black uppercase shrink-0 shadow-[1px_1px_0px_#000000]">
+                      {getEffectiveDominoChains(dossierReport).length} {getEffectiveDominoChains(dossierReport).length === 1 ? 'CHAIN' : 'CHAINS'}
+                    </span>
+                  </div>
+
+                  <p className="font-mono text-[10px] text-neutral-600 leading-relaxed">
+                    Tap below to open the causal sequence showing how friction points compounded across consecutive days into major outcomes.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try { soundEngine.playClick(); } catch (e) {}
+                      setShowDominoDialog(true);
+                    }}
+                    className="w-full py-2.5 px-3 bg-black hover:bg-neutral-900 text-[#00E599] border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px"
+                  >
+                    <GitBranch className="w-4 h-4 stroke-[2.5]" />
+                    <span>OPEN DOMINO CAUSAL CHAINS</span>
+                  </button>
+                </div>
+              )}
+
               {/* 5. 31-Day Micro-Verdict Matrix */}
               {dossierReport.dayMatrix && dossierReport.dayMatrix.length > 0 && (
                 <div className="p-4 rounded-2xl border-2 border-black bg-white shadow-[2.5px_2.5px_0px_#000000] space-y-2.5">
@@ -2452,6 +2522,160 @@ export default function MobileAppView({
         isOpen={showHitRateInfo}
         onClose={() => setShowHitRateInfo(false)}
       />
+
+      {/* 🧩 Behavioral Domino Effect Dialog Box Modal for Mobile Dossier */}
+      <AnimatePresence>
+        {showDominoDialog && dossierReport && (
+          <div 
+            className="fixed inset-0 z-100 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-xs select-none"
+            onClick={() => setShowDominoDialog(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-lg bg-[#FFFDF8] border-3 border-black rounded-3xl p-4 sm:p-6 shadow-[6px_6px_0px_#000000] space-y-4 my-auto relative max-h-[90vh] flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Dialog Header */}
+              <div className="flex items-center justify-between border-b-2 border-black/15 pb-3 shrink-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-black text-[#FDC800] flex items-center justify-center border-2 border-black shadow-[1.5px_1.5px_0px_#000000] shrink-0">
+                    <GitBranch className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-mono text-[9px] font-black uppercase px-1.5 py-0.5 bg-[#FDC800] text-black border border-black rounded">
+                      CAUSAL INTELLIGENCE
+                    </span>
+                    <h4 className="font-display font-black text-sm uppercase text-black truncate mt-0.5">
+                      Behavioral Domino Map
+                    </h4>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowDominoDialog(false)}
+                  className="p-1.5 rounded-xl bg-neutral-100 hover:bg-[#FF4D4D] hover:text-white border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-colors shrink-0"
+                >
+                  <X className="w-4 h-4 stroke-[2.5]" />
+                </button>
+              </div>
+
+              {/* Scrollable Chains List */}
+              <div className="overflow-y-auto flex-1 space-y-4 pr-1">
+                <p className="font-mono text-[11px] text-neutral-600 leading-relaxed">
+                  Cross-Day Causal Chains: How small events, sleep debt, and friction points compounded across consecutive days into major outcomes.
+                </p>
+
+                {getEffectiveDominoChains(dossierReport).map((chain, cIdx) => {
+                  const chainNodes = chain.nodes || chain.links || [];
+                  return (
+                    <div 
+                      key={cIdx}
+                      className="p-3.5 rounded-2xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] space-y-3"
+                    >
+                      <div className="border-b border-black/10 pb-2">
+                        <h5 className="font-display font-black text-xs uppercase text-black leading-snug">
+                          {chain.title || chain.chainTitle}
+                        </h5>
+                        {(chain.frictionPattern || chain.rootTrigger) && (
+                          <div className="mt-1">
+                            <span className="inline-block px-2 py-0.5 rounded bg-black text-white font-mono text-[9px] font-bold uppercase truncate max-w-full">
+                              TRIGGER: {chain.frictionPattern || chain.rootTrigger}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Vertical Connected Stage Nodes */}
+                      <div className="space-y-2">
+                        {chainNodes.map((node, nIdx, arr) => {
+                          const isLast = nIdx === arr.length - 1;
+                          const stageColors = {
+                            'ROOT TRIGGER': 'bg-[#FF4D4D] text-white',
+                            'RIPPLE EFFECT': 'bg-[#FF8A00] text-black',
+                            'COMPOUNDING DRAG': 'bg-[#FDC800] text-black',
+                            'ACCELERATION': 'bg-[#FF8A00] text-black',
+                            'CRITICAL FRICTION': 'bg-[#FF4D4D] text-white',
+                            'COLLAPSE / RESET': 'bg-black text-[#FF4D4D]',
+                            'COLLAPSE / RECOVERY': 'bg-black text-[#FF4D4D]',
+                            'RESOLUTION': 'bg-[#00E599] text-black',
+                            'RECOVERY / RESOLUTION': 'bg-[#00E599] text-black'
+                          };
+                          const badgeClass = stageColors[node.stage] || 'bg-neutral-800 text-white';
+
+                          return (
+                            <div key={nIdx} className="space-y-1.5">
+                              <div className="p-2.5 rounded-xl border border-black/25 bg-[#FFFDF8] space-y-1">
+                                <div className="flex items-center justify-between gap-1">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="w-4 h-4 rounded-full bg-black text-white font-mono text-[8px] font-black flex items-center justify-center shrink-0">
+                                      {nIdx + 1}
+                                    </span>
+                                    <span className={`text-[8px] font-mono font-black px-1.5 py-0.5 rounded border border-black/30 uppercase truncate ${badgeClass}`}>
+                                      {node.stage || `STAGE ${nIdx + 1}`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <span className="font-mono text-[9px] font-black text-neutral-500">
+                                      {node.date}
+                                    </span>
+                                    {node.rating && (
+                                      <span className={`text-[9px] font-mono font-black px-1 rounded border border-black ${
+                                        node.rating >= 4 ? 'bg-[#00E599] text-black' : node.rating === 3 ? 'bg-neutral-200 text-black' : 'bg-[#FF4D4D] text-white'
+                                      }`}>
+                                        {node.rating}★
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-[10px] font-mono text-neutral-800 leading-snug">
+                                  {node.summary || node.note || node.observation}
+                                </p>
+                              </div>
+
+                              {!isLast && (
+                                <div className="flex justify-center py-0.5">
+                                  <ArrowDown className="w-3.5 h-3.5 text-neutral-400 stroke-[2.5]" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Circuit Breaker */}
+                      {chain.circuitBreaker && (
+                        <div className="p-2.5 bg-emerald-50 border border-black rounded-xl font-mono text-[10px] text-emerald-950 space-y-0.5">
+                          <span className="font-black uppercase block text-[#008A54]">
+                            TACTICAL CIRCUIT BREAKER:
+                          </span>
+                          <p className="leading-snug">
+                            {chain.circuitBreaker}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div className="pt-2 border-t-2 border-black/15 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowDominoDialog(false)}
+                  className="w-full py-2.5 bg-black text-[#00E599] border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer hover:bg-neutral-900 active:translate-x-px"
+                >
+                  CLOSE DIALOG
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
