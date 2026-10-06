@@ -1210,7 +1210,15 @@ async function generateClientMonthlyReport(year, month, customEntries = null, pr
     const effectiveId = getEffectiveUserId(currentUser);
     const storageKey = getDbStorageKey(effectiveId);
     const cached = localStorage.getItem(storageKey);
-    allEntries = cached ? JSON.parse(cached).entries || {} : {};
+    let cachedEntries = {};
+    if (cached) {
+      try {
+        cachedEntries = JSON.parse(cached).entries || {};
+      } catch (e) {
+        console.warn('Failed to parse cached entries for monthly report:', e);
+      }
+    }
+    allEntries = cachedEntries;
   }
 
   const monthPrefix = `${year}-${String(month).padStart(2, '0')}`;

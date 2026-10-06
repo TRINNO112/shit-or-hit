@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio,
@@ -1189,7 +1190,9 @@ export default function P2PDeviceSyncModal({
                 {/* QR Code Container */}
                 <div
                   className="w-44 h-44 bg-[#FFFDF8] p-2 border-2 border-black rounded-xl shadow-[2px_2px_0px_#000000] flex items-center justify-center shrink-0"
-                  dangerouslySetInnerHTML={{ __html: qrSvgHtml }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(qrSvgHtml, { USE_PROFILES: { svg: true } })
+                  }}
                 />
 
                 <div className="space-y-2 text-center sm:text-left flex-1">

@@ -419,7 +419,7 @@ export default function DetailedSettingsView({
           }}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFFDF0] hover:bg-[#FDC800] border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px cursor-pointer"
         >
-          <ChevronLeft className="w-4 h-4 stroke-[3]" />
+          <ChevronLeft className="w-4 h-4 stroke-3" />
           <span>BACK TO APP</span>
         </button>
 

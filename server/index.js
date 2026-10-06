@@ -47,7 +47,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://127.0.0.1:5888',
   'http://127.0.0.1:5173',
-  'https://shit-or-hit.netlify.app'
+  'https://shit-or-hit.netlify.app',
+  'https://daily-verdict.netlify.app'
 ];
 
 app.use(cors({
@@ -57,7 +58,8 @@ app.use(cors({
     const isAllowed = ALLOWED_ORIGINS.includes(origin) ||
       /^http:\/\/localhost(:\d+)?$/.test(origin) ||
       /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
-      /^https:\/\/.*--shit-or-hit\.netlify\.app$/.test(origin);
+      /^https:\/\/.*--shit-or-hit\.netlify\.app$/.test(origin) ||
+      /^https:\/\/.*--daily-verdict\.netlify\.app$/.test(origin);
     if (isAllowed) {
       callback(null, true);
     } else {
@@ -1399,6 +1401,17 @@ function getVerdictFromRating(rating) {
     default: return 'Custom';
   }
 }
+
+// Global Express Structured JSON Error Handler
+app.use((err, req, res, next) => {
+  logger.error(`[Unhandled Server Error] ${err.message}`, { stack: err.stack, path: req.path });
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal server error occurred',
+    timestamp: new Date().toISOString()
+  });
+});
 
 app.listen(PORT, () => {
   logger.info(`⚡ Daily Goodness Server running on http://localhost:${PORT}`);

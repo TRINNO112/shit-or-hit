@@ -638,7 +638,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                     {!isLast && (
                                       <div className="flex items-center justify-center shrink-0 px-0.5">
                                         <div className="w-7 h-7 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000]">
-                                          <ArrowRight className="w-3.5 h-3.5 text-black stroke-[3]" />
+                                          <ArrowRight className="w-3.5 h-3.5 text-black stroke-3" />
                                         </div>
                                       </div>
                                     )}
