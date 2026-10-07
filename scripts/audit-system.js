@@ -434,7 +434,7 @@ assert(missingImportErrors.length === 0, `Static JSX Import Scanner: ${missingIm
 // ----------------------------------------------------------------------
 console.log('\n⚡ [FINAL] Running Vite Production Bundle Verification...');
 try {
-  const buildOutput = execSync('npm run build', { cwd: ROOT_DIR, encoding: 'utf-8', stdio: 'pipe' });
+  const buildOutput = execSync('npx vite build', { cwd: ROOT_DIR, encoding: 'utf-8' });
   assert(buildOutput.includes('built in') || buildOutput.includes('dist/index.html'), 'Vite production build compiled with 0 errors');
 } catch (buildErr) {
   assert(false, `Vite production build failed: ${buildErr.message}`);

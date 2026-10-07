@@ -1,606 +1,1739 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Daily Verdict: one evening, one honest minute</title>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<title>Daily Verdict — Master System Architecture & Defense Blueprint (v9)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&family=Plus+Jakarta+Sans:wght@700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <style>
-html,body{height:100%;margin:0;background:#FFF9EE;overflow:hidden;touch-action:none;font-family:Kalam,Caveat,cursive;color:#111}
-#c{display:block;width:100%;height:100%;cursor:grab}
-#c.hov{cursor:pointer}#c.drag{cursor:grabbing}
-#note{position:fixed;width:300px;box-sizing:border-box;padding:18px 18px 14px;background:#FFE86B;border:3px solid #111;
- border-radius:255px 18px 225px 18px/18px 225px 18px 255px;box-shadow:7px 7px 0 #111;transform:rotate(-1.6deg);display:none;z-index:5;font-size:16px;line-height:1.35}
-#note.on{display:block;animation:pop .28s cubic-bezier(.3,1.6,.5,1)}
-@keyframes pop{from{transform:rotate(-8deg) scale(.55);opacity:0}to{transform:rotate(-1.6deg) scale(1);opacity:1}}
-#note:before{content:"";position:absolute;top:-13px;left:50%;width:84px;height:24px;margin-left:-42px;background:#00C2FF99;border:2px solid #111;transform:rotate(3deg)}
-#note h2{margin:6px 0 6px;font-family:Caveat,cursive;font-size:30px;line-height:1}
-#note h3{margin:10px 0 2px;font-size:15px;text-decoration:underline wavy #FF4D4D}
-#note p{margin:0}
-#ni{float:left;margin:4px 10px 2px 0}
-#note.on .do,#note.on .why,#note.on .facts li{animation:rise .5s both}
-#note.on .why{animation-delay:.12s}#note.on .facts li:nth-child(1){animation-delay:.2s}#note.on .facts li:nth-child(2){animation-delay:.3s}#note.on .facts li:nth-child(3){animation-delay:.4s}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-#note .tag{font:700 11px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;display:table;padding:3px 7px;border:2px solid #111;background:#fff}
-#note .tech{margin-top:10px;font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;border-top:2px dashed #111;padding-top:7px;word-break:break-word}
-#x{position:absolute;right:14px;top:10px;border:2px solid #111;background:#FF4D4D;font:700 16px Caveat,cursive;padding:0 9px;cursor:pointer;border-radius:8px 3px 8px 3px}
-#leg{position:fixed;left:12px;bottom:12px;background:#FFFDF8;border:3px solid #111;box-shadow:5px 5px 0 #111;padding:9px 12px;font-size:14px;line-height:1.7;border-radius:14px 4px 14px 4px;z-index:4}
-#leg i{display:inline-block;width:30px;height:0;border-top:4px solid #111;vertical-align:middle;margin-right:8px}
-#leg i.a{border-color:#B388FF;border-top-width:9px}#leg i.q{border-top-style:dashed}
-#leg small{display:block;color:#555;font-size:12px}
-#ctl{position:fixed;right:12px;bottom:12px;z-index:4;display:flex;gap:10px}
-.btn{border:3px solid #111;background:#00E599;box-shadow:4px 4px 0 #111;font:700 20px Caveat,cursive;padding:2px 14px;cursor:pointer;border-radius:10px 3px 10px 3px;color:#111}
-.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #111}.btn:disabled{opacity:.4;cursor:default}
-#ctl .btn.alt{background:#B388FF}
-#hud{display:none!important}
-#hud .btn{background:#FDC800;padding:0 14px}
-#dots{display:flex;align-items:center;flex-wrap:wrap;justify-content:center}
-#dots button{width:13px;height:13px;margin:4px 3px;border:2px solid #111;border-radius:50% 45% 55% 40%;background:#fff;padding:0;cursor:pointer;transition:transform .25s}
-#dots button.seen{background:var(--c)}#dots button.cur{transform:scale(1.8);background:var(--c);box-shadow:2px 2px 0 #111;margin:4px 6px}
-#hint{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:3;font-size:15px;color:#333;background:#FFF9EEcc;padding:2px 12px;border-radius:10px;text-align:center;pointer-events:none;width:max-content;max-width:92vw}
-#mm{display:block;width:200px;height:200px;position:fixed;top:12px;right:12px;z-index:4;background:#FFFDF8;border:3px solid #111;box-shadow:4px 4px 0 #111;border-radius:10px 3px 10px 3px;cursor:pointer}
-.facts{margin:2px 0 0;padding-left:18px;font-size:14px}.facts li{margin:2px 0}
-#vig{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 160px 30px #d8c8a066;z-index:2}
-#note{max-height:min(680px,calc(100vh - 64px));overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
-#note::-webkit-scrollbar{display:none;width:0;height:0}
-#sheet{scrollbar-width:thin;scrollbar-color:#111 #FFE86B}
-#sheet::-webkit-scrollbar{width:7px}
-#sheet::-webkit-scrollbar-track{background:rgba(17,17,17,.08);border-radius:4px}
-#sheet::-webkit-scrollbar-thumb{background:#111;border-radius:4px;border:1px solid #FFE86B}
-#sheet::-webkit-scrollbar-thumb:hover{background:#FF4D4D}
-.fx{margin-top:12px;background:rgba(255,255,255,.45);border:2px dashed #111;border-radius:8px 3px 8px 3px;transition:background .25s,box-shadow .25s,border .25s;user-select:none}
-.fx[open]{background:#FFFDF8;border-style:solid;box-shadow:3px 3px 0 #111}
-.fx summary{list-style:none;cursor:pointer;font-family:Caveat,cursive;font-size:20px;font-weight:700;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;color:#111;transition:color .18s}
-.fx summary::-webkit-details-marker{display:none}
-.fx summary:hover{color:#FF4D4D}
-.fx-arrow{font-size:16px;font-weight:900;display:inline-block;transition:transform .32s cubic-bezier(.34,1.56,.64,1);line-height:1}
-.fx[open] .fx-arrow{transform:rotate(-180deg);color:#FF4D4D}
-.fx-body{overflow:hidden}
-.facts{margin:0;padding:4px 12px 10px 24px;font-size:14px}
-.facts li{margin:3px 0;line-height:1.35}
-#hint{transition:opacity .6s}#mm{transition:opacity .4s}
-#menu{position:fixed;right:12px;bottom:62px;z-index:5;display:none;flex-direction:column;gap:8px;align-items:stretch}#menu.on{display:flex}
-#scrim{position:fixed;inset:0;background:#1115;z-index:6;display:none}
-#sheet{position:fixed;left:50%;top:50%;width:min(780px,92vw);max-height:88vh;overflow:auto;box-sizing:border-box;padding:22px 28px 18px;background:#FFE86B;border:3px solid #111;border-radius:255px 18px 225px 18px/18px 225px 18px 255px;box-shadow:8px 8px 0 #111;z-index:7;display:none;transform:translate(-50%,-50%) rotate(-.8deg)}
-#sheet.on{display:block;animation:popc .3s cubic-bezier(.3,1.5,.5,1)}
-@keyframes popc{from{transform:translate(-50%,-50%) rotate(-6deg) scale(.6);opacity:0}to{transform:translate(-50%,-50%) rotate(-.8deg) scale(1);opacity:1}}
-#sheet h2{font-family:Caveat,cursive;font-size:40px;margin:0 0 2px}#sheet .sub{margin:0 0 8px;font-size:17px}
-#sheet .cl{position:absolute;right:18px;top:14px;background:#FF4D4D;font-size:18px;padding:0 12px}
-#sheet .row{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:center;padding:8px 0;border-top:2px dashed #111}
-#sheet .row b{font-family:Caveat,cursive;font-size:26px}#sheet .row span{font-size:15px}
-.ar{display:inline-block;width:30px;border-top:3px solid #111;position:relative;margin:0 10px;vertical-align:middle}
-.ar:after{content:"";position:absolute;right:-1px;top:-8px;width:9px;height:9px;border:3px solid #111;border-left:0;border-bottom:0;transform:rotate(45deg)}
-#sheet .foot{font-size:14px;margin:8px 0 0;color:#333}
-.k{display:inline-block;min-width:26px;padding:2px 9px;margin:0 3px;border:3px solid #111;border-radius:7px 3px 7px 3px;background:#fff;box-shadow:2px 3px 0 #111;font:700 14px ui-monospace,Menlo,Consolas,monospace;text-align:center}
-.kr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:2px dashed #111;font-size:17px}
-.lg{display:inline-block;width:30px;border-top:4px solid #111;vertical-align:middle;margin-right:6px}.lg.a{border-color:#B388FF;border-top-width:9px}.lg.q{border-top-style:dashed}
-@media(prefers-reduced-motion:reduce){#sheet.on{animation:none}}
-@media(max-width:640px){#note{left:8px!important;right:8px;top:auto!important;bottom:8px;width:auto;max-height:55vh;overflow:auto}#leg,#hint,#mm{display:none}#hud{bottom:auto;top:8px}#ctl{bottom:auto;top:62px;right:8px}#ctl .btn{font-size:16px;padding:0 8px}#menu{bottom:auto;top:104px;right:8px}}
-@media(prefers-reduced-motion:reduce){#note.on,#note.on *{animation:none!important}}
-<style>
-html,body{background:#07080F}
-#vig{box-shadow:inset 0 0 220px 60px #000d}
-#gr{position:fixed;inset:-50%;pointer-events:none;z-index:2;opacity:.07;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");animation:gr .6s steps(6) infinite}
-@keyframes gr{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
-.lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:3;transition:height .9s cubic-bezier(.6,0,.2,1);pointer-events:none}#lb1{top:0}#lb2{bottom:0}
-body.cin .lb{height:5.5vh}
-#note{--ac:#B388FF;background:rgba(16,14,34,.9);backdrop-filter:blur(14px);color:#F4EBD9;border:1.5px solid var(--ac);border-radius:16px;box-shadow:0 0 46px -4px var(--ac),0 18px 50px #000a}
-#note:before{background:var(--ac);opacity:.85}
-#note .tag{color:#111;background:var(--ac);border-color:var(--ac)}
-#note h3{text-decoration-color:var(--ac)}
-#note .tech{border-top-color:#ffffff33;color:#bdb8d4}
-.fx{background:#ffffff0d;border-color:#ffffff40}.fx[open]{background:#ffffff14;box-shadow:none;border-color:var(--ac)}.fx summary{color:#F4EBD9}
-.aip .st{border-left:3px solid var(--ac);padding:2px 0 3px 10px;margin:5px 0;display:flex;flex-direction:column}
-.aip .st b{font:700 10px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.1em;color:var(--ac)}.aip .st span{font-size:13.5px;line-height:1.3}
-#note.on .st{animation:rise .5s both;animation-delay:var(--d)}
-.more{margin:12px 0 0;width:100%;font-size:18px;background:var(--ac)}
-#hint{color:#cfcbe6;background:#07080Fb3}
-#mm{background:#0d0f1c;border-color:#ffffff55;box-shadow:0 0 20px #B388FF55}
-.btn{box-shadow:0 0 18px #0008}
-#ctl{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
-#intro{position:fixed;inset:0;z-index:20;background:radial-gradient(#141230,#05060c);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#F4EBD9;text-align:center;pointer-events:none;animation:fo 1.2s 2.2s forwards}
-#intro h1{font:700 clamp(54px,11vw,140px)/1 Caveat,cursive;margin:0;text-shadow:0 0 40px #B388FF;animation:ti 2.4s both}
-#intro p{font:600 clamp(11px,1.6vw,18px) Cinzel,serif;letter-spacing:.5em;text-transform:uppercase;color:#FDC800;margin:18px 0 0;animation:ti 2.4s .4s both}
-@keyframes ti{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
-@keyframes fo{to{opacity:0;visibility:hidden}}
-#act{position:fixed;inset:0;z-index:15;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:0;color:#F4EBD9;background:radial-gradient(#000a,#0000 70%)}
-#act small{font:600 clamp(12px,2vw,20px) Cinzel,serif;letter-spacing:.6em;color:var(--c)}
-#act b{font:700 clamp(40px,8vw,100px)/1.1 Caveat,cursive;text-shadow:0 0 40px var(--c)}
-#act.on{animation:act 2.4s both}
-@keyframes act{0%{opacity:0;transform:scale(1.08)}18%,75%{opacity:1;transform:none}100%{opacity:0}}
-@media(prefers-reduced-motion:reduce){#gr{animation:none}}
-@media(max-width:640px){body.cin .lb{height:0}}
-#mm{border:2px solid #ffffff40;border-radius:14px;box-shadow:0 10px 34px #000b,0 0 26px #B388FF44}
-#note{scrollbar-width:thin;scrollbar-color:var(--ac) transparent;-ms-overflow-style:auto}
-#note::-webkit-scrollbar{display:block;width:6px;height:auto}
-#note::-webkit-scrollbar-track{background:transparent;margin:16px 0}
-#note::-webkit-scrollbar-thumb{background:var(--ac);border-radius:6px}
-#sheet{scrollbar-color:#5E35B1 transparent}
-#sheet::-webkit-scrollbar{width:8px}#sheet::-webkit-scrollbar-track{background:transparent;margin:22px 0}
-#sheet::-webkit-scrollbar-thumb{background:#5E35B1;border:0;border-radius:8px}#sheet::-webkit-scrollbar-thumb:hover{background:#FF4D4D}
-</style></head><body>
-<canvas id="c"></canvas><div class="lb" id="lb1"></div><div class="lb" id="lb2"></div>
-<div id="note" role="dialog" aria-live="polite"><button id="x" aria-label="Close note">x</button><span class="tag"></span><canvas id="ni" width="52" height="52"></canvas><h2></h2><p class="do"></p><h3>Why it matters to you</h3><p class="why"></p><div class="aip"></div><button class="btn more" style="display:none"></button><details class="fx"><summary><span>Quick facts</span><span class="fx-arrow">▾</span></summary><div class="fx-body"><ul class="facts"></ul></div></details><div class="tech"></div></div>
-<canvas id="mm" width="400" height="400" aria-label="Minimap: click to jump"></canvas>
-<div id="gr"></div><div id="vig"></div><div id="intro"><h1>Daily Verdict</h1><p>One honest minute every night</p></div><div id="act"><small></small><b></b></div>
-<div id="hint"></div>
-<div id="hud"><button class="btn" id="pv">Back</button><div id="dots"></div><button class="btn" id="nx">Next</button></div>
-<div id="menu"><button class="btn alt" id="ov">Overview</button><button class="btn alt" id="au">Auto-play: off</button><button class="btn alt" id="ai">AI brain</button><button class="btn alt" id="wd">Who does what</button><button class="btn alt" id="bg">Big picture</button><button class="btn alt" id="mp">Minimap</button><button class="btn alt" id="hp">Keys</button><button class="btn alt" id="fs">Fullscreen</button></div>
-<div id="ctl"><button class="btn" id="mn">Menu</button></div>
-<div id="scrim"></div><div id="sheet"></div>
+:root {
+  --bg: #07080F;
+  --paper: #FFFDF8;
+  --ink: #111111;
+  --wire: #F4EBD9;
+  --sub: #9E9BB5;
+  --grid: #1D2038;
+  --card-bg: rgba(16, 14, 34, 0.94);
+  --card-border: #F4EBD9;
+  --card-text: #F4EBD9;
+  --card-tech: #A9A6C0;
+  --theme-trans: 0.3s ease;
+}
+
+body.theme-light {
+  --bg: #FFF9EE;
+  --paper: #FFFDF8;
+  --ink: #111111;
+  --wire: #111111;
+  --sub: #555555;
+  --grid: #E8DEC8;
+  --card-bg: #FFE86B;
+  --card-border: #111111;
+  --card-text: #111111;
+  --card-tech: #2B2A33;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  overflow: hidden;
+  touch-action: none;
+  font-family: 'Kalam', 'Caveat', cursive;
+  color: #111;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background var(--theme-trans);
+}
+
+#c {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+#c.hov { cursor: pointer; }
+#c.drag { cursor: grabbing; }
+
+/* Cinematic Letterbox */
+.lb {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: #000;
+  z-index: 8;
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+#lb1 { top: 0; }
+#lb2 { bottom: 0; }
+body.cin .lb { height: 4.5vh; }
+@media (max-width: 640px) { body.cin .lb { height: 0; } }
+
+/* Ambient Film Grain & Vignette */
+#vig {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 220px 60px rgba(0,0,0,0.85);
+  z-index: 2;
+  transition: box-shadow var(--theme-trans);
+}
+body.theme-light #vig {
+  box-shadow: inset 0 0 160px 30px rgba(216, 200, 160, 0.45);
+}
+
+#gr {
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.055;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: gr 0.6s steps(6) infinite;
+}
+@keyframes gr {
+  0% { transform: translate(0,0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(3%, 3%); }
+  100% { transform: translate(0,0); }
+}
+
+/* Neobrutalist Detail Note Modal */
+#note {
+  position: fixed;
+  width: min(340px, 92vw);
+  box-sizing: border-box;
+  padding: 18px 20px 16px;
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--card-text);
+  border: 3px solid var(--card-border);
+  border-radius: 255px 18px 225px 18px/18px 225px 18px 255px;
+  box-shadow: 6px 6px 0 #111, 0 0 50px -8px var(--ac, #FDC800);
+  transform: rotate(-1.4deg);
+  display: none;
+  z-index: 10;
+  font-size: 15px;
+  line-height: 1.38;
+  max-height: min(680px, calc(100vh - 84px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-border) transparent;
+}
+#note.on {
+  display: block;
+  animation: pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pop {
+  from { transform: rotate(-7deg) scale(0.65); opacity: 0; }
+  to { transform: rotate(-1.4deg) scale(1); opacity: 1; }
+}
+
+#note:before {
+  content: "";
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  width: 88px;
+  height: 24px;
+  margin-left: -44px;
+  background: var(--ac, #FDC800);
+  border: 2px solid #111;
+  transform: rotate(2.5deg);
+  box-shadow: 2px 2px 0 #111;
+}
+
+#note h2 {
+  margin: 6px 0 4px;
+  font-family: 'Caveat', cursive;
+  font-size: 32px;
+  line-height: 1.05;
+}
+#note h3 {
+  margin: 10px 0 4px;
+  font-size: 15px;
+  text-decoration: underline wavy var(--ac, #FF4D4D);
+}
+#note p { margin: 0; }
+#ni {
+  float: left;
+  margin: 3px 12px 4px 0;
+  border-radius: 12px;
+  background: #FFFDF8;
+  border: 2px solid #111;
+  box-shadow: 2px 2px 0 #111;
+}
+#note .tag {
+  font: 800 11px/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+  display: table;
+  padding: 4px 8px;
+  border: 2px solid #111;
+  background: var(--ac, #FDC800);
+  color: #111;
+  box-shadow: 2px 2px 0 #111;
+}
+#note .tech {
+  margin-top: 10px;
+  font: 700 11px/1.4 'JetBrains Mono', monospace;
+  border-top: 2px dashed rgba(255,255,255,0.25);
+  padding-top: 8px;
+  word-break: break-word;
+  color: var(--card-tech);
+}
+body.theme-light #note .tech {
+  border-top-color: rgba(0,0,0,0.25);
+}
+
+#x {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  border: 2px solid #111;
+  background: #FF4D4D;
+  color: #fff;
+  font: 800 16px 'JetBrains Mono', monospace;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 #111;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+#x:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #111; }
+#x:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #111; }
+
+.fx {
+  margin-top: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 2px dashed rgba(255,255,255,0.3);
+  border-radius: 10px;
+  transition: background 0.2s, border 0.2s;
+}
+body.theme-light .fx {
+  background: rgba(255,255,255,0.5);
+  border-color: rgba(0,0,0,0.3);
+}
+.fx[open] {
+  background: rgba(255,255,255,0.12);
+  border-style: solid;
+  border-color: var(--ac, #00E599);
+}
+.fx summary {
+  list-style: none;
+  cursor: pointer;
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fx summary::-webkit-details-marker { display: none; }
+.fx-arrow {
+  font-size: 14px;
+  font-weight: 900;
+  transition: transform 0.25s ease;
+}
+.fx[open] .fx-arrow { transform: rotate(-180deg); color: #FF4D4D; }
+.facts {
+  margin: 0;
+  padding: 4px 14px 10px 24px;
+  font-size: 13.5px;
+}
+.facts li { margin: 3px 0; line-height: 1.35; }
+
+.aip .st {
+  border-left: 3.5px solid var(--ac, #00E599);
+  padding: 3px 0 4px 10px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,0.04);
+  border-radius: 0 8px 8px 0;
+}
+.aip .st b {
+  font: 800 10.5px/1.2 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  color: var(--ac, #00E599);
+}
+.aip .st span { font-size: 13.5px; line-height: 1.3; }
+
+/* Interactive HUD Controls (Prominent & Mobile-Optimized) */
+#hud {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFDF8;
+  border: 3px solid #111;
+  border-radius: 18px;
+  padding: 6px 10px;
+  box-shadow: 4px 4px 0 #111;
+  max-width: 96vw;
+  box-sizing: border-box;
+}
+
+.btn {
+  border: 2.5px solid #111;
+  background: #00E599;
+  box-shadow: 2.5px 2.5px 0 #111;
+  font: 700 17px 'Caveat', cursive;
+  padding: 3px 12px;
+  cursor: pointer;
+  border-radius: 10px;
+  color: #111;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  white-space: nowrap;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 3.5px 3.5px 0 #111; }
+.btn:active { transform: translate(2px, 2px); box-shadow: 0.5px 0.5px 0 #111; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.alt { background: #FDC800; }
+.btn.purple { background: #B388FF; }
+.btn.coral { background: #FF4D4D; color: #fff; }
+
+#dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  max-width: min(440px, 45vw);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#dots::-webkit-scrollbar { display: none; }
+#dots button {
+  width: 13px;
+  height: 13px;
+  border: 2px solid #111;
+  border-radius: 50%;
+  background: #fff;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+#dots button.seen { background: var(--c); }
+#dots button.cur {
+  transform: scale(1.6);
+  background: var(--c);
+  box-shadow: 1.5px 1.5px 0 #111;
+}
+
+#hud-counter {
+  font: 800 11px/1 'JetBrains Mono', monospace;
+  color: #111;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+/* Secondary Toolbar (Top Right / Bottom Right) */
+#ctl {
+  position: fixed;
+  right: 14px;
+  top: 14px;
+  z-index: 12;
+  display: flex;
+  gap: 8px;
+}
+#menu {
+  position: fixed;
+  right: 14px;
+  top: 60px;
+  z-index: 13;
+  display: none;
+  flex-direction: column;
+  gap: 7px;
+  background: #FFFDF8;
+  border: 3px solid #111;
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 5px 5px 0 #111;
+}
+#menu.on { display: flex; }
+
+/* Interactive Minimap */
+#mm {
+  position: fixed;
+  left: 14px;
+  top: 14px;
+  width: 170px;
+  height: 170px;
+  z-index: 11;
+  background: #0D0F1C;
+  border: 2.5px solid rgba(255,255,255,0.4);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 25px rgba(179,136,255,0.3);
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.3s;
+}
+body.theme-light #mm {
+  background: #FFFDF8;
+  border-color: #111;
+  box-shadow: 4px 4px 0 #111;
+}
+@media (max-width: 768px) {
+  #mm { display: none; }
+}
+
+/* Modal Bottom Sheets & Overlays */
+#scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 18;
+  display: none;
+  backdrop-filter: blur(4px);
+}
+#sheet {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: min(760px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 24px 28px;
+  background: #FFE86B;
+  border: 3.5px solid #111;
+  border-radius: 255px 18px 225px 18px/18px 225px 18px 255px;
+  box-shadow: 8px 8px 0 #111;
+  z-index: 19;
+  display: none;
+  transform: translate(-50%, -50%) rotate(-0.6deg);
+}
+#sheet.on { display: block; animation: popc 0.28s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes popc {
+  from { transform: translate(-50%, -50%) rotate(-5deg) scale(0.7); opacity: 0; }
+  to { transform: translate(-50%, -50%) rotate(-0.6deg) scale(1); opacity: 1; }
+}
+#sheet h2 { font-family: 'Caveat', cursive; font-size: 38px; margin: 0 0 4px; }
+#sheet .sub { font-size: 16px; margin: 0 0 14px; }
+#sheet .cl { position: absolute; right: 16px; top: 16px; background: #FF4D4D; color: #fff; }
+#sheet .row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; padding: 10px 0; border-top: 2px dashed #111; }
+#sheet .row b { font-family: 'Caveat', cursive; font-size: 24px; }
+
+/* Interactive Gentle Intro (Dismissible Instantly) */
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: radial-gradient(#141230, #05060C);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #F4EBD9;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.4s ease, visibility 0.4s;
+}
+#intro.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+#intro h1 {
+  font: 700 clamp(48px, 9vw, 110px)/1 'Caveat', cursive;
+  margin: 0;
+  text-shadow: 0 0 40px #B388FF;
+}
+#intro p {
+  font: 800 clamp(11px, 1.4vw, 16px) 'JetBrains Mono', monospace;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #FDC800;
+  margin: 14px 0 0;
+}
+#intro .tap-prompt {
+  margin-top: 40px;
+  font: 700 13px 'JetBrains Mono', monospace;
+  letter-spacing: 0.25em;
+  background: #00E599;
+  color: #111;
+  padding: 8px 18px;
+  border: 2px solid #111;
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 #111;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Act Banner */
+#act {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  color: #F4EBD9;
+  background: radial-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0) 70%);
+}
+#act small {
+  font: 800 clamp(11px, 1.8vw, 18px) 'JetBrains Mono', monospace;
+  letter-spacing: 0.5em;
+  color: var(--c, #FDC800);
+}
+#act b {
+  font: 700 clamp(36px, 7vw, 84px)/1.1 'Caveat', cursive;
+  text-shadow: 0 0 35px var(--c, #FDC800);
+}
+#act.on { animation: act 2.2s both; }
+@keyframes act {
+  0% { opacity: 0; transform: scale(1.08); }
+  20%, 75% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+
+/* Hint Toast */
+#hint {
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  z-index: 9;
+  font: 700 13px 'JetBrains Mono', monospace;
+  color: #CFCBE6;
+  background: rgba(7, 8, 15, 0.85);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  padding: 4px 14px;
+  border-radius: 10px;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  transition: opacity 0.4s;
+}
+body.theme-light #hint {
+  color: #111;
+  background: rgba(255, 253, 248, 0.9);
+  border-color: #111;
+  box-shadow: 2px 2px 0 #111;
+}
+
+@media (max-width: 640px) {
+  #note {
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: 74px !important;
+    width: auto;
+    max-height: 52vh;
+    border-radius: 16px;
+  }
+  #hud {
+    bottom: 8px;
+    padding: 4px 8px;
+    gap: 5px;
+  }
+  .btn { font-size: 15px; padding: 2px 8px; }
+  #ctl { top: 8px; right: 8px; }
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="lb" id="lb1"></div>
+<div class="lb" id="lb2"></div>
+
+<!-- Note Detail Modal -->
+<div id="note" role="dialog" aria-live="polite">
+  <button id="x" aria-label="Close note">✕</button>
+  <span class="tag"></span>
+  <canvas id="ni" width="52" height="52"></canvas>
+  <h2></h2>
+  <p class="do"></p>
+  <h3>Why It Matters</h3>
+  <p class="why"></p>
+  <div class="aip"></div>
+  <details class="fx">
+    <summary>
+      <span>Technical Invariants</span>
+      <span class="fx-arrow">▾</span>
+    </summary>
+    <div class="fx-body">
+      <ul class="facts"></ul>
+    </div>
+  </details>
+  <div class="tech"></div>
+</div>
+
+<!-- Interactive Minimap Canvas -->
+<canvas id="mm" width="340" height="340" aria-label="Minimap"></canvas>
+
+<!-- Overlays -->
+<div id="gr"></div>
+<div id="vig"></div>
+<div id="hint">Arrow Keys steer the camera • Click any node to fly • Drag to pan freely</div>
+
+<!-- Dismissible Intro -->
+<div id="intro">
+  <h1>Daily Verdict</h1>
+  <p>One honest minute every night</p>
+  <div class="tap-prompt">TAP OR PRESS ANY KEY TO EXPLORE BLUEPRINT</div>
+</div>
+
+<div id="act"><small></small><b></b></div>
+
+<!-- Prominent Neobrutalist HUD Controls -->
+<div id="hud">
+  <button class="btn" id="pv" title="Previous Stop (Left Arrow)">◀ BACK</button>
+  <div id="dots"></div>
+  <span id="hud-counter">1 / 20</span>
+  <button class="btn" id="nx" title="Next Stop (Right Arrow)">NEXT ▶</button>
+  <button class="btn alt" id="ov" title="Master Overview (O)">MAP</button>
+  <button class="btn purple" id="au" title="Toggle Auto-Tour (A)">AUTO: OFF</button>
+</div>
+
+<!-- Secondary Actions -->
+<div id="ctl">
+  <button class="btn alt" id="thm" title="Toggle Theme">☀ THEME</button>
+  <button class="btn purple" id="sn" title="Audio Atmosphere">♫ SOUND: OFF</button>
+  <button class="btn" id="mn" title="System Menu">MENU ▾</button>
+</div>
+
+<div id="menu">
+  <button class="btn alt" id="bg">The Big Picture</button>
+  <button class="btn alt" id="wd">Who Does What</button>
+  <button class="btn alt" id="ai-jump">Jump to AI Brain</button>
+  <button class="btn alt" id="sec-jump">Jump to Security</button>
+  <button class="btn alt" id="hp">Keyboard Shortcuts</button>
+  <button class="btn alt" id="fs">Fullscreen</button>
+</div>
+
+<div id="scrim"></div>
+<div id="sheet"></div>
+
 <script>
-(()=>{
-const cv=document.getElementById('c'),ctx=cv.getContext('2d'),INK='#111',PAPER='#FFFDF8',WIRE='#F4EBD9',LT=WIRE,MT='#A9A6C0';
-const C={y:'#FDC800',m:'#00E599',r:'#FF4D4D',c:'#00C2FF',l:'#B388FF'};
-const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-const F=(w,s)=>`${w} ${s}px Caveat, Kalam, cursive`;
-let W,H,DPR,cam={x:0,y:0,k:.5};
-function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR}
-const rz=()=>{resize();setTimeout(resize,150);setTimeout(resize,600)};['resize','fullscreenchange','orientationchange'].forEach(ev=>addEventListener(ev,rz));if(typeof visualViewport!='undefined'&&visualViewport)visualViewport.addEventListener('resize',rz);resize();
+(() => {
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const INK = '#111111';
+  const PAPER = '#FFFDF8';
+  
+  // Palette Tokens
+  const C = {
+    y: '#FDC800', // Neo Gold
+    m: '#00E599', // Emerald Mint
+    r: '#FF4D4D', // Coral Red
+    c: '#00C2FF', // Cyan Blue
+    l: '#B388FF', // Lavender Purple
+    dark: '#07080F'
+  };
 
-/* ---------- rough helpers (seeded, cached) ---------- */
-const mul=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-function md(a,b,r,amp,out,d){const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1;
- if(d<=0||L<40){out.push(b);return}
- const o=(r()-.5)*2*amp,m=[(a[0]+b[0])/2-dy/L*o,(a[1]+b[1])/2+dx/L*o];
- md(a,m,r,amp*.62,out,d-1);md(m,b,r,amp*.62,out,d-1)}
-function sm(p,P){P.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length-1;i++)P.quadraticCurveTo(p[i][0],p[i][1],(p[i][0]+p[i+1][0])/2,(p[i][1]+p[i+1][1])/2);P.lineTo(p[p.length-1][0],p[p.length-1][1])}
+  const F = (weight, size) => weight + ' ' + size + 'px Caveat, Kalam, cursive';
+  const MONO = (weight, size) => weight + ' ' + size + 'px "JetBrains Mono", ui-monospace, monospace';
 
-/* ---------- content ---------- */
-const D=[
-['n1',300,380,'u','c','Sit down at night','Phone or laptop, end of day.','One quiet minute, no setup.','moon',
- 'You open the app on your phone, laptop, or as an installed home-screen app. Small screens get a 4-tab view, big screens get a full dashboard. A guest space opens instantly, no sign-up wall.',
- 'Tired brains skip hard habits. Making the first step this easy is what gets you to actually show up tonight.','Header, screen-size router, MobileAppView, TodayHero, PWAInstallBanner'],
-['n2',1000,380,'u','y','Give the day a verdict','Rough, Down, Okay, Good, Peak.','One tap. One honest second.','star',
- 'You tap one of five tiers, 1 to 5 stars. Each tier has its own colour and mascot so the choice feels like naming a mood, not filling a form.',
- 'It replaces thirty checkboxes with a single honest answer. Less mental fatigue means you keep doing it for months.','DayRatingModal, 5-tier verdict system'],
-['n3',1700,380,'u','m','Check your life spheres','Work, home, social, habits.','Blended into one fair score.','sphere',
- 'Optionally rate each part of life (work or school, home, social, your own custom spheres) and tick your non-negotiable habits. The app blends them into one composite score.',
- 'A rough evening should not erase a great day at school. Splitting the day shows where the friction really lives.','SphereIcon, NonNegotiableCard, calculateCompositeScore()'],
-['n4',2400,380,'ai','l','Write, AI polishes','Dump your messy thoughts.','AI writes it up in your voice.','spark',
- 'You type raw, rushed thoughts and the AI Ghostwriter turns them into a clear first-person diary entry in your own voice.',
- 'Reflection without the effort of writing well. You feel heard instead of graded, which is what makes people keep journaling.','AutoExpandTextarea, Gemini flash-lite ghostwriter, language isolation'],
-['n5',3100,380,'ai','l','Your mascot answers','Mascot + quote react to you.','Two rough days? Gentle reset.','face',
- 'A mascot and a live quote react to your score. If you log two Rough days in a row, a recovery screen steps in with a calm, stoic reset plan.',
- 'Slumps become burnout when nobody notices. Here the mirror notices early and speaks kindly, before the spiral starts.','MoodReactionBanner, MotivationalRecoveryModal'],
-['n6',3100,1260,'u','c','Saved before you blink','Optimistic save in ~1 ms.','Works with zero internet.','disk',
- 'Every rating and note lands on screen and on your device instantly. Nothing waits for a server, so there is no spinner and no lost entry on a bad connection.',
- 'Fast, reliable saving removes the tiny frictions that make people quit logging.','Optimistic UI, localStorage, flat-file JSON'],
-['n7',2400,1260,'u','r','Make it a poster','Daily story or square card.','Shareable aesthetic card.','poster',
- 'Turn today\'s verdict into a 1080p story poster or square card with your mascot, score, streak and reflections right after saving.',
- 'Seeing your daily progress on your own phone keeps the commitment visible and makes small wins feel worth celebrating tonight.','AestheticCardExportModal, AestheticCardVariantDeepseek, StickerVaultModal'],
-['n8',1700,1260,'u','m','Look back at your days','Month grid, week, timeline.','Tap any day to fix it.','cal',
- 'Your history opens as a month grid, a 7-day strip, or a scrolling timeline of reflections. Tap a day to edit a forgotten rating or add an outlier event.',
- 'Seeing a trail of days is proof you are moving. Fixing a missed day takes seconds, so one gap never ends a streak.','CalendarModal, MonthCalendar, WeekView, JourneyTimeline, EditDayModal'],
-['n9',1000,1260,'u','y','See your patterns','Streak, hit rate, weekdays.','Spot your cursed Thursdays.','chart',
- 'Streak counter, hit rate and weekday curves turn weeks of logs into pictures. You see which days drain you and when momentum peaks.',
- 'Feelings become evidence. Once you can see a pattern, you can change it.','StatsWidget, ForensicStatsModal, AnalyticsPanel'],
-['n10',300,1260,'ai','l','A letter from a friend','AI reads your whole month.','Letter + 6 sharp insights.','mail',
- 'At month end the AI reads every entry and writes a Homie letter with six sharp insights. The weekday chart and the friction breakdown (screens, stress, social) are statistics and keyword analysis, not generative AI.',
- 'This is the AI as behavioural mentor: it diagnoses friction you could not see and hands you one concrete next step.','MonthlyReportModal, Gemini synthesis, cached per language'],
-['n11',1700,1800,'u','m','A steadier you','Honest logs, month by month.','Habits evolve. See you tonight.','loop',
- 'Weeks of small honest check-ins add up. You learn your triggers, protect your good days, and recover faster from bad ones. Then tomorrow night, you sit down again.',
- 'The goal is not a perfect score. It is resilience: a calmer mind and habits that bend without breaking.','The loop: tonight becomes tomorrow'],
-['f1',3100,2480,'f','c','Local-first storage','Diary lives on your device.','Private slot for each user.','disk',
- 'Everything is stored in your browser first, in a private slot per account (goodness_db_guest or goodness_db_uid). Logging out flushes memory so the next person sees nothing.',
- 'Your diary is yours. It works offline and is never held hostage by a server.','getDbStorageKey(), localStorage, multi-user isolation'],
-['f2',2400,2480,'f','c','Cloud sync, 4s patience','Google sign-in backup.','Slow net? Save queues up.','cloud',
- 'Signed-in users get an async backup to Firestore. If the network lags, the save gives up waiting after 4 seconds and queues locally so the screen never freezes.',
- 'You get a safety copy across devices without ever being made to wait.','Firebase Auth, Firestore, 4s race timeout'],
-['f3',3100,2980,'f','r','PIN-locked vault','Diary locked behind your PIN.','Encrypted, only you can read.','lock',
- 'An optional PIN encrypts your diary text on the device. Without the PIN, the stored words are unreadable.',
- 'People write honestly only when they feel safe. Privacy is what makes the honesty possible.','VaultPinModal, cipherEngine.js'],
-['f4',300,2480,'f','y','Evening nudge','Radial dial sets your time.','Installable app, works offline.','bell',
- 'A mechanical-style dial sets your nightly reminder time. The installed PWA opens like a native app and runs without internet, and the reminder pulls you back to step one.',
- 'Habits need a cue. A gentle nudge at the same time each night builds the routine for you.','RadialClockPicker, NotificationOptInModal, PWA service worker'],
-['f5',1000,2480,'f','l','Tested and scriptable','14 audit suites, 65 parts.','CLI and procedural sound.','check',
- 'Fourteen automated audit suites check 65 components of the app: navigation, calendar, analytics, dossier, wallpapers, stickers, habits, settings, audio, rate limiting, invariants, DPDPA, sanctuary and JSX static imports. A terminal command lets you log a verdict without opening the app, and a procedural sound engine gives each rating its own click or chime.',
- 'Trust is a feature. A tool you rely on every night must not break, so it checks itself before it ever reaches you.','npm run audit, 68 tests passing, bin/verdict.js, soundEngine.js'],
-['f6',1700,2480,'f','m','Built with','React 19, Vite 6, Tailwind v4.','Express, Gemini, Firebase.','stack',
- 'A React 19 and Vite 6 frontend with Tailwind v4 and Framer Motion for spring physics. A small Express server talks to the Gemini flash-lite model. Firebase handles sign-in and cloud backup, while the local-first engine keeps your data on your device.',
- 'Light, open tools keep the app fast on any phone and keep your data in your hands.','React 19, Vite 6, Tailwind v4, Express, Gemini, Firebase'],
-['a1',1000,3200,'ai','l','Diary ghostwriter','Tired notes become your story.','Your facts, your voice.','pen',
- 'Built into the journaling box. When you are too tired to write, rough fragments, shorthand or voice transcripts become vivid first-person prose ("I felt...", "I held the line..."). Real names, facts and events are preserved without inventing stories, and the AI mirrors your voice: pure English or natural Hinglish.',
- 'Cognitive friction is why people quit habit tracking. Taking away the effort of writing well keeps the habit alive on the hardest nights.','Gemini ghostwriter, language isolation, no-invention rule'],
-['a2',1700,3200,'ai','y','Five mental lenses','Pick how the AI sees your day.','Stoic, root causes, or your own.','sphere',
- 'Switchable frameworks tell the AI how to frame your day: Auto Polish for natural flow, Tactical Stoic Dossier for ownership without self-pity, Root Causes to find the exact catalyst behind a win or a loss, Action Bullets to turn mental clutter into takeaways, or a Custom Lens built on your own philosophy.',
- 'People reflect in different ways. Changing the lens, not the app, lets one mirror serve a student, an athlete or a stoic.','Tactical AI directives, custom lens prompt'],
-['a3',2400,3200,'ai','r','Autopsy Chamber','Bad day? A calm post-mortem.','Cause, questions, one antidote.','lens',
- 'When you rate a day Rough or Down, a triage protocol starts. The AI gives a two-sentence diagnosis of where momentum broke, three multiple-choice questions that help you face your discipline leaks without self-judgment, and one non-negotiable recovery command for tomorrow morning.',
- 'After a bad day people either spiral into shame or pretend it never happened. An objective, calm post-mortem breaks that cycle so the mistake does not repeat.','Rough-day forensic interrogator'],
-['a4',2400,3950,'ai','c','Time-lock capsule','Past you writes to future you.','Unlocked only in a slump.','lock',
- 'On a 5-star God Mode day you write a reality-check letter to yourself. The AI acts as an impartial escrow guardian, watches for slump patterns, and unlocks the letter only after consecutive rough days, delivering your own truth when your resilience is lowest.',
- 'Clear-headed you knows what low you forgets. This commitment device lets your best self coach your worst day.','Down-Bad Ransom time-lock capsule'],
-['a5',1700,3950,'ai','l','Executive dossier','A month of days, understood.','Archetype, cascades, directives.','mail',
- 'Ingests 30 days of verdicts, ratings, domain scores and notes. The AI produces an archetype for your month, a four-paragraph Homie letter, domino cascades with the single circuit-breaker action, a four-act chronicle, hidden correlations, and three non-negotiable directives for next month.',
- 'We all suffer recency bias. The dossier remembers why you burned out three weeks ago and what really started a winning streak.','MonthlyReportModal, Gemini synthesis, cached per language'],
-['a6',1000,3950,'ai','m','Ethical guardrail','A mirror, never a doctor.','Crisis? Points to real help.','shield',
- 'Every AI model carries a hard boundary: it is an introspective mirror and accountability mentor. It never poses as a medical professional, never diagnoses, never prescribes treatment, and if severe crisis patterns appear it points the user to certified human healthcare professionals.',
- 'Trust and safety. Responsible AI knows what it is not, which protects the people who use it.','Non-clinical guardrail across all AI prompts']];
-const FACTS={
-n1:['Installs as an app on Android, iOS and desktop','Under 768px you get a 4-tab app: Today, History, Dossier, Settings','Terminal fans can log with one command'],
-n2:['Rough, Down, Okay, Good, Peak','Mascots: Cooked Goblin, Low-Battery Zombie, Stoic Sustainer, Flow Warrior Beast, God Mode Demon','Every tier carries a one-line directive'],
-n3:['Spheres: Work and School, Home and Sanctuary, Social and Events, plus your own','Habit modes: Checklist, Hybrid 50/50, Deterministic 100%','Example: 4, 1 and 3 stars blend to 2.7, Okay'],
-n4:['Modes: Auto-match, English only, Hinglish','Full prompt breakdown lives in the AI brain'],
-n5:['Trigger: 2 consecutive Rough days','Follows a Stoic recovery protocol','Mascot and quote change with every tier'],
-n6:['Rating and notes save instantly to localStorage','Signed-in users also sync in the background','No spinner, no lost entry offline'],
-n7:['Story poster 1080 x 1920 or feed card 1080 x 1080','Generate right after daily verdict save','Upload your own PNG sticker; lossless PNG export'],
-n8:['Month grid with filter chips','7-day strip on desktop, timeline on mobile','Edit Day adds outlier event domains'],
-n9:['Hit rate and streak counter','Weekday velocity and slump curves','Domain averages: Work vs Home vs Social'],
-n10:['Weekday chart and friction % are stats and keywords, not AI','Cached per language, reopens instantly','Full dossier breakdown lives in the AI brain'],
-n11:['Small honest logs compound over months','Streaks and patterns show what really works','Recovery gets faster with every bad day survived'],
-f1:['Keys: goodness_db_guest or goodness_db_uid','Logout reloads the page and flushes memory','Works fully offline'],
-f2:['Google sign-in with Firestore backup','The save gives up waiting after 4 seconds','Queued writes never block the screen'],
-f3:['Optional PIN protects diary text','cipherEngine handles the encryption','Without the PIN, stored text is unreadable'],
-f4:['Dial: hour, auto-jump to minute, then AM or PM','Local reminder schedule, no battery drain','Installed app works without internet'],
-f5:['14 suites: navigation, calendar, analytics, dossier, studio, stickers, habits, settings, audio, auth, DPDPA, sanctuary, invariants, JSX','Run any time with npm run audit (68 tests passing)','Log from terminal: node bin/verdict.js 5 "notes"'],
-f6:['Frontend: React 19, Vite 6, Tailwind v4, Framer Motion','Backend: Node and Express; AI: Gemini flash-lite','Cloud: Firebase Auth and Firestore'],
-a1:['Always first person: I, my, myself','Keeps 100% of names, facts and events','Mirrors pure English or Hinglish'],
-a2:['Auto Polish, Tactical Stoic Dossier, Root Causes, Action Bullets','Custom Lens: bring your own philosophy','Same diary, different way of seeing it'],
-a3:['Triggered by a Rough (1 star) or Down (2 star) rating','Diagnosis, 3 multiple-choice questions, 1 antidote','Built to avoid shame and denial'],
-a4:['Written on a 5-star God Mode day','AI watches for consecutive rough days','Unlocks your own letter at your lowest'],
-a5:['Archetype, Homie letter, domino cascades, four-act chronicle','Hidden correlations and 3 directives for next month','Fights recency bias with a 30-day view'],
-a6:['Never claims to be a medical professional','No diagnoses, no treatment advice','Severe crisis patterns: refer to certified professionals']};
-const PL={n1:'b',n2:'b',n3:'b',n4:'b',n5:'b',n7:'a',n8:'a',n9:'a',n10:'a',n11:'b',f2:'b',f3:'l',f4:'b',f5:'b',a1:'b',a2:'b',a3:'b',a4:'b',a5:'b',a6:'b'};
-const N=D.map((a,i)=>({i,id:a[0],x:a[1],y:a[2],k:a[3],col:C[a[4]],t:a[5],s:[a[6],a[7]],ic:a[8],does:a[9],why:a[10],tech:a[11],w:a[0]=='n11'?460:380,pl:PL[a[0]]||'',h:150,sc:1,vs:0,ang:0,va:0,rv:1,sh:[]}));
-const byId=Object.fromEntries(N.map(n=>[n.id,n]));
-const NRM={l:[-1,0],r:[1,0],t:[0,-1],b:[0,1]};
-const anc=(n,s,dy=0)=>s=='l'?[n.x-n.w/2,n.y+dy]:s=='r'?[n.x+n.w/2,n.y+dy]:s=='t'?[n.x,n.y-n.h/2]:[n.x,n.y+n.h/2];
+  let W, H, DPR;
+  let isLightTheme = false;
 
-/* ---------- node shapes ---------- */
-function shape(n,b){
- const r=mul(n.i*131+b*17+1),w=n.w/2,h=n.h/2,cs=[[-w,-h],[w,-h],[w,h],[-w,h]],cl=[cs[0]],o=[new Path2D,new Path2D];
- for(let i=0;i<4;i++){const a=cs[i],c=cs[(i+1)%4],pts=[a];md(a,c,r,3,pts,5);for(let j=1;j<pts.length;j++)cl.push(pts[j]);
-  o.forEach(P=>{const dx=c[0]-a[0],dy=c[1]-a[1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,e1=(r()-.3)*14,e2=(r()-.3)*14,
-   A=[a[0]-ux*e1+(r()-.5)*5,a[1]-uy*e1+(r()-.5)*5],B=[c[0]+ux*e2+(r()-.5)*5,c[1]+uy*e2+(r()-.5)*5],q=[A];md(A,B,r,3.2,q,5);sm(q,P)})}
- const cp=new Path2D;cp.moveTo(cl[0][0],cl[0][1]);cl.forEach(p=>cp.lineTo(p[0],p[1]));cp.closePath();
- return{cl:cp,o}}
-function hach(n){const r=mul(n.i+9),P=new Path2D,h=n.h/2,w=n.w/2;for(let x=-w-h;x<w;x+=13){const j=(r()-.5)*4;P.moveTo(x+j,h+3);P.lineTo(x+2*h+j,-h-3)}return P}
-N.forEach(n=>n.hz=hach(n));
+  // ----------------------------------------------------
+  // Dynamic 2.5D Camera Model with Perspective Gimbal
+  // ----------------------------------------------------
+  let cam = {
+    x: 0,
+    y: 0,
+    k: 0.5,
+    targetK: 0.5,
+    // Dynamic perspective tilt
+    pitch: 0,
+    yaw: 0,
+    roll: 0,
+    targetPitch: 0,
+    targetRoll: 0,
+    // Inertial gliding
+    vx: 0,
+    vy: 0
+  };
 
-/* ---------- edges ---------- */
-const E=[];
-function mk(a,b,sa,sb,l1,l2,d1=0,d2=0,dash=0){
- a=byId[a];b=byId[b];const A=anc(a,sa,d1),B=anc(b,sb,d2),n1=NRM[sa],n2=NRM[sb],
- c1=[A[0]+n1[0]*l1,A[1]+n1[1]*l1],c2=[B[0]+n2[0]*l2,B[1]+n2[1]*l2],base=[];
- for(let i=0;i<=60;i++){const t=i/60,u=1-t;base.push([u*u*u*A[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*B[0],u*u*u*A[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*B[1]])}
- let len=0;for(let i=1;i<=60;i++)len+=Math.hypot(base[i][0]-base[i-1][0],base[i][1]-base[i-1][1]);
- const e={a,b,base,len,dash,halo:dash?C.m:(a.k=='ai'||b.k=='ai')?C.l:C.y,sh:[]},ang=Math.atan2(B[1]-base[57][1],B[0]-base[57][0]);
- for(let k=0;k<3;k++){const r=mul(E.length*53+k*7+3),P=[new Path2D,new Path2D,new Path2D];
-  [0,1].forEach(pi=>{const q=base.filter((p,i)=>i%3==0||i==60).map((p,i,arr)=>i==0||i==arr.length-1?p:[p[0]+(r()-.5)*7,p[1]+(r()-.5)*7]);sm(q,P[pi]);
-   [-.5,.5].forEach(s=>{P[2].moveTo(B[0]+(r()-.5)*3,B[1]+(r()-.5)*3);P[2].lineTo(B[0]-24*Math.cos(ang+s)+(r()-.5)*4,B[1]-24*Math.sin(ang+s)+(r()-.5)*4)})});
-  e.sh.push(P)}
- const cnt=Math.max(1,Math.round(len/340));e.ph=Array.from({length:cnt},(_,i)=>i/cnt);E.push(e)}
-mk('n1','n2','r','l',130,130);mk('n2','n3','r','l',130,130);mk('n3','n4','r','l',130,130);mk('n4','n5','r','l',130,130);
-mk('n5','n6','r','r',260,260);mk('n6','n7','l','r',130,130);mk('n7','n8','l','r',130,130);mk('n8','n9','l','r',130,130);mk('n9','n10','l','r',130,130);
-mk('n10','n11','b','t',260,200);mk('n11','n1','l','l',1970,610,0,-30);
-mk('n6','f1','b','t',400,400,0,0,1);mk('f1','f2','l','r',130,130,0,0,1);mk('f3','f1','t','b',150,150,0,0,1);
-mk('f4','n1','l','l',1010,1010,0,30,1);mk('f4','f5','r','l',130,130,0,0,1);mk('f5','f6','r','l',130,130,0,0,1);
-mk('f6','a1','b','t',200,200);mk('a1','a2','r','l',130,130);mk('a2','a3','r','l',130,130);mk('a3','a4','r','r',260,260);mk('a4','a5','l','r',130,130);mk('a5','a6','l','r',130,130);
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cv.width = W * DPR;
+    cv.height = H * DPR;
+  }
+  window.addEventListener('resize', () => { resize(); fit(); });
+  resize();
 
-/* ---------- static title art ---------- */
-const stars=[['#FF4D4D'],['#FF8A00'],['#CBD5E1'],['#00E599'],['#FDC800']];
-function star(x,y,r,f){ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}ctx.closePath();ctx.fillStyle=f;ctx.fill();ctx.stroke()}
-const IC={
- heart:c=>{c.moveTo(0,13);c.bezierCurveTo(-20,-1,-9,-14,0,-5);c.bezierCurveTo(9,-14,20,-1,0,13)},
- bulb:c=>{c.arc(0,-4,11,0,6.3);c.moveTo(-6,9);c.lineTo(6,9);c.moveTo(-4,14);c.lineTo(4,14)},
- pen:c=>{c.moveTo(-12,14);c.lineTo(-14,6);c.lineTo(8,-16);c.lineTo(14,-10);c.lineTo(-8,12);c.closePath()},
- lens:c=>{c.arc(-3,-3,12,0,6.3);c.moveTo(6,6);c.lineTo(15,15)},
- shield:c=>{c.moveTo(0,-16);c.lineTo(14,-10);c.lineTo(12,6);c.quadraticCurveTo(8,14,0,17);c.quadraticCurveTo(-8,14,-12,6);c.lineTo(-14,-10);c.closePath()},
- check:c=>{c.rect(-14,-14,28,28);c.moveTo(-7,0);c.lineTo(-2,6);c.lineTo(8,-8)},
- stack:c=>{c.moveTo(0,-15);c.lineTo(15,-7);c.lineTo(0,1);c.lineTo(-15,-7);c.closePath();c.moveTo(-15,1);c.lineTo(0,9);c.lineTo(15,1);c.moveTo(-15,9);c.lineTo(0,17);c.lineTo(15,9)},
- moon:c=>{c.arc(0,0,15,.7,5.6);c.arc(6,-5,12,5.0,1.2,true)},
- star:c=>{for(let i=0;i<10;i++){const a=-1.57+i*.628,r=i%2?7:16;c.lineTo(Math.cos(a)*r,Math.sin(a)*r)}c.closePath()},
- sphere:c=>{c.arc(0,0,15,0,6.3);c.moveTo(-15,0);c.quadraticCurveTo(0,-14,15,0);c.moveTo(-15,0);c.quadraticCurveTo(0,14,15,0);c.moveTo(0,-15);c.lineTo(0,15)},
- spark:c=>{c.moveTo(0,-17);c.quadraticCurveTo(2,-2,17,0);c.quadraticCurveTo(2,2,0,17);c.quadraticCurveTo(-2,2,-17,0);c.quadraticCurveTo(-2,-2,0,-17)},
- face:c=>{c.arc(0,0,15,0,6.3);c.moveTo(-6,-4);c.lineTo(-6,-2);c.moveTo(6,-4);c.lineTo(6,-2);c.moveTo(-7,5);c.quadraticCurveTo(0,12,7,5)},
- disk:c=>{c.rect(-14,-14,28,28);c.rect(-8,-14,16,9);c.rect(-8,3,16,11)},
- cal:c=>{c.rect(-15,-12,30,27);c.moveTo(-15,-4);c.lineTo(15,-4);c.moveTo(-7,-17);c.lineTo(-7,-8);c.moveTo(7,-17);c.lineTo(7,-8);c.moveTo(-6,5);c.lineTo(6,5)},
- chart:c=>{c.moveTo(-15,15);c.lineTo(15,15);c.rect(-12,2,7,13);c.rect(-2,-6,7,21);c.rect(8,-14,7,29)},
- mail:c=>{c.rect(-16,-11,32,22);c.moveTo(-16,-11);c.lineTo(0,3);c.lineTo(16,-11)},
- poster:c=>{c.rect(-11,-16,22,32);c.moveTo(-6,8);c.lineTo(6,8);c.moveTo(-6,-2);c.arc(0,-4,5,3.1,9.4)},
- loop:c=>{c.arc(0,0,14,.4,5.4);c.moveTo(9,-14);c.lineTo(11,-5);c.lineTo(2,-8)},
- cloud:c=>{c.moveTo(-12,10);c.arc(-9,3,7,1.6,4.7);c.arc(0,-4,9,3.5,6.1);c.arc(10,3,7,4.7,1.6);c.closePath()},
- lock:c=>{c.rect(-11,-2,22,16);c.moveTo(-7,-2);c.arc(0,-6,7,3.14,0)},
- bell:c=>{c.moveTo(-13,10);c.quadraticCurveTo(-9,2,-9,-6);c.arc(0,-6,9,3.14,0);c.quadraticCurveTo(9,2,13,10);c.closePath();c.moveTo(-4,14);c.lineTo(4,14)}};
-function icon(n,x,y){ctx.save();ctx.translate(x,y);ctx.beginPath();IC[n.ic](ctx);ctx.fillStyle='#FFFDF8';ctx.fill();ctx.lineWidth=3;ctx.lineJoin=ctx.lineCap='round';ctx.strokeStyle=INK;ctx.stroke();ctx.restore()}
-const T=(s,x,y,f,col,al='left',rot=0)=>{ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.font=f;ctx.fillStyle=col;ctx.textAlign=al;ctx.fillText(s,0,0);ctx.restore()};
-const ul=(()=>{const r=mul(77),P=new Path2D,q=[[-160,148]];md([-160,148],[420,144],r,4,q,5);sm(q,P);return P})();
-const ul3=(()=>{const r=mul(79),P=new Path2D,q=[[1300,3068]];md([1300,3068],[2250,3064],r,4,q,6);sm(q,P);return P})();
-const ul2=(()=>{const r=mul(78),P=new Path2D,q=[[1250,864]];md([1250,864],[2150,860],r,4,q,6);sm(q,P);return P})();
+  // Pseudo-random seeded hash
+  const mul = a => () => {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
 
-/* ---------- infographic panels (README details), revealed as you arrive ---------- */
-const TC=['#FF4D4D','#FF8A00','#CBD5E1','#00E599','#FDC800'],MONO='700 17px ui-monospace,Menlo,Consolas,monospace';let bb=0;
-function rb(x,y,w,h,fill,sd){const r=mul(sd*7+bb*31+5),P=new Path2D,c=[[x,y],[x+w,y],[x+w,y+h],[x,y+h],[x,y]];for(let i=0;i<4;i++){const q=[c[i]];md(c[i],c[i+1],r,1.8,q,3);sm(q,P)}
- if(fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h)}ctx.strokeStyle=INK;ctx.lineWidth=2.8*lw;ctx.lineJoin=ctx.lineCap='round';ctx.stroke(P)}
-const panel=(x,y,w,h,t,sd)=>{ctx.save();ctx.translate(6,6);ctx.fillStyle=INK;ctx.fillRect(x,y,w,h);ctx.restore();rb(x,y,w,h,PAPER,sd);T(t,x+22,y+42,F(700,28),INK)};
-const tick=(x,y,c)=>{ctx.beginPath();ctx.moveTo(x-8,y);ctx.lineTo(x-2,y+7);ctx.lineTo(x+9,y-8);ctx.lineWidth=4*lw;ctx.strokeStyle=c||INK;ctx.stroke()};
-const ar=(x1,y1,x2,y2)=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.moveTo(x2-8,y2-7);ctx.lineTo(x2,y2);ctx.lineTo(x2-8,y2+7);ctx.lineWidth=3.5*lw;ctx.strokeStyle=INK;ctx.stroke()};
-function face(i,x,y,r){ctx.save();ctx.translate(x,y);ctx.lineJoin=ctx.lineCap='round';ctx.strokeStyle=INK;ctx.lineWidth=3*lw;ctx.beginPath();ctx.arc(0,0,r,0,6.3);ctx.fillStyle=TC[i];ctx.fill();ctx.stroke();
- const u=r/10;ctx.beginPath();
- if(i==0){ctx.moveTo(-7*u,-5*u);ctx.lineTo(-2*u,-2*u);ctx.moveTo(7*u,-5*u);ctx.lineTo(2*u,-2*u);ctx.moveTo(-5*u,5*u);ctx.lineTo(-2*u,3*u);ctx.lineTo(0,5*u);ctx.lineTo(2*u,3*u);ctx.lineTo(5*u,5*u);ctx.moveTo(-8*u,-8*u);ctx.lineTo(-6*u,-13*u);ctx.lineTo(-3*u,-9*u);ctx.moveTo(8*u,-8*u);ctx.lineTo(6*u,-13*u);ctx.lineTo(3*u,-9*u)}
- else if(i==1){ctx.moveTo(-6*u,-4*u);ctx.lineTo(-2*u,0);ctx.moveTo(-2*u,-4*u);ctx.lineTo(-6*u,0);ctx.moveTo(2*u,-4*u);ctx.lineTo(6*u,0);ctx.moveTo(6*u,-4*u);ctx.lineTo(2*u,0);ctx.moveTo(-4*u,6*u);ctx.lineTo(4*u,6*u)}
- else if(i==2){ctx.moveTo(-7*u,-2*u);ctx.lineTo(-2*u,-2*u);ctx.moveTo(2*u,-2*u);ctx.lineTo(7*u,-2*u);ctx.moveTo(-4*u,5*u);ctx.lineTo(4*u,5*u)}
- else{ctx.arc(-4*u,-2*u,1.5*u,0,6.3);ctx.moveTo(5.5*u,-2*u);ctx.arc(4*u,-2*u,1.5*u,0,6.3);ctx.moveTo(-5*u,3*u);ctx.quadraticCurveTo(0,(i==3?9:12)*u,5*u,3*u);
-  if(i==4){ctx.moveTo(-7*u,-9*u);ctx.lineTo(-7*u,-15*u);ctx.lineTo(-3*u,-11*u);ctx.lineTo(0,-16*u);ctx.lineTo(3*u,-11*u);ctx.lineTo(7*u,-15*u);ctx.lineTo(7*u,-9*u);ctx.closePath()}
-  else{ctx.moveTo(2*u,-12*u);ctx.lineTo(-1*u,-8*u);ctx.lineTo(2*u,-8*u);ctx.lineTo(-1*u,-4*u)}}
- ctx.stroke();ctx.restore()}
-const OX=n=>n.x-210,OB=n=>n.y+115,OA=n=>n.y-335,M18='700 18px ui-monospace,Menlo,Consolas,monospace';
-const DECO={
- n1:n=>{const x=OX(n),y=OB(n);T('or log from the terminal',x+4,y+30,F(700,26),MT);rb(x,y+48,420,80,'#111',1);T('$ node bin/verdict.js 5 "Peak day"',x+22,y+95,M18,'#00E599')},
- n2:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'The five verdicts',2);['Rough','Down','Okay','Good','Peak'].forEach((t,i)=>{face(i,x+58+i*76,y+112,27);T(t,x+58+i*76,y+170,F(700,22),INK,'center')});T('1 to 5 stars, one tap',x+210,y+204,F(500,22),'#555','center')},
- n3:n=>{const x=OX(n),y=OB(n),rv=byId.n3.rv;panel(x,y,420,220,'Blend the spheres',3);[['Work',4,C.c],['Home',1,C.r],['Social',3,C.y]].forEach((r,i)=>{const yy=y+68+i*40;T(r[0],x+24,yy+21,F(500,24),INK);rb(x+130,yy,r[1]*50*rv,26,r[2],4+i)});T('Composite: 2.7 = Okay',x+24,y+206,F(700,28),INK)},
- n4:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'Say it your way',4);[['Auto-match, mirrors you',C.c],['English only',C.y],['Hinglish, Roman script',C.m]].forEach((r,i)=>{rb(x+24,y+64+i*52,372,42,r[1],5+i);T(r[0],x+44,y+93+i*52,F(700,24),INK)})},
- n5:n=>{const x=OX(n),y=OB(n);panel(x,y,420,200,'Slump interceptor',6);[0,1].forEach(i=>{rb(x+24+i*110,y+72,92,64,C.r+'88',7+i);T('Rough',x+70+i*110,y+112,F(700,24),INK,'center')});ar(x+236,y+104,x+282,y+104);rb(x+292,y+72,108,64,C.l+'99',9);T('Reset plan',x+346,y+112,F(700,22),INK,'center');T('after 2 rough days in a row',x+210,y+180,F(500,22),'#555','center')},
- n8:n=>{const x=OX(n),y=OA(n);panel(x,y,420,220,'Month at a glance',30);const r=mul(5);for(let i=0;i<28;i++)rb(x+24+(i%7)*54,y+66+((i/7)|0)*36,44,28,TC[Math.floor(r()*5)]+'cc',40+i)},
- n9:n=>{const x=OX(n),y=OA(n);panel(x,y,420,220,'Weekday velocity',10);const h=[58,84,96,70,26,102,90],d='SMTWTFS';h.forEach((v,i)=>{const bx=x+30+i*54,hh=v*byId.n9.rv;rb(bx,y+178-hh,34,hh,i==4?C.r:C.m,11+i);T(d[i],bx+17,y+208,F(700,22),INK,'center')});T('12 day streak • 78% good days',x+398,y+66,F(500,20),'#555','right');T('cursed',x+30+4*54+17,y+138,F(700,21),'#D13030','center')},
- n7:n=>{const x=OX(n),y=OA(n);panel(x,y,420,220,'Wallpaper studio',12);rb(x+28,y+60,78,128,C.y,13);rb(x+36,y+68,62,12,'#111',14);face(4,x+67,y+120,19);rb(x+38,y+150,58,9,'#111',15);T('9:16 story',x+67,y+210,F(700,21),INK,'center');
-  rb(x+140,y+80,108,108,'#111',17);rb(x+150,y+90,88,10,'#00C2FF',18);face(3,x+194,y+140,22);T('1:1 feed',x+194,y+210,F(700,21),INK,'center');
-  ['#FDC800','#111','#7B1E5B'].forEach((c,i)=>{ctx.beginPath();ctx.arc(x+300+i*40,y+110,15,0,6.3);ctx.fillStyle=c;ctx.fill();ctx.lineWidth=2.5*lw;ctx.strokeStyle=INK;ctx.stroke()});T('3 themes',x+340,y+168,F(700,22),INK,'center')},
- n10:n=>{const x=OX(n),y=OA(n);panel(x,y,420,220,'Month-end letter',12);rb(x+24,y+60,372,70,C.l+'88',13);T('Dear you, this month...',x+40,y+92,F(500,22),INK);T('reality check, traps, comebacks, plan',x+40,y+118,F(500,20),'#444');for(let i=0;i<6;i++){rb(x+24+i*62,y+148,52,40,i%2?C.y+'99':C.c+'99',14+i);T(String(i+1),x+50+i*62,y+176,F(700,26),INK,'center')}T('+ 6 sharp insights',x+210,y+212,F(500,22),'#555','center')},
- n11:n=>{const x=n.x-240,y=OB(n);panel(x,y,480,270,'How it improves a life',15);[['Less mental fatigue',C.c],['Slumps caught early',C.r],['Know your own triggers',C.y],['Private, offline, yours',C.m]].forEach((r,i)=>{const yy=y+62+i*52;rb(x+24,yy,432,42,r[1]+'66',16+i);tick(x+52,yy+21);T(r[0],x+86,yy+29,F(700,26),INK)})},
- f2:n=>{const x=OX(n),y=OB(n),p=Math.min(1,(tNow%6)/4),cx=x+80,cy=y+118;panel(x,y,420,210,'The 4 second race',20);ctx.beginPath();ctx.arc(cx,cy,44,0,6.3);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=3*lw;ctx.strokeStyle=INK;ctx.stroke();
-  ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,39,-1.57,-1.57+p*6.283);ctx.closePath();ctx.fillStyle=p>=1?C.r:C.m;ctx.fill();T(p>=1?'queued':'syncing',cx,y+198,F(700,22),INK,'center');
-  T('If the network lags,',x+160,y+98,F(500,24),INK);T('the save times out',x+160,y+132,F(500,24),INK);T('and queues locally.',x+160,y+166,F(500,24),INK)},
- f3:n=>{const x=n.x-640,y=n.y-95,o=Math.floor(tNow/2.5)%2;panel(x,y,400,190,'PIN-locked vault',21);T(o?'Dear diary, today I...':'q7#x9@k2!m+ZpL3&v',x+22,y+96,'700 20px ui-monospace,Menlo,Consolas,monospace',o?'#0a8f5f':'#555');T(o?'PIN accepted':'PIN needed: * * * *',x+22,y+150,F(700,26),o?'#0a8f5f':'#D13030')},
- f4:n=>{const x=OX(n),y=OB(n),cx=x+110,cy=y+134,m=Math.floor(tNow/3)%2,e=1-Math.pow(1-Math.min(1,(tNow%3)/1.5),3);panel(x,y,420,230,'Reminder dial',22);
-  ctx.beginPath();ctx.arc(cx,cy,70,0,6.3);ctx.fillStyle=PAPER;ctx.fill();ctx.lineWidth=6*lw;ctx.strokeStyle=m?C.m:C.y;ctx.stroke();
-  for(let i=1;i<=12;i++){const a=i/12*6.283-1.57;T(String(i),cx+Math.cos(a)*50,cy+Math.sin(a)*50+7,F(700,20),INK,'center')}
-  const hA=10/12*6.283,mA=47/60*6.283,a=(m?mA:hA)*e+(m?hA:mA)*(1-e)-1.57;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*36,cy+Math.sin(a)*36);ctx.lineWidth=5*lw;ctx.strokeStyle=INK;ctx.stroke();
-  ctx.beginPath();ctx.arc(cx,cy,6,0,6.3);ctx.fillStyle=INK;ctx.fill();T(m?'10:47 PM':'10: --',x+210,y+128,F(700,40),INK);T(m?'minute mode':'hour mode',x+210,y+166,F(500,24),'#555')},
- f5:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'14 audit suites',23);for(let i=0;i<14;i++){const bx=x+20+(i%7)*54,by=y+64+((i/7)|0)*56,on=(tNow*1.6)%18>i;rb(bx,by,46,40,on?C.m+'99':'#fff',24+i);if(on)tick(bx+23,by+20)}T('65 components • 68 tests passing',x+24,y+206,F(500,24),'#555')},
- a1:n=>{const x=OX(n),y=OB(n),M=F(500,20);panel(x,y,420,230,'Raw to polished',50);rb(x+24,y+62,170,72,'#fff',51);T('tired, skipped gym,',x+36,y+92,M,INK);T('mom call, exam...',x+36,y+118,M,INK);ar(x+204,y+98,x+240,y+98);rb(x+250,y+62,146,72,C.l+'88',52);T('I held the line',x+262,y+92,M,INK);T('and called mom.',x+262,y+118,M,INK);
-  [['Facts kept',C.m],['Voice mirrored',C.c]].forEach((r,i)=>{rb(x+24+i*196,y+158,186,44,r[1]+'88',53+i);tick(x+46+i*196,y+180);T(r[0],x+68+i*196,y+187,F(700,21),INK)})},
- a2:n=>{const x=OX(n),y=OB(n);panel(x,y,420,250,'Five mental lenses',54);[['Auto Polish',C.c],['Tactical Stoic Dossier',C.y],['Root Causes',C.m],['Action Bullets',C.r],['Custom Lens',C.l]].forEach((r,i)=>{rb(x+24,y+58+i*38,372,32,r[1]+'88',55+i);T(r[0],x+42,y+81+i*38,F(700,22),INK)})},
- a3:n=>{const x=OX(n),y=OB(n);panel(x,y,420,240,'Rough-day autopsy',60);[['1','Diagnosis: where momentum broke',C.r],['2','Three diagnostic questions',C.y],['3','One recovery antidote',C.m]].forEach((r,i)=>{const yy=y+60+i*54;rb(x+24,yy,372,44,r[2]+'77',61+i);T(r[0],x+40,yy+30,F(700,28),INK);T(r[1],x+72,yy+30,F(700,22),INK)});T('starts on Rough or Down days',x+210,y+228,F(500,22),'#555','center')},
- a4:n=>{const x=OX(n),y=OB(n);panel(x,y,420,230,'Future-self capsule',64);rb(x+24,y+62,100,76,C.y,65);T('Peak day',x+74,y+94,F(700,22),INK,'center');T('write letter',x+74,y+120,F(500,19),INK,'center');ar(x+130,y+100,x+158,y+100);
-  rb(x+164,y+62,92,76,'#fff',66);icon({ic:'lock'},x+210,y+100);ar(x+262,y+100,x+290,y+100);rb(x+296,y+62,100,76,C.r+'99',67);T('Slump',x+346,y+94,F(700,22),INK,'center');T('unlock',x+346,y+120,F(500,19),INK,'center');
-  T('AI is the impartial escrow guardian',x+210,y+176,F(700,23),INK,'center');T('your truth, when you need it most',x+210,y+206,F(500,21),'#555','center')},
- a5:n=>{const x=OX(n),y=OB(n);panel(x,y,420,250,'The monthly dossier',70);rb(x+24,y+60,372,40,C.l+'99',71);T('The Overextended Architect',x+210,y+88,F(700,25),INK,'center');
-  ['scroll','sleep','fog','crash'].forEach((t,i)=>{rb(x+24+i*100,y+120,74,44,i==3?C.r+'99':'#fff',72+i);T(t,x+61+i*100,y+149,F(700,21),INK,'center');if(i<3)ar(x+100+i*100,y+142,x+122+i*100,y+142)});
-  T('domino cascade: find the circuit breaker',x+210,y+196,F(700,22),INK,'center');T('four-act chronicle + 3 directives',x+210,y+228,F(500,21),'#555','center')},
- a6:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'Strict boundaries',80);['Never poses as a doctor','Never diagnoses or prescribes','Crisis? Points to real help'].forEach((t,i)=>{const yy=y+62+i*52;rb(x+24,yy,372,42,C.m+'66',81+i);tick(x+50,yy+21);T(t,x+84,yy+29,F(700,23),INK)})}};
-const DOOD=[['moon',420,820,'y'],['star',760,790,'m'],['spark',1060,860,'l'],['heart',2450,820,'r'],['bulb',2800,800,'y'],['star',1200,150,'y'],['spark',1650,110,'l'],['moon',2050,170,'c'],
- ['star',2300,1480,'m'],['heart',2600,1570,'r'],['bulb',2850,1470,'y'],['moon',2300,1800,'c'],['spark',2550,1950,'l'],['cloud',2850,2030,'c'],['bell',2300,2200,'y'],
- ['shield',3300,3300,'m'],['spark',3600,3480,'l'],['lens',3350,3800,'r'],['pen',3650,4000,'c']];
-function doodles(){if(mode=='tour')return;ctx.save();ctx.lineJoin=ctx.lineCap='round';DOOD.forEach((d,i)=>{ctx.save();ctx.globalAlpha=mode=='tour'?.55:.4;ctx.translate(d[1],d[2]+Math.sin(tNow*1.3+i*1.7)*7);ctx.rotate(Math.sin(tNow*.9+i)*.2);ctx.scale(2.4,2.4);ctx.beginPath();IC[d[0]](ctx);ctx.fillStyle=C[d[3]]+'cc';ctx.fill();ctx.lineWidth=2.4*lw/2.4;ctx.strokeStyle=INK;ctx.stroke();ctx.restore()});ctx.restore()}
-const spk=(x,y,r,c)=>{ctx.beginPath();ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r*.15,y-r*.15,x+r,y);ctx.quadraticCurveTo(x+r*.15,y+r*.15,x,y+r);ctx.quadraticCurveTo(x-r*.15,y+r*.15,x-r,y);ctx.quadraticCurveTo(x-r*.15,y-r*.15,x,y-r);ctx.fillStyle=c;ctx.fill();ctx.lineWidth=2*lw;ctx.strokeStyle=INK;ctx.stroke()};
-function deco(n){const f=DECO[n.id];if(f&&n.rv>.02){ctx.save();ctx.globalAlpha=n.rv*(mode=='tour'&&fo&&n!==fo?.4:1);ctx.translate(0,(1-n.rv)*18);f(n);ctx.restore()}}
+  function md(a, b, r, amp, out, d) {
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+    if (d <= 0 || L < 40) { out.push(b); return; }
+    const o = (r() - 0.5) * 2 * amp;
+    const m = [(a[0] + b[0]) / 2 - dy / L * o, (a[1] + b[1]) / 2 + dx / L * o];
+    md(a, m, r, amp * 0.62, out, d - 1);
+    md(m, b, r, amp * 0.62, out, d - 1);
+  }
 
-/* ---------- state / input ---------- */
-let mmPin=false,bigEnd=false,sheetOn=null,mmShown=null,hintV=-1,hov=null,note=null,last=0,lw=1,fo=null,tNow=0,mode='over',cur=0,TW=null,auto=false,arriveAt=0;
-const TOUR=['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10','n11','f1','f2','f3','f4','f5','f6','a1','a2','a3','a4','a5','a6'],TI=Object.fromEntries(TOUR.map((id,i)=>[id,i])),seen=new Set();
-const noteEl=document.getElementById('note');
-const AL=['INPUT','LENS','MODEL','GUARDRAIL','OUTPUT'],MORE={n4:'a1',n10:'a5'},ACT={0:['ACT I','The Evening','#FFB454'],11:['ACT II','Quiet Protection','#00E5C8'],17:['ACT III','The AI Brain','#B388FF']},
-AIP={a1:['Rough fragments or a voice transcript','Language isolation + no-invention rule','Gemini flash-lite','Keeps every name, fact and feeling','A first-person diary entry'],
-a2:['Your day, plus the lens you pick','Lens = a tactical directive (Stoic, Root Causes, your own)','Gemini flash-lite','Ownership without self-pity','The same day, framed differently'],
-a3:['A Rough or Down rating and your notes','Forensic triage protocol','Gemini flash-lite','Calm tone, built to avoid shame','Diagnosis, 3 questions, 1 antidote'],
-a4:['A letter you wrote on a 5-star day','Impartial escrow-guardian instruction','Gemini watches for slump patterns','Locked until consecutive rough days','Your own words, when you need them'],
-a5:['30 days of verdicts, spheres and notes','Synthesis prompt, cached per language','Gemini flash-lite','Charts and percentages stay stats, not AI','Archetype, letter, cascades, 3 directives'],
-a6:['Every AI prompt in the app','Hard non-clinical boundary','Applied to all models','No diagnosis, no treatment advice','Crisis signs: points to certified professionals']};
-function extra(n){const p=noteEl.querySelector('.aip'),m=noteEl.querySelector('.more'),d=AIP[n.id],t=MORE[n.id];p.innerHTML=d?'<h3>How the AI works</h3>'+d.map((x,i)=>'<div class="st" style="--d:'+(i*.12+.3)+'s"><b>'+AL[i]+'</b><span>'+x+'</span></div>').join(''):'';
- m.style.display=t?'block':'none';if(t){m.textContent='Deep dive: '+byId[t].t+' →';m.onclick=()=>go(TI[t])}}
-let EG=[],lastE='',nextE=18;
-const EGGS={
- parade:{d:7,f:p=>{const x0=-60+(W+120)*p;for(let i=0;i<5;i++)face(i,x0-i*84,H-70-Math.abs(Math.sin(p*38-i*.8))*26,26);T('the verdict parade',x0,H-135,F(700,28),LT,'center')}},
- star:{d:2.6,f:p=>{const x=W*(1.05-1.2*p),y=H*(.05+.45*p),g=ctx.createLinearGradient(x,y,x+260,y-130);g.addColorStop(0,'#fff');g.addColorStop(1,'rgba(255,255,255,0)');ctx.strokeStyle=g;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+260,y-130);ctx.stroke();ctx.save();ctx.shadowColor=C.y;ctx.shadowBlur=22;spk(x,y,17,C.y);ctx.restore();T('make a wish',x+40,y-50,F(700,26),LT)}},
- moon:{d:6,f:(p,t)=>{const s=Math.sin(Math.PI*Math.min(1,p*1.2)),x=-70+130*s,y=H*.55;ctx.save();ctx.translate(x,y);ctx.scale(3.2,3.2);ctx.beginPath();IC.moon(ctx);ctx.fillStyle=C.y;ctx.shadowColor=C.y;ctx.shadowBlur=30;ctx.fill();ctx.shadowBlur=0;ctx.lineWidth=2.4;ctx.strokeStyle=INK;ctx.stroke();ctx.restore();['z','Z','Z'].forEach((z,i)=>{const q=(t*.5+i*.33)%1;T(z,x+70+q*40,y-30-q*110,F(700,26+i*10),LT)});T('go to sleep, the verdict can wait',x+10,y+110,F(700,24),LT)}},
- plane:{d:6,f:p=>{const px=q=>[W*(-.1+1.2*q),H*.3+Math.sin(q*9)*60+q*H*.15],a=px(p),b=px(p+.01),an=Math.atan2(b[1]-a[1],b[0]-a[0]);ctx.setLineDash([6,9]);ctx.strokeStyle=MT;ctx.lineWidth=2.5;ctx.beginPath();for(let i=0;i<=40;i++){const q=px(Math.max(0,p-.25)+Math.min(p,.25)*i/40);ctx.lineTo(q[0],q[1])}ctx.stroke();ctx.setLineDash([]);ctx.save();ctx.translate(a[0],a[1]);ctx.rotate(an);ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(-24,-16);ctx.lineTo(-10,0);ctx.lineTo(-24,16);ctx.closePath();ctx.fillStyle=PAPER;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle=INK;ctx.stroke();ctx.beginPath();ctx.moveTo(30,0);ctx.lineTo(-10,0);ctx.stroke();ctx.restore();T('a note to future you',a[0],a[1]-36,F(700,22),LT,'center')}},
- fireflies:{d:7,f:(p,t)=>{for(let i=0;i<18;i++){const r=mul(i+3),x=r()*W+Math.sin(t*.8+i)*40,y=H*(1.05-((p*.6+r()*.5)%1)*1.1),c=[C.y,C.m,C.c,C.l][i%4];ctx.save();ctx.shadowColor=c;ctx.shadowBlur=22;ctx.fillStyle=c;ctx.globalAlpha*=.4+.6*Math.abs(Math.sin(t*2+i));ctx.beginPath();ctx.arc(x,y,4+r()*3,0,6.3);ctx.fill();ctx.restore()}T('the mirror is awake',W/2,H-60,F(700,28),LT,'center')}},
- goblin:{d:5,f:(p,t)=>{const s=Math.sin(Math.PI*Math.min(1,p*1.15)),x=W*.82,y=H+30-s*120;face(0,x,y,44);T('i am cooked',x-110,y-70,F(700,28),LT,'center');ctx.beginPath();ctx.arc(x+34,y-30+((t*2)%1)*20,5,0,6.3);ctx.fillStyle=C.c;ctx.fill()}}};
-const EK=Object.keys(EGGS);
-function egg(k){if(!k){do k=EK[Math.random()*EK.length|0];while(k==lastE)}lastE=k;EG.push({f:EGGS[k].f,t0:tNow,d:EGGS[k].d})}
-function poke(sx,sy){const[w,h]=toW(sx,sy);if(w>-180&&w<560&&h>30&&h<150)egg('parade')}
-function eggs(){ctx.setTransform(DPR,0,0,DPR,0,0);lw=1.3;ctx.lineJoin=ctx.lineCap='round';EG=EG.filter(g=>tNow-g.t0<g.d);EG.forEach(g=>{const p=(tNow-g.t0)/g.d;ctx.save();ctx.globalAlpha=Math.min(1,p*8,(1-p)*8);g.f(p,tNow-g.t0);ctx.restore()})}
-const actEl=document.getElementById('act');
-function act(i){const a=ACT[i];if(!a||reduce)return;actEl.querySelector('small').textContent=a[0];actEl.querySelector('b').textContent=a[1];actEl.style.setProperty('--c',a[2]);actEl.classList.remove('on');void actEl.offsetWidth;actEl.classList.add('on')}
-const whoHTML=()=>'<button class="btn cl">Close</button><h2>Who does what</h2><p class="sub">Not everything smart is AI. Honest labels build trust.</p>'+[['RULES','Fixed logic, always the same','2 Rough days trigger the recovery screen. 4 second sync timeout. PIN encryption. Composite score blend.'],['STATISTICS','Counting, no model','Streak, hit rate, weekday chart, friction % from keywords.'],['GENERATIVE AI','Gemini flash-lite writes','Ghostwriter, five lenses, Autopsy Chamber, Time-lock capsule, monthly dossier.']].map(r=>'<div class="row" style="grid-template-columns:130px 1fr"><b>'+r[0]+'</b><div><b style="font-size:20px">'+r[1]+'</b><br><span>'+r[2]+'</span></div></div>').join('')+'<p class="foot">Sent to Gemini: only the text you choose for AI features, through the small Express server. Backed up to Firestore: only if you sign in. Otherwise your diary stays on your device.</p>';
-const toS=(x,y)=>[x*cam.k+cam.x,y*cam.k+cam.y],toW=(x,y)=>[(x-cam.x)/cam.k,(y-cam.y)/cam.k];
-const pick=(sx,sy)=>{const[w,h]=toW(sx,sy);for(let i=N.length-1;i>=0;i--){const n=N[i];if(Math.abs(w-n.x)<n.w/2&&Math.abs(h-n.y)<n.h/2)return n}return null};
-function setHover(n){if(n&&n!==hov){n.vs+=1.6;n.va+=(Math.random()<.5?-1:1)*2.2}hov=n;cv.classList.toggle('hov',!!n)}
-function targetFor(i){if(i<0)return{cx:1425,cy:2150,k:Math.min(W/4150,H/4330)*.97,sx:W/2,sy:H/2};
- const n=byId[TOUR[i]],wide=W>900,pl=n.pl;return{cx:n.x,cy:n.y,k:Math.min(n.id=='f3'?.85:1.25,W*(wide?.34:.8)/n.w,H*.78/410),sx:n.id=='f3'?W*.64:wide?W*.34:W/2,
- sy:wide?(pl=='b'?H*.3:pl=='a'?H*.7:H*.5):(pl=='b'?H*.16:pl=='a'?H*.38:H*.3)}}
-function fit(){const t=targetFor(-1);cam.k=t.k;cam.x=t.sx-t.cx*t.k;cam.y=t.sy-t.cy*t.k}
-/* camera director: eased flight along the wire, with a dolly pull-back on long hops */
-function fly(to,pv){const f={cx:(W/2-cam.x)/cam.k,cy:(H/2-cam.y)/cam.k,k:cam.k},g=targetFor(to),d=Math.hypot(g.cx-f.cx,g.cy-f.cy);let ed=null;
- if(pv>=0&&to>=0){const a=byId[TOUR[pv]],b=byId[TOUR[to]],e=E.find(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));if(e)ed={e,rev:e.a===b,A:a,B:b}}
- TW={to,from:f,s:0,dur:Math.min(2.6,1+d/1700),dip:to<0||d<300?0:Math.min(.4,d/3200),ed,A:pv>=0?byId[TOUR[pv]]:null,B:to>=0?byId[TOUR[to]]:null}}
-function camStep(dt){if(mode=='free')return;const g=targetFor(TW?TW.to:mode=='over'?-1:cur);
- if(!TW){cam.k=g.k;cam.x=g.sx-g.cx*g.k;cam.y=g.sy-g.cy*g.k;return}
- TW.s=Math.min(1,TW.s+dt/TW.dur);const s=TW.s,e=s<.5?4*s*s*s:1-Math.pow(-2*s+2,3)/2,f=TW.from;TW.e=e;
- let cx=f.cx+(g.cx-f.cx)*e,cy=f.cy+(g.cy-f.cy)*e;
- if(TW.ed){const p=pos(TW.ed.e,TW.ed.rev?1-s:s),w=Math.sin(Math.PI*s),A=TW.ed.A,B=TW.ed.B;cx+=(p[0]-(A.x+(B.x-A.x)*s))*w;cy+=(p[1]-(A.y+(B.y-A.y)*s))*w}
- const k=(f.k+(g.k-f.k)*e)*(1-TW.dip*Math.sin(Math.PI*s)),sx=W/2+(g.sx-W/2)*e,sy=H/2+(g.sy-H/2)*e;
- cam.k=k;cam.x=sx-cx*k;cam.y=sy-cy*k;
- if(s>=1){const to=TW.to;TW=null;if(to>=0&&mode=='tour')arrive()}}
-function arrive(){const n=byId[TOUR[cur]];seen.add(cur);n.vs+=1.4;n.va+=1.8;arriveAt=performance.now()/1000;openNote(n);hud()}
-function go(i){i=Math.max(0,Math.min(TOUR.length-1,i));
- if(mode=='tour'&&i===cur&&!TW){openNote(byId[TOUR[i]]);return}
- const pv=mode=='tour'?cur:-1;act(i);closeNote();for(let j=0;j<i;j++)seen.add(j);mode='tour';cur=i;fly(i,pv);hud()}
-function overview(){if(mode=='over'){go(cur);return}closeNote();mode='over';fly(-1,-1);hud()}
-function step(d){if(mode!='tour'){go(cur);return}const j=cur+d;
- if(j<0){const n=byId[TOUR[0]];n.vs+=1;n.va+=2.4;return}
- if(j>=TOUR.length){auto=false;bigEnd=true;showSheet('big');return}go(j)}
-function setFree(){if(mode!='free'){mode='free';TW=null;closeNote();hud()}}
-const dotsEl=document.getElementById('dots'),hintEl=document.getElementById('hint'),pvB=document.getElementById('pv'),nxB=document.getElementById('nx'),auB=document.getElementById('au');
-TOUR.forEach((id,i)=>{const b=document.createElement('button');b.style.setProperty('--c',byId[id].col);b.title=byId[id].t;b.setAttribute('aria-label','Go to step '+(i+1)+': '+byId[id].t);b.onclick=()=>go(i);dotsEl.appendChild(b)});
-function hud(){[...dotsEl.children].forEach((b,i)=>{b.className=(mode=='tour'&&i===cur?'cur ':'')+(seen.has(i)?'seen':'')});
- hintEl.textContent=mode=='free'?'Free camera. Press an arrow key to rejoin the tour.':mode=='over'?'Overview. Press the Right arrow to resume your journey.':'Arrow keys steer the camera. Press ? for help.';
- pvB.disabled=mode=='tour'&&cur==0;auB.textContent='Auto-play: '+(auto?'on':'off')}
-document.getElementById('fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};document.getElementById('ai').onclick=()=>go(TI.a1);pvB.onclick=()=>step(-1);nxB.onclick=()=>step(1);document.getElementById('ov').onclick=overview;
-auB.onclick=()=>{auto=!auto;arriveAt=performance.now()/1000;if(auto&&mode!='tour')go(cur);hud()};
-function zoomAt(sx,sy,f){const k=Math.max(.2,Math.min(2.6,cam.k*f));f=k/cam.k;cam.x=sx-(sx-cam.x)*f;cam.y=sy-(sy-cam.y)*f;cam.k=k}
-const kind={u:'YOUR EVENING',ai:'AI MENTOR STEP',f:'QUIET PROTECTION'};
-const fxEl=noteEl.querySelector('.fx'),fxSum=fxEl.querySelector('summary'),fxBody=fxEl.querySelector('.fx-body');
-let fxAnim=null;
-fxSum.onclick=e=>{
- e.preventDefault();if(fxAnim){fxAnim.cancel();fxAnim=null}
- if(!fxEl.open){
-  fxEl.open=true;fxBody.style.height='auto';const endH=fxBody.offsetHeight;fxBody.style.height='0px';
-  fxAnim=fxBody.animate([{height:'0px',opacity:0,transform:'translateY(-8px)'},{height:endH+'px',opacity:1,transform:'translateY(0)'}],{duration:260,easing:'cubic-bezier(0.34,1.3,0.64,1)'});
-  fxAnim.onfinish=()=>{fxAnim=null;fxBody.style.height=''};
- }else{
-  const startH=fxBody.offsetHeight;
-  fxAnim=fxBody.animate([{height:startH+'px',opacity:1,transform:'translateY(0)'},{height:'0px',opacity:0,transform:'translateY(-8px)'}],{duration:220,easing:'cubic-bezier(0.4,0,0.2,1)'});
-  fxAnim.onfinish=()=>{fxEl.open=false;fxAnim=null;fxBody.style.height=''};
- }
-};
-function openNote(n){note=n;noteEl.style.setProperty('--ac',n.col);extra(n);if(fxAnim){fxAnim.cancel();fxAnim=null}fxEl.open=false;fxBody.style.height='';
- const nc=document.getElementById('ni').getContext('2d');nc.clearRect(0,0,52,52);nc.save();nc.translate(26,26);nc.scale(1.3,1.3);nc.beginPath();IC[n.ic](nc);nc.fillStyle=n.col;nc.fill();nc.lineWidth=2.2;nc.lineJoin=nc.lineCap='round';nc.strokeStyle=INK;nc.stroke();nc.restore();noteEl.querySelector('.tag').textContent=kind[n.k]+'  '+(TI[n.id]+1)+' / '+TOUR.length;noteEl.querySelector('h2').textContent=n.t;
- noteEl.querySelector('.do').textContent=n.does;const ul=noteEl.querySelector('.facts');ul.innerHTML='';(FACTS[n.id]||[]).forEach(f=>{const li=document.createElement('li');li.textContent=f;ul.appendChild(li)});noteEl.querySelector('.why').textContent=n.why;noteEl.querySelector('.tech').textContent='UNDER THE HOOD: '+n.tech;
- noteEl.classList.remove('on');void noteEl.offsetWidth;noteEl.classList.add('on')}
-function closeNote(){note=null;if(fxAnim){fxAnim.cancel();fxAnim=null}fxEl.open=false;fxBody.style.height='';noteEl.classList.remove('on')}
-document.getElementById('x').onclick=closeNote;
-addEventListener('keydown',e=>{if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key,L=k.length>1?k:k.toLowerCase();if(sheetOn){if(k=='Escape'||L=='i'||L=='?'||L=='h')hideSheet();return}
- if(['ArrowRight','ArrowDown','PageDown',' ','Enter','n'].includes(L)){e.preventDefault();step(1)}
- else if(['ArrowLeft','ArrowUp','PageUp','Backspace','p'].includes(L)){e.preventDefault();step(-1)}
- else if(L=='Home'){e.preventDefault();go(0)}else if(L=='End'){e.preventDefault();go(TOUR.length-1)}
- else if(L=='o')overview();else if(L=='a')auB.click();else if(L=='i')showSheet('big');else if(L=='?'||L=='h')showSheet('help');else if(L=='m')mmPin=!mmPin;else if(L=='e')egg();
- else if(L=='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
- else if(L=='Escape')closeNote()});
-const P=new Map();let moved=0,pd=0,s0=[0,0];
-const dist=()=>{const a=[...P.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
-cv.addEventListener('pointerdown',e=>{menuEl.classList.remove('on');cv.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);moved=0;s0=[e.clientX,e.clientY];if(P.size==2){pd=dist();setFree()}else setHover(pick(e.clientX,e.clientY))});
-cv.addEventListener('pointermove',e=>{
- if(!P.has(e.pointerId)){setHover(pick(e.clientX,e.clientY));return}
- const o=P.get(e.pointerId),dx=e.clientX-o[0],dy=e.clientY-o[1];P.set(e.pointerId,[e.clientX,e.clientY]);
- if(P.size==2){const d=dist(),a=[...P.values()];zoomAt((a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2,d/pd);pd=d;cam.x+=dx/2;cam.y+=dy/2;moved=99}
- else{moved+=Math.abs(dx)+Math.abs(dy);if(moved>6&&(e.pointerType!='touch'||mode=='free')){setFree();cam.x+=dx;cam.y+=dy;cv.classList.add('drag')}}});
-const up=e=>{if(P.size==1){const dx=e.clientX-s0[0],dy=e.clientY-s0[1];
- if(moved<=6){const n=pick(e.clientX,e.clientY);n?go(TI[n.id]):(closeNote(),poke(e.clientX,e.clientY))}
- else if(e.pointerType=='touch'&&mode!='free'&&Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy))step(dx<0?1:-1)}
- P.delete(e.pointerId);cv.classList.remove('drag')};
-cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{P.delete(e.pointerId);cv.classList.remove('drag')});
-cv.addEventListener('pointerleave',()=>{if(!P.size)setHover(null)});
-cv.addEventListener('wheel',e=>{e.preventDefault();setFree();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0016))},{passive:false});
+  function sm(p, P) {
+    P.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length - 1; i++) {
+      P.quadraticCurveTo(p[i][0], p[i][1], (p[i][0] + p[i+1][0]) / 2, (p[i][1] + p[i+1][1]) / 2);
+    }
+    P.lineTo(p[p.length - 1][0], p[p.length - 1][1]);
+  }
 
-const menuEl=document.getElementById('menu'),sheet=document.getElementById('sheet'),scrim=document.getElementById('scrim');
-const BIG=[['Too tired to write','Diary ghostwriter','pen','l','Your habit survives the hardest nights.'],['Shame after a bad day','Autopsy Chamber','lens','r','A calm diagnosis and one clear antidote.'],['Losing perspective in a slump','Time-lock capsule','lock','c','Your best self coaches your worst day.'],['Forgetting why last month happened','Executive dossier','mail','l','Thirty days of patterns and one circuit breaker.'],['Trust and safety','Ethical guardrail','shield','m','A mirror, never a doctor.']];
-const bigHTML=()=>'<button class="btn cl">Close</button><h2>The big picture</h2><p class="sub">Five everyday human problems, and the AI that answers each one.</p>'+BIG.map(r=>'<div class="row"><canvas width="52" height="52" data-ic="'+r[2]+'" data-c="'+C[r[3]]+'"></canvas><div><b>'+r[0]+'</b><i class="ar"></i><b>'+r[1]+'</b><br><span>'+r[4]+'</span></div></div>').join('')+
- '<p class="foot">Rules for safety, AI for language and insight. The slump trigger is a fixed rule; the weekday chart and friction percentages are statistics, not generative AI.</p><p class="foot">Your diary lives on your device. AI features send the text you choose to the Gemini API.</p>';
-const KEYS=[['Right / Down / Space','Next stop'],['Left / Up','Previous stop'],['Home / End','First or last stop'],['O','Overview'],['A','Auto-play'],['I','The big picture'],['M','Show minimap'],['F','Fullscreen'],['Esc','Close a note'],['E','Wake something up']];
-const helpHTML=()=>'<button class="btn cl">Close</button><h2>How to drive</h2>'+KEYS.map(r=>'<div class="kr"><span>'+r[0].split(' / ').map(k=>'<i class="k">'+k+'</i>').join('')+'</span><span>'+r[1]+'</span></div>').join('')+
- '<p class="foot">Drag or scroll to roam freely. On touch, swipe to move between stops.</p><p class="foot"><span class="lg"></span>Your evening &nbsp; <span class="lg a"></span>AI mentor steps &nbsp; <span class="lg q"></span>Quiet protection</p>';
-function showSheet(k){closeNote();menuEl.classList.remove('on');sheetOn=k;sheet.innerHTML=k=='big'?bigHTML():k=='who'?whoHTML():helpHTML();sheet.classList.remove('on');void sheet.offsetWidth;sheet.classList.add('on');scrim.style.display='block';
- sheet.querySelectorAll('canvas').forEach(c=>{const x=c.getContext('2d');x.translate(26,26);x.scale(1.3,1.3);x.beginPath();IC[c.dataset.ic](x);x.fillStyle=c.dataset.c;x.fill();x.lineWidth=2.2;x.lineJoin=x.lineCap='round';x.strokeStyle=INK;x.stroke()});
- sheet.querySelector('.cl').onclick=hideSheet}
-function hideSheet(){sheet.classList.remove('on');scrim.style.display='none';sheetOn=null;if(bigEnd){bigEnd=false;overview()}}
-scrim.onclick=hideSheet;
-document.getElementById('mn').onclick=()=>menuEl.classList.toggle('on');
-menuEl.onclick=e=>{if(e.target.tagName=='BUTTON')menuEl.classList.remove('on')};
-document.getElementById('bg').onclick=()=>showSheet('big');document.getElementById('wd').onclick=()=>showSheet('who');document.getElementById('hp').onclick=()=>showSheet('help');document.getElementById('mp').onclick=()=>{mmPin=!mmPin};
-TOUR.forEach((id,i)=>{if(i==11||i==17)dotsEl.children[i].style.marginLeft='16px'});
-/* ---------- update & draw ---------- */
-function chev(x,y,a,col,al){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.globalAlpha=al;ctx.lineJoin=ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-9,-12);ctx.lineTo(6,0);ctx.lineTo(-9,12);
- ctx.strokeStyle=col;ctx.lineWidth=12*lw;ctx.globalAlpha=al*.7;ctx.stroke();ctx.globalAlpha=al;ctx.strokeStyle=INK;ctx.lineWidth=4*lw;ctx.stroke();ctx.restore()}
-function route(a,b){const e=E.find(e=>e.a===a&&e.b===b),r=E.find(e=>e.a===b&&e.b===a);
- if(e)return{pt:p=>pos(e,p)};if(r)return{pt:p=>pos(r,1-p)};
- const dx=b.x-a.x,dy=b.y-a.y,ex=(n,sx,sy)=>{const t=Math.min(n.w/2/Math.abs(sx||1e-9),n.h/2/Math.abs(sy||1e-9));return[n.x+sx*t,n.y+sy*t]},s=ex(a,dx,dy),f=ex(b,-dx,-dy);
- return{pt:p=>[s[0]+(f[0]-s[0])*p,s[1]+(f[1]-s[1])*p]}}
-function bigArrow(x,y,an,al){const w=Math.sin(tNow*9)*1.6,z=1+.07*Math.sin(tNow*6);ctx.save();ctx.translate(x,y);ctx.rotate(an);ctx.scale(z,z);ctx.globalAlpha=al;ctx.lineJoin=ctx.lineCap='round';
- ctx.beginPath();ctx.moveTo(-58,-9+w);ctx.lineTo(8,-11);ctx.lineTo(8,-27);ctx.lineTo(54,w);ctx.lineTo(8,27);ctx.lineTo(8,11);ctx.lineTo(-58,9-w);ctx.closePath();
- ctx.save();ctx.translate(5,5);ctx.fillStyle=INK;ctx.fill();ctx.restore();ctx.fillStyle=C.r;ctx.fill();ctx.lineWidth=3.6*lw;ctx.strokeStyle=INK;ctx.stroke();
- ctx.beginPath();ctx.moveTo(-46,-3);ctx.lineTo(-6,-4);ctx.moveTo(-42,4);ctx.lineTo(-14,3);ctx.lineWidth=2.4*lw;ctx.strokeStyle='#fff';ctx.globalAlpha=al*.85;ctx.stroke();ctx.restore()}
-/* the guide arrow: rides the wire in step with the camera, and points to the next stop when idle */
-function guide(){if(mode!='tour')return;let a,b,p,al=1;
- if(TW&&TW.to>=0&&TW.A&&TW.B){a=TW.A;b=TW.B;p=TW.e||0}
- else if(!TW&&cur<TOUR.length-1){a=byId[TOUR[cur]];b=byId[TOUR[cur+1]];p=(tNow*.3)%1;al=Math.pow(Math.sin(Math.PI*p),.6)}else return;
- const edge=E.find(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a));
- const edgeLen=edge?edge.len:700;
- const startP=Math.min(0.2,62/edgeLen);
- const stopP=Math.max(startP+0.05,1-56/edgeLen);
- const travelP=startP+Math.min(1,Math.max(0,p))*(stopP-startP);
- const R=route(a,b),q=R.pt(travelP);
- const t1=Math.max(0,travelP-0.02),t2=Math.min(1,travelP+0.02);
- const p1=R.pt(t1),p2=R.pt(t2);
- const an=Math.atan2(p2[1]-p1[1],p2[0]-p1[0]);
- ctx.save();ctx.globalAlpha=.5*al;ctx.strokeStyle=C.r;ctx.lineWidth=12*lw;ctx.lineCap='round';ctx.beginPath();
- for(let i=0;i<=24;i++){const w=R.pt(startP+(travelP-startP)*i/24);i?ctx.lineTo(w[0],w[1]):ctx.moveTo(w[0],w[1])}
- ctx.stroke();ctx.restore();
- bigArrow(q[0],q[1],an,al);
- if(!TW){const mid=R.pt(0.5),t='next: '+b.t;ctx.save();ctx.globalAlpha=al;ctx.font=F(700,26);ctx.textAlign='center';ctx.lineWidth=7;ctx.strokeStyle='#07080F';ctx.strokeText(t,mid[0],mid[1]-46);ctx.fillStyle=LT;ctx.fillText(t,mid[0],mid[1]-46);ctx.restore()}}
-const mm=document.getElementById('mm'),mx=mm.getContext('2d'),MS=200/4330;
-mm.onclick=e=>{const r=mm.getBoundingClientRect(),wx=(e.clientX-r.left)/MS-650,wy=(e.clientY-r.top)/MS-20;let best=0,bd=1e9;N.forEach(n=>{const d=Math.hypot(n.x-wx,n.y-wy);if(d<bd){bd=d;best=n}});go(TI[best.id])};
-function drawMini(){mx.setTransform(2,0,0,2,0,0);mx.clearRect(0,0,200,200);mx.fillStyle='#0b0d1a';mx.fillRect(0,0,200,200);
- const X=x=>(x+650)*MS,Y=y=>(y+20)*MS,tr=mode=='tour';mx.font='700 8px ui-monospace,Menlo,monospace';mx.textAlign='left';
- [[0,2050,'255,170,80','EVENING'],[2050,3080,'0,229,200','QUIET'],[3080,4330,'179,136,255','AI BRAIN']].forEach(z=>{const g=mx.createLinearGradient(0,Y(z[0]),0,Y(z[1]));g.addColorStop(0,'rgba('+z[2]+',.15)');g.addColorStop(1,'rgba('+z[2]+',.03)');mx.fillStyle=g;mx.fillRect(0,Y(z[0]),200,Y(z[1])-Y(z[0]));mx.fillStyle='rgba('+z[2]+',.8)';mx.fillText(z[3],7,Y(z[1])-5)});
- E.forEach(e=>{mx.beginPath();e.base.forEach((p,i)=>mx[i?'lineTo':'moveTo'](X(p[0]),Y(p[1])));mx.setLineDash(e.dash?[2,2]:[]);mx.strokeStyle=e.dash?'rgba(0,229,153,.6)':e.halo+'99';mx.lineWidth=1;mx.stroke()});mx.setLineDash([]);
- N.forEach(n=>{const c=tr&&n===byId[TOUR[cur]],w=Math.max(12,n.w*MS),h=8,x=X(n.x)-w/2,y=Y(n.y)-h/2;mx.save();mx.globalAlpha=unseenN(n)?.3:1;if(c||n===mmH){mx.shadowColor=n.col;mx.shadowBlur=12}mx.fillStyle=n.col;mx.fillRect(x,y,w,h);mx.shadowBlur=0;mx.lineWidth=1;if(n.k=='ai'){mx.setLineDash([2,1.5]);mx.strokeStyle='#fff'}else mx.strokeStyle='#0b0d1a';mx.strokeRect(x,y,w,h);mx.restore();
-  if(c){mx.strokeStyle='#fff';mx.lineWidth=1.2;mx.beginPath();mx.arc(X(n.x),Y(n.y),9+2*Math.sin(tNow*5),0,6.3);mx.stroke()}});
- const a=toW(0,0),b=toW(W,H),vx=X(a[0]),vy=Y(a[1]),vw=(b[0]-a[0])*MS,vh=(b[1]-a[1])*MS;mx.fillStyle='rgba(255,255,255,.07)';mx.fillRect(vx,vy,vw,vh);mx.strokeStyle='rgba(255,255,255,.85)';mx.lineWidth=1.3;mx.strokeRect(vx,vy,vw,vh);
- mx.fillStyle='#8f8ca8';mx.fillText('MAP',7,11);if(tr){mx.textAlign='right';mx.fillText((cur+1)+' / '+TOUR.length,193,11)}
- if(mmH){mx.textAlign='center';const t=mmH.t,w=mx.measureText(t).width+12;mx.fillStyle='#000d';mx.fillRect(100-w/2,186,w,14);mx.fillStyle='#fff';mx.fillText(t,100,196)}}
-let mmH=null;const mmN=e=>{const r=mm.getBoundingClientRect(),wx=(e.clientX-r.left-2)/MS-650,wy=(e.clientY-r.top-2)/MS-20;let b=null,bd=1e9;N.forEach(n=>{const d=Math.hypot(n.x-wx,n.y-wy);if(d<bd){bd=d;b=n}});return bd<420?b:null};
-mm.onmousemove=e=>{mmH=mmN(e)};mm.onmouseleave=()=>{mmH=null};
-const rel=e=>fo&&(e.a===fo||e.b===fo);
-const relN=n=>!fo||n===fo||E.some(e=>rel(e)&&(e.a===n||e.b===n));
-const unseenN=n=>mode=='tour'&&!seen.has(TI[n.id]);
-function update(dt){
- N.forEach(n=>{const tg=n===hov?1.07:(mode=='tour'&&n===fo?1.04:1);n.vs+=((tg-n.sc)*220-n.vs*12)*dt;n.sc+=n.vs*dt;n.va+=(-n.ang*160-n.va*8)*dt;n.ang+=n.va*dt;n.rv+=((unseenN(n)?0:1)-n.rv)*Math.min(1,dt*3.5)});
- E.forEach(e=>{const sp=(reduce?45:150)*(rel(e)?2.4:1)/e.len;e.ph=e.ph.map(p=>(p+sp*dt)%1)})}
-function pos(e,p){const f=p*60,i=Math.min(59,f|0),u=f-i,a=e.base[i],b=e.base[i+1];return[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u]}
-function drawEdge(e,b){
- const hot=rel(e),dim=fo&&!hot?(unseenN(e.a)||unseenN(e.b)?.1:.3):1;ctx.globalAlpha=dim;ctx.lineJoin=ctx.lineCap='round';
- if(hot){ctx.setLineDash([]);ctx.shadowColor=e.halo;ctx.shadowBlur=34;ctx.strokeStyle=e.halo;ctx.globalAlpha=.75;ctx.lineWidth=15*lw;ctx.stroke(e.sh[b][0]);ctx.shadowBlur=0;ctx.globalAlpha=dim}
- ctx.strokeStyle=WIRE;ctx.setLineDash(e.dash?[16,11]:[]);ctx.lineWidth=3.2*lw;ctx.stroke(e.sh[b][0]);ctx.lineWidth=2*lw;ctx.stroke(e.sh[b][1]);
- ctx.setLineDash([]);ctx.lineWidth=3.2*lw;ctx.stroke(e.sh[b][2]);
- if(hot)e.ph.forEach(p=>{const q=pos(e,p);ctx.save();ctx.shadowColor=e.halo;ctx.shadowBlur=26;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(q[0],q[1],7*lw,0,6.3);ctx.fill();ctx.restore()});if(mode!='tour')e.ph.forEach(p=>{const q=pos(e,p),q2=pos(e,Math.min(1,p+.015));chev(q[0],q[1],Math.atan2(q2[1]-q[1],q2[0]-q[0]),e.halo,dim)});
- ctx.globalAlpha=1}
-function drawNode(n,b){
- if(!n.sh[b])n.sh[b]=shape(n,b);const s=n.sh[b],w=n.w/2,h=n.h/2;
- ctx.save();ctx.translate(n.x,n.y);ctx.rotate(n.ang);ctx.scale(n.sc,n.sc);ctx.globalAlpha=relN(n)?1:unseenN(n)?.2:.45;
- ctx.save();ctx.translate(8,8);ctx.fillStyle=INK;ctx.fill(s.cl);ctx.restore();
- if(n===fo){ctx.shadowColor=n.col;ctx.shadowBlur=60}ctx.fillStyle=PAPER;ctx.fill(s.cl);ctx.shadowBlur=0;ctx.fillStyle=n.col+'55';ctx.fill(s.cl);
- ctx.save();ctx.clip(s.cl);ctx.strokeStyle=n.col;ctx.lineWidth=3;ctx.globalAlpha*=.85;ctx.stroke(n.hz);ctx.restore();
- if(n.k=='ai'){ctx.save();ctx.setLineDash([9,7]);ctx.strokeStyle=C.l;ctx.lineWidth=4;ctx.strokeRect(-w-14,-h-14,n.w+28,n.h+28);ctx.restore()}
- ctx.strokeStyle=INK;ctx.lineJoin=ctx.lineCap='round';ctx.lineWidth=3.4*lw;ctx.stroke(s.o[0]);ctx.lineWidth=2.2*lw;ctx.stroke(s.o[1]);
- if(mode=='tour'&&n===fo){ctx.save();ctx.scale((n.w+60)/n.w,(n.h+60)/n.h);ctx.setLineDash([16,10]);ctx.lineDashOffset=-tNow*45;ctx.strokeStyle=C.r;ctx.lineWidth=4.5;ctx.stroke(s.o[0]);ctx.restore();
-  ctx.save();ctx.translate(-w+86,n.pl=='a'?h+50:-h-42);ctx.rotate(-.05);ctx.fillStyle=C.r;ctx.fillRect(-68,-14,136,27);ctx.lineWidth=2.5;ctx.strokeRect(-68,-14,136,27);T('YOU ARE HERE',0,5,'700 14px ui-monospace,Menlo,Consolas,monospace',INK,'center');ctx.restore()}
- const tx=n.k=='f'?-w+24:-w+38;
- T(n.t,tx,-h+54,F(700,31),INK);T(n.s[0],tx,-h+90,F(500,25),'#222');T(n.s[1],tx,-h+120,F(500,25),'#222');
- ctx.beginPath();ctx.arc(w-38,-h+40,24,0,6.3);ctx.fillStyle=n.col+'aa';ctx.fill();ctx.lineWidth=2.5*lw;ctx.strokeStyle=INK;ctx.stroke();icon(n,w-38,-h+40);
- if(n.k!='f'){ctx.beginPath();ctx.arc(-w,-h,22,0,6.3);ctx.fillStyle=n.col;ctx.fill();ctx.lineWidth=3;ctx.stroke();T(String(n.i+1),-w,-h+8,F(700,26),INK,'center')}
- if(n.k=='ai'){ctx.save();ctx.translate(w-70,n.pl=='a'?h+34:-h-20);ctx.rotate(.05);ctx.fillStyle=C.l;ctx.fillRect(-52,-14,104,26);ctx.lineWidth=2.5;ctx.strokeRect(-52,-14,104,26);T('AI MIRROR',0,5,'700 14px ui-monospace,Menlo,Consolas,monospace',INK,'center');ctx.restore()}
- if(n.k=='ai')for(let i=0;i<3;i++){const a=tNow*.6+i*2.094;spk(Math.cos(a)*(w+34),Math.sin(a)*(h+22),9+3*Math.sin(tNow*3+i),C.l)}
- ctx.restore()}
-const SR=mul(9),STAR=Array.from({length:130},()=>({x:SR(),y:SR(),z:.2+SR()*.8,p:SR()*6.3})),GR={u:[255,170,80],f:[0,229,200],ai:[179,136,255]};let gc=[255,170,80];
-function bgfx(t){ctx.fillStyle='#07080F';ctx.fillRect(0,0,W,H);
- const wy=(H/2-cam.y)/cam.k,g=GR[fo?fo.k:wy>2850?'ai':wy>2150?'f':'u'];gc=gc.map((v,i)=>v+(g[i]-v)*.03);
- const rg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.75);rg.addColorStop(0,'rgba('+gc.map(Math.round)+',.2)');rg.addColorStop(1,'rgba(7,8,15,0)');ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
- STAR.forEach(s=>{const x=((s.x*W+cam.x*s.z*.1)%W+W)%W,y=((s.y*H+cam.y*s.z*.1)%H+H)%H;ctx.globalAlpha=.25+.55*Math.abs(Math.sin(t*.8+s.p));ctx.fillStyle='#fff';ctx.fillRect(x,y,s.z*2.2,s.z*2.2)});ctx.globalAlpha=1}
-function draw(t){
- const b=reduce?0:Math.floor(t*4)%3;lw=Math.max(.7,Math.min(2,1.1/Math.sqrt(cam.k)));
- ctx.setTransform(DPR,0,0,DPR,0,0);bgfx(t);
- const st=cam.k<.35?80:cam.k<.7?40:30,sp=st*cam.k,ox=((cam.x%sp)+sp)%sp,oy=((cam.y%sp)+sp)%sp;ctx.fillStyle='#1d2038';
- for(let x=ox;x<W;x+=sp)for(let y=oy;y<H;y+=sp)ctx.fillRect(x-1,y-1,2.2,2.2);
- {const dr=mode=='tour'&&!TW;ctx.setTransform(DPR*cam.k,0,0,DPR*cam.k,DPR*(cam.x+(dr?Math.sin(t*.45)*6:0)),DPR*(cam.y+(dr?Math.cos(t*.37)*4:0)))}
- /* title */
- ctx.lineJoin=ctx.lineCap='round';ctx.strokeStyle=C.y;ctx.globalAlpha=.28;ctx.lineWidth=40;ctx.beginPath();ctx.moveTo(-170,100);ctx.lineTo(330,96);ctx.stroke();ctx.globalAlpha=1;
- T('Daily Verdict',-160,128,F(700,96),LT);ctx.strokeStyle=LT;ctx.lineWidth=4;ctx.stroke(ul);
- stars.forEach((s,i)=>{ctx.lineWidth=3;ctx.strokeStyle=INK;star(380+i*54,88+(i%2)*6,22,s[0])});
- T('One honest minute every night. An AI mirror that remembers.',-160,190,F(700,40),LT);
- T('GCERT RBVP Science Exhibition: how AI can ease mental fatigue and build resilient habits.',-160,226,F(500,29),MT);
- T('AI is a kind mirror: it listens, it reflects, it never judges.',1700,832,F(700,42),'#C9B0FF','center');ctx.strokeStyle=C.l;ctx.lineWidth=5;ctx.stroke(ul2);
- T('The AI brain: how AI powers human accountability',1300,3040,F(700,46),'#C9B0FF');ctx.strokeStyle=C.l;ctx.lineWidth=6;ctx.stroke(ul3);
- T('The quiet part: it protects you without asking.',110,2335,F(700,34),LT);
- T('tomorrow night, again',-228,1075,F(700,30),LT,'center',-Math.PI/2);T('the reminder pulls you back',-690,1445,F(700,28),MT,'center',-Math.PI/2);
- bb=b;doodles();E.forEach(e=>drawEdge(e,b));N.forEach(deco);N.forEach(n=>drawNode(n,b));guide();
- ctx.globalAlpha=1;ctx.setLineDash([]);eggs()}
-function frame(ms){const t=ms/1000,dt=Math.min(.05,t-last);last=t;if(W!==innerWidth||H!==innerHeight)resize();const hv=mode!='tour'||t<9?1:0;if(hv!==hintV){hintV=hv;hintEl.style.opacity=hv}const mw=(mode!='tour'||mmPin)&&!sheetOn;if(mw!==mmShown){mmShown=mw;mm.style.opacity=mw?1:0;mm.style.pointerEvents=mw?'auto':'none'}tNow=t;document.body.classList.toggle('cin',mode=='tour');fo=hov||(mode=='tour'?byId[TOUR[cur]]:null);
- camStep(dt);update(dt);if(!reduce&&!sheetOn&&!EG.length&&t>nextE&&!document.hidden){egg();nextE=t+30+Math.random()*40}if(auto&&mode=='tour'&&!TW&&t-arriveAt>9)step(1);draw(t);if(W>640&&mmShown)drawMini();
- if(note&&W>640){const n=note,s=toS(n.x,n.y);let l=s[0]+n.w/2*cam.k+40,tp=s[1]-n.h/2*cam.k;if(l+312>W)l=s[0]-n.w/2*cam.k-340;
-  noteEl.style.left=Math.max(8,Math.min(W-312,l))+'px';noteEl.style.top=Math.max(8,Math.min(H-noteEl.offsetHeight-8,tp))+'px'}
- requestAnimationFrame(frame)}
-fit();hud();requestAnimationFrame(frame);setTimeout(()=>go(0),2400);
-if(document.fonts)document.fonts.load('700 30px Caveat');
-window.addEventListener('keydown', (e) => {
-  const isClose = e.key === 'Escape' ||
-    (e.altKey && (e.key === 'a' || e.key === 'A')) ||
-    ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'm' || e.key === 'M' || e.key === 'f' || e.key === 'F' || e.key === 'a' || e.key === 'A'));
-  if (isClose) {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: 'CLOSE_FLOWCHART' }, '*');
+  // ----------------------------------------------------
+  // Master Architecture Nodes: 20 Core Systems
+  // ----------------------------------------------------
+  const D = [
+    // ACT I: THE NIGHTLY VERDICT & SPHERES
+    ['n1', 300, 380, 'u', 'c', '1-Tap Nightly Entry', 'Phone or laptop, end of day.', 'Zero barrier, instant guest slot.', 'moon',
+     'You open the app on phone or PC. A private isolated guest space launches instantly without sign-up friction.',
+     'Tired brains skip hard habits. Removing sign-up barriers guarantees you show up tonight.', 'Header, MobileAppView, PWAInstallBanner, OfflineShelterBadge'],
+
+    ['n2', 1000, 380, 'u', 'y', 'The 5-Tier Daily Verdict', 'Rough, Down, Okay, Good, Peak.', 'One honest tap, 1 to 5 stars.', 'star',
+     'You name the mood across 5 tactile pedals. Each star carries dedicated color tokens, mascot archetypes, and directives.',
+     'Replaces 30 tedious checkboxes with a single honest assessment to protect mental bandwidth.', 'TodayHero, DayRatingModal, 5-tier mood pedals'],
+
+    ['n3', 1700, 380, 'u', 'm', 'Life Spheres Engine', 'Work, School, Home, Social.', 'Blended into one composite score.', 'sphere',
+     'Optionally rate individual life domains and outlier event spheres. The mathematical algorithm computes a fair composite score.',
+     'A rough evening should not erase a productive morning. Isolating spheres shows where friction truly lives.', 'SphereIcon, Multi-Sphere Engine, calculateCompositeScore()'],
+
+    ['n4', 2400, 380, 'u', 'y', 'Daily Non-Negotiable Anchors', 'Deterministic, Hybrid, Checklist.', 'Mathematical habit weighting.', 'check',
+     'Configure foundational daily anchors. Choose Deterministic 100% (tasks govern rating), Hybrid 50/50, or Subjective Checklist.',
+     'Bridges personal feeling with objective execution, keeping accountability honest.', 'NonNegotiableCard, NonNegotiablesStudioModal, BehavioralLabModal'],
+
+    ['n5', 3100, 380, 'ai', 'l', 'AI Diary Ghostwriter', 'Dump your tired shorthand.', 'Polished in your authentic voice.', 'pen',
+     'Dump raw fragments or tired notes. Gemini converts them into vivid first-person prose while strictly preserving 100% of facts and names.',
+     'Takes away the cognitive chore of writing prose late at night, ensuring you record your story.', 'AutoExpandTextarea, Gemini flash-lite, no-invention rule'],
+
+    ['n6', 3800, 380, 'ai', 'y', 'Five Mental Lenses', 'Stoic, Root Causes, Action Bullets.', 'Reflect through your philosophy.', 'sphere',
+     'Switch how AI views your day: Auto Polish for natural flow, Tactical Stoic Dossier for radical ownership, or Root Causes for friction isolation.',
+     'Reframing your day through intentional lenses turns passive journaling into active mental fortitude.', 'Tactical AI Directives, custom prompt system'],
+
+    // ACT II: FORENSIC INTELLIGENCE & SLUMP ESCROW
+    ['n7', 3800, 1260, 'ai', 'r', 'Post-Mortem Autopsy Chamber', 'Rough or Down day inquest.', 'CIA Manila folder diagnosis.', 'lens',
+     'Triggered on 1★ or 2★ days. Forensic triage diagnoses the friction leak, poses 3 targeted questions, and issues one non-negotiable antidote.',
+     'Stops the spiral into shame or denial. Objective forensic diagnosis breaks negative momentum immediately.', 'AutopsyChamberModal, autopsyIntelligence.js'],
+
+    ['n8', 3100, 1260, 'ai', 'c', 'Ransom Time-Lock Capsule', 'Written on 5★ Peak God Mode.', 'Unlocked only after slumps.', 'lock',
+     'On a peak day, write a reality-check letter sealed with wax. AI escrow holds it, unlocking only when 2 consecutive rough days occur.',
+     'Clear-headed you knows what low you forgets. Your best self coaches your worst self when resilience is lowest.', 'RansomCapsuleModal, Slump Escrow Engine'],
+
+    ['n9', 2400, 1260, 'ai', 'l', 'Monthly Intelligence Dossier', 'Homie letter + Persona Archetype.', 'Domino effect causal chains.', 'mail',
+     'At month end, the AI reviews all entries. Produces an archetype, a tough-love Homie letter, domino behavioral cascades, and 3 directives.',
+     'Fights recency bias by synthesizing the macro narrative of your habits, victories, and friction leaks.', 'MonthlyReportModal, Domino Cascade Analyzer'],
+
+    ['n10', 1700, 1260, 'u', 'r', '4K Wallpaper & Creative Studio', '365-day Year in Pixels dial.', '1080p story & 4K poster rasterizer.', 'poster',
+     'Transforms your daily history into circular radar dials and aesthetic cards in DeepSeek, Neo-Gold, or Tokyo Sunset palettes.',
+     'Tangible visual evidence of your consistency reinforces commitment and celebrates small victories.', 'AestheticCardExportModal, YearInPixelsWallpaperEngine'],
+
+    // ACT III: LIFE PAUSE & NERVOUS SYSTEM STASIS
+    ['n11', 1000, 1260, 'u', 'm', 'Tranquility Sanctuary', 'Acute 7-14 Day Reset.', 'Vagus Nerve 4-2-6 & Streak Freeze.', 'moon',
+     'Emergency pause for nervous system recovery and burnout triage. Structured 7-14 day arc with 4-2-6 pacer orb and somatic grounding.',
+     'Prevents burnout from shattering long streaks. Rest is an active component of discipline.', 'SanctuaryPage, RehabilitationModal, Blob3DCanvas'],
+
+    ['n12', 300, 1260, 'u', 'm', 'Grand Sabbatical Horizon', 'Macro open-ended life transition.', 'Streak shielded & indefinite.', 'compass',
+     'Months or years-long life transition (gap year, travel, creative sabbatical). Open horizon with zero daily score pressure.',
+     'Life evolves beyond daily metrics. The system steps back while holding your legacy intact.', 'Grand Sabbatical Engine, Compass Mode'],
+
+    // ACT IV: SOVEREIGN DEFENSE & DATA INFRASTRUCTURE
+    ['n13', 300, 2140, 'f', 'c', 'Local-First Sovereign Storage', 'Device-partitioned slots.', 'goodness_db_guest vs uid.', 'disk',
+     'Every verdict saves in ~1ms directly into local storage. Multi-tenant partitioning isolates guests from verified accounts.',
+     'Zero server latency and offline resilience guarantee you never lose an entry.', 'getDbStorageKey(), localStorage isolation, storageManager.js'],
+
+    ['n14', 1000, 2140, 'f', 'r', 'Client-Side AES-256 PIN Vault', 'Zero-knowledge encryption.', 'PBKDF2 key derivation & GCM.', 'lock',
+     'Optional 4-digit PIN derives an AES-GCM key in the browser. Stored diary text is encrypted locally before touching any storage.',
+     'True privacy allows radical honesty. Without the PIN, stored data is mathematical gibberish.', 'VaultPinModal, cipherEngine.js'],
+
+    ['n15', 1700, 2140, 'f', 'm', 'Indian DPDPA 2023 Sovereignty', 'Statutory Section 12/13 compliance.', '7-Day regret-proof cooling off.', 'shield',
+     'Full statutory Indian Digital Personal Data Protection Act compliance. Zero-third-party tracking, nuclear purge, and designated grievance officer.',
+     'Data sovereignty is a human right. Your reflections remain your private property forever.', 'DataErasurePage, PrivacyPolicyPage, grievance officer'],
+
+    ['n16', 2400, 2140, 'f', 'c', 'Device File Mirror', 'File System Access API.', 'Physical JSON file mirror on disk.', 'stack',
+     'Browser connects directly to a physical file on your hard drive (D:\, Documents). Auto-saves every entry as raw JSON.',
+     'Permanent offline backup that survives browser cache purges or cookie clearing.', 'fileMirrorEngine.js, StorageSovereigntyPage'],
+
+    ['n17', 3100, 2140, 'f', 'y', 'Encrypted P2P Device Beam', 'AirDrop-style QR antenna.', 'Direct peer-to-peer data beam.', 'spark',
+     'Transfer complete diaries between phone and PC via local pairing codes and QR codes with zero cloud upload.',
+     'Seamless multi-device sync without requiring account creation or third-party cloud trust.', 'P2PDeviceSyncModal, p2pSyncEngine.js'],
+
+    ['n18', 3800, 2140, 'f', 'c', 'Cloud Backup & 4s Race Timeout', 'Firebase Firestore sync.', 'Queued writes never freeze.', 'cloud',
+     'Verified owners sync bidirectionally to Firebase Firestore. If the network lags, save gives up after 4s and queues locally.',
+     'You get multi-device synchronization without ever waiting for a spinner.', 'firebase.js, cleanFirestorePayload, 4s race timeout'],
+
+    ['n19', 3800, 2980, 'f', 'l', 'Procedural Web Audio Engine', 'Zero audio asset dependencies.', 'Oscillator clicks, chimes & drones.', 'bell',
+     'Synthesizes mechanical shutter clicks, haptic pulses, and mood chord progressions entirely via procedural Web Audio oscillators.',
+     'Micro-interactions feel physical and alive without downloading heavy audio files.', 'soundEngine.js, soundEffects.js'],
+
+    ['n20', 2100, 2980, 'f', 'm', 'Master 14-Suite Audit Gate', '69 verified tests across 33 parts.', 'Zero-error production mandate.', 'check',
+     'Automated gatekeeper audits navigation, calendar, analytics, dossier, audio, DPDPA, and JSX imports before every commit.',
+     'Trust is built on invariants. A daily accountability companion must never fail.', 'audit-system.js, verify-math-and-state-models.js']
+  ];
+
+  const FACTS = {
+    n1: ['Installs as offline PWA on iOS, Android, and Desktop', 'Sub-1ms instant guest partition (goodness_db_guest)', 'Terminal CLI logging: node bin/verdict.js 5 "Peak day"'],
+    n2: ['5 Mood Tiers: Rough (1★), Down (2★), Okay (3★), Good (4★), Peak (5★)', 'Tactile button offset drop-shadows with active physics', 'Deterministic directives mapped to each tier'],
+    n3: ['Multi-sphere domains: Work & School, Home, Social, Outlier Events', 'Handles partial ratings and null payloads gracefully', 'Custom sphere creator with dynamic color tokens'],
+    n4: ['Deterministic 100%: 0% done = 1★, 100% done = 5★ (manual lock)', 'Hybrid 50/50: 0.5 * feeling + 0.5 * habit math', 'Checklist Mode: preserves subjective 1-tap rating'],
+    n5: ['First-person narrative voice preservation (I, my, me)', 'Zero invention of events, dates, or names', 'Dual-mode language isolation (English & Hinglish)'],
+    n6: ['Tactical Stoic Dossier: radical ownership without self-pity', 'Root Causes: isolates exact catalyst behind wins/losses', 'Custom Lens: user-defined prompt philosophy'],
+    n7: ['Automatic trigger on 1★ and 2★ rough days', '3-question root cause diagnostic interrogator', 'One non-negotiable morning recovery antidote'],
+    n8: ['Written exclusively on 5★ God Mode days', 'Cryptographic wax seal & slump escrow algorithm', 'Unlocks only on 2 consecutive rough days'],
+    n9: ['Persona Archetype analysis (e.g. Overextended Architect)', 'Domino Effect causal chains with circuit-breaker actions', 'Four-act month chronicle + 3 next-month directives'],
+    n10: ['Year-in-pixels 365-day circular radar dial', 'Lossless 1080x1920 story poster rasterization', 'Custom mascot sticker vault with official badges'],
+    n11: ['Acute 7-14 day burnout reset with hard ceiling', 'Vagus Nerve 4-2-6 breathing pacer with lotus geometry', 'Somatic garden grounding (Water, Walks, Sleep, Unplug)'],
+    n12: ['Indefinite open horizon life transition pause', 'Streak shielded & frozen indefinitely', 'Freeform sabbatical chronicles without daily rating pressure'],
+    n13: ['Local-first architecture operates 100% offline', 'Partitioned keys prevent cross-account cache leakage', 'Memory purge on logout prevents shared device snooping'],
+    n14: ['PBKDF2 key derivation with 100,000 salt iterations', 'AES-GCM client-side authenticated encryption', 'Zero-knowledge design: server never sees PIN'],
+    n15: ['Statutory compliance with Indian DPDPA 2023 Section 12 & 13', 'Grievance officer contact declared (kaushtubh457@gmail.com)', '7-day regret-proof cooling-off data deletion hold'],
+    n16: ['Direct disk mirror via Chromium File System Access API', 'Auto-syncs local JSON file on every save', 'Zero cloud risk: lives in your local filesystem'],
+    n17: ['Local encrypted P2P data beam without cloud intermediary', 'QR code transmitter & receiver antenna modes', 'DOMPurify sanitized SVG rendering for zero XSS risk'],
+    n18: ['Firebase Firestore cloud synchronization for verified users', '4-second race timeout prevents network freeze', 'Offline queue auto-reconciles upon reconnection'],
+    n19: ['Procedural Web Audio API sound synthesizer', 'Biquad filter sweeps and dual oscillator chords', 'Tactile haptic vibration triggers on supported devices'],
+    n20: ['Master 14-suite automated audit pipeline', '69 automated test checks across 33 frontend components', 'Mandatory pre-push gate blocks broken code']
+  };
+
+  const N = D.map((a, i) => ({
+    i,
+    id: a[0],
+    x: a[1],
+    y: a[2],
+    k: a[3],
+    col: C[a[4]],
+    t: a[5],
+    s: [a[6], a[7]],
+    ic: a[8],
+    does: a[9],
+    why: a[10],
+    tech: a[11],
+    w: 390,
+    h: 155,
+    sc: 1,
+    vs: 0,
+    ang: 0,
+    va: 0,
+    rv: 1,
+    sh: []
+  }));
+
+  const byId = Object.fromEntries(N.map(n => [n.id, n]));
+  const TOUR = N.map(n => n.id);
+  const TI = Object.fromEntries(TOUR.map((id, i) => [id, i]));
+  const seen = new Set();
+
+  // ----------------------------------------------------
+  // Bézier Connections & Flow Wires
+  // ----------------------------------------------------
+  const E = [];
+  function mkEdge(aId, bId, sa, sb, l1, l2, dash = 0) {
+    const a = byId[aId], b = byId[bId];
+    if (!a || !b) return;
+    const A = sa === 'l' ? [a.x - a.w/2, a.y] : sa === 'r' ? [a.x + a.w/2, a.y] : sa === 't' ? [a.x, a.y - a.h/2] : [a.x, a.y + a.h/2];
+    const B = sb === 'l' ? [b.x - b.w/2, b.y] : sb === 'r' ? [b.x + b.w/2, b.y] : sb === 't' ? [b.x, b.y - b.h/2] : [b.x, b.y + b.h/2];
+    const n1 = sa === 'l' ? [-1,0] : sa === 'r' ? [1,0] : sa === 't' ? [0,-1] : [0,1];
+    const n2 = sb === 'l' ? [-1,0] : sb === 'r' ? [1,0] : sb === 't' ? [0,-1] : [0,1];
+    const c1 = [A[0] + n1[0] * l1, A[1] + n1[1] * l1];
+    const c2 = [B[0] + n2[0] * l2, B[1] + n2[1] * l2];
+
+    const base = [];
+    for (let i = 0; i <= 60; i++) {
+      const t = i / 60, u = 1 - t;
+      base.push([
+        u*u*u*A[0] + 3*u*u*t*c1[0] + 3*u*t*t*c2[0] + t*t*t*B[0],
+        u*u*u*A[1] + 3*u*u*t*c1[1] + 3*u*t*t*c2[1] + t*t*t*B[1]
+      ]);
+    }
+
+    let len = 0;
+    for (let i = 1; i <= 60; i++) len += Math.hypot(base[i][0] - base[i-1][0], base[i][1] - base[i-1][1]);
+    const halo = dash ? C.m : (a.k === 'ai' || b.k === 'ai') ? C.l : C.y;
+
+    const sh = [];
+    for (let k = 0; k < 3; k++) {
+      const r = mul(E.length * 47 + k * 11 + 7);
+      const P = [new Path2D(), new Path2D(), new Path2D()];
+      [0, 1].forEach(pi => {
+        const q = base.filter((p, i) => i % 3 === 0 || i === 60).map((p, i, arr) =>
+          i === 0 || i === arr.length - 1 ? p : [p[0] + (r() - 0.5) * 6, p[1] + (r() - 0.5) * 6]
+        );
+        sm(q, P[pi]);
+      });
+      sh.push(P);
+    }
+
+    const cnt = Math.max(2, Math.round(len / 280));
+    const ph = Array.from({ length: cnt }, (_, i) => i / cnt);
+    E.push({ a, b, base, len, dash, halo, sh, ph });
+  }
+
+  // Act I Wires
+  mkEdge('n1', 'n2', 'r', 'l', 140, 140);
+  mkEdge('n2', 'n3', 'r', 'l', 140, 140);
+  mkEdge('n3', 'n4', 'r', 'l', 140, 140);
+  mkEdge('n4', 'n5', 'r', 'l', 140, 140);
+  mkEdge('n5', 'n6', 'r', 'l', 140, 140);
+
+  // Act I -> Act II
+  mkEdge('n6', 'n7', 'b', 't', 240, 240);
+  mkEdge('n7', 'n8', 'l', 'r', 140, 140);
+  mkEdge('n8', 'n9', 'l', 'r', 140, 140);
+  mkEdge('n9', 'n10', 'l', 'r', 140, 140);
+
+  // Act II -> Act III
+  mkEdge('n10', 'n11', 'l', 'r', 140, 140);
+  mkEdge('n11', 'n12', 'l', 'r', 140, 140);
+
+  // Act III -> Act IV
+  mkEdge('n12', 'n13', 'b', 't', 240, 240);
+  mkEdge('n13', 'n14', 'r', 'l', 140, 140);
+  mkEdge('n14', 'n15', 'r', 'l', 140, 140);
+  mkEdge('n15', 'n16', 'r', 'l', 140, 140);
+  mkEdge('n16', 'n17', 'r', 'l', 140, 140);
+  mkEdge('n17', 'n18', 'r', 'l', 140, 140);
+  mkEdge('n18', 'n19', 'b', 't', 240, 240);
+  mkEdge('n19', 'n20', 'l', 'r', 240, 240);
+  mkEdge('n20', 'n1', 't', 'b', 600, 600, 1);
+
+  // ----------------------------------------------------
+  // Vector Icons Dictionary
+  // ----------------------------------------------------
+  const IC = {
+    moon: c => { c.arc(0,0,15,0.7,5.6); c.arc(6,-5,12,5.0,1.2,true); },
+    star: c => { for(let i=0;i<10;i++){ const a=-1.57+i*0.628, r=i%2?7:16; c.lineTo(Math.cos(a)*r,Math.sin(a)*r); } c.closePath(); },
+    sphere: c => { c.arc(0,0,15,0,6.3); c.moveTo(-15,0); c.quadraticCurveTo(0,-14,15,0); c.moveTo(-15,0); c.quadraticCurveTo(0,14,15,0); c.moveTo(0,-15); c.lineTo(0,15); },
+    check: c => { c.rect(-14,-14,28,28); c.moveTo(-7,0); c.lineTo(-2,6); c.lineTo(8,-8); },
+    pen: c => { c.moveTo(-12,14); c.lineTo(-14,6); c.lineTo(8,-16); c.lineTo(14,-10); c.lineTo(-8,12); c.closePath(); },
+    lens: c => { c.arc(-3,-3,12,0,6.3); c.moveTo(6,6); c.lineTo(15,15); },
+    lock: c => { c.rect(-11,-2,22,16); c.moveTo(-7,-2); c.arc(0,-6,7,3.14,0); },
+    mail: c => { c.rect(-16,-11,32,22); c.moveTo(-16,-11); c.lineTo(0,3); c.lineTo(16,-11); },
+    poster: c => { c.rect(-11,-16,22,32); c.moveTo(-6,8); c.lineTo(6,8); c.moveTo(-6,-2); c.arc(0,-4,5,3.1,9.4); },
+    compass: c => { c.arc(0,0,15,0,6.3); c.moveTo(0,-9); c.lineTo(5,0); c.lineTo(0,9); c.lineTo(-5,0); c.closePath(); },
+    disk: c => { c.rect(-14,-14,28,28); c.rect(-8,-14,16,9); c.rect(-8,3,16,11); },
+    shield: c => { c.moveTo(0,-16); c.lineTo(14,-10); c.lineTo(12,6); c.quadraticCurveTo(8,14,0,17); c.quadraticCurveTo(-8,14,-12,6); c.lineTo(-14,-10); c.closePath(); },
+    cloud: c => { c.moveTo(-12,10); c.arc(-9,3,7,1.6,4.7); c.arc(0,-4,9,3.5,6.1); c.arc(10,3,7,4.7,1.6); c.closePath(); },
+    spark: c => { c.moveTo(0,-17); c.quadraticCurveTo(2,-2,17,0); c.quadraticCurveTo(2,2,0,17); c.quadraticCurveTo(-2,2,-17,0); c.quadraticCurveTo(-2,-2,0,-17); },
+    stack: c => { c.moveTo(0,-15); c.lineTo(15,-7); c.lineTo(0,1); c.lineTo(-15,-7); c.closePath(); c.moveTo(-15,1); c.lineTo(0,9); c.lineTo(15,1); c.moveTo(-15,9); c.lineTo(0,17); c.lineTo(15,9); },
+    bell: c => { c.moveTo(-13,10); c.quadraticCurveTo(-9,2,-9,-6); c.arc(0,-6,9,3.14,0); c.quadraticCurveTo(9,2,13,10); c.closePath(); c.moveTo(-4,14); c.lineTo(4,14); }
+  };
+
+  function drawIcon(n, x, y, t) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(n.ic === 'spark' || n.ic === 'sphere' ? t * 0.7 : Math.sin(t * 2 + n.i) * 0.08);
+    const z = 1.1 + Math.sin(t * 2.2 + n.i) * 0.04;
+    ctx.scale(z, z);
+
+    if (n.k === 'ai') {
+      ctx.save();
+      ctx.setLineDash([3, 5]);
+      ctx.lineDashOffset = -t * 16;
+      ctx.beginPath();
+      ctx.arc(0, 0, 26, 0, 6.3);
+      ctx.strokeStyle = C.l;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.beginPath();
+    if (IC[n.ic]) IC[n.ic](ctx);
+    ctx.fillStyle = n.col;
+    ctx.fill();
+    ctx.lineWidth = 2.6;
+    ctx.lineJoin = ctx.lineCap = 'round';
+    ctx.strokeStyle = INK;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ----------------------------------------------------
+  // Node Shape Generator (Wobbly Neobrutalism)
+  // ----------------------------------------------------
+  function shape(n, b) {
+    const r = mul(n.i * 131 + b * 17 + 1);
+    const w = n.w / 2, h = n.h / 2;
+    const cs = [[-w, -h], [w, -h], [w, h], [-w, h]];
+    const cl = [cs[0]];
+    const o = [new Path2D(), new Path2D()];
+
+    for (let i = 0; i < 4; i++) {
+      const a = cs[i], c = cs[(i+1)%4], pts = [a];
+      md(a, c, r, 3, pts, 5);
+      for (let j = 1; j < pts.length; j++) cl.push(pts[j]);
+      o.forEach(P => {
+        const dx = c[0] - a[0], dy = c[1] - a[1], L = Math.hypot(dx, dy);
+        const ux = dx/L, uy = dy/L, e1 = (r() - 0.3) * 12, e2 = (r() - 0.3) * 12;
+        const A = [a[0] - ux*e1 + (r() - 0.5)*4, a[1] - uy*e1 + (r() - 0.5)*4];
+        const B = [c[0] + ux*e2 + (r() - 0.5)*4, c[1] + uy*e2 + (r() - 0.5)*4];
+        const q = [A];
+        md(A, B, r, 3, q, 5);
+        sm(q, P);
+      });
+    }
+
+    const cp = new Path2D();
+    cp.moveTo(cl[0][0], cl[0][1]);
+    cl.forEach(p => cp.lineTo(p[0], p[1]));
+    cp.closePath();
+    return { cl: cp, o };
+  }
+
+  // ----------------------------------------------------
+  // Camera & Navigation Controller
+  // ----------------------------------------------------
+  let mode = 'tour'; // 'tour', 'over', 'free'
+  let cur = 0;
+  let TW = null; // Flight tween
+  let autoPlay = false;
+  let lastTime = 0;
+  let arriveAt = 0;
+  let hoveredNode = null;
+  let noteNode = null;
+
+  function targetFor(idx) {
+    if (idx < 0) {
+      // Overview mode
+      return {
+        cx: 2100,
+        cy: 1680,
+        k: Math.min(W / 4500, H / 3600) * 0.95,
+        sx: W / 2,
+        sy: H / 2
+      };
+    }
+    const n = byId[TOUR[idx]];
+    const wide = W > 900;
+    // Dynamic close-up framing
+    const idealK = Math.min(1.22, Math.max(0.75, (W * (wide ? 0.38 : 0.82)) / n.w));
+    return {
+      cx: n.x,
+      cy: n.y,
+      k: idealK,
+      sx: wide ? W * 0.35 : W / 2,
+      sy: wide ? H * 0.45 : H * 0.32
+    };
+  }
+
+  function fit() {
+    const t = targetFor(mode === 'over' ? -1 : cur);
+    cam.k = t.k;
+    cam.x = t.sx - t.cx * t.k;
+    cam.y = t.sy - t.cy * t.k;
+  }
+
+  function flyTo(toIdx, fromIdx) {
+    const f = {
+      cx: (W / 2 - cam.x) / cam.k,
+      cy: (H / 2 - cam.y) / cam.k,
+      k: cam.k
+    };
+    const g = targetFor(toIdx);
+    const d = Math.hypot(g.cx - f.cx, g.cy - f.cy);
+
+    // Calculate flight angle for 2.5D perspective tilt
+    const flightAngle = Math.atan2(g.cy - f.cy, g.cx - f.cx);
+
+    TW = {
+      to: toIdx,
+      from: f,
+      s: 0,
+      dur: Math.min(2.2, Math.max(0.8, 0.6 + d / 2200)),
+      dip: toIdx < 0 || d < 250 ? 0 : Math.min(0.35, d / 3600),
+      flightAngle
+    };
+    closeNote();
+  }
+
+  function camStep(dt) {
+    if (mode === 'free') {
+      // Apply momentum inertia in free drag
+      cam.x += cam.vx * dt * 60;
+      cam.y += cam.vy * dt * 60;
+      cam.vx *= 0.92;
+      cam.vy *= 0.92;
+      // Spring decay on perspective tilt
+      cam.roll += (0 - cam.roll) * 0.1;
+      cam.pitch += (0 - cam.pitch) * 0.1;
+      return;
+    }
+
+    const g = targetFor(TW ? TW.to : mode === 'over' ? -1 : cur);
+
+    if (!TW) {
+      // Smooth subtle damping towards target in idle tour mode
+      const speed = 10 * dt;
+      cam.k += (g.k - cam.k) * speed;
+      const targetX = g.sx - g.cx * cam.k;
+      const targetY = g.sy - g.cy * cam.k;
+      cam.x += (targetX - cam.x) * speed;
+      cam.y += (targetY - cam.y) * speed;
+      cam.roll += (0 - cam.roll) * speed;
+      cam.pitch += (0 - cam.pitch) * speed;
+      return;
+    }
+
+    TW.s = Math.min(1, TW.s + dt / TW.dur);
+    const s = TW.s;
+    // Smooth cubic bezier easing
+    const e = s < 0.5 ? 4 * s * s * s : 1 - Math.pow(-2 * s + 2, 3) / 2;
+
+    const f = TW.from;
+    const cx = f.cx + (g.cx - f.cx) * e;
+    const cy = f.cy + (g.cy - f.cy) * e;
+
+    // Flight camera perspective banking / dynamic tilt
+    const speedCurve = Math.sin(Math.PI * s);
+    const maxRoll = 0.06;
+    const maxPitch = 0.04;
+    cam.targetRoll = Math.sin(TW.flightAngle) * maxRoll * speedCurve;
+    cam.targetPitch = Math.cos(TW.flightAngle) * maxPitch * speedCurve;
+    cam.roll += (cam.targetRoll - cam.roll) * 0.2;
+    cam.pitch += (cam.targetPitch - cam.pitch) * 0.2;
+
+    const k = (f.k + (g.k - f.k) * e) * (1 - TW.dip * speedCurve);
+    const sx = W / 2 + (g.sx - W / 2) * e;
+    const sy = H / 2 + (g.sy - H / 2) * e;
+
+    cam.k = k;
+    cam.x = sx - cx * k;
+    cam.y = sy - cy * k;
+
+    if (s >= 1) {
+      const to = TW.to;
+      TW = null;
+      if (to >= 0 && mode === 'tour') {
+        arrive();
+      }
     }
   }
-});
+
+  function arrive() {
+    const n = byId[TOUR[cur]];
+    seen.add(cur);
+    n.vs += 1.4;
+    n.va += 1.6;
+    arriveAt = performance.now() / 1000;
+    openNote(n);
+    updateHud();
+    playSfx('chime');
+  }
+
+  function goToStep(idx) {
+    idx = Math.max(0, Math.min(TOUR.length - 1, idx));
+    const prev = mode === 'tour' ? cur : -1;
+    mode = 'tour';
+    cur = idx;
+    for (let j = 0; j <= idx; j++) seen.add(j);
+    flyTo(idx, prev);
+    updateHud();
+    playSfx('whoosh');
+  }
+
+  function setFreeMode() {
+    if (mode !== 'free') {
+      mode = 'free';
+      TW = null;
+      closeNote();
+      updateHud();
+    }
+  }
+
+  function setOverviewMode() {
+    closeNote();
+    mode = 'over';
+    flyTo(-1, cur);
+    updateHud();
+  }
+
+  // ----------------------------------------------------
+  // Note Modal & Detail Drawer
+  // ----------------------------------------------------
+  const noteEl = document.getElementById('note');
+  const fxEl = noteEl.querySelector('.fx');
+
+  function openNote(n) {
+    noteNode = n;
+    noteEl.style.setProperty('--ac', n.col);
+    noteEl.querySelector('.tag').textContent = 'SYSTEM ' + (TI[n.id] + 1) + ' OF ' + TOUR.length;
+    noteEl.querySelector('h2').textContent = n.t;
+    noteEl.querySelector('.do').textContent = n.does;
+    noteEl.querySelector('.why').textContent = n.why;
+    noteEl.querySelector('.tech').textContent = 'UNDER THE HOOD: ' + n.tech;
+
+    // Mini icon canvas
+    const ni = document.getElementById('ni');
+    const nx = ni.getContext('2d');
+    nx.clearRect(0, 0, 52, 52);
+    nx.save();
+    nx.translate(26, 26);
+    nx.scale(1.2, 1.2);
+    nx.beginPath();
+    if (IC[n.ic]) IC[n.ic](nx);
+    nx.fillStyle = n.col;
+    nx.fill();
+    nx.lineWidth = 2.2;
+    nx.strokeStyle = INK;
+    nx.stroke();
+    nx.restore();
+
+    // Facts list
+    const ul = noteEl.querySelector('.facts');
+    ul.innerHTML = '';
+    (FACTS[n.id] || []).forEach(f => {
+      const li = document.createElement('li');
+      li.textContent = f;
+      ul.appendChild(li);
+    });
+
+    fxEl.open = false;
+    positionNote();
+    noteEl.classList.remove('on');
+    void noteEl.offsetWidth;
+    noteEl.classList.add('on');
+  }
+
+  function closeNote() {
+    noteNode = null;
+    noteEl.classList.remove('on');
+  }
+
+  function positionNote() {
+    if (!noteNode || W <= 640) return;
+    const n = noteNode;
+    const screenX = n.x * cam.k + cam.x;
+    const screenY = n.y * cam.k + cam.y;
+
+    let left = screenX + (n.w / 2) * cam.k + 30;
+    let top = screenY - (n.h / 2) * cam.k;
+
+    if (left + 350 > W) {
+      left = screenX - (n.w / 2) * cam.k - 360;
+    }
+    left = Math.max(12, Math.min(W - 355, left));
+    top = Math.max(12, Math.min(H - noteEl.offsetHeight - 12, top));
+
+    noteEl.style.left = left + 'px';
+    noteEl.style.top = top + 'px';
+  }
+
+  document.getElementById('x').onclick = closeNote;
+
+  // ----------------------------------------------------
+  // Interactive HUD Elements
+  // ----------------------------------------------------
+  const dotsEl = document.getElementById('dots');
+  const counterEl = document.getElementById('hud-counter');
+  const pvB = document.getElementById('pv');
+  const nxB = document.getElementById('nx');
+  const ovB = document.getElementById('ov');
+  const auB = document.getElementById('au');
+  const hintEl = document.getElementById('hint');
+
+  TOUR.forEach((id, i) => {
+    const btn = document.createElement('button');
+    btn.style.setProperty('--c', byId[id].col);
+    btn.title = byId[id].t;
+    btn.setAttribute('aria-label', 'Stop ' + (i+1) + ': ' + byId[id].t);
+    btn.onclick = () => goToStep(i);
+    dotsEl.appendChild(btn);
+  });
+
+  function updateHud() {
+    [...dotsEl.children].forEach((b, i) => {
+      b.className = (mode === 'tour' && i === cur ? 'cur ' : '') + (seen.has(i) ? 'seen' : '');
+    });
+    counterEl.textContent = (mode === 'tour' ? (cur + 1) : '-') + ' / ' + TOUR.length;
+    pvB.disabled = mode === 'tour' && cur === 0;
+    nxB.disabled = mode === 'tour' && cur === TOUR.length - 1;
+    auB.textContent = 'AUTO: ' + (autoPlay ? 'ON' : 'OFF');
+
+    if (mode === 'free') {
+      hintEl.textContent = 'Free Camera Mode • Click any node or press Arrow Keys to rejoin tour';
+    } else if (mode === 'over') {
+      hintEl.textContent = 'Master Blueprint Overview • Click any stop or press NEXT to start';
+    } else {
+      hintEl.textContent = 'Stop ' + (cur + 1) + ' of ' + TOUR.length + ' • ' + byId[TOUR[cur]].t;
+    }
+  }
+
+  pvB.onclick = () => goToStep(cur - 1);
+  nxB.onclick = () => goToStep(cur + 1);
+  ovB.onclick = () => mode === 'over' ? goToStep(cur) : setOverviewMode();
+  auB.onclick = () => {
+    autoPlay = !autoPlay;
+    if (autoPlay && mode !== 'tour') goToStep(cur);
+    updateHud();
+  };
+
+  // ----------------------------------------------------
+  // Theme Toggle (Neo-Gold Paper vs Cyberpunk Dark)
+  // ----------------------------------------------------
+  const thmB = document.getElementById('thm');
+  thmB.onclick = () => {
+    isLightTheme = !isLightTheme;
+    document.body.classList.toggle('theme-light', isLightTheme);
+    thmB.textContent = isLightTheme ? '☾ DARK' : '☀ THEME';
+  };
+
+  // ----------------------------------------------------
+  // Audio Atmosphere (Web Audio Procedural Oscillator)
+  // ----------------------------------------------------
+  let audioCtx = null, audioMaster = null, isSoundOn = false;
+  function initAudio() {
+    if (audioCtx) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioMaster = audioCtx.createGain();
+      audioMaster.gain.value = 0.2;
+      audioMaster.connect(audioCtx.destination);
+    } catch (e) {}
+  }
+
+  function playSfx(type) {
+    if (!isSoundOn || !audioCtx) return;
+    try {
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioMaster);
+
+      if (type === 'whoosh') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(140, t);
+        osc.frequency.exponentialRampToValueAtTime(420, t + 0.35);
+        gain.gain.setValueAtTime(0.3, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+        osc.start(t);
+        osc.stop(t + 0.5);
+      } else if (type === 'chime') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(587.33, t); // D5
+        osc.frequency.setValueAtTime(880, t + 0.08); // A5
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+        osc.start(t);
+        osc.stop(t + 0.85);
+      }
+    } catch (e) {}
+  }
+
+  const snB = document.getElementById('sn');
+  snB.onclick = () => {
+    initAudio();
+    isSoundOn = !isSoundOn;
+    snB.textContent = isSoundOn ? '♫ SOUND: ON' : '♫ SOUND: OFF';
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  };
+
+  // ----------------------------------------------------
+  // Pointer & Gesture Input System (Drag, Zoom, Pinch)
+  // ----------------------------------------------------
+  const pointers = new Map();
+  let dragMoved = 0;
+  let lastPinchDist = 0;
+
+  function pickNode(sx, sy) {
+    const wx = (sx - cam.x) / cam.k;
+    const wy = (sy - cam.y) / cam.k;
+    for (let i = N.length - 1; i >= 0; i--) {
+      const n = N[i];
+      if (Math.abs(wx - n.x) < n.w / 2 && Math.abs(wy - n.y) < n.h / 2) {
+        return n;
+      }
+    }
+    return null;
+  }
+
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    dragMoved = 0;
+
+    if (pointers.size === 2) {
+      const pts = [...pointers.values()];
+      lastPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      setFreeMode();
+    }
+  });
+
+  cv.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) {
+      // Hover detection
+      hoveredNode = pickNode(e.clientX, e.clientY);
+      cv.classList.toggle('hov', !!hoveredNode);
+      return;
+    }
+
+    const prev = pointers.get(e.pointerId);
+    const dx = e.clientX - prev.x;
+    const dy = e.clientY - prev.y;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    dragMoved += Math.hypot(dx, dy);
+
+    if (pointers.size === 2) {
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if (lastPinchDist > 0) {
+        const factor = dist / lastPinchDist;
+        zoomAt((pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2, factor);
+      }
+      lastPinchDist = dist;
+      cam.x += dx / 2;
+      cam.y += dy / 2;
+    } else if (dragMoved > 4) {
+      setFreeMode();
+      cam.x += dx;
+      cam.y += dy;
+      cam.vx = dx;
+      cam.vy = dy;
+      cv.classList.add('drag');
+    }
+  });
+
+  const onPointerUp = e => {
+    if (pointers.size === 1) {
+      if (dragMoved <= 6) {
+        // Tap / Click action
+        const clicked = pickNode(e.clientX, e.clientY);
+        if (clicked) {
+          goToStep(TI[clicked.id]);
+        } else {
+          closeNote();
+        }
+      }
+    }
+    pointers.delete(e.pointerId);
+    cv.classList.remove('drag');
+  };
+
+  cv.addEventListener('pointerup', onPointerUp);
+  cv.addEventListener('pointercancel', onPointerUp);
+
+  function zoomAt(sx, sy, factor) {
+    setFreeMode();
+    const newK = Math.max(0.18, Math.min(2.5, cam.k * factor));
+    const ratio = newK / cam.k;
+    cam.x = sx - (sx - cam.x) * ratio;
+    cam.y = sy - (sy - cam.y) * ratio;
+    cam.k = newK;
+  }
+
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = Math.exp(-e.deltaY * 0.0018);
+    zoomAt(e.clientX, e.clientY, factor);
+  }, { passive: false });
+
+  // Keyboard Navigation
+  window.addEventListener('keydown', e => {
+    if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    const key = e.key;
+
+    // Dismiss intro instantly
+    dismissIntro();
+
+    if (key === 'ArrowRight' || key === ' ' || key === 'Enter' || key === 'n') {
+      e.preventDefault();
+      goToStep(cur + 1);
+    } else if (key === 'ArrowLeft' || key === 'p' || key === 'Backspace') {
+      e.preventDefault();
+      goToStep(cur - 1);
+    } else if (key === 'o' || key === 'O') {
+      e.preventDefault();
+      ovB.click();
+    } else if (key === 'a' || key === 'A') {
+      e.preventDefault();
+      auB.click();
+    } else if (key === 'Escape') {
+      closeNote();
+    }
+  });
+
+  // ----------------------------------------------------
+  // Intro Dismissal
+  // ----------------------------------------------------
+  const introEl = document.getElementById('intro');
+  function dismissIntro() {
+    if (!introEl.classList.contains('hidden')) {
+      introEl.classList.add('hidden');
+      goToStep(0);
+    }
+  }
+  introEl.onclick = dismissIntro;
+  setTimeout(dismissIntro, 4000); // Gentle auto-start
+
+  // ----------------------------------------------------
+  // Minimap Navigation
+  // ----------------------------------------------------
+  const mm = document.getElementById('mm');
+  const mx = mm.getContext('2d');
+  const MS = 170 / 4400;
+
+  mm.onclick = e => {
+    const r = mm.getBoundingClientRect();
+    const wx = (e.clientX - r.left) / MS - 400;
+    const wy = (e.clientY - r.top) / MS - 100;
+    let closest = 0, minDist = 1e9;
+    N.forEach(n => {
+      const d = Math.hypot(n.x - wx, n.y - wy);
+      if (d < minDist) { minDist = d; closest = n; }
+    });
+    goToStep(TI[closest.id]);
+  };
+
+  function drawMinimap() {
+    mx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    mx.clearRect(0, 0, 170, 170);
+    mx.fillStyle = isLightTheme ? '#FFFDF8' : '#0B0D1A';
+    mx.fillRect(0, 0, 170, 170);
+
+    const mapX = x => (x + 400) * MS;
+    const mapY = y => (y + 100) * MS;
+
+    // Draw wires
+    E.forEach(e => {
+      mx.beginPath();
+      e.base.forEach((p, idx) => mx[idx ? 'lineTo' : 'moveTo'](mapX(p[0]), mapY(p[1])));
+      mx.strokeStyle = e.halo + '66';
+      mx.lineWidth = 1;
+      mx.stroke();
+    });
+
+    // Draw nodes
+    N.forEach(n => {
+      const isCur = mode === 'tour' && n === byId[TOUR[cur]];
+      const nw = Math.max(8, n.w * MS);
+      const nh = 6;
+      mx.fillStyle = n.col;
+      mx.fillRect(mapX(n.x) - nw/2, mapY(n.y) - nh/2, nw, nh);
+      if (isCur) {
+        mx.strokeStyle = '#fff';
+        mx.lineWidth = 1.5;
+        mx.strokeRect(mapX(n.x) - nw/2 - 1, mapY(n.y) - nh/2 - 1, nw + 2, nh + 2);
+      }
+    });
+
+    // Draw viewport bounds
+    const v1 = [-cam.x / cam.k, -cam.y / cam.k];
+    const v2 = [(W - cam.x) / cam.k, (H - cam.y) / cam.k];
+    const vx = mapX(v1[0]);
+    const vy = mapY(v1[1]);
+    const vw = (v2[0] - v1[0]) * MS;
+    const vh = (v2[1] - v1[1]) * MS;
+
+    mx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    mx.fillRect(vx, vy, vw, vh);
+    mx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    mx.lineWidth = 1.2;
+    mx.strokeRect(vx, vy, vw, vh);
+  }
+
+  // ----------------------------------------------------
+  // Main Render Engine (Canvas 2D with 2.5D Perspective)
+  // ----------------------------------------------------
+  function render(time) {
+    const t = time / 1000;
+    const dt = Math.min(0.05, t - (lastTime || t));
+    lastTime = t;
+
+    camStep(dt);
+
+    // Auto-tour pacing
+    if (autoPlay && mode === 'tour' && !TW && t - arriveAt > 7.5) {
+      goToStep((cur + 1) % TOUR.length);
+    }
+
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    // Dynamic background fill
+    ctx.fillStyle = isLightTheme ? '#FFF9EE' : '#07080F';
+    ctx.fillRect(0, 0, W, H);
+
+    // Celestial Grid / Blueprint Dot Matrix
+    const stepGrid = 40 * cam.k;
+    const ox = ((cam.x % stepGrid) + stepGrid) % stepGrid;
+    const oy = ((cam.y % stepGrid) + stepGrid) % stepGrid;
+    ctx.fillStyle = isLightTheme ? '#E5DCC5' : '#1D2038';
+    for (let x = ox; x < W; x += stepGrid) {
+      for (let y = oy; y < H; y += stepGrid) {
+        ctx.fillRect(x - 1, y - 1, 2, 2);
+      }
+    }
+
+    // ----------------------------------------------------
+    // Apply 2.5D Camera Perspective Gimbal Matrix
+    // ----------------------------------------------------
+    ctx.save();
+    // Center at viewport origin
+    ctx.translate(W / 2, H / 2);
+    // Apply dynamic flight banking (roll)
+    ctx.rotate(cam.roll);
+    // Apply 2.5D perspective shear/tilt
+    ctx.transform(1, cam.pitch * 0.4, cam.roll * 0.4, 1, 0, 0);
+    // Apply scale & camera pan
+    ctx.scale(cam.k, cam.k);
+    ctx.translate((cam.x - W/2) / cam.k, (cam.y - H/2) / cam.k);
+
+    const b = Math.floor(t * 4) % 3;
+
+    // Draw Connecting Energy Cables
+    E.forEach(e => {
+      const isTourEdge = mode === 'tour' && (e.a === byId[TOUR[cur]] || e.b === byId[TOUR[cur]]);
+      ctx.save();
+      ctx.lineJoin = ctx.lineCap = 'round';
+
+      // Animated glowing halo
+      if (isTourEdge) {
+        ctx.shadowColor = e.halo;
+        ctx.shadowBlur = 24;
+        ctx.strokeStyle = e.halo;
+        ctx.lineWidth = 10;
+        ctx.globalAlpha = 0.6;
+        ctx.stroke(e.sh[b][0]);
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.globalAlpha = isTourEdge ? 1 : 0.65;
+      ctx.strokeStyle = isLightTheme ? '#111' : '#F4EBD9';
+      ctx.lineWidth = 2.8;
+      ctx.stroke(e.sh[b][0]);
+
+      // Flowing energy comets along wire
+      e.ph.forEach((p, pIdx) => {
+        const prog = (p + t * 0.35) % 1;
+        const ptIdx = Math.min(59, Math.floor(prog * 60));
+        const pt = e.base[ptIdx];
+        if (pt) {
+          ctx.beginPath();
+          ctx.arc(pt[0], pt[1], isTourEdge ? 5.5 : 3.5, 0, 6.3);
+          ctx.fillStyle = e.halo;
+          ctx.fill();
+        }
+      });
+      ctx.restore();
+    });
+
+    // Draw Architecture Nodes
+    N.forEach(n => {
+      if (!n.sh[b]) n.sh[b] = shape(n, b);
+      const s = n.sh[b];
+      const isFocused = mode === 'tour' && n === byId[TOUR[cur]];
+      const isHover = n === hoveredNode;
+
+      ctx.save();
+      ctx.translate(n.x, n.y);
+
+      // Node shadow offset (Neobrutalism)
+      ctx.save();
+      ctx.translate(6, 6);
+      ctx.fillStyle = '#111';
+      ctx.fill(s.cl);
+      ctx.restore();
+
+      // Card body
+      if (isFocused) {
+        ctx.shadowColor = n.col;
+        ctx.shadowBlur = 40;
+      }
+      ctx.fillStyle = PAPER;
+      ctx.fill(s.cl);
+      ctx.shadowBlur = 0;
+
+      // Tint fill
+      ctx.fillStyle = n.col + '35';
+      ctx.fill(s.cl);
+
+      // Borders
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = isFocused ? 3.6 : 2.6;
+      ctx.lineJoin = ctx.lineCap = 'round';
+      ctx.stroke(s.o[0]);
+
+      // Category / Step Tag
+      const w = n.w / 2, h = n.h / 2;
+      ctx.save();
+      ctx.translate(-w + 24, -h + 20);
+      ctx.fillStyle = n.col;
+      ctx.fillRect(0, 0, 48, 20);
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 1.8;
+      ctx.strokeRect(0, 0, 48, 20);
+      ctx.font = MONO(800, 11);
+      ctx.fillStyle = INK;
+      ctx.textAlign = 'center';
+      ctx.fillText(String(n.i + 1).padStart(2, '0'), 24, 14);
+      ctx.restore();
+
+      // Icon
+      drawIcon(n, w - 36, -h + 36, t);
+
+      // Text labels
+      ctx.font = F(700, 27);
+      ctx.fillStyle = INK;
+      ctx.textAlign = 'left';
+      ctx.fillText(n.t, -w + 84, -h + 36);
+
+      ctx.font = F(600, 21);
+      ctx.fillStyle = '#222';
+      ctx.fillText(n.s[0], -w + 24, -h + 84);
+      ctx.fillText(n.s[1], -w + 24, -h + 116);
+
+      ctx.restore();
+    });
+
+    ctx.restore();
+
+    // Update active note position smoothly
+    positionNote();
+
+    // Render Minimap
+    drawMinimap();
+
+    requestAnimationFrame(render);
+  }
+
+  // Keyboard shortcut listener for closing inside iframe
+  window.addEventListener('keydown', e => {
+    const isClose = e.key === 'Escape' ||
+      (e.altKey && (e.key === 'a' || e.key === 'A')) ||
+      ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'm' || e.key === 'M' || e.key === 'a' || e.key === 'A'));
+    if (isClose) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'CLOSE_FLOWCHART' }, '*');
+      }
+    }
+  });
+
+  // Telemetry hook
+  window.__debugCam = () => ({ ...cam, mode, cur, isNoteOpen: noteEl.classList.contains('on') });
+
+  // Start loop
+  fit();
+  updateHud();
+  requestAnimationFrame(render);
 })();
-</script></body></html>
+</script>
+</body>
+</html>

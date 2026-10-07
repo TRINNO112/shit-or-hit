@@ -1,4 +1,12 @@
-<!doctype html>
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT = path.join(__dirname, '..');
+
+const buildHtml = () => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -771,7 +779,7 @@ body.theme-light #hint {
      'Data sovereignty is a human right. Your reflections remain your private property forever.', 'DataErasurePage, PrivacyPolicyPage, grievance officer'],
 
     ['n16', 2400, 2140, 'f', 'c', 'Device File Mirror', 'File System Access API.', 'Physical JSON file mirror on disk.', 'stack',
-     'Browser connects directly to a physical file on your hard drive (D:\, Documents). Auto-saves every entry as raw JSON.',
+     'Browser connects directly to a physical file on your hard drive (D:\\, Documents). Auto-saves every entry as raw JSON.',
      'Permanent offline backup that survives browser cache purges or cookie clearing.', 'fileMirrorEngine.js, StorageSovereigntyPage'],
 
     ['n17', 3100, 2140, 'f', 'y', 'Encrypted P2P Device Beam', 'AirDrop-style QR antenna.', 'Direct peer-to-peer data beam.', 'spark',
@@ -1737,3 +1745,16 @@ body.theme-light #hint {
 </script>
 </body>
 </html>
+`;
+
+const targetFiles = [
+  path.join(ROOT, 'public', 'architecture-flowchart.html'),
+  path.join(ROOT, 'public', 'daily-verdict-flowchart-v8.html'),
+  path.join(ROOT, 'Daily Verdict_ one evening, one honest minute.html')
+];
+
+const htmlContent = buildHtml();
+targetFiles.forEach(file => {
+  fs.writeFileSync(file, htmlContent, 'utf-8');
+  console.log(`✅ Updated ${file}`);
+});
