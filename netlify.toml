@@ -19,8 +19,8 @@
 
 [[redirects]]
   from = "/daily-verdict-flowchart-v8.html"
-  to = "/daily-verdict-flowchart-v8.html"
-  status = 200
+  to = "/architecture-flowchart.html"
+  status = 301
 
 [[redirects]]
   from = "/*"
@@ -37,12 +37,6 @@
 
 [[headers]]
   for = "/architecture-flowchart.html"
-  [headers.values]
-    X-Frame-Options = "SAMEORIGIN"
-    Content-Type = "text/html; charset=utf-8"
-
-[[headers]]
-  for = "/daily-verdict-flowchart-v8.html"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     Content-Type = "text/html; charset=utf-8"
