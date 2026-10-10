@@ -146,7 +146,7 @@ function isTestSandbox(req) {
   );
 }
 
-// 🔒 Sliding Window Rate Limiter for PIN Verification (5 attempts per 15 minutes, zero boundary spike)
+// 🔒 Sliding Window Rate Limiter for PIN Verification (5 attempts per 15 minutes)
 const pinSlidingLimiter = new SlidingWindowLimiter({
   windowMs: 15 * 60 * 1000,
   maxRequests: 5,
@@ -294,7 +294,7 @@ app.post(['/.netlify/functions/decrypt-mediator', '/api/decrypt-mediator'], asyn
           decryptedPin = parts.slice(2).join(':');
         }
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const isMatched = decryptedPin === pin;
     if (isMatched) {
@@ -339,7 +339,7 @@ app.post('/api/entries', validateBody(entrySchema), (req, res) => {
   if (!db.startDate) db.startDate = date;
 
   const existing = db.entries[date] || {};
-  
+
   db.entries[date] = {
     ...existing,
     date,
@@ -431,7 +431,7 @@ if (HF_TOKEN) {
       await fetch(pingUrl, {
         headers: { 'Authorization': `Bearer ${HF_TOKEN}` }
       });
-    } catch (_) {}
+    } catch (_) { }
   }, 25 * 60 * 1000);
 }
 
@@ -520,7 +520,7 @@ app.post('/api/ai/enhance', tokenBucketMiddleware({ capacity: 5, refillRatePerSe
       .filter(([_, s]) => s && (s.rating || (s.notes && s.notes.trim())))
       .map(([id, s]) => `[${s.icon || '⚡'} ${s.name || id} — Rated ${s.rating || 'N/A'}/5]: ${s.notes || '(No specific notes, just score logged)'}`)
       .join('\n\n');
-    
+
     if (sphereDetails) {
       journalInput = `${journalInput ? journalInput + '\n\n' : ''}--- Segmented Life Domain Breakdown ---\n${sphereDetails}`;
     }
@@ -552,11 +552,18 @@ CRITICAL INSTRUCTIONS:
 - STRICT NON-CLINICAL & NON-MEDICAL DIRECTIVE: You are an introspective personal diary ghostwriter. You must strictly NEVER provide medical, psychiatric, pharmacological, or clinical advice or diagnoses. Frame reflections purely through subjective human experience, time boundaries, and daily personal discipline.
 - Return ONLY the polished, immersive diary reflection text without quotes, markdown headers, or preambles.`;
 
-  // 1. Try Sovereign Qwen ZeroGPU Engine first if requested or auto
-  if ((aiEngine === 'qwen' || aiEngine === 'auto') && HF_TOKEN) {
+  // 1. Strict Sovereign Qwen Execution (Zero Tracking, Air-Gapped)
+  if (aiEngine === 'qwen') {
+    if (!HF_TOKEN) {
+      return res.status(500).json({
+        success: false,
+        error: 'Sovereign Qwen token is not configured on the server. Please check settings.'
+      });
+    }
     const verdictName = rating ? getVerdictFromRating(rating) : 'Down';
     const qwenResult = await callQwenSpaceApi({ notes: journalInput, verdict: verdictName });
     if (qwenResult.ok) {
+      logger.info(`[Sovereign Qwen Proof] Inference succeeded on ZeroGPU Space (${qwenResult.model}) for verdict: ${verdictName}`);
       return res.json({
         success: true,
         enhancedText: cleanAiEnhancedText(qwenResult.text),
@@ -565,9 +572,14 @@ CRITICAL INSTRUCTIONS:
         engine: 'qwen'
       });
     }
-    console.warn('[AI Pipeline] Sovereign Qwen unavailable, cascading to Gemini fallback:', qwenResult.error);
+    logger.warn(`[Sovereign Qwen Error] Inference failed: ${qwenResult.error}`);
+    return res.status(503).json({
+      success: false,
+      error: `AI processing with Sovereign Qwen was not successful: ${qwenResult.error || 'Model is warming up, please retry in a moment.'}`
+    });
   }
 
+  // 2. Google Gemini Execution (Only if Gemini was selected)
   try {
     const geminiResult = await callGeminiApi({
       prompt,
@@ -759,8 +771,8 @@ function generateLocalAutopsy(notes = '', rating = 1, spheres = {}, anchors = {}
   const causeOfDeath = isDigital
     ? 'Acute Digital Dopamine Sepsis: Frictionless screen loops breached focus perimeters, draining executive will and starving momentum.'
     : isSleep
-    ? 'Circadian Collapse & Battery Drain: Late bedtime delayed neurochemical recovery, triggering morning brain fog and execution paralysis.'
-    : 'Executive Friction Fracture: Missing early habit anchor momentum allowed passive avoidance to dominate the day.';
+      ? 'Circadian Collapse & Battery Drain: Late bedtime delayed neurochemical recovery, triggering morning brain fog and execution paralysis.'
+      : 'Executive Friction Fracture: Missing early habit anchor momentum allowed passive avoidance to dominate the day.';
 
   return {
     causeOfDeath,
@@ -840,7 +852,7 @@ app.post('/api/monthly-report', tokenBucketMiddleware({ capacity: 3, refillRateP
   }
 
   const db = readDatabase();
-  
+
   let allEntries = db.entries || {};
   if (customEntries) {
     if (Array.isArray(customEntries)) {
@@ -932,7 +944,7 @@ app.post('/api/monthly-report', tokenBucketMiddleware({ capacity: 3, refillRateP
   const monthName = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   // ════════ DEEP FORENSIC ANALYTICAL ALGORITHMS ════════
-  
+
   // 1. Weekly Phase Trajectory (Weeks 1 to 4)
   const weeklyPhases = [
     { label: 'Week 1 (Days 1–7)', days: [], sum: 0, count: 0, hits: 0 },
@@ -1172,17 +1184,17 @@ Return ONLY a valid JSON object matching this exact schema:
       const mood = sliceAvg >= 4 ? 'Good' : sliceAvg >= 3 ? 'Okay' : 'Rough';
 
       const keyNotes = slice.map(s => s.notes).filter(Boolean);
-      const excerpt = keyNotes.length > 0 
-        ? keyNotes.map(n => n.split('\n')[0].replace(/^[0-9.\-|\s]+/g, '').trim()).filter(Boolean).slice(0, 2).join('. ') 
+      const excerpt = keyNotes.length > 0
+        ? keyNotes.map(n => n.split('\n')[0].replace(/^[0-9.\-|\s]+/g, '').trim()).filter(Boolean).slice(0, 2).join('. ')
         : 'Holding routine and maintaining logging discipline.';
 
       chapters.push({
         act: romanActs[c] || `Act ${c + 1}`,
-        phaseTitle: c === 0 
-          ? 'Early Friction & Baseline Drag' 
-          : c === numChapters - 1 
-          ? 'Final Stretch & Ground Gained' 
-          : `Mid-Month Workloads & Pacing (Part ${c})`,
+        phaseTitle: c === 0
+          ? 'Early Friction & Baseline Drag'
+          : c === numChapters - 1
+            ? 'Final Stretch & Ground Gained'
+            : `Mid-Month Workloads & Pacing (Part ${c})`,
         timeSpan: spanStr,
         mood,
         narrative: `During ${spanStr} (average quality: ${sliceAvg}/5.0), you engaged directly with the daily friction of the academic and personal calendar. ${excerpt} Across these ${slice.length} logged days, you held your ground against inertia and refused to abandon your self-accountability.`,
@@ -1354,7 +1366,7 @@ app.get(['/api/guardian-sos/quota', '/guardian-sos/quota', '/api/api/guardian-so
 
 app.post(['/api/guardian-sos/dispatch', '/guardian-sos/dispatch', '/api/api/guardian-sos/dispatch'], async (req, res) => {
   const { guardianName, guardianEmail, studentName, briefing, resendApiKey } = req.body || {};
-  
+
   if (!briefing || typeof briefing !== 'object') {
     return res.status(400).json({ success: false, error: 'Invalid or missing briefing payload' });
   }

@@ -579,6 +579,43 @@ export async function saveCloudResendApiKey(apiKey) {
   }
 }
 
+export async function fetchCloudHuggingFaceToken() {
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return null;
+  try {
+    const configRef = fb.firestoreMod.doc(fb.db, 'config', 'huggingface');
+    const snap = await fb.firestoreMod.getDoc(configRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return {
+        token: data?.token || data?.apiKey || null,
+        spaceId: data?.spaceId || 'Trinno112/Daily-verdict'
+      };
+    }
+    return null;
+  } catch (err) {
+    console.warn('Could not fetch cloud Hugging Face token:', err.message);
+    return null;
+  }
+}
+
+export async function saveCloudHuggingFaceToken(token, spaceId = 'Trinno112/Daily-verdict') {
+  const fb = await getFirebase();
+  if (!fb || !fb.db || !token) return false;
+  try {
+    const configRef = fb.firestoreMod.doc(fb.db, 'config', 'huggingface');
+    await fb.firestoreMod.setDoc(configRef, {
+      token: token.trim(),
+      spaceId: (spaceId || 'Trinno112/Daily-verdict').trim(),
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    console.warn('Could not save cloud Hugging Face token:', err.message);
+    return false;
+  }
+}
+
 export async function saveCloudUserSettings(userId, settingsData) {
   if (!userId || !settingsData) return;
   const fb = await getFirebase();

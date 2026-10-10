@@ -926,6 +926,12 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
           resultStr.isLocalFallback = Boolean(data.isLocalFallback);
           resultStr.fallbackReason = data.fallbackReason || null;
           resultStr.modelUsed = data.modelUsed || null;
+          if (import.meta.env?.DEV && (data.engine === 'qwen' || data.modelUsed?.includes('Qwen'))) {
+            console.log(
+              `%c[AI PROVENANCE AUDIT] Model: ${data.modelUsed || 'Qwen 2.5'} | Engine: Sovereign Qwen (Backend Verified)`,
+              'background: #000; color: #00E599; font-weight: 900; font-family: monospace; padding: 4px 8px; border: 2px solid #00E599; border-radius: 4px;'
+            );
+          }
           return resultStr;
         }
       } else {
@@ -938,7 +944,107 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
     }
   }
 
-  // 2. Direct client-side Gemini fallback
+  // 2. Direct client-side Sovereign Qwen 2.5 Space execution (via Firebase cloud token)
+  if (aiEngine === 'qwen') {
+    try {
+      let hfToken = null;
+      let spaceId = 'Trinno112/Daily-verdict';
+      try {
+        const { fetchCloudHuggingFaceToken } = await import('./firebase');
+        const cloudHf = await fetchCloudHuggingFaceToken();
+        if (cloudHf && cloudHf.token) {
+          hfToken = cloudHf.token;
+          if (cloudHf.spaceId) spaceId = cloudHf.spaceId;
+        }
+      } catch (e) {}
+
+      if (!hfToken && typeof import.meta !== 'undefined' && import.meta.env) {
+        hfToken = import.meta.env.VITE_HF_TOKEN || null;
+      }
+
+      if (!hfToken) {
+        lastError = new Error('Sovereign Qwen token is not configured in Firestore or environment');
+      } else {
+        const cleanHost = spaceId.replace(/\//g, '-').toLowerCase();
+        const spaceUrl = `https://${cleanHost}.hf.space`;
+
+        let journalInput = notes || '';
+        if (spheres && Object.keys(spheres).length > 0) {
+          const sphereDetails = Object.entries(spheres)
+            .filter(([_, s]) => s && (s.rating || (s.notes && s.notes.trim())))
+            .map(([id, s]) => `[${s.name || id} — Rated ${s.rating || 'N/A'}/5]: ${s.notes || '(No notes logged)'}`)
+            .join('\n\n');
+          if (sphereDetails) journalInput = `${journalInput ? journalInput + '\n\n' : ''}--- Domain Breakdown ---\n${sphereDetails}`;
+        }
+
+        const verdictNames = { 1: 'Rough', 2: 'Down', 3: 'Okay', 4: 'Good', 5: 'Peak' };
+        const verdictName = verdictNames[Number(rating)] || 'Down';
+
+        const endpointUrl = `${spaceUrl}/gradio_api/call/enhance_diary`;
+        const callRes = await fetch(endpointUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${hfToken}`
+          },
+          body: JSON.stringify({
+            data: [journalInput, verdictName]
+          })
+        });
+
+        if (callRes.ok) {
+          const callData = await callRes.json();
+          if (callData?.event_id) {
+            const eventRes = await fetch(`${spaceUrl}/gradio_api/call/enhance_diary/${callData.event_id}`, {
+              headers: {
+                'Authorization': `Bearer ${hfToken}`,
+                'Accept': 'text/event-stream'
+              }
+            });
+
+            if (eventRes.ok) {
+              const streamText = await eventRes.text();
+              const lines = streamText.split('\n');
+              for (const line of lines) {
+                if (line.startsWith('data:')) {
+                  try {
+                    const rawJson = line.slice(5).trim();
+                    const parsed = JSON.parse(rawJson);
+                    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+                      const cleaned = cleanAiEnhancedText(parsed[0]);
+                      const resultStr = new String(cleaned);
+                      resultStr.isLocalFallback = false;
+                      resultStr.modelUsed = 'Qwen/Qwen2.5-7B-Instruct (Cloud Token Direct)';
+                      if (import.meta.env?.DEV) {
+                        console.log(
+                          `%c[AI PROVENANCE AUDIT] Model: Qwen/Qwen2.5-7B-Instruct | Source: Sovereign ZeroGPU | Space: ${spaceId}`,
+                          'background: #000; color: #00E599; font-weight: 900; font-family: monospace; padding: 4px 8px; border: 2px solid #00E599; border-radius: 4px;'
+                        );
+                      }
+                      return resultStr;
+                    }
+                  } catch (e) {}
+                }
+              }
+            } else {
+              lastError = new Error(`Qwen Space stream response error (${eventRes.status})`);
+            }
+          }
+        } else {
+          lastError = new Error(`Qwen Space endpoint response error (${callRes.status})`);
+        }
+      }
+    } catch (qwenErr) {
+      lastError = qwenErr;
+      console.warn('Client-side Qwen invocation attempt note:', qwenErr.message);
+    }
+
+    // Strict Sovereign Qwen Isolation: NEVER fall back to Gemini!
+    // Data sovereignty guarantee: Private diary reflections must never route to Google Cloud when Qwen is selected.
+    throw new Error(lastError?.message || 'AI processing with Sovereign Qwen was not successful due to an error. Please try again in a moment.');
+  }
+
+  // 3. Direct client-side Gemini fallback
   try {
     let apiKey = null;
     try {

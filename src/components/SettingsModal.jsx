@@ -57,6 +57,8 @@ import {
   ExternalLink,
   Send,
   ChevronDown,
+  ChevronUp,
+  Cpu,
   HeartHandshake,
   Mail,
   AlertCircle,
@@ -195,6 +197,10 @@ export default function SettingsModal({
   const [guardianNameInput, setGuardianNameInput] = useState(() => getGuardianConfig()?.guardianName || '');
   const [guardianSending, setGuardianSending] = useState(false);
   const [guardianFeedback, setGuardianFeedback] = useState(null); // { type: 'success' | 'error' | 'cap', message: string }
+  const [isGuardianOpen, setIsGuardianOpen] = useState(false); // Closed / Collapsed by default
+
+  // 🧠 AI Architecture & Inference Engine State (Sovereign Qwen vs Google Gemini)
+  const [aiEngine, setAiEngine] = useState(() => (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen');
 
   // 🔄 Time Machine Snapshots State
   const [snapshots, setSnapshots] = useState([]);
@@ -356,16 +362,37 @@ export default function SettingsModal({
       setRehabConfig(getRehabilitationConfig());
       const gConf = getGuardianConfig();
       setGuardianConfig(gConf);
-      setGuardianEmailInput(gConf?.guardianEmail || '');
+       setGuardianEmailInput(gConf?.guardianEmail || '');
       setGuardianNameInput(gConf?.guardianName || '');
       setGuardianQuota(getGuardianEmailQuota());
       setGuardianFeedback(null);
+      setIsGuardianOpen(false); // Always closed by default
+      setAiEngine((typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen');
       setNotificationMsg('');
       setIsAddingSphere(false);
       setEditingSphereId(null);
       refreshStorageTier();
     }
   }, [isOpen]);
+
+  // Synchronize AI engine preference if toggled from Edit Modal or other tabs
+  useEffect(() => {
+    const handleEngineChange = (e) => {
+      if (e.detail) setAiEngine(e.detail);
+      else setAiEngine((typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen');
+    };
+    window.addEventListener('ai-engine-changed', handleEngineChange);
+    return () => window.removeEventListener('ai-engine-changed', handleEngineChange);
+  }, []);
+
+  const handleSelectAiEngine = (engine) => {
+    soundEngine.playClick();
+    setAiEngine(engine);
+    try {
+      localStorage.setItem('daily_verdict_ai_engine', engine);
+      window.dispatchEvent(new CustomEvent('ai-engine-changed', { detail: engine }));
+    } catch (e) {}
+  };
 
   const handleToggleGuardianAutoDispatch = () => {
     soundEngine.playClick();
@@ -1139,11 +1166,17 @@ export default function SettingsModal({
                 </div>
               </div>
 
-              {/* 🛡️ GUARDIAN EMERGENCY & HARD-CAPPED AUTOMATED EMAIL CARD */}
+              {/* 🛡️ GUARDIAN EMERGENCY & HARD-CAPPED AUTOMATED EMAIL CARD (COLLAPSED BY DEFAULT) */}
               <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-black/10 pb-3">
+                <div 
+                  onClick={() => {
+                    soundEngine.playClick();
+                    setIsGuardianOpen(!isGuardianOpen);
+                  }}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-black/10 pb-3 cursor-pointer select-none group"
+                >
                   <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FFE4E4] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] text-[#FF4D4D]">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-[#FFE4E4] border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] text-[#FF4D4D] group-hover:scale-105 transition-transform">
                       <HeartHandshake className="w-5 h-5 stroke-[2.5]" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1154,6 +1187,13 @@ export default function SettingsModal({
                         <span className="px-1.5 py-0.5 rounded border border-black bg-black text-[#00E599] font-mono text-[9px] font-black uppercase">
                           GCERT 1(A)
                         </span>
+                        <span className={`px-1.5 py-0.5 rounded border border-black font-mono text-[9px] font-black uppercase ${
+                          guardianConfig.autoDispatch
+                            ? 'bg-[#00E599] text-black'
+                            : 'bg-neutral-200 text-neutral-700'
+                        }`}>
+                          {guardianConfig.autoDispatch ? 'ACTIVE' : 'STANDBY (OFF)'}
+                        </span>
                       </div>
                       <p className="text-[11px] font-mono text-neutral-600 truncate">
                         Zero-knowledge crisis triage with sustainable 2-email/24h hard cap
@@ -1161,157 +1201,309 @@ export default function SettingsModal({
                     </div>
                   </div>
 
-                  {/* Real-Time Hard Cap Quota Badge */}
-                  <div className="shrink-0 flex items-center gap-1.5">
-                    <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] ${
-                      guardianQuota.canSend
-                        ? 'bg-[#00E599] text-black'
-                        : 'bg-[#FF4D4D] text-white'
-                    }`}>
-                      {guardianQuota.canSend 
-                        ? `QUOTA: ${guardianQuota.sentCount}/${guardianQuota.maxAllowed} SENT • ${guardianQuota.remaining} LEFT` 
-                        : `HARD CAP REACHED (2/2) • ${guardianQuota.resetInHours}H COOLDOWN`}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Sustainability & Resend Configuration Explainer */}
-                <div className="p-3 bg-[#FFF9EE] border-2 border-black rounded-xl space-y-1.5 font-mono text-xs text-neutral-800 shadow-[1.5px_1.5px_0px_#000000]">
-                  <div className="flex items-center gap-1.5 font-black uppercase text-black">
-                    <ShieldCheck className="w-4 h-4 text-black stroke-[2.5]" />
-                    <span>SUSTAINABLE RATE PROTECTION &amp; ZERO-SPAM GUARANTEE</span>
-                  </div>
-                  <p className="text-[11px] leading-relaxed text-neutral-700">
-                    <strong>Hard Cap Limit:</strong> Strictly limited to a maximum of <strong>2 automated emails per 24 hours</strong>. This prevents email inbox flooding and preserves API quota.
-                  </p>
-                  <p className="text-[11px] leading-relaxed text-neutral-700">
-                    <strong>Resend API Dispatch:</strong> Background automated delivery connects securely via <code className="bg-white px-1.5 py-0.5 border border-black rounded font-black text-black">RESEND_API_KEY</code> on your server. Automated, zero-device silent background dispatch.
-                  </p>
-                </div>
-
-                {/* Master Auto-Dispatch Switch */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
-                  <div className="min-w-0 flex-1">
-                    <span className="font-mono text-xs font-black uppercase text-black block">
-                      Automatic Crisis Email Dispatch
-                    </span>
-                    <span className="font-mono text-[10px] text-neutral-600 block mt-0.5">
-                      Auto-transmits compassionate briefing when 2+ rough days or acute illness keywords are detected.
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleToggleGuardianAutoDispatch}
-                    className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
-                      guardianConfig.autoDispatch
-                        ? 'bg-[#00E599] text-black ring-2 ring-black'
-                        : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
-                    }`}
-                  >
-                    {guardianConfig.autoDispatch ? 'AUTOMATIC (ACTIVE)' : 'MANUAL ONLY (OFF)'}
-                  </button>
-                </div>
-
-                {/* Guardian Credentials Input Form */}
-                <form onSubmit={handleSaveGuardianContactInfo} className="space-y-2.5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div className="space-y-1">
-                      <label className="font-mono text-[10px] font-black uppercase text-neutral-700 block">
-                        Guardian / Parent Name:
-                      </label>
-                      <input
-                        type="text"
-                        value={guardianNameInput}
-                        onChange={(e) => setGuardianNameInput(e.target.value)}
-                        placeholder="e.g. Mom / Dad / Mentor"
-                        className="w-full px-3 py-2 bg-neutral-50 border-2 border-black rounded-xl font-mono text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1px_1px_0px_#000000]"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="font-mono text-[10px] font-black uppercase text-neutral-700 block">
-                        Emergency Alert Email Address:
-                      </label>
-                      <input
-                        type="email"
-                        value={guardianEmailInput}
-                        onChange={(e) => setGuardianEmailInput(e.target.value)}
-                        placeholder="guardian@example.com (or test email)"
-                        className="w-full px-3 py-2 bg-neutral-50 border-2 border-black rounded-xl font-mono text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1px_1px_0px_#000000]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
+                  {/* Toggle Expand / Collapse Action */}
+                  <div className="shrink-0 flex items-center gap-2">
                     <button
-                      type="submit"
-                      className="py-2 px-3.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all text-center"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        soundEngine.playClick();
+                        setIsGuardianOpen(!isGuardianOpen);
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl border-2 border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] bg-neutral-100 hover:bg-neutral-200 cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all text-black"
                     >
-                      SAVE GUARDIAN DETAILS
+                      <span>{isGuardianOpen ? 'COLLAPSE' : 'CONFIGURE'}</span>
+                      {isGuardianOpen ? <ChevronUp className="w-3.5 h-3.5 stroke-[2.5]" /> : <ChevronDown className="w-3.5 h-3.5 stroke-[2.5]" />}
                     </button>
+                  </div>
+                </div>
 
-                    <div className="flex items-center gap-2">
+                {/* Collapsible Body Content (Closed by default) */}
+                {isGuardianOpen && (
+                  <div className="space-y-3.5 pt-1">
+                    {/* Real-Time Hard Cap Quota Badge */}
+                    <div className="flex items-center justify-between gap-2 p-2.5 bg-neutral-50 border-2 border-black rounded-xl">
+                      <span className="font-mono text-xs font-black uppercase text-black">
+                        Daily Rolling Quota
+                      </span>
+                      <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] ${
+                        guardianQuota.canSend
+                          ? 'bg-[#00E599] text-black'
+                          : 'bg-[#FF4D4D] text-white'
+                      }`}>
+                        {guardianQuota.canSend 
+                          ? `QUOTA: ${guardianQuota.sentCount}/${guardianQuota.maxAllowed} SENT • ${guardianQuota.remaining} LEFT` 
+                          : `HARD CAP REACHED (2/2) • ${guardianQuota.resetInHours}H COOLDOWN`}
+                      </span>
+                    </div>
+
+                    {/* Sustainability & Resend Configuration Explainer */}
+                    <div className="p-3 bg-[#FFF9EE] border-2 border-black rounded-xl space-y-1.5 font-mono text-xs text-neutral-800 shadow-[1.5px_1.5px_0px_#000000]">
+                      <div className="flex items-center gap-1.5 font-black uppercase text-black">
+                        <ShieldCheck className="w-4 h-4 text-black stroke-[2.5]" />
+                        <span>SUSTAINABLE RATE PROTECTION &amp; ZERO-SPAM GUARANTEE</span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed text-neutral-700">
+                        <strong>Hard Cap Limit:</strong> Strictly limited to a maximum of <strong>2 automated emails per 24 hours</strong>. This prevents email inbox flooding and preserves API quota.
+                      </p>
+                      <p className="text-[11px] leading-relaxed text-neutral-700">
+                        <strong>Resend API Dispatch:</strong> Background automated delivery connects securely via <code className="bg-white px-1.5 py-0.5 border border-black rounded font-black text-black">RESEND_API_KEY</code> on your server. Automated, zero-device silent background dispatch.
+                      </p>
+                    </div>
+
+                    {/* Master Auto-Dispatch Switch */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-neutral-50 border-2 border-black rounded-xl shadow-[1.5px_1.5px_0px_#000000]">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-mono text-xs font-black uppercase text-black block">
+                          Automatic Crisis Email Dispatch
+                        </span>
+                        <span className="font-mono text-[10px] text-neutral-600 block mt-0.5">
+                          Auto-transmits compassionate briefing when 2+ rough days or acute illness keywords are detected.
+                        </span>
+                      </div>
                       <button
                         type="button"
-                        onClick={handleTestGuardianEmail}
-                        disabled={guardianSending || !guardianQuota.canSend}
-                        className={`flex-1 sm:flex-none py-2 px-3.5 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
-                          !guardianQuota.canSend
-                            ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-400 shadow-none'
-                            : guardianSending
-                              ? 'bg-[#FDC800] text-black opacity-80'
-                              : 'bg-[#00C2FF] hover:bg-[#00abdf] text-black'
+                        onClick={handleToggleGuardianAutoDispatch}
+                        className={`w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-black font-mono text-xs font-black uppercase cursor-pointer transition-all shadow-[1.5px_1.5px_0px_#000000] active:scale-95 shrink-0 text-center ${
+                          guardianConfig.autoDispatch
+                            ? 'bg-[#00E599] text-black ring-2 ring-black'
+                            : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
                         }`}
-                        title={guardianQuota.canSend ? 'Send a test triage email to verify delivery' : 'Hard cap reached: 2 emails sent in last 24h'}
                       >
-                        {guardianSending ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>TESTING...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-3.5 h-3.5" />
-                            <span>TEST EMAIL</span>
-                          </>
-                        )}
+                        {guardianConfig.autoDispatch ? 'AUTOMATIC (ACTIVE)' : 'MANUAL ONLY (OFF)'}
                       </button>
-
-                      {onOpenGuardianContact && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            soundEngine.playClick();
-                            onOpenGuardianContact();
-                          }}
-                          className="flex-1 sm:flex-none py-2 px-3.5 bg-[#FF4D4D] hover:bg-red-500 text-white border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-95"
-                          title="Open full Guardian Dossier and manual dispatch triggers"
-                        >
-                          <span>OPEN DOSSIER</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
-                  </div>
-                </form>
 
-                {/* Live Feedback Banner */}
-                {guardianFeedback && (
-                  <div className={`p-2.5 border-2 border-black rounded-xl font-mono text-xs font-black flex items-center gap-2 shadow-[1.5px_1.5px_0px_#000000] ${
-                    guardianFeedback.type === 'success'
-                      ? 'bg-emerald-100 text-emerald-950 border-emerald-950'
-                      : guardianFeedback.type === 'cap'
-                        ? 'bg-amber-100 text-amber-950 border-amber-950'
-                        : 'bg-red-100 text-red-950 border-red-950'
-                  }`}>
-                    {guardianFeedback.type === 'success' ? (
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-800" />
-                    ) : (
-                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-800" />
+                    {/* Guardian Credentials Input Form */}
+                    <form onSubmit={handleSaveGuardianContactInfo} className="space-y-2.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div className="space-y-1">
+                          <label className="font-mono text-[10px] font-black uppercase text-neutral-700 block">
+                            Guardian / Parent Name:
+                          </label>
+                          <input
+                            type="text"
+                            value={guardianNameInput}
+                            onChange={(e) => setGuardianNameInput(e.target.value)}
+                            placeholder="e.g. Mom / Dad / Mentor"
+                            className="w-full px-3 py-2 bg-neutral-50 border-2 border-black rounded-xl font-mono text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1px_1px_0px_#000000]"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="font-mono text-[10px] font-black uppercase text-neutral-700 block">
+                            Emergency Alert Email Address:
+                          </label>
+                          <input
+                            type="email"
+                            value={guardianEmailInput}
+                            onChange={(e) => setGuardianEmailInput(e.target.value)}
+                            placeholder="guardian@example.com (or test email)"
+                            className="w-full px-3 py-2 bg-neutral-50 border-2 border-black rounded-xl font-mono text-xs text-black focus:outline-none focus:ring-2 focus:ring-[#FDC800] shadow-[1px_1px_0px_#000000]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
+                        <button
+                          type="submit"
+                          className="py-2 px-3.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl font-mono text-xs font-black uppercase text-black cursor-pointer shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-all text-center"
+                        >
+                          SAVE GUARDIAN DETAILS
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={handleTestGuardianEmail}
+                            disabled={guardianSending || !guardianQuota.canSend}
+                            className={`flex-1 sm:flex-none py-2 px-3.5 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                              !guardianQuota.canSend
+                                ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed border-neutral-400 shadow-none'
+                                : guardianSending
+                                  ? 'bg-[#FDC800] text-black opacity-80'
+                                  : 'bg-[#00C2FF] hover:bg-[#00abdf] text-black'
+                            }`}
+                            title={guardianQuota.canSend ? 'Send a test triage email to verify delivery' : 'Hard cap reached: 2 emails sent in last 24h'}
+                          >
+                            {guardianSending ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>TESTING...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-3.5 h-3.5" />
+                                <span>TEST EMAIL</span>
+                              </>
+                            )}
+                          </button>
+
+                          {onOpenGuardianContact && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                soundEngine.playClick();
+                                onOpenGuardianContact();
+                              }}
+                              className="flex-1 sm:flex-none py-2 px-3.5 bg-[#FF4D4D] hover:bg-red-500 text-white border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                              title="Open full Guardian Dossier and manual dispatch triggers"
+                            >
+                              <span>OPEN DOSSIER</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </form>
+
+                    {/* Live Feedback Banner */}
+                    {guardianFeedback && (
+                      <div className={`p-2.5 border-2 border-black rounded-xl font-mono text-xs font-black flex items-center gap-2 shadow-[1.5px_1.5px_0px_#000000] ${
+                        guardianFeedback.type === 'success'
+                          ? 'bg-emerald-100 text-emerald-950 border-emerald-950'
+                          : guardianFeedback.type === 'cap'
+                            ? 'bg-amber-100 text-amber-950 border-amber-950'
+                            : 'bg-red-100 text-red-950 border-red-950'
+                      }`}>
+                        {guardianFeedback.type === 'success' ? (
+                          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-800" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 shrink-0 text-amber-800" />
+                        )}
+                        <span>{guardianFeedback.message}</span>
+                      </div>
                     )}
-                    <span>{guardianFeedback.message}</span>
                   </div>
                 )}
+              </div>
+
+              {/* 🧠 AI INFERENCE & ARCHITECTURE SELECTION CARD */}
+              <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b-2 border-black/10 pb-3">
+                  <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 shrink-0 aspect-square rounded-xl bg-amber-100 border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_#000000] text-black">
+                      <Cpu className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-display font-black text-sm uppercase text-black">
+                          AI Reflection &amp; Inference Engine
+                        </h4>
+                        <span className="px-1.5 py-0.5 rounded border border-black bg-black text-[#00E599] font-mono text-[9px] font-black uppercase">
+                          DUAL-ENGINE
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-neutral-600 truncate">
+                        Select neural architecture powering diary reflections &amp; evaluations
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Current Active Indicator Badge */}
+                  <div className="shrink-0">
+                    <span className={`px-2.5 py-1 rounded-xl border-2 border-black font-mono text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_#000000] ${
+                      aiEngine === 'qwen' ? 'bg-[#00E599] text-black' : 'bg-[#FDC800] text-black'
+                    }`}>
+                      {aiEngine === 'qwen' ? 'SOVEREIGN QWEN 2.5 (ZEROGPU)' : 'GOOGLE GEMINI (CLOUD)'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Selectable Engine Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* 1. Sovereign Qwen 2.5 7B Option */}
+                  <div
+                    onClick={() => handleSelectAiEngine('qwen')}
+                    className={`p-3.5 rounded-2xl border-2 border-black cursor-pointer transition-all flex flex-col justify-between gap-3 text-left active:scale-[0.99] ${
+                      aiEngine === 'qwen'
+                        ? 'bg-[#E6FBF2] shadow-[3px_3px_0px_#000000] ring-2 ring-black'
+                        : 'bg-neutral-50 hover:bg-white hover:shadow-[2px_2px_0px_#000000]'
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <Shield className="w-4 h-4 text-[#00A86B] stroke-[2.5]" />
+                          <span className="font-display font-black text-xs uppercase text-black">
+                            Qwen 2.5 7B Instruct
+                          </span>
+                        </div>
+                        {aiEngine === 'qwen' && (
+                          <span className="px-1.5 py-0.5 rounded border border-black bg-[#00E599] text-black font-mono text-[9px] font-black uppercase flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5 stroke-3" />
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <span className="block px-1.5 py-0.5 rounded bg-black text-[#00E599] font-mono text-[9px] font-black uppercase w-fit">
+                        PRIVATE CONTAINER • ZERO TRAINING
+                      </span>
+                      
+                      <div className="space-y-1 font-mono text-[10px] text-neutral-700 leading-tight">
+                        <p className="flex items-start gap-1 text-emerald-900 font-bold">
+                          <span className="text-[#00A86B] font-black">+</span>
+                          <span><strong>100% Private:</strong> Data is never used for training and is deleted right after reflection.</span>
+                        </p>
+                        <p className="flex items-start gap-1 text-neutral-600">
+                          <span className="font-black text-neutral-400">-</span>
+                          <span>May take a few extra seconds to reply (a bit slower, but 100% private).</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-black/10 flex items-center justify-between font-mono text-[9px] font-bold text-neutral-700">
+                      <span>SPECIALITY: 100% PRIVATE</span>
+                      <span className="text-[#00A86B] font-black">RECOMMENDED</span>
+                    </div>
+                  </div>
+
+                  {/* 2. Google Gemini Flash Option */}
+                  <div
+                    onClick={() => handleSelectAiEngine('gemini')}
+                    className={`p-3.5 rounded-2xl border-2 border-black cursor-pointer transition-all flex flex-col justify-between gap-3 text-left active:scale-[0.99] ${
+                      aiEngine === 'gemini'
+                        ? 'bg-[#FFF9DE] shadow-[3px_3px_0px_#000000] ring-2 ring-black'
+                        : 'bg-neutral-50 hover:bg-white hover:shadow-[2px_2px_0px_#000000]'
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <Zap className="w-4 h-4 text-amber-600 stroke-[2.5]" />
+                          <span className="font-display font-black text-xs uppercase text-black">
+                            Gemini 3.5 Flash Lite
+                          </span>
+                        </div>
+                        {aiEngine === 'gemini' && (
+                          <span className="px-1.5 py-0.5 rounded border border-black bg-[#FDC800] text-black font-mono text-[9px] font-black uppercase flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5 stroke-3" />
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <span className="block px-1.5 py-0.5 rounded bg-black text-[#FDC800] font-mono text-[9px] font-black uppercase w-fit">
+                        GOOGLE CLOUD API • FAST
+                      </span>
+
+                      <div className="space-y-1 font-mono text-[10px] text-neutral-700 leading-tight">
+                        <p className="flex items-start gap-1 text-amber-900 font-bold">
+                          <span className="text-amber-600 font-black">+</span>
+                          <span><strong>Super Fast:</strong> Instant replies with zero waiting time.</span>
+                        </p>
+                        <p className="flex items-start gap-1 text-neutral-600">
+                          <span className="font-black text-neutral-400">-</span>
+                          <span>Handled by Google Cloud; subject to Google's standard data terms.</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-black/10 flex items-center justify-between font-mono text-[9px] font-bold text-neutral-700">
+                      <span>SPECIALITY: CLOUD SPEED</span>
+                      <span className="text-amber-700 font-black">STANDARD</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* 5. AI Ghostwriter Preferred Language */}
