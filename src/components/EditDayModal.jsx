@@ -60,6 +60,7 @@ export default function EditDayModal({
   const [rating, setRating] = useState(entryData?.rating || 3);
   const [notes, setNotes] = useState(entryData?.notes || '');
   const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'error'
+  const [aiEngine, setAiEngine] = useState(() => (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen');
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
@@ -693,6 +694,31 @@ export default function EditDayModal({
                           )}
                         </div>
 
+                        {/* AI Engine Switcher Chip (Sovereign Qwen vs Gemini) */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = aiEngine === 'qwen' ? 'gemini' : 'qwen';
+                            setAiEngine(next);
+                            localStorage.setItem('daily_verdict_ai_engine', next);
+                            try { soundEngine.playClick(); } catch (e) {}
+                          }}
+                          title={aiEngine === 'qwen' ? 'Using Sovereign Qwen 2.5 on ZeroGPU (Zero Tracking). Tap to switch to Gemini.' : 'Using Google Gemini. Tap to switch to Sovereign Qwen 2.5.'}
+                          className="px-2 py-1 rounded-xl border-2 border-black font-mono text-[10px] sm:text-xs font-black uppercase cursor-pointer transition-all shadow-[2px_2px_0px_#000000] active:scale-95 flex items-center gap-1.5 bg-white hover:bg-[#FFFDF0]"
+                        >
+                          {aiEngine === 'qwen' ? (
+                            <>
+                              <Shield className="w-3.5 h-3.5 text-[#00E599] stroke-[2.5]" />
+                              <span>SOVEREIGN QWEN</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="w-3.5 h-3.5 text-[#FDC800] stroke-[2.5]" />
+                              <span>GEMINI</span>
+                            </>
+                          )}
+                        </button>
+
                         {/* In-Place Tactile AI Polish Button (Zero Layout Shift) */}
                         <button
                           type="button"
@@ -705,7 +731,7 @@ export default function EditDayModal({
                               ? 'bg-[#FF4D4D] text-white'
                               : 'bg-[#FDC800] hover:bg-amber-300'
                           }`}
-                          title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : 'Polish diary note with Gemini AI using your Settings directive'}
+                          title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : aiEngine === 'qwen' ? 'Polish diary note using Sovereign Qwen 2.5 on Private ZeroGPU' : 'Polish diary note with Gemini AI using your Settings directive'}
                         >
                           {enhanceStatus === 'polishing' ? (
                             <>

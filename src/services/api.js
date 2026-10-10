@@ -906,6 +906,7 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
   if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) return notes;
 
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+  const aiEngine = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen';
 
   let lastError = null;
 
@@ -915,7 +916,7 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
       const res = await fetch(`${API_BASE}/ai/enhance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres, customInstruction })
+        body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres, customInstruction, aiEngine })
       });
       if (res.ok) {
         const data = await res.json();

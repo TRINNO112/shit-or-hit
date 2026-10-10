@@ -66,7 +66,8 @@ export const aiEnhanceSchema = Joi.object({
   date: Joi.string().allow('', null).optional(),
   preferredLanguage: Joi.string().valid('auto', 'english', 'hinglish').optional().default('auto'),
   spheres: Joi.object().allow(null).optional(),
-  customInstruction: Joi.string().allow('', null).max(5000).optional()
+  customInstruction: Joi.string().allow('', null).max(5000).optional(),
+  aiEngine: Joi.string().valid('qwen', 'gemini', 'auto').optional().default('auto')
 }).custom((value, helpers) => {
   const hasNotes = value.notes && typeof value.notes === 'string' && value.notes.trim().length > 0;
   const hasSpheres = value.spheres && typeof value.spheres === 'object' && Object.keys(value.spheres).length > 0;

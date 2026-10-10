@@ -40,6 +40,8 @@ if (fs.existsSync(envPath)) {
 const app = express();
 const PORT = process.env.PORT || 5001;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const HF_TOKEN = process.env.HF_TOKEN || '';
+const HF_SPACE_ID = process.env.HF_SPACE_ID || 'Trinno112/Daily-verdict';
 
 // CORS Whitelist Protection
 const ALLOWED_ORIGINS = [
@@ -358,6 +360,81 @@ app.post('/api/entries', validateBody(entrySchema), (req, res) => {
   });
 });
 
+// Private Sovereign Qwen 2.5 Inference via Hugging Face ZeroGPU Space
+async function callQwenSpaceApi({ notes, verdict = 'Down' }) {
+  if (!HF_TOKEN) return { ok: false, error: 'HF_TOKEN not configured' };
+  try {
+    const spaceSubdomain = (HF_SPACE_ID || 'Trinno112/Daily-verdict').toLowerCase().replace('/', '-');
+    const initUrl = `https://${spaceSubdomain}.hf.space/gradio_api/call/enhance_diary`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const initRes = await fetch(initUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${HF_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data: [notes, verdict] }),
+      signal: controller.signal
+    });
+
+    if (!initRes.ok) {
+      clearTimeout(timeoutId);
+      const err = await initRes.text().catch(() => '');
+      return { ok: false, error: `Space initiation HTTP ${initRes.status}: ${err.slice(0, 100)}` };
+    }
+
+    const { event_id } = await initRes.json();
+    if (!event_id) {
+      clearTimeout(timeoutId);
+      return { ok: false, error: 'No event_id returned by Space' };
+    }
+
+    const streamUrl = `https://${spaceSubdomain}.hf.space/gradio_api/call/enhance_diary/${event_id}`;
+    const streamRes = await fetch(streamUrl, {
+      headers: { 'Authorization': `Bearer ${HF_TOKEN}` },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!streamRes.ok) {
+      return { ok: false, error: `Space stream HTTP ${streamRes.status}` };
+    }
+
+    const streamText = await streamRes.text();
+    const completeMatch = streamText.match(/event:\s*complete[\r\n]+data:\s*(\[[\s\S]*?\])/);
+    if (completeMatch) {
+      const parsedData = JSON.parse(completeMatch[1]);
+      if (Array.isArray(parsedData) && parsedData[0]) {
+        return {
+          ok: true,
+          text: parsedData[0],
+          model: 'Qwen 2.5 (Sovereign ZeroGPU A10G Private)'
+        };
+      }
+    }
+
+    return { ok: false, error: 'Failed to extract text from Space stream' };
+  } catch (err) {
+    return { ok: false, error: err.name === 'AbortError' ? 'Space request timed out (30s)' : err.message };
+  }
+}
+
+// 💓 Space Keep-Alive Heartbeat (Pings HF Space config every 25 minutes so it stays warm)
+if (HF_TOKEN) {
+  const spaceSubdomain = (HF_SPACE_ID || 'Trinno112/Daily-verdict').toLowerCase().replace('/', '-');
+  const pingUrl = `https://${spaceSubdomain}.hf.space/config`;
+  setInterval(async () => {
+    try {
+      await fetch(pingUrl, {
+        headers: { 'Authorization': `Bearer ${HF_TOKEN}` }
+      });
+    } catch (_) {}
+  }, 25 * 60 * 1000);
+}
+
 // High-Resilience Gemini Multi-Model Cascade
 async function callGeminiApi({ prompt, apiKey, temperature = 0.7, maxTokens = 2048, responseMimeType = null }) {
   if (!apiKey) return { ok: false, error: 'GEMINI_API_KEY missing' };
@@ -417,15 +494,15 @@ async function callGeminiApi({ prompt, apiKey, temperature = 0.7, maxTokens = 20
 
 // AI Enhancement Endpoint for Daily Reflection
 app.post('/api/ai/enhance', tokenBucketMiddleware({ capacity: 5, refillRatePerSec: 0.2, name: 'ai-enhance' }), validateBody(aiEnhanceSchema), async (req, res) => {
-  const { notes, rating, date, preferredLanguage = 'auto', spheres, customInstruction } = req.body;
+  const { notes, rating, date, preferredLanguage = 'auto', spheres, customInstruction, aiEngine = 'auto' } = req.body;
 
   if ((!notes || notes.trim() === '') && (!spheres || Object.keys(spheres).length === 0)) {
     return res.status(400).json({ success: false, error: 'Notes text or sphere entries are required for AI enhancement' });
   }
 
   const apiKey = GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ success: false, error: 'AI API key not configured' });
+  if (!apiKey && !HF_TOKEN) {
+    return res.status(500).json({ success: false, error: 'Neither Hugging Face nor Gemini AI API keys configured' });
   }
 
   let languageRule = '';
@@ -474,6 +551,22 @@ CRITICAL INSTRUCTIONS:
 - Separate paragraphs with clean double line breaks (\n\n) for natural breathing room, NEVER output literal "\\n" text.
 - STRICT NON-CLINICAL & NON-MEDICAL DIRECTIVE: You are an introspective personal diary ghostwriter. You must strictly NEVER provide medical, psychiatric, pharmacological, or clinical advice or diagnoses. Frame reflections purely through subjective human experience, time boundaries, and daily personal discipline.
 - Return ONLY the polished, immersive diary reflection text without quotes, markdown headers, or preambles.`;
+
+  // 1. Try Sovereign Qwen ZeroGPU Engine first if requested or auto
+  if ((aiEngine === 'qwen' || aiEngine === 'auto') && HF_TOKEN) {
+    const verdictName = rating ? getVerdictFromRating(rating) : 'Down';
+    const qwenResult = await callQwenSpaceApi({ notes: journalInput, verdict: verdictName });
+    if (qwenResult.ok) {
+      return res.json({
+        success: true,
+        enhancedText: cleanAiEnhancedText(qwenResult.text),
+        modelUsed: qwenResult.model,
+        isLocalFallback: false,
+        engine: 'qwen'
+      });
+    }
+    console.warn('[AI Pipeline] Sovereign Qwen unavailable, cascading to Gemini fallback:', qwenResult.error);
+  }
 
   try {
     const geminiResult = await callGeminiApi({
