@@ -1025,7 +1025,7 @@ export default function App() {
     if (mode === 'release') {
       const mockReleaseCapsule = {
         id: 'capsule_showcase_demo',
-        title: 'To Future Ashish — Read When You Stumble',
+        title: 'To Future Trinno — Read When You Stumble',
         createdAt: '2026-03-14T09:00:00.000Z',
         createdDate: '2026-03-14',
         status: 'unlocked',
