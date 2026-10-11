@@ -77,9 +77,30 @@ export default function Header({
 
   const isDemoSabbatical = typeof window !== 'undefined' && window.location.search.includes('demo=sabbatical');
   const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
-  const rehabConfig = getRehabilitationConfig();
-  const isSabbatical = isDemoSabbatical || Boolean(rehabConfig?.isSabbatical);
-  const isSanctuaryActive = isRehabilitationActive() || isDemoSanctuary || isDemoSabbatical;
+
+  const [rehabConfigState, setRehabConfigState] = useState(() => getRehabilitationConfig());
+
+  useEffect(() => {
+    const handleRehab = () => {
+      setRehabConfigState(getRehabilitationConfig());
+    };
+    window.addEventListener('rehabilitation-updated', handleRehab);
+    window.addEventListener('rehab-config-updated', handleRehab);
+    window.addEventListener('storage', handleRehab);
+    window.addEventListener('auth-changed', handleRehab);
+    return () => {
+      window.removeEventListener('rehabilitation-updated', handleRehab);
+      window.removeEventListener('rehab-config-updated', handleRehab);
+      window.removeEventListener('storage', handleRehab);
+      window.removeEventListener('auth-changed', handleRehab);
+    };
+  }, []);
+
+  const isLiveSanctuary = isRehabilitationActive();
+  const isSanctuaryActive = Boolean(isLiveSanctuary || isDemoSanctuary || isDemoSabbatical);
+  const isSabbatical = isSanctuaryActive && Boolean(
+    isDemoSabbatical || (rehabConfigState?.active && (rehabConfigState.isSabbatical || (rehabConfigState.freezeDays && rehabConfigState.freezeDays > 30)))
+  );
 
   const handleLogout = async () => {
     try {

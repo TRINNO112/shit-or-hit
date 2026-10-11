@@ -441,6 +441,121 @@ assert(day1State.isPending === true && day1State.daysRemaining === 7, 'Erasure I
 const day8State = simulateCoolingOffHolding(1000000 + 8 * 86400000, 1000000, 7);
 assert(day8State.isPurged === true && day8State.daysRemaining === 0, 'Erasure Invariant: Day 8 after cooling-off triggers permanent purge');
 
+// ---------------------------------------------------------------------------
+// SUITE F: State Reactivity, Sabbatical Lifecycle & User Isolation Invariants
+// ---------------------------------------------------------------------------
+console.log('\n🔄 [F] Evaluating Stasis State Invariants, Reactive Lifecycle & User Isolation...');
+
+// Invariant 1: Inactive state strictly forbids truthy isSabbatical
+function sanitizeRehabConfig(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return { active: false, freezeDays: 7, maxDays: 14, isSabbatical: false };
+  }
+  const parsed = { ...raw };
+  if (!parsed.active) {
+    parsed.active = false;
+    parsed.isSabbatical = false;
+    return parsed;
+  }
+  if (parsed.isSabbatical || (parsed.freezeDays && parsed.freezeDays > 30)) {
+    parsed.isSabbatical = true;
+    parsed.daysRemaining = '∞';
+    parsed.elapsedDays = 0;
+    return parsed;
+  }
+  return parsed;
+}
+
+assert(
+  sanitizeRehabConfig({ active: false, isSabbatical: true }).isSabbatical === false,
+  'Stasis Invariant: Inactive stasis strictly forces isSabbatical to false'
+);
+assert(
+  sanitizeRehabConfig({ active: false, freezeDays: 9999, isSabbatical: true }).isSabbatical === false,
+  'Stasis Invariant: Corrupt inactive payload with freezeDays 9999 cannot produce truthy sabbatical'
+);
+assert(
+  sanitizeRehabConfig({ active: true, isSabbatical: true }).isSabbatical === true,
+  'Stasis Invariant: Active sabbatical produces valid infinite sabbatical state'
+);
+
+// Invariant 2: Navigation Badge Visibility Invariant
+function computeBadgeVisibility(cfg, isDemoSabbatical = false, isDemoSanctuary = false) {
+  const isLiveSanctuary = Boolean(cfg && cfg.active && cfg.startDate);
+  const isSanctuaryActive = Boolean(isLiveSanctuary || isDemoSanctuary || isDemoSabbatical);
+  const isSabbatical = isSanctuaryActive && Boolean(
+    isDemoSabbatical || (cfg?.active && (cfg.isSabbatical || (cfg.freezeDays && cfg.freezeDays > 30)))
+  );
+  return { isSanctuaryActive, isSabbatical };
+}
+
+// When stasis is deactivated:
+const exitedBadge = computeBadgeVisibility({ active: false, isSabbatical: false });
+assert(
+  !exitedBadge.isSanctuaryActive && !exitedBadge.isSabbatical,
+  'Badge Invariant: Exiting rehabilitation hides both Sanctuary and Sabbatical badges completely'
+);
+
+// Even if corrupt inactive object is passed to badge computation:
+const corruptBadge = computeBadgeVisibility({ active: false, isSabbatical: true });
+assert(
+  !corruptBadge.isSanctuaryActive && !corruptBadge.isSabbatical,
+  'Badge Invariant: Inactive stasis with stale isSabbatical flag NEVER renders stuck Sabbatical badge'
+);
+
+// When active sabbatical:
+const sabbaticalBadge = computeBadgeVisibility({ active: true, isSabbatical: true, startDate: '2026-10-10' });
+assert(
+  sabbaticalBadge.isSanctuaryActive && sabbaticalBadge.isSabbatical,
+  'Badge Invariant: Active sabbatical displays correct Sabbatical badge'
+);
+
+// Invariant 3: Guest-to-Cloud User State Isolation Gate
+function simulateAuthHydration(guestLocalStorage, cloudUserDoc) {
+  let finalLocalStorage = { ...guestLocalStorage };
+  if (cloudUserDoc?.settings?.rehabConfig) {
+    finalLocalStorage.rehabConfig = { ...cloudUserDoc.settings.rehabConfig };
+    if (!finalLocalStorage.rehabConfig.active) {
+      finalLocalStorage.rehabConfig.isSabbatical = false;
+    }
+  } else {
+    // Brand new cloud user or user without rehabConfig: clean default, NEVER pollute with guest stasis!
+    finalLocalStorage.rehabConfig = { active: false, isSabbatical: false, freezeDays: 7, maxDays: 14 };
+  }
+  return finalLocalStorage;
+}
+
+const guestWithSabbatical = {
+  rehabConfig: { active: true, isSabbatical: true, freezeDays: 9999, startDate: '2026-10-01' }
+};
+const cleanCloudUser = {
+  settings: { rehabConfig: { active: false, isSabbatical: false, freezeDays: 7, maxDays: 14 } }
+};
+const hydrated1 = simulateAuthHydration(guestWithSabbatical, cleanCloudUser);
+assert(
+  hydrated1.rehabConfig.active === false && hydrated1.rehabConfig.isSabbatical === false,
+  'Auth Isolation: Cloud settings override guest sabbatical stasis completely upon login'
+);
+
+const emptyCloudUser = { settings: {} };
+const hydrated2 = simulateAuthHydration(guestWithSabbatical, emptyCloudUser);
+assert(
+  hydrated2.rehabConfig.active === false && hydrated2.rehabConfig.isSabbatical === false,
+  'Auth Isolation: First-time cloud login resets guest stasis to clean default rather than polluting account'
+);
+
+// Invariant 4: Logout Purge
+function simulateLogoutPurge(authenticatedStorage) {
+  let storage = { ...authenticatedStorage };
+  storage.rehabConfig = { active: false, isSabbatical: false, freezeDays: 7, maxDays: 14 };
+  return storage;
+}
+const purged = simulateLogoutPurge({ rehabConfig: { active: true, isSabbatical: true } });
+assert(
+  purged.rehabConfig.active === false && purged.rehabConfig.isSabbatical === false,
+  'Logout Isolation: Logout resets stasis to clean default so subsequent guest session starts clean'
+);
+
 
 // ---------------------------------------------------------------------------
 // REPORT

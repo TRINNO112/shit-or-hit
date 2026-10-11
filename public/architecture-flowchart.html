@@ -149,9 +149,9 @@ const D=[
 ['n3',1700,380,'u','m','Check your life spheres','Work, home, social, habits.','Blended into one fair score.','sphere',
  'Optionally rate each part of life (work or school, home, social, your own custom spheres) and tick your non-negotiable habits. The app blends them into one composite score.',
  'A rough evening should not erase a great day at school. Splitting the day shows where the friction really lives.','SphereIcon, NonNegotiableCard, calculateCompositeScore()'],
-['n4',2400,380,'ai','l','Write, AI polishes','Dump your messy thoughts.','AI writes it up in your voice.','spark',
- 'You type raw, rushed thoughts and the AI Ghostwriter turns them into a clear first-person diary entry in your own voice.',
- 'Reflection without the effort of writing well. You feel heard instead of graded, which is what makes people keep journaling.','AutoExpandTextarea, Gemini flash-lite ghostwriter, language isolation'],
+['n4',2400,380,'ai','l','You write thoughts, AI polishes','Dump raw, messy notes.','AI mirrors your own voice.','spark',
+ 'The user must write their own authentic thoughts first—even if it is just tired shorthand, voice notes, or messy bullet points. The AI never fabricates or invents fake stories. It acts as an editorial mirror: elevating your raw notes into vivid first-person prose ("I held the line...") while preserving 100% of your real events, facts, names, and feelings.',
+ 'Reflection without the friction of writing well. Taking away the effort of prose composition keeps the habit alive on the hardest, most exhausting nights, while keeping the user as the true author.','Human-in-the-loop reflection, zero hallucination rule, language isolation (pure English or natural Hinglish).'],
 ['n5',3100,380,'ai','l','Your mascot answers','Mascot + quote react to you.','Two rough days? Gentle reset.','face',
  'A mascot and a live quote react to your score. If you log two Rough days in a row, a recovery screen steps in with a calm, stoic reset plan.',
  'Slumps become burnout when nobody notices. Here the mirror notices early and speaks kindly, before the spiral starts.','MoodReactionBanner, MotivationalRecoveryModal'],
@@ -181,19 +181,19 @@ const D=[
  'You get a safety copy across devices without ever being made to wait.','Firebase Auth, Firestore, 4s race timeout'],
 ['f3',3100,2980,'f','r','PIN-locked vault','Diary locked behind your PIN.','Encrypted, only you can read.','lock',
  'An optional PIN encrypts your diary text on the device. Without the PIN, the stored words are unreadable.',
- 'People write honestly only when they feel safe. Privacy is what makes the honesty possible.','VaultPinModal, cipherEngine.js'],
+ 'People write honestly only when they feel safe. Privacy is what makes the honesty possible.','VaultPinModal, cipherEngine.js, AES-256-GCM, PBKDF2 100,000 rounds'],
 ['f4',300,2480,'f','y','Evening nudge','Radial dial sets your time.','Installable app, works offline.','bell',
  'A mechanical-style dial sets your nightly reminder time. The installed PWA opens like a native app and runs without internet, and the reminder pulls you back to step one.',
  'Habits need a cue. A gentle nudge at the same time each night builds the routine for you.','RadialClockPicker, NotificationOptInModal, PWA service worker'],
-['f5',1000,2480,'f','l','Tested and scriptable','14 audit suites, 65 parts.','CLI and procedural sound.','check',
- 'Fourteen automated audit suites check 65 components of the app: navigation, calendar, analytics, dossier, wallpapers, stickers, habits, settings, audio, rate limiting, invariants, DPDPA, sanctuary and JSX static imports. A terminal command lets you log a verdict without opening the app, and a procedural sound engine gives each rating its own click or chime.',
- 'Trust is a feature. A tool you rely on every night must not break, so it checks itself before it ever reaches you.','npm run audit, 68 tests passing, bin/verdict.js, soundEngine.js'],
-['f6',1700,2480,'f','m','Built with','React 19, Vite 6, Tailwind v4.','Express, Gemini, Firebase.','stack',
- 'A React 19 and Vite 6 frontend with Tailwind v4 and Framer Motion for spring physics. A small Express server talks to the Gemini flash-lite model. Firebase handles sign-in and cloud backup, while the local-first engine keeps your data on your device.',
- 'Light, open tools keep the app fast on any phone and keep your data in your hands.','React 19, Vite 6, Tailwind v4, Express, Gemini, Firebase'],
-['a1',1000,3200,'ai','l','Diary ghostwriter','Tired notes become your story.','Your facts, your voice.','pen',
- 'Built into the journaling box. When you are too tired to write, rough fragments, shorthand or voice transcripts become vivid first-person prose ("I felt...", "I held the line..."). Real names, facts and events are preserved without inventing stories, and the AI mirrors your voice: pure English or natural Hinglish.',
- 'Cognitive friction is why people quit habit tracking. Taking away the effort of writing well keeps the habit alive on the hardest nights.','Gemini ghostwriter, language isolation, no-invention rule'],
+['f5',1000,2480,'f','l','Tested and scriptable','14 audit suites, 67 parts.','CLI and procedural sound.','check',
+ 'Fourteen automated audit suites check 67 components of the app: navigation, calendar, analytics, dossier, wallpapers, stickers, habits, settings, audio, rate limiting, invariants, DPDPA, sanctuary and JSX static imports. A terminal command lets you log a verdict without opening the app, and a procedural sound engine gives each rating its own click or chime.',
+ 'Trust is a feature. A tool you rely on every night must not break, so it checks itself before it ever reaches you.','npm run audit, 69 checks passing, bin/verdict.js, soundEngine.js'],
+['f6',1700,2480,'f','m','Built with','React 19, Vite 6, Tailwind v4.','Express, Qwen, Gemini, Firebase.','stack',
+ 'A React 19 and Vite 6 frontend with Tailwind v4 and Framer Motion for spring physics. A small Express server keeps traffic fair with rate limits, and AI polish runs on private Sovereign Qwen or Gemini, your choice. Firebase handles sign-in and cloud backup, while the local-first engine keeps your data on your device.',
+ 'Light, open tools keep the app fast on any phone and keep your data in your hands.','React 19, Vite 6, Tailwind v4, Express, Qwen 2.5, Gemini, Firebase'],
+['a1',1000,3200,'ai','l','Ghostwriter: you are the author','Dump raw, messy notes.','AI mirrors your own voice.','pen',
+ 'The user must write their own authentic thoughts first—even if it is just tired shorthand, voice notes, or messy bullet points. The AI never fabricates or invents fake stories. It acts as an editorial mirror: elevating your raw notes into vivid first-person prose ("I held the line...") while preserving 100% of your real events, facts, names, and feelings.',
+ 'Reflection without the friction of writing well. Taking away the effort of prose composition keeps the habit alive on the hardest, most exhausting nights, while keeping the user as the true author.','Human-in-the-loop reflection, zero hallucination rule, language isolation (pure English or natural Hinglish).'],
 ['a2',1700,3200,'ai','y','Five mental lenses','Pick how the AI sees your day.','Stoic, root causes, or your own.','sphere',
  'Switchable frameworks tell the AI how to frame your day: Auto Polish for natural flow, Tactical Stoic Dossier for ownership without self-pity, Root Causes to find the exact catalyst behind a win or a loss, Action Bullets to turn mental clutter into takeaways, or a Custom Lens built on your own philosophy.',
  'People reflect in different ways. Changing the lens, not the app, lets one mirror serve a student, an athlete or a stoic.','Tactical AI directives, custom lens prompt'],
@@ -210,13 +210,34 @@ const D=[
  'Every AI model carries a hard boundary: it is an introspective mirror and accountability mentor. It never poses as a medical professional, never diagnoses, never prescribes treatment, and if severe crisis patterns appear it points the user to certified human healthcare professionals.',
  'Trust and safety. Responsible AI knows what it is not, which protects the people who use it.','Non-clinical guardrail across all AI prompts'],
 ['a7',300,3950,'ai','y','Limits and next steps','AI helps, it does not replace you.','Honest limits, then what is next.','compass',
- 'The AI can misread tone or miss context, so every output is a draft you can edit. AI features need a connection to reach Gemini, and only the text you choose is sent. The slump trigger is a fixed rule on ratings, so it cannot see what you never log.',
- 'Naming limits builds trust, and a clear roadmap shows where the project goes next.','Fixed slump rule, draft-only AI output, connection required']];
+ 'The AI can misread tone or miss context, so every output is a draft you can edit. AI features need a connection to reach your chosen engine, and only the text you choose is sent. The slump trigger is a fixed rule on ratings, so it cannot see what you never log.',
+ 'Naming limits builds trust, and a clear roadmap shows where the project goes next.','Fixed slump rule, draft-only AI output, connection required'],
+['s1',300,4700,'ai','l','Pick your AI engine','Sovereign Qwen or Gemini.','One tap, in the diary editor.','lens',
+ 'A tactile switcher chip in the diary editor lets you choose the engine behind your reflection: Sovereign Qwen 2.5 or Google Gemini. Gemini is used only when you switch to it yourself.',
+ 'You decide where your words go. The choice is visible, one tap, and never made for you behind the scenes.','Engine selector chip, diary editor'],
+['q1',1000,4700,'ai','m','Private Qwen lane','Dedicated private container.','Away from big-tech brokers.','cloud',
+ 'With Sovereign Qwen 2.5 selected, your request goes straight to a Dedicated Private ZeroGPU Container (Isolated Ephemeral Compute). Your reflection runs on dedicated cloud infrastructure, away from commercial big-tech brokers.',
+ 'Your words are handled on a private machine kept for this job, not on a shared platform run by a big company.','Dedicated Private ZeroGPU Container, Isolated Ephemeral Compute, Qwen 2.5'],
+['q2',1700,4700,'ai','c','Ephemeral in-memory compute','Read in temporary memory only.','Wiped as soon as it replies.','loop',
+ 'The model reads your diary text only in temporary GPU memory, then flushes it the moment the reply is sent. Nothing is written to disk and nothing is kept.',
+ 'If nothing is saved, nothing can leak. Your entry exists only for the few seconds it takes to answer.','Ephemeral in-memory compute, volatile GPU RAM, zero disk writes, zero retention'],
+['q3',2400,4700,'ai','m','Zero data tracking','Never stored. Never logged.','Never used to train a model.','shield',
+ 'Diary reflections sent down the Sovereign lane are never stored, never logged, and never used for model training.',
+ 'Honest journaling needs a promise, not a hope. Nothing you write becomes someone elses dataset.','Zero retention: no storage, no logging, no training'],
+['q4',3100,4700,'ai','r','Strict isolation gate','Error? A retry notice.','Never falls back to Google.','lock',
+ 'If the Qwen space errors or is still waking up, the app fails gracefully with a retry notice. It never switches to Google Cloud on its own, so private reflections are never leaked to third-party big-tech servers.',
+ 'Many apps quietly fall back to another provider when something breaks. Here a failure costs you a retry, never your privacy.','Graceful failure, retry notice, no automatic cloud fallback'],
+['g1',300,5450,'ai','y','Gemini, only if you switch','Key fetched from Firestore.','Called straight from your device.','cloud',
+ 'Only when you manually switch to Google Gemini, the app fetches the Gemini API key from Firebase Firestore (config/gemini) and calls Gemini directly from your own device for quick text polishing.',
+ 'You get the quick standard lane when you want it, and it is always a separate, deliberate choice from the private one.','Firestore config/gemini, client-side Gemini call'],
+['t1',1000,5450,'f','c','Keys kept in the vault','Tokens live in Firestore.','Whitelisted sign-ins only.','disk',
+ 'The Hugging Face and Gemini tokens are stored privately in Firebase Firestore under /config/ and can be read only by whitelisted, authenticated users. No API key sits in GitHub or in environment variables.',
+ 'A leaked repository cannot leak a key that was never in it.','Firestore /config/, Firebase Auth whitelist, no keys in repo or env']];
 const FACTS={
 n1:['Installs as an app on Android, iOS and desktop','Under 768px you get a 4-tab app: Today, History, Dossier, Settings','Terminal fans can log with one command'],
 n2:['Rough, Down, Okay, Good, Peak','Mascots: Cooked Goblin, Low-Battery Zombie, Stoic Sustainer, Flow Warrior Beast, God Mode Demon','Every tier carries a one-line directive'],
-n3:['Spheres: Work and School, Home and Sanctuary, Social and Events, plus your own','Habit modes: Checklist, Hybrid 50/50, Deterministic 100%','Example: 4, 1 and 3 stars blend to 2.7, Okay'],
-n4:['Modes: Auto-match, English only, Hinglish','Full prompt breakdown lives in the AI brain'],
+n3:['Spheres: Work and School, Home and Sanctuary, Social and Events, plus your own','Habit modes: Checklist, Hybrid 50/50, Deterministic 100%','Example: 4, 1 and 3 stars blend to 2.7, Okay','Unified day or Sphere mode, never both at once'],
+n4:['User writes their real day first; AI never fabricates fake entries','Always first-person prose: keeps 100% of user facts, names, and feelings','Every output is a draft that the user can edit or discard'],
 n5:['Trigger: 2 consecutive Rough days','Follows a Stoic recovery protocol','Mascot and quote change with every tier'],
 n6:['Rating and notes save instantly to localStorage','Signed-in users also sync in the background','No spinner, no lost entry offline'],
 n7:['Story poster 1080 x 1920 or feed card 1080 x 1080','Generate right after daily verdict save','Upload your own PNG sticker; lossless PNG export'],
@@ -224,20 +245,27 @@ n8:['Month grid with filter chips','7-day strip on desktop, timeline on mobile',
 n9:['Hit rate and streak counter','Weekday velocity and slump curves','Domain averages: Work vs Home vs Social'],
 n10:['Weekday chart and friction % are stats and keywords, not AI','Cached per language, reopens instantly','Full dossier breakdown lives in the AI brain'],
 n11:['Small honest logs compound over months','Streaks and patterns show what really works','Recovery gets faster with every bad day survived'],
-f1:['Keys: goodness_db_guest or goodness_db_uid','Logout reloads the page and flushes memory','Works fully offline'],
-f2:['Google sign-in with Firestore backup','The save gives up waiting after 4 seconds','Queued writes never block the screen'],
-f3:['Optional PIN protects diary text','cipherEngine handles the encryption','Without the PIN, stored text is unreadable'],
+f1:['Keys: goodness_db_guest or goodness_db_uid','Logout reloads the page and flushes memory','Works fully offline','Your rights: export to CSV, JSON or Markdown, or erase everything (7-day cooling-off)'],
+f2:['Google sign-in with Firestore backup','The save gives up waiting after 4 seconds','Queued writes never block the screen','Extra safety copies: auto file backup to your laptop, device-to-device transfer'],
+f3:['Optional PIN protects diary text','Strong AES-256 locking, with a key built from your PIN','Without the PIN, stored text is unreadable'],
 f4:['Dial: hour, auto-jump to minute, then AM or PM','Local reminder schedule, no battery drain','Installed app works without internet'],
-f5:['14 suites: navigation, calendar, analytics, dossier, studio, stickers, habits, settings, audio, auth, DPDPA, sanctuary, invariants, JSX','Run any time with npm run audit (68 tests passing)','Log from terminal: node bin/verdict.js 5 "notes"'],
-f6:['Frontend: React 19, Vite 6, Tailwind v4, Framer Motion','Backend: Node and Express; AI: Gemini flash-lite','Cloud: Firebase Auth and Firestore'],
-a1:['Always first person: I, my, myself','Keeps 100% of names, facts and events','Mirrors pure English or Hinglish'],
+f5:['14 suites: navigation, calendar, analytics, dossier, studio, stickers, habits, settings, audio, auth, DPDPA, sanctuary, invariants, JSX','Run any time with npm run audit (69 checks passing)','Log from terminal: node bin/verdict.js 5 "notes"'],
+f6:['Frontend: React 19, Vite 6, Tailwind v4, Framer Motion','Backend: Node and Express; AI: Sovereign Qwen 2.5 or Gemini','Cloud: Firebase Auth and Firestore'],
+a1:['User writes their real day first; AI never fabricates fake entries','Always first-person prose: keeps 100% of user facts, names, and feelings','Every output is a draft that the user can edit or discard'],
 a2:['Auto Polish, Tactical Stoic Dossier, Root Causes, Action Bullets','Custom Lens: bring your own philosophy','Same diary, different way of seeing it'],
-a3:['Triggered by a Rough (1 star) or Down (2 star) rating','Diagnosis, 3 multiple-choice questions, 1 antidote','Built to avoid shame and denial'],
+a3:['Triggered by a Rough (1 star) or Down (2 star) rating','Diagnosis, 3 questions, 1 antidote','Built to avoid shame and denial'],
 a4:['Written on a 5-star God Mode day','AI watches for consecutive rough days','Unlocks your own letter at your lowest'],
 a5:['Archetype, Homie letter, domino cascades, four-act chronicle','Hidden correlations and 3 directives for next month','Fights recency bias with a 30-day view'],
-a6:['Never claims to be a medical professional','No diagnoses, no treatment advice','Severe crisis patterns: refer to certified professionals'],
-a7:['Limit: AI output is a draft, you stay the author','Limit: AI features need a connection','Next: more languages beyond English and Hinglish','Next: a weekly digest next to the monthly dossier']};
-const PL={n1:'b',n2:'b',n3:'b',n4:'b',n5:'b',n7:'a',n8:'a',n9:'a',n10:'a',n11:'b',f2:'b',f3:'l',f4:'b',f5:'b',a1:'b',a2:'b',a3:'b',a4:'b',a5:'b',a6:'b',a7:'b'};
+a6:['Never claims to be a medical professional','No diagnoses, no treatment advice','Severe crisis patterns: refer to certified professionals','AI has no write access to ratings, streaks or habit scores'],
+a7:['Limit: AI output is a draft, you stay the author','Limit: AI features need a connection','Next: more languages beyond English and Hinglish','Next: a weekly digest next to the monthly dossier'],
+s1:['Chips: Sovereign Qwen 2.5 and Google Gemini','Gemini runs only when you switch manually','Lives in the diary editor'],
+q1:['Dedicated private ZeroGPU container','Isolated, ephemeral compute','Away from commercial big-tech brokers'],
+q2:['Processed in temporary GPU memory only','Flushed the moment it replies','Zero disk writes, zero retention'],
+q3:['Never stored','Never logged','Never used for model training'],
+q4:['Error or waking up: graceful retry notice','No automatic fallback to Google Cloud','Private reflections never reach third-party servers'],
+g1:['API key fetched from Firestore config/gemini','Called directly from your own device','Used only after a manual switch'],
+t1:['Hugging Face and Gemini tokens in Firestore /config/','Readable by whitelisted authenticated users only','No keys in GitHub or environment variables']};
+const PL={n1:'b',n2:'b',n3:'b',n4:'b',n5:'b',n7:'a',n8:'a',n9:'a',n10:'a',n11:'b',f2:'b',f3:'l',f4:'b',f5:'b',a1:'b',a2:'b',a3:'b',a4:'b',a5:'b',a6:'b',a7:'b',s1:'a',q3:'b',q4:'b',t1:'b'};
 const N=D.map((a,i)=>({i,id:a[0],x:a[1],y:a[2],k:a[3],col:C[a[4]],t:a[5],s:[a[6],a[7]],ic:a[8],does:a[9],why:a[10],tech:a[11],w:a[0]=='n11'?460:380,pl:PL[a[0]]||'',h:150,sc:1,vs:0,ang:0,va:0,rv:1,sh:[]}));
 const byId=Object.fromEntries(N.map(n=>[n.id,n]));
 const NRM={l:[-1,0],r:[1,0],t:[0,-1],b:[0,1]};
@@ -255,13 +283,13 @@ function hach(n){const r=mul(n.i+9),P=new Path2D,h=n.h/2,w=n.w/2;for(let x=-w-h;
 N.forEach(n=>n.hz=hach(n));
 
 /* ---------- edges ---------- */
-const E=[];
+const E=[],SOV=new Set(['s1','q1','q2','q3','q4','g1','t1']);
 function mk(a,b,sa,sb,l1,l2,d1=0,d2=0,dash=0){
  a=byId[a];b=byId[b];const A=anc(a,sa,d1),B=anc(b,sb,d2),n1=NRM[sa],n2=NRM[sb],
  c1=[A[0]+n1[0]*l1,A[1]+n1[1]*l1],c2=[B[0]+n2[0]*l2,B[1]+n2[1]*l2],base=[];
  for(let i=0;i<=60;i++){const t=i/60,u=1-t;base.push([u*u*u*A[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*B[0],u*u*u*A[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*B[1]])}
  let len=0;for(let i=1;i<=60;i++)len+=Math.hypot(base[i][0]-base[i-1][0],base[i][1]-base[i-1][1]);
- const e={a,b,base,len,dash,halo:dash?C.m:(a.k=='ai'||b.k=='ai')?C.l:C.y,sh:[]},ang=Math.atan2(B[1]-base[57][1],B[0]-base[57][0]);
+ const e={a,b,base,len,dash,halo:SOV.has(b.id)?(dash?C.c:C.m):dash?C.m:(a.k=='ai'||b.k=='ai')?C.l:C.y,sh:[]},ang=Math.atan2(B[1]-base[57][1],B[0]-base[57][0]);
  for(let k=0;k<3;k++){const r=mul(E.length*53+k*7+3),P=[new Path2D,new Path2D,new Path2D];
   [0,1].forEach(pi=>{const q=base.filter((p,i)=>i%3==0||i==60).map((p,i,arr)=>i==0||i==arr.length-1?p:[p[0]+(r()-.5)*7,p[1]+(r()-.5)*7]);sm(q,P[pi]);
    [-.5,.5].forEach(s=>{P[2].moveTo(B[0]+(r()-.5)*3,B[1]+(r()-.5)*3);P[2].lineTo(B[0]-24*Math.cos(ang+s)+(r()-.5)*4,B[1]-24*Math.sin(ang+s)+(r()-.5)*4)})});
@@ -273,6 +301,8 @@ mk('n10','n11','b','t',260,200);mk('n11','n1','l','l',1970,610,0,-30);
 mk('n6','f1','b','t',400,400,0,0,1);mk('f1','f2','l','r',130,130,0,0,1);mk('f3','f1','t','b',150,150,0,0,1);
 mk('f4','n1','l','l',1010,1010,0,30,1);mk('f4','f5','r','l',130,130,0,0,1);mk('f5','f6','r','l',130,130,0,0,1);
 mk('f6','a1','b','t',200,200);mk('a1','a2','r','l',130,130);mk('a2','a3','r','l',130,130);mk('a3','a4','r','r',260,260);mk('a4','a5','l','r',130,130);mk('a5','a6','l','r',130,130);mk('a6','a7','l','r',130,130);
+mk('a7','s1','l','l',260,260);mk('s1','q1','r','l',130,130);mk('q1','q2','r','l',130,130);mk('q2','q3','r','l',130,130);mk('q3','q4','r','l',130,130);
+mk('s1','g1','b','t',200,200);mk('t1','q1','t','b',200,200,0,0,1);mk('t1','g1','l','r',130,130,0,0,1);
 
 /* ---------- static title art ---------- */
 const stars=[['#FF4D4D'],['#FF8A00'],['#CBD5E1'],['#00E599'],['#FDC800']];
@@ -352,7 +382,7 @@ const DECO={
   for(let i=1;i<=12;i++){const a=i/12*6.283-1.57;T(String(i),cx+Math.cos(a)*50,cy+Math.sin(a)*50+7,F(700,20),INK,'center')}
   const hA=10/12*6.283,mA=47/60*6.283,a=(m?mA:hA)*e+(m?hA:mA)*(1-e)-1.57;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*36,cy+Math.sin(a)*36);ctx.lineWidth=5*lw;ctx.strokeStyle=INK;ctx.stroke();
   ctx.beginPath();ctx.arc(cx,cy,6,0,6.3);ctx.fillStyle=INK;ctx.fill();T(m?'10:47 PM':'10: --',x+210,y+128,F(700,40),INK);T(m?'minute mode':'hour mode',x+210,y+166,F(500,24),'#555')},
- f5:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'14 audit suites',23);for(let i=0;i<14;i++){const bx=x+20+(i%7)*54,by=y+64+((i/7)|0)*56,on=(tNow*1.6)%18>i;rb(bx,by,46,40,on?C.m+'99':'#fff',24+i);if(on)tick(bx+23,by+20)}T('65 components • 68 tests passing',x+24,y+206,F(500,24),'#555')},
+ f5:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'14 audit suites',23);for(let i=0;i<14;i++){const bx=x+20+(i%7)*54,by=y+64+((i/7)|0)*56,on=(tNow*1.6)%18>i;rb(bx,by,46,40,on?C.m+'99':'#fff',24+i);if(on)tick(bx+23,by+20)}T('67 components • 69 checks passing',x+24,y+206,F(500,24),'#555')},
  a1:n=>{const x=OX(n),y=OB(n),M=F(500,20);panel(x,y,420,230,'Raw to polished',50);rb(x+24,y+62,170,72,'#fff',51);T('tired, skipped gym,',x+36,y+92,M,INK);T('mom call, exam...',x+36,y+118,M,INK);ar(x+204,y+98,x+240,y+98);rb(x+250,y+62,146,72,C.l+'88',52);T('I held the line',x+262,y+92,M,INK);T('and called mom.',x+262,y+118,M,INK);
   [['Facts kept',C.m],['Voice mirrored',C.c]].forEach((r,i)=>{rb(x+24+i*196,y+158,186,44,r[1]+'88',53+i);tick(x+46+i*196,y+180);T(r[0],x+68+i*196,y+187,F(700,21),INK)})},
  a2:n=>{const x=OX(n),y=OB(n);panel(x,y,420,250,'Five mental lenses',54);[['Auto Polish',C.c],['Tactical Stoic Dossier',C.y],['Root Causes',C.m],['Action Bullets',C.r],['Custom Lens',C.l]].forEach((r,i)=>{rb(x+24,y+58+i*38,372,32,r[1]+'88',55+i);T(r[0],x+42,y+81+i*38,F(700,22),INK)})},
@@ -364,7 +394,15 @@ const DECO={
   ['scroll','sleep','fog','crash'].forEach((t,i)=>{rb(x+24+i*100,y+120,74,44,i==3?C.r+'99':'#fff',72+i);T(t,x+61+i*100,y+149,F(700,21),INK,'center');if(i<3)ar(x+100+i*100,y+142,x+122+i*100,y+142)});
   T('domino cascade: find the circuit breaker',x+210,y+196,F(700,22),INK,'center');T('four-act chronicle + 3 directives',x+210,y+228,F(500,21),'#555','center')},
  a7:n=>{const x=OX(n),y=OB(n);panel(x,y,420,230,'Honest limits',90);['Can misread tone, so edit it','AI needs a connection','Rules only see what you log'].forEach((t,i)=>{const yy=y+60+i*44;rb(x+24,yy,372,36,C.r+'55',91+i);T('!',x+44,yy+27,F(700,26),INK,'center');T(t,x+68,yy+27,F(700,22),INK)});ar(x+24,y+212,x+80,y+212);T('then: the roadmap',x+92,y+220,F(700,22),INK)},
- a6:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'Strict boundaries',80);['Never poses as a doctor','Never diagnoses or prescribes','Crisis? Points to real help'].forEach((t,i)=>{const yy=y+62+i*52;rb(x+24,yy,372,42,C.m+'66',81+i);tick(x+50,yy+21);T(t,x+84,yy+29,F(700,23),INK)})}};
+ a6:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'Strict boundaries',80);['Never poses as a doctor','Never diagnoses or prescribes','Crisis? Points to real help'].forEach((t,i)=>{const yy=y+62+i*52;rb(x+24,yy,372,42,C.m+'66',81+i);tick(x+50,yy+21);T(t,x+84,yy+29,F(700,23),INK)})},
+ s1:n=>{const x=OX(n),y=OA(n),o=Math.floor(tNow/2.6)%2;panel(x,y,420,230,'Engine switcher',100);
+  [['Sovereign','Qwen 2.5',C.m],['Google','Gemini',C.y]].forEach((r,i)=>{const on=o==i,xx=x+24+i*192;rb(xx,y+62+(on?0:6),180,on?84:78,on?r[2]:'#fff',101+i);T(r[0],xx+90,y+98,F(700,24),INK,'center');T(r[1],xx+90,y+128,F(700,24),INK,'center')});
+  T(o?'standard lane':'zero-tracking lane',x+210,y+186,F(700,26),o?'#9a7a00':'#0a8f5f','center');T('one tap in the diary editor',x+210,y+216,F(500,21),'#555','center')},
+ q3:n=>{const x=OX(n),y=OB(n);panel(x,y,420,220,'Zero tracking',104);['Never stored','Never logged','Never used for training'].forEach((t,i)=>{const yy=y+62+i*50;rb(x+24,yy,372,40,C.m+'66',105+i);tick(x+50,yy+20);T(t,x+84,yy+28,F(700,23),INK)})},
+ q4:n=>{const x=OX(n),y=OB(n);panel(x,y,420,230,'Isolation gate',108);rb(x+24,y+62,150,62,C.r+'99',109);T('Qwen error',x+99,y+90,F(700,22),INK,'center');T('or waking up',x+99,y+114,F(500,20),INK,'center');ar(x+180,y+93,x+220,y+93);rb(x+226,y+62,170,62,C.y,110);T('Retry notice',x+311,y+101,F(700,24),INK,'center');
+  rb(x+24,y+150,372,46,'#fff',111);T('Fallback to Google Cloud',x+44,y+181,F(700,22),'#777');ctx.beginPath();ctx.moveTo(x+34,y+176);ctx.lineTo(x+386,y+168);ctx.lineWidth=5*lw;ctx.strokeStyle=C.r;ctx.stroke();T('never automatic',x+210,y+220,F(700,21),'#D13030','center')},
+ t1:n=>{const x=OX(n),y=OB(n);panel(x,y,420,240,'Firestore /config/',112);['config/gemini','config/ Hugging Face token'].forEach((t,i)=>{rb(x+24,y+62+i*50,372,40,C.c+'88',113+i);T(t,x+42,y+89+i*50,M18,INK)});
+  rb(x+24,y+166,372,40,C.m+'77',115);tick(x+50,y+186);T('whitelisted sign-ins only',x+84,y+194,F(700,22),INK);T('no keys in GitHub or env vars',x+210,y+230,F(500,21),'#555','center')}};
 const DOOD=[['moon',420,820,'y'],['star',760,790,'m'],['spark',1060,860,'l'],['heart',2450,820,'r'],['bulb',2800,800,'y'],['star',1200,150,'y'],['spark',1650,110,'l'],['moon',2050,170,'c'],
  ['star',2300,1480,'m'],['heart',2600,1570,'r'],['bulb',2850,1470,'y'],['moon',2300,1800,'c'],['spark',2550,1950,'l'],['cloud',2850,2030,'c'],['bell',2300,2200,'y'],
  ['shield',3300,3300,'m'],['spark',3600,3480,'l'],['lens',3350,3800,'r'],['pen',3650,4000,'c']];
@@ -374,15 +412,18 @@ function deco(n){const f=DECO[n.id];if(f&&n.rv>.02){ctx.save();ctx.globalAlpha=n
 
 /* ---------- state / input ---------- */
 let mmPin=false,bigEnd=false,sheetOn=null,mmShown=null,hintV=-1,hov=null,note=null,last=0,lw=1,fo=null,tNow=0,mode='over',cur=0,TW=null,auto=false,arriveAt=0;
-const TOUR=['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10','n11','f1','f2','f3','f4','f5','f6','a1','a2','a3','a4','a5','a6','a7'],TI=Object.fromEntries(TOUR.map((id,i)=>[id,i])),seen=new Set();
+const TOUR=['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10','n11','f1','f2','f3','f4','f5','f6','a1','a2','a3','a4','a5','a6','a7','s1','q1','q2','q3','q4','g1','t1'],TI=Object.fromEntries(TOUR.map((id,i)=>[id,i])),seen=new Set();
 const noteEl=document.getElementById('note');
-const AL=['INPUT','LENS','MODEL','GUARDRAIL','OUTPUT'],MORE={n4:'a1',n10:'a5'},ACT={0:['ACT I','The Evening','#FFB454'],11:['ACT II','Quiet Protection','#00E5C8'],17:['ACT III','The AI Brain','#B388FF']},
-AIP={a1:['Rough fragments or a voice transcript','Language isolation + no-invention rule','Gemini flash-lite','Keeps every name, fact and feeling','A first-person diary entry'],
+const AL=['INPUT','LENS','MODEL','GUARDRAIL','OUTPUT'],MORE={n4:'a1',n10:'a5'},ACT={0:['ACT I','The Evening','#FFB454'],11:['ACT II','Quiet Protection','#00E5C8'],17:['ACT III','The AI Brain','#B388FF'],24:['ACT IV','Sovereign AI','#00E599']},
+AIP={a1:['Rough fragments or a voice transcript','Language isolation + no-invention rule','Sovereign Qwen 2.5 or Gemini, your pick','Keeps every name, fact and feeling','A first-person diary entry'],
 a2:['Your day, plus the lens you pick','Lens = a tactical directive (Stoic, Root Causes, your own)','Gemini flash-lite','Ownership without self-pity','The same day, framed differently'],
 a3:['A Rough or Down rating and your notes','Forensic triage protocol','Gemini flash-lite','Calm tone, built to avoid shame','Diagnosis, 3 questions, 1 antidote'],
 a4:['A letter you wrote on a 5-star day','Impartial escrow-guardian instruction','Gemini watches for slump patterns','Locked until consecutive rough days','Your own words, when you need them'],
 a5:['30 days of verdicts, spheres and notes','Synthesis prompt, cached per language','Gemini flash-lite','Charts and percentages stay stats, not AI','Archetype, letter, cascades, 3 directives'],
-a6:['Every AI prompt in the app','Hard non-clinical boundary','Applied to all models','No diagnosis, no treatment advice','Crisis signs: points to certified professionals']};
+a6:['Every AI prompt in the app','Hard non-clinical boundary','Applied to all models','No diagnosis, no treatment advice','Crisis signs: points to certified professionals'],
+q1:['Your rough diary text','Your chosen lens','Qwen 2.5 in a dedicated private container','Zero storage, logging or training','A polished reflection, kept private'],
+q2:['Your rough diary text','Your chosen lens','Temporary GPU memory only','Wiped as soon as it replies','A reflection sent back to you'],
+g1:['Your rough diary text','Your chosen lens','Google Gemini, called client-side','Used only after a manual switch','A polished reflection']};
 function extra(n){const p=noteEl.querySelector('.aip'),m=noteEl.querySelector('.more'),d=AIP[n.id],t=MORE[n.id];p.innerHTML=d?'<h3>How the AI works</h3>'+d.map((x,i)=>'<div class="st" style="--d:'+(i*.12+.3)+'s"><b>'+AL[i]+'</b><span>'+x+'</span></div>').join(''):'';
  m.style.display=t?'block':'none';if(t){m.textContent='Deep dive: '+byId[t].t+' →';m.onclick=()=>go(TI[t])}}
 let AU=null,sndOn=false;const ROOT={u:55,f:61.74,ai:49};
@@ -409,11 +450,11 @@ function poke(sx,sy){const[w,h]=toW(sx,sy);if(w>-180&&w<560&&h>30&&h<150)egg('pa
 function eggs(){ctx.setTransform(DPR,0,0,DPR,0,0);lw=1.3;ctx.lineJoin=ctx.lineCap='round';EG=EG.filter(g=>tNow-g.t0<g.d);EG.forEach(g=>{const p=(tNow-g.t0)/g.d;ctx.save();ctx.globalAlpha=Math.min(1,p*8,(1-p)*8);g.f(p,tNow-g.t0);ctx.restore()})}
 const actEl=document.getElementById('act');
 function act(i){const a=ACT[i];if(!a||reduce)return;actEl.querySelector('small').textContent=a[0];actEl.querySelector('b').textContent=a[1];actEl.style.setProperty('--c',a[2]);actEl.classList.remove('on');void actEl.offsetWidth;actEl.classList.add('on')}
-const whoHTML=()=>'<button class="btn cl">Close</button><h2>Who does what</h2><p class="sub">Not everything smart is AI. Honest labels build trust.</p>'+[['RULES','Fixed logic, always the same','2 Rough days trigger the recovery screen. 4 second sync timeout. PIN encryption. Composite score blend.'],['STATISTICS','Counting, no model','Streak, hit rate, weekday chart, friction % from keywords.'],['GENERATIVE AI','Gemini flash-lite writes','Ghostwriter, five lenses, Autopsy Chamber, Time-lock capsule, monthly dossier.']].map(r=>'<div class="row" style="grid-template-columns:130px 1fr"><b>'+r[0]+'</b><div><b style="font-size:20px">'+r[1]+'</b><br><span>'+r[2]+'</span></div></div>').join('')+'<p class="foot">Sent to Gemini: only the text you choose for AI features, through the small Express server. Backed up to Firestore: only if you sign in. Otherwise your diary stays on your device.</p>';
+const whoHTML=()=>'<button class="btn cl">Close</button><h2>Who does what</h2><p class="sub">Not everything smart is AI. Honest labels build trust.</p>'+[['RULES','Fixed logic, always the same','2 Rough days trigger the recovery screen. 4 second sync timeout. PIN encryption. Composite score blend.'],['STATISTICS','Counting, no model','Streak, hit rate, weekday chart, friction % from keywords.'],['GENERATIVE AI','Your chosen AI engine writes','Ghostwriter, five lenses, Autopsy Chamber, Time-lock capsule, monthly dossier.']].map(r=>'<div class="row" style="grid-template-columns:130px 1fr"><b>'+r[0]+'</b><div><b style="font-size:20px">'+r[1]+'</b><br><span>'+r[2]+'</span></div></div>').join('')+'<p class="foot">Sent to an AI engine: only the text you choose, and only to the engine you pick. Sovereign Qwen keeps nothing; Gemini is used only when you switch to it. Backed up to Firestore: only if you sign in. Otherwise your diary stays on your device.</p>';
 const toS=(x,y)=>[x*cam.k+cam.x,y*cam.k+cam.y],toW=(x,y)=>[(x-cam.x)/cam.k,(y-cam.y)/cam.k];
 const pick=(sx,sy)=>{const[w,h]=toW(sx,sy);for(let i=N.length-1;i>=0;i--){const n=N[i];if(Math.abs(w-n.x)<n.w/2&&Math.abs(h-n.y)<n.h/2)return n}return null};
 function setHover(n){if(n&&n!==hov){n.vs+=1.6;n.va+=(Math.random()<.5?-1:1)*2.2}hov=n;cv.classList.toggle('hov',!!n)}
-function targetFor(i){if(i<0)return{cx:1425,cy:2150,k:Math.min(W/4150,H/4330)*.97,sx:W/2,sy:H/2};
+function targetFor(i){if(i<0)return{cx:1425,cy:2950,k:Math.min(W/4150,H/5900)*.97,sx:W/2,sy:H/2};
  const n=byId[TOUR[i]],wide=W>900,pl=n.pl;return{cx:n.x,cy:n.y,k:Math.min(n.id=='f3'?.85:1.25,W*(wide?.34:.8)/n.w,H*.78/410),sx:n.id=='f3'?W*.64:wide?W*.34:W/2,
  sy:wide?(pl=='b'?H*.3:pl=='a'?H*.7:H*.5):(pl=='b'?H*.16:pl=='a'?H*.38:H*.3)}}
 function fit(){const t=targetFor(-1);cam.k=t.k;cam.x=t.sx-t.cx*t.k;cam.y=t.sy-t.cy*t.k}
@@ -462,7 +503,7 @@ fxSum.onclick=e=>{
  }
 };
 function openNote(n){note=n;sfx('chime');noteEl.style.setProperty('--ac',n.col);extra(n);if(fxAnim){fxAnim.cancel();fxAnim=null}fxEl.open=false;fxBody.style.height='';
- const nc=document.getElementById('ni').getContext('2d');nc.clearRect(0,0,52,52);nc.save();nc.translate(26,26);nc.scale(1.3,1.3);nc.beginPath();IC[n.ic](nc);nc.fillStyle=n.col;nc.fill();nc.lineWidth=2.2;nc.lineJoin=nc.lineCap='round';nc.strokeStyle=INK;nc.stroke();nc.restore();noteEl.querySelector('.tag').textContent=kind[n.k]+'  '+(TI[n.id]+1)+' / '+TOUR.length;noteEl.querySelector('h2').textContent=n.t;
+ const nc=document.getElementById('ni').getContext('2d');nc.clearRect(0,0,52,52);nc.save();ctx.translate(26,26);nc.scale(1.3,1.3);nc.beginPath();IC[n.ic](nc);nc.fillStyle=n.col;nc.fill();nc.lineWidth=2.2;nc.lineJoin=nc.lineCap='round';nc.strokeStyle=INK;nc.stroke();nc.restore();noteEl.querySelector('.tag').textContent=kind[n.k]+'  '+(TI[n.id]+1)+' / '+TOUR.length;noteEl.querySelector('h2').textContent=n.t;
  noteEl.querySelector('.do').textContent=n.does;const ul=noteEl.querySelector('.facts');ul.innerHTML='';(FACTS[n.id]||[]).forEach(f=>{const li=document.createElement('li');li.textContent=f;ul.appendChild(li)});noteEl.querySelector('.why').textContent=n.why;noteEl.querySelector('.tech').textContent='UNDER THE HOOD: '+n.tech;
  noteEl.classList.remove('on');void noteEl.offsetWidth;noteEl.classList.add('on')}
 function closeNote(){note=null;if(fxAnim){fxAnim.cancel();fxAnim=null}fxEl.open=false;fxBody.style.height='';noteEl.classList.remove('on')}
@@ -493,7 +534,7 @@ cv.addEventListener('wheel',e=>{e.preventDefault();setFree();zoomAt(e.clientX,e.
 const menuEl=document.getElementById('menu'),sheet=document.getElementById('sheet'),scrim=document.getElementById('scrim');
 const BIG=[['Too tired to write','Diary ghostwriter','pen','l','Your habit survives the hardest nights.'],['Shame after a bad day','Autopsy Chamber','lens','r','A calm diagnosis and one clear antidote.'],['Losing perspective in a slump','Time-lock capsule','lock','c','Your best self coaches your worst day.'],['Forgetting why last month happened','Executive dossier','mail','l','Thirty days of patterns and one circuit breaker.'],['Trust and safety','Ethical guardrail','shield','m','A mirror, never a doctor.']];
 const bigHTML=()=>'<button class="btn cl">Close</button><h2>The big picture</h2><p class="sub">Five everyday human problems, and the AI that answers each one.</p>'+BIG.map(r=>'<div class="row"><canvas width="52" height="52" data-ic="'+r[2]+'" data-c="'+C[r[3]]+'"></canvas><div><b>'+r[0]+'</b><i class="ar"></i><b>'+r[1]+'</b><br><span>'+r[4]+'</span></div></div>').join('')+
- '<p class="foot">Rules for safety, AI for language and insight. The slump trigger is a fixed rule; the weekday chart and friction percentages are statistics, not generative AI.</p><p class="foot">Your diary lives on your device. AI features send the text you choose to the Gemini API.</p>';
+ '<p class="foot">Rules for safety, AI for language and insight. The slump trigger is a fixed rule; the weekday chart and friction percentages are statistics, not generative AI.</p><p class="foot">Your diary lives on your device. AI features send only the text you choose to the engine you pick: private Sovereign Qwen or Gemini.</p>';
 const KEYS=[['Right / Down / Space','Next stop'],['Left / Up','Previous stop'],['Home / End','First or last stop'],['O','Overview'],['A','Auto-play'],['I','The big picture'],['M','Show minimap'],['F','Fullscreen'],['Esc','Close a note'],['E','Wake something up']];
 const helpHTML=()=>'<button class="btn cl">Close</button><h2>How to drive</h2>'+KEYS.map(r=>'<div class="kr"><span>'+r[0].split(' / ').map(k=>'<i class="k">'+k+'</i>').join('')+'</span><span>'+r[1]+'</span></div>').join('')+
  '<p class="foot">Drag or scroll to roam freely. On touch, swipe to move between stops.</p><p class="foot"><span class="lg"></span>Your evening &nbsp; <span class="lg a"></span>AI mentor steps &nbsp; <span class="lg q"></span>Quiet protection</p>';
@@ -535,11 +576,11 @@ function guide(){if(mode!='tour')return;let a,b,p,al=1;
  ctx.stroke();ctx.restore();
  bigArrow(q[0],q[1],an,al);
  if(!TW){const mid=R.pt(0.5),t='next: '+b.t;ctx.save();ctx.globalAlpha=al;ctx.font=F(700,26);ctx.textAlign='center';ctx.lineWidth=7;ctx.strokeStyle='#07080F';ctx.strokeText(t,mid[0],mid[1]-46);ctx.fillStyle=LT;ctx.fillText(t,mid[0],mid[1]-46);ctx.restore()}}
-const mm=document.getElementById('mm'),mx=mm.getContext('2d'),MS=200/4330;
+const mm=document.getElementById('mm'),mx=mm.getContext('2d'),MS=200/6000;
 mm.onclick=e=>{const r=mm.getBoundingClientRect(),wx=(e.clientX-r.left)/MS-650,wy=(e.clientY-r.top)/MS-20;let best=0,bd=1e9;N.forEach(n=>{const d=Math.hypot(n.x-wx,n.y-wy);if(d<bd){bd=d;best=n}});go(TI[best.id])};
 function drawMini(){mx.setTransform(2,0,0,2,0,0);mx.clearRect(0,0,200,200);mx.fillStyle='#0b0d1a';mx.fillRect(0,0,200,200);
  const X=x=>(x+650)*MS,Y=y=>(y+20)*MS,tr=mode=='tour';mx.font='700 8px ui-monospace,Menlo,monospace';mx.textAlign='left';
- [[0,2050,'255,170,80','EVENING'],[2050,3080,'0,229,200','QUIET'],[3080,4330,'179,136,255','AI BRAIN']].forEach(z=>{const g=mx.createLinearGradient(0,Y(z[0]),0,Y(z[1]));g.addColorStop(0,'rgba('+z[2]+',.15)');g.addColorStop(1,'rgba('+z[2]+',.03)');mx.fillStyle=g;mx.fillRect(0,Y(z[0]),200,Y(z[1])-Y(z[0]));mx.fillStyle='rgba('+z[2]+',.8)';mx.fillText(z[3],7,Y(z[1])-5)});
+ [[0,2050,'255,170,80','EVENING'],[2050,3080,'0,229,200','QUIET'],[3080,4330,'179,136,255','AI BRAIN'],[4330,6000,'0,229,153','SOVEREIGN']].forEach(z=>{const g=mx.createLinearGradient(0,Y(z[0]),0,Y(z[1]));g.addColorStop(0,'rgba('+z[2]+',.15)');g.addColorStop(1,'rgba('+z[2]+',.03)');mx.fillStyle=g;mx.fillRect(0,Y(z[0]),200,Y(z[1])-Y(z[0]));mx.fillStyle='rgba('+z[2]+',.8)';mx.fillText(z[3],7,Y(z[1])-5)});
  E.forEach(e=>{mx.beginPath();e.base.forEach((p,i)=>mx[i?'lineTo':'moveTo'](X(p[0]),Y(p[1])));mx.setLineDash(e.dash?[2,2]:[]);mx.strokeStyle=e.dash?'rgba(0,229,153,.6)':e.halo+'99';mx.lineWidth=1;mx.stroke()});mx.setLineDash([]);
  N.forEach(n=>{const c=tr&&n===byId[TOUR[cur]],w=Math.max(12,n.w*MS),h=8,x=X(n.x)-w/2,y=Y(n.y)-h/2;mx.save();mx.globalAlpha=unseenN(n)?.3:1;if(c||n===mmH){mx.shadowColor=n.col;mx.shadowBlur=12}mx.fillStyle=n.col;mx.fillRect(x,y,w,h);mx.shadowBlur=0;mx.lineWidth=1;if(n.k=='ai'){mx.setLineDash([2,1.5]);mx.strokeStyle='#fff'}else mx.strokeStyle='#0b0d1a';mx.strokeRect(x,y,w,h);mx.restore();
   if(c){mx.strokeStyle='#fff';mx.lineWidth=1.2;mx.beginPath();mx.arc(X(n.x),Y(n.y),9+2*Math.sin(tNow*5),0,6.3);mx.stroke()}});
@@ -569,7 +610,7 @@ function drawNode(n,b){
  if(n===fo){ctx.shadowColor=n.col;ctx.shadowBlur=60}ctx.fillStyle=PAPER;ctx.fill(s.cl);ctx.shadowBlur=0;ctx.fillStyle=n.col+'55';ctx.fill(s.cl);
  if(n===fo&&!reduce){ctx.save();ctx.clip(s.cl);const sx=((tNow*.45)%1.6-.3)*(n.w+160)-w-80,g=ctx.createLinearGradient(sx,0,sx+110,-60);g.addColorStop(0,'#fff0');g.addColorStop(.5,'#ffffff55');g.addColorStop(1,'#fff0');ctx.fillStyle=g;ctx.fillRect(-w-40,-h-40,n.w+80,n.h+80);ctx.restore()}
  ctx.save();ctx.clip(s.cl);ctx.strokeStyle=n.col;ctx.lineWidth=3;ctx.globalAlpha*=.85;ctx.stroke(n.hz);ctx.restore();
- if(n.k=='ai'){ctx.save();ctx.setLineDash([9,7]);ctx.strokeStyle=C.l;ctx.lineWidth=4;ctx.strokeRect(-w-14,-h-14,n.w+28,n.h+28);ctx.restore()}
+ if(n.k=='ai'||SOV.has(n.id)){ctx.save();ctx.setLineDash([9,7]);const sv=SOV.has(n.id),gc=n.i%2?C.c:C.m;if(sv){ctx.shadowColor=gc;ctx.shadowBlur=24+8*Math.sin(tNow*2.4+n.i)}ctx.strokeStyle=sv?gc:C.l;ctx.lineWidth=4;ctx.strokeRect(-w-14,-h-14,n.w+28,n.h+28);ctx.restore()}
  ctx.strokeStyle=INK;ctx.lineJoin=ctx.lineCap='round';ctx.lineWidth=3.4*lw;ctx.stroke(s.o[0]);ctx.lineWidth=2.2*lw;ctx.stroke(s.o[1]);
  {ctx.save();ctx.strokeStyle=n.col;ctx.lineWidth=3.5;ctx.lineCap='round';ctx.lineJoin='round';[[-1,1],[1,1]].forEach(([sx,sy])=>{const bx=sx*(w-12),by=sy*(h-12);ctx.beginPath();ctx.moveTo(bx-sx*24,by);ctx.lineTo(bx,by);ctx.lineTo(bx,by-sy*24);ctx.stroke()});ctx.restore();
   ctx.save();ctx.translate(-w*.15,-h);ctx.rotate(((n.i*37)%7-3)*.02);ctx.fillStyle=n.col+'99';ctx.fillRect(-36,-12,72,22);ctx.fillStyle='#ffffff30';for(let k=-30;k<34;k+=9)ctx.fillRect(k,-12,3,22);ctx.lineWidth=2;ctx.strokeStyle=INK;ctx.strokeRect(-36,-12,72,22);ctx.restore()}
@@ -712,6 +753,7 @@ function draw(t){
  T('GCERT RBVP Science Exhibition: how AI can ease mental fatigue and build resilient habits.',-160,226,F(500,29),MT);
  T('AI is a kind mirror: it listens, it reflects, it never judges.',1700,832,F(700,42),'#4B2AA8','center');ctx.strokeStyle=C.l;ctx.lineWidth=5;ctx.stroke(ul2);
  T('The AI brain: how AI powers human accountability',1300,3040,F(700,46),'#4B2AA8');ctx.strokeStyle=C.l;ctx.lineWidth=6;ctx.stroke(ul3);
+ ctx.save();ctx.shadowColor=C.m;ctx.shadowBlur=20;T('Sovereign AI: your words stay in your lane',620,4540,F(700,46),'#0a8f5f');ctx.restore();ctx.beginPath();ctx.moveTo(620,4562);ctx.quadraticCurveTo(1050,4576,1430,4560);ctx.strokeStyle=C.c;ctx.lineWidth=6;ctx.stroke();
  T('The quiet part: it protects you without asking.',110,2335,F(700,34),LT);
  T('tomorrow night, again',-228,1075,F(700,30),LT,'center',-Math.PI/2);T('the reminder pulls you back',-690,1445,F(700,28),MT,'center',-Math.PI/2);
  bb=b;doodles();E.forEach(e=>drawEdge(e,b));N.forEach(deco);N.forEach(n=>drawNode(n,b));guide();

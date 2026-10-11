@@ -170,7 +170,12 @@ export async function syncAllUserSettingsToCloud() {
     let parsedRehab = null;
     try {
       const rawR = localStorage.getItem('goodness_rehab_config');
-      if (rawR) parsedRehab = JSON.parse(rawR);
+      if (rawR) {
+        parsedRehab = JSON.parse(rawR);
+        if (parsedRehab && !parsedRehab.active) {
+          parsedRehab.isSabbatical = false;
+        }
+      }
     } catch (_) {}
 
     let parsedAnchors = null;
@@ -2280,13 +2285,23 @@ export const DEFAULT_SANCTUARY_INQUIRIES = [
 ];
 
 export function getRehabilitationConfig() {
-  if (typeof window === 'undefined') return { active: false, freezeDays: 7, maxDays: 14 };
+  if (typeof window === 'undefined') return { active: false, freezeDays: 7, maxDays: 14, isSabbatical: false };
   try {
     const raw = localStorage.getItem(REHAB_CONFIG_KEY);
-    if (!raw) return { active: false, freezeDays: 7, maxDays: 14 };
+    if (!raw) return { active: false, freezeDays: 7, maxDays: 14, isSabbatical: false };
     const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return { active: false, freezeDays: 7, maxDays: 14, isSabbatical: false };
+    }
+    // 🛡️ Strict invariant: if active is false, isSabbatical MUST be false
+    if (!parsed.active) {
+      parsed.active = false;
+      parsed.isSabbatical = false;
+      return parsed;
+    }
     if (parsed.active && parsed.startDate) {
-      if (parsed.isSabbatical) {
+      if (parsed.isSabbatical || (parsed.freezeDays && parsed.freezeDays > 30)) {
+        parsed.isSabbatical = true;
         parsed.daysRemaining = '∞';
         parsed.elapsedDays = 0;
         parsed.needsDay7CheckIn = false;
@@ -2300,6 +2315,7 @@ export function getRehabilitationConfig() {
 
       if (elapsedDays >= allowedDays) {
         parsed.active = false;
+        parsed.isSabbatical = false;
         parsed.expired = true;
         localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(parsed));
       } else {
@@ -2310,7 +2326,7 @@ export function getRehabilitationConfig() {
     }
     return parsed;
   } catch (e) {
-    return { active: false, freezeDays: 7, maxDays: 14 };
+    return { active: false, freezeDays: 7, maxDays: 14, isSabbatical: false };
   }
 }
 
@@ -2352,8 +2368,10 @@ export function activateRehabilitation(freezeDays = 7) {
       activatedAt: new Date().toISOString()
     };
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
-    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: payload }));
+    window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: payload }));
     window.dispatchEvent(new Event('storage'));
+    syncUserPreferenceToCloud('rehabConfig', payload);
     return payload;
   } catch (e) {
     console.warn('Failed to activate rehabilitation:', e);
@@ -2369,8 +2387,10 @@ export function extendRehabilitation(additionalDays = 7) {
     current.freezeDays = newTotal;
     current.checkedInDay7 = true;
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(current));
-    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: current }));
+    window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: current }));
     window.dispatchEvent(new Event('storage'));
+    syncUserPreferenceToCloud('rehabConfig', current);
     return current;
   } catch (e) {
     console.warn('Failed to extend rehabilitation:', e);
@@ -2392,8 +2412,10 @@ export function activateSabbatical() {
       activatedAt: new Date().toISOString()
     };
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(payload));
-    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: payload }));
+    window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: payload }));
     window.dispatchEvent(new Event('storage'));
+    syncUserPreferenceToCloud('rehabConfig', payload);
     return payload;
   } catch (e) {
     console.warn('Failed to activate sabbatical:', e);
@@ -2403,16 +2425,19 @@ export function activateSabbatical() {
 export function exitRehabilitation() {
   if (typeof window === 'undefined') return;
   try {
-    const current = getRehabilitationConfig();
-    current.active = false;
-    current.isSabbatical = false;
-    current.freezeDays = 7;
-    current.maxDays = 14;
-    current.exitedAt = new Date().toISOString();
-    delete current.autoSanctuaryAssumed;
+    const current = {
+      active: false,
+      isSabbatical: false,
+      freezeDays: 7,
+      maxDays: 14,
+      exitedAt: new Date().toISOString()
+    };
     localStorage.setItem(REHAB_CONFIG_KEY, JSON.stringify(current));
-    window.dispatchEvent(new Event('rehabilitation-updated'));
+    window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: current }));
+    window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: current }));
     window.dispatchEvent(new Event('storage'));
+    syncUserPreferenceToCloud('rehabConfig', current);
+    return current;
   } catch (e) {}
 }
 

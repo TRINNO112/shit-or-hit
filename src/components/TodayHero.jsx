@@ -636,10 +636,14 @@ export default function TodayHero({
   useEffect(() => {
     const handleRehab = () => setRehabVer(v => v + 1);
     window.addEventListener('rehabilitation-updated', handleRehab);
+    window.addEventListener('rehab-config-updated', handleRehab);
     window.addEventListener('storage', handleRehab);
+    window.addEventListener('auth-changed', handleRehab);
     return () => {
       window.removeEventListener('rehabilitation-updated', handleRehab);
+      window.removeEventListener('rehab-config-updated', handleRehab);
       window.removeEventListener('storage', handleRehab);
+      window.removeEventListener('auth-changed', handleRehab);
     };
   }, []);
 

@@ -287,6 +287,7 @@ export async function loginWithGoogle() {
 
 export async function logoutUser() {
   localStorage.removeItem('local_auth_user');
+  localStorage.setItem('goodness_rehab_config', JSON.stringify({ active: false, isSabbatical: false, freezeDays: 7, maxDays: 14 }));
   const fb = await getFirebase();
   if (fb && fb.authMod && fb.auth) {
     try {

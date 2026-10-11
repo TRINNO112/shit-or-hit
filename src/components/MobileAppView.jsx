@@ -782,13 +782,31 @@ export default function MobileAppView({
 
   const isDemoSabbatical = typeof window !== 'undefined' && window.location.search.includes('demo=sabbatical');
   const isDemoSanctuary = typeof window !== 'undefined' && (window.location.search.includes('demo=sanctuary') || window.location.search.includes('demo=rehab'));
-  const rehabConfig = getRehabilitationConfig();
+
+  const [rehabConfigState, setRehabConfigState] = useState(() => getRehabilitationConfig());
+
+  useEffect(() => {
+    const handleRehab = () => {
+      setRehabConfigState(getRehabilitationConfig());
+    };
+    window.addEventListener('rehabilitation-updated', handleRehab);
+    window.addEventListener('rehab-config-updated', handleRehab);
+    window.addEventListener('storage', handleRehab);
+    window.addEventListener('auth-changed', handleRehab);
+    return () => {
+      window.removeEventListener('rehabilitation-updated', handleRehab);
+      window.removeEventListener('rehab-config-updated', handleRehab);
+      window.removeEventListener('storage', handleRehab);
+      window.removeEventListener('auth-changed', handleRehab);
+    };
+  }, []);
+
   const isLiveSanctuary = isRehabilitationActive(todayStr);
   const isSanctuaryActive = Boolean(isLiveSanctuary || isDemoSanctuary || isDemoSabbatical);
-  const isSabbatical = isSanctuaryActive && Boolean(isDemoSabbatical || (rehabConfig?.active && (rehabConfig.isSabbatical || (rehabConfig.freezeDays && rehabConfig.freezeDays > 30))));
+  const isSabbatical = isSanctuaryActive && Boolean(isDemoSabbatical || (rehabConfigState?.active && (rehabConfigState.isSabbatical || (rehabConfigState.freezeDays && rehabConfigState.freezeDays > 30))));
 
-  const freezeDays = isSabbatical ? null : Math.min(14, rehabConfig?.freezeDays || 7);
-  const rehabStartDate = rehabConfig?.startDate || todayStr;
+  const freezeDays = isSabbatical ? null : Math.min(14, rehabConfigState?.freezeDays || 7);
+  const rehabStartDate = rehabConfigState?.startDate || todayStr;
   const startMs = new Date(rehabStartDate).getTime();
   const todayMs = new Date(todayStr).getTime();
   const daysIn = Math.max(1, Math.floor((todayMs - startMs) / (1000 * 60 * 60 * 24)) + 1);

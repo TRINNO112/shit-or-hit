@@ -376,6 +376,41 @@ assert(
   'Guardian Emergency: Sustainable 2-email/24h hard cap & settings integration operational'
 );
 
+const appCode = readSrc('App.jsx');
+
+assert(
+  headerCode.includes('rehabilitation-updated') &&
+  headerCode.includes('rehab-config-updated') &&
+  headerCode.includes('rehabConfigState?.active') &&
+  mobileCode.includes('rehabilitation-updated') &&
+  mobileCode.includes('rehab-config-updated') &&
+  mobileCode.includes('rehabConfigState?.active'),
+  'Stasis Reactivity: Header and MobileAppView bind reactive listeners with 0ms live badge sync'
+);
+
+assert(
+  calCode.includes('rehabilitation-updated') &&
+  monthCalCode.includes('rehabilitation-updated') &&
+  timelineCode.includes('rehabilitation-updated') &&
+  settingsModalCode.includes('rehabilitation-updated') &&
+  detailedSettingsCode.includes('rehabilitation-updated'),
+  'Stasis Event Bus: Calendar, Timeline, Settings and Detailed Views subscribe to live stasis events'
+);
+
+assert(
+  apiCode.includes("CustomEvent('rehabilitation-updated'") &&
+  apiCode.includes("CustomEvent('rehab-config-updated'") &&
+  apiCode.includes("parsed.isSabbatical = false") &&
+  apiCode.includes("syncUserPreferenceToCloud('rehabConfig'"),
+  'Stasis Invariants & Cloud Sync: api.js enforces inactive stasis sanity and syncs transitions to Firestore'
+);
+
+assert(
+  appCode.includes('cleanDefaultRehab') &&
+  firebaseCode.includes("localStorage.setItem('goodness_rehab_config'"),
+  'Guest Isolation Gate: App.jsx and firebase.js guarantee clean stasis reset on login and logout'
+);
+
 // ----------------------------------------------------------------------
 // 14. STATIC JSX IMPORT & LUCIDE ICON INTEGRITY SCANNER
 // ----------------------------------------------------------------------

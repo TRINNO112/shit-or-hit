@@ -110,7 +110,20 @@ export default function DetailedSettingsView({
 
   // Rehabilitation & Sabbatical
   const [rehabConfig, setRehabConfig] = useState(() => getRehabilitationConfig());
-  const isSabbatical = Boolean(rehabConfig?.isSabbatical);
+  useEffect(() => {
+    const handleRehab = () => setRehabConfig(getRehabilitationConfig());
+    window.addEventListener('rehabilitation-updated', handleRehab);
+    window.addEventListener('rehab-config-updated', handleRehab);
+    window.addEventListener('storage', handleRehab);
+    window.addEventListener('auth-changed', handleRehab);
+    return () => {
+      window.removeEventListener('rehabilitation-updated', handleRehab);
+      window.removeEventListener('rehab-config-updated', handleRehab);
+      window.removeEventListener('storage', handleRehab);
+      window.removeEventListener('auth-changed', handleRehab);
+    };
+  }, []);
+  const isSabbatical = Boolean(rehabConfig?.active && (rehabConfig?.isSabbatical || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30)));
   const rehabActive = Boolean(rehabConfig?.active);
 
   // Themes & UI

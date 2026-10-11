@@ -26,8 +26,21 @@ export default function MonthCalendar({
   todayStr 
 }) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
-  const rehabConfig = getRehabilitationConfig();
-  const isSabbatical = Boolean(rehabConfig?.isSabbatical) || (rehabConfig?.freezeDays && rehabConfig.freezeDays > 30);
+  const [rehabConfigState, setRehabConfigState] = useState(() => getRehabilitationConfig());
+  useEffect(() => {
+    const handleRehab = () => setRehabConfigState(getRehabilitationConfig());
+    window.addEventListener('rehabilitation-updated', handleRehab);
+    window.addEventListener('rehab-config-updated', handleRehab);
+    window.addEventListener('storage', handleRehab);
+    window.addEventListener('auth-changed', handleRehab);
+    return () => {
+      window.removeEventListener('rehabilitation-updated', handleRehab);
+      window.removeEventListener('rehab-config-updated', handleRehab);
+      window.removeEventListener('storage', handleRehab);
+      window.removeEventListener('auth-changed', handleRehab);
+    };
+  }, []);
+  const isSabbatical = Boolean(rehabConfigState?.active && (rehabConfigState?.isSabbatical || (rehabConfigState?.freezeDays && rehabConfigState.freezeDays > 30)));
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

@@ -776,6 +776,15 @@ export default function App() {
     const unsubscribe = subscribeAuthState(async (u) => {
       console.log('🛡️ [App Engine] Auth Hydration:', u ? `Logged in as ${u.displayName} (${u.email}) [UID: ${u.uid}]` : 'Local Mode');
       setCurrentUser(u);
+      window.dispatchEvent(new CustomEvent('auth-changed', { detail: u }));
+      if (!u) {
+        // 🛡️ Strict Guest Isolation: Clean default stasis on logout
+        const cleanDefaultRehab = { active: false, isSabbatical: false, freezeDays: 7, maxDays: 14 };
+        localStorage.setItem('goodness_rehab_config', JSON.stringify(cleanDefaultRehab));
+        window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: cleanDefaultRehab }));
+        window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: cleanDefaultRehab }));
+        window.dispatchEvent(new Event('storage'));
+      }
       if (u) {
         const isPreviewingDisclaimer = typeof window !== 'undefined' && (() => {
           const params = new URLSearchParams(window.location.search);
@@ -827,8 +836,21 @@ export default function App() {
               window.dispatchEvent(new Event('guardian-config-updated'));
             }
             if (cloudSettings.rehabConfig) {
-              localStorage.setItem('goodness_rehab_config', JSON.stringify(cloudSettings.rehabConfig));
-              window.dispatchEvent(new Event('rehab-config-updated'));
+              const rCfg = { ...cloudSettings.rehabConfig };
+              if (!rCfg.active) {
+                rCfg.isSabbatical = false;
+              }
+              localStorage.setItem('goodness_rehab_config', JSON.stringify(rCfg));
+              window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: rCfg }));
+              window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: rCfg }));
+              window.dispatchEvent(new Event('storage'));
+            } else {
+              // 🛡️ Strict Guest Isolation: User has no cloud stasis, reset to clean default! NEVER let guest sabbatical contaminate cloud user!
+              const defaultRehab = { active: false, isSabbatical: false, freezeDays: 7, maxDays: 14 };
+              localStorage.setItem('goodness_rehab_config', JSON.stringify(defaultRehab));
+              window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: defaultRehab }));
+              window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: defaultRehab }));
+              window.dispatchEvent(new Event('storage'));
             }
             if (cloudSettings.defaultDirective) {
               localStorage.setItem('daily_verdict_default_directive', cloudSettings.defaultDirective);
@@ -886,6 +908,11 @@ export default function App() {
             await syncAllUserSettingsToCloud();
           } else {
             console.log('☁️ [Cloud Settings] Initializing complete user preferences in Firestore for user:', effectiveId);
+            // 🛡️ Strict Guest Isolation: First-time cloud account initializes clean stasis
+            const defaultRehab = { active: false, isSabbatical: false, freezeDays: 7, maxDays: 14 };
+            localStorage.setItem('goodness_rehab_config', JSON.stringify(defaultRehab));
+            window.dispatchEvent(new CustomEvent('rehabilitation-updated', { detail: defaultRehab }));
+            window.dispatchEvent(new CustomEvent('rehab-config-updated', { detail: defaultRehab }));
             await syncAllUserSettingsToCloud();
           }
           // ☁️ Cross-Device Cloud Capsules Hydration & Decryption Engine
