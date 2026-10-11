@@ -65,7 +65,9 @@ import {
   saveGuardianConfig,
   getGuardianEmailQuota,
   dispatchGuardianSOS,
-  generateGuardianBriefing
+  generateGuardianBriefing,
+  syncUserPreferenceToCloud,
+  syncAllUserSettingsToCloud
 } from '../services/api';
 import { getStorageStatus } from '../services/storageManager';
 import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../services/p2pSyncEngine';
@@ -185,12 +187,17 @@ export default function DetailedSettingsView({
     return () => window.removeEventListener('ai-engine-changed', handleEngineChange);
   }, []);
 
+  useEffect(() => {
+    syncAllUserSettingsToCloud();
+  }, []);
+
   const handleSelectAiEngine = (engine) => {
     try { soundEngine.playClick(); } catch (e) {}
     setAiEngine(engine);
     try {
       localStorage.setItem('daily_verdict_ai_engine', engine);
       window.dispatchEvent(new CustomEvent('ai-engine-changed', { detail: engine }));
+      syncUserPreferenceToCloud('aiEngine', engine);
     } catch (e) {}
     triggerHaptic('light');
   };

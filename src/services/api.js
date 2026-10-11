@@ -138,8 +138,64 @@ export function saveSphereConfig(config) {
   } catch (e) {}
 }
 
+export async function syncUserPreferenceToCloud(key, value) {
+  if (typeof window === 'undefined') return;
+  try {
+    const user = getCurrentUser();
+    if (user) {
+      const effectiveId = getEffectiveUserId(user) || user.uid;
+      if (effectiveId) {
+        await saveCloudUserSettings(effectiveId, { [key]: value });
+      }
+    }
+  } catch (e) {
+    console.warn(`[Cloud Sync] Preference sync error for ${key}:`, e.message);
+  }
+}
+
+export async function syncAllUserSettingsToCloud() {
+  if (typeof window === 'undefined') return false;
+  try {
+    const user = getCurrentUser();
+    if (!user) return false;
+    const effectiveId = getEffectiveUserId(user) || user.uid;
+    if (!effectiveId) return false;
+
+    let parsedGuardian = null;
+    try {
+      const rawG = localStorage.getItem('daily_verdict_guardian_config');
+      if (rawG) parsedGuardian = JSON.parse(rawG);
+    } catch (_) {}
+
+    let parsedRehab = null;
+    try {
+      const rawR = localStorage.getItem('goodness_rehab_config');
+      if (rawR) parsedRehab = JSON.parse(rawR);
+    } catch (_) {}
+
+    const payload = {
+      aiEngine: localStorage.getItem('daily_verdict_ai_engine') || 'qwen',
+      aiLanguage: localStorage.getItem('daily_verdict_ai_language') || 'auto',
+      sphereModeEnabled: isSphereModeEnabled(),
+      spheresConfig: getSphereConfig(),
+      guardianConfig: parsedGuardian || getGuardianConfig(),
+      enableRansomCapsule: isRansomCapsuleEnabled(),
+      ransomCapsuleSensitivity: getRansomCapsuleSensitivity(),
+      enableAutopsyChamber: isAutopsyChamberEnabled(),
+      enableReceiptOfTruth: isReceiptOfTruthEnabled(),
+      rehabConfig: parsedRehab || getRehabilitationConfig(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await saveCloudUserSettings(effectiveId, payload);
+    return true;
+  } catch (e) {
+    console.warn('[Firestore Sync] Could not push complete settings payload:', e.message);
+    return false;
+  }
+}
+
 export function calculateCompositeScore(spheres) {
-  if (!spheres || typeof spheres !== 'object') return null;
   const entries = Object.values(spheres).filter(s => s && s.rating && Number(s.rating) > 0);
   if (entries.length === 0) return null;
   const sum = entries.reduce((acc, curr) => acc + Number(curr.rating), 0);
@@ -278,6 +334,15 @@ export function repairAndSanitizeDatabase() {
               entry.notes = normalizeNotesString(entry.notes);
               modified = true;
               repairedCount++;
+            }
+            if (entry && entry.spheres && !isSphereModeEnabled()) {
+              const hasRealSphereRating = Object.values(entry.spheres).some(s => s && s.rating);
+              if (!hasRealSphereRating) {
+                delete entry.spheres;
+                delete entry.calculatedScore;
+                modified = true;
+                repairedCount++;
+              }
             }
           });
           if (modified) {
@@ -817,6 +882,12 @@ export async function saveEntry(entryData) {
     notes: normalizeNotesString(entryData.notes),
     updatedAt: new Date().toISOString()
   };
+
+  const isSphereActive = isSphereModeEnabled();
+  if (!isSphereActive) {
+    delete formatted.spheres;
+    delete formatted.calculatedScore;
+  }
 
   const currentUser = getCurrentUser();
   const effectiveId = getEffectiveUserId(currentUser);
@@ -3070,6 +3141,7 @@ export function saveGuardianConfig(config) {
     const existing = getGuardianConfig();
     const updated = { ...existing, ...config };
     localStorage.setItem(GUARDIAN_CONFIG_KEY, JSON.stringify(updated));
+    syncUserPreferenceToCloud('guardianConfig', updated);
     return updated;
   } catch (e) {
     console.error('Failed to save guardian config:', e);

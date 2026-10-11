@@ -94,7 +94,9 @@ import {
   getPendingDeletionStatus,
   cancelAccountDeletion,
   normalizeNotesString,
-  repairAndSanitizeDatabase
+  repairAndSanitizeDatabase,
+  syncAllUserSettingsToCloud,
+  syncUserPreferenceToCloud
 } from './services/api';
 import { syncStoragePersistenceWithPreference } from './services/storageManager';
 import { scheduleLocalEveningReminder } from './services/notifications';
@@ -813,6 +815,21 @@ export default function App() {
               localStorage.setItem('daily_verdict_receipt_of_truth_enabled', cloudSettings.enableReceiptOfTruth ? 'true' : 'false');
               window.dispatchEvent(new Event('receipt-of-truth-updated'));
             }
+            if (cloudSettings.aiEngine) {
+              localStorage.setItem('daily_verdict_ai_engine', cloudSettings.aiEngine);
+              window.dispatchEvent(new CustomEvent('ai-engine-changed', { detail: cloudSettings.aiEngine }));
+            }
+            if (cloudSettings.aiLanguage) {
+              localStorage.setItem('daily_verdict_ai_language', cloudSettings.aiLanguage);
+            }
+            if (cloudSettings.guardianConfig) {
+              localStorage.setItem('daily_verdict_guardian_config', JSON.stringify(cloudSettings.guardianConfig));
+              window.dispatchEvent(new Event('guardian-config-updated'));
+            }
+            if (cloudSettings.rehabConfig) {
+              localStorage.setItem('goodness_rehab_config', JSON.stringify(cloudSettings.rehabConfig));
+              window.dispatchEvent(new Event('rehab-config-updated'));
+            }
             if (cloudSettings.vaultPinEncrypted) {
               const decrypted = await decryptVaultPin(cloudSettings.vaultPinEncrypted);
               if (decrypted) {
@@ -828,6 +845,11 @@ export default function App() {
               setIsVaultLocked(false);
             }
             setSphereSettingsVer(v => v + 1);
+            // Re-sync back any local values to Firestore so all config keys exist
+            await syncAllUserSettingsToCloud();
+          } else {
+            console.log('☁️ [Cloud Settings] Initializing complete user preferences in Firestore for user:', effectiveId);
+            await syncAllUserSettingsToCloud();
           }
           // ☁️ Cross-Device Cloud Capsules Hydration & Decryption Engine
           await hydrateTimeCapsulesFromCloud(u);

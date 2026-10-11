@@ -74,7 +74,8 @@ import {
   exitRehabilitation,
   activateSabbatical,
   activateRehabilitation,
-  normalizeNotesString
+  normalizeNotesString,
+  syncUserPreferenceToCloud
 } from '../services/api';
 import MoodReactionBanner from './MoodReactionBanner';
 import { soundFx } from '../services/soundEffects';
@@ -575,7 +576,7 @@ export default function MobileAppView({
       rating: val,
       verdict: ratingMeta[val]?.title || 'Verdict',
       notes: noteText || entries?.[todayStr]?.notes || '',
-      spheres: spheresData,
+      spheres: sphereModeActive ? spheresData : null,
       autopsy: entries?.[todayStr]?.autopsy
     });
     setTimeout(() => setSavedFlash(false), 2000);
@@ -600,7 +601,7 @@ export default function MobileAppView({
       rating: selectedRating || entries?.[todayStr]?.rating || 1,
       verdict: entries?.[todayStr]?.verdict || ratingMeta[selectedRating || 1]?.title || 'Verdict',
       notes: noteText,
-      spheres: spheresData,
+      spheres: sphereModeActive ? spheresData : null,
       autopsy: autopsyData
     });
   };
@@ -2232,6 +2233,8 @@ export default function MobileAppView({
                         const next = aiEngine === 'qwen' ? 'gemini' : 'qwen';
                         setAiEngine(next);
                         localStorage.setItem('daily_verdict_ai_engine', next);
+                        window.dispatchEvent(new CustomEvent('ai-engine-changed', { detail: next }));
+                        syncUserPreferenceToCloud('aiEngine', next);
                         try { soundEngine.playClick(); } catch (e) {}
                       }}
                       title={aiEngine === 'qwen' ? 'Using Sovereign Qwen 2.5 on ZeroGPU (Zero Tracking). Tap to switch to Gemini.' : 'Using Google Gemini. Tap to switch to Sovereign Qwen 2.5.'}

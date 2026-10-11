@@ -215,6 +215,17 @@ function readDatabase(req) {
 function writeDatabase(data, req) {
   const targetFile = getDataFilePath(req);
   data.lastUpdated = new Date().toISOString();
+
+  // Always keep entries chronologically sorted by date key
+  if (data.entries && typeof data.entries === 'object') {
+    const sortedKeys = Object.keys(data.entries).sort();
+    const sortedEntries = {};
+    for (const k of sortedKeys) {
+      sortedEntries[k] = data.entries[k];
+    }
+    data.entries = sortedEntries;
+  }
+
   const tempPath = `${targetFile}.tmp`;
   fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
   fs.renameSync(tempPath, targetFile);
@@ -339,18 +350,28 @@ app.post('/api/entries', validateBody(entrySchema), (req, res) => {
   if (!db.startDate) db.startDate = date;
 
   const existing = db.entries[date] || {};
+  const hasSpheres = spheres && typeof spheres === 'object' && Object.keys(spheres).length > 0;
+  const cleanSpheres = hasSpheres ? spheres : (spheres === null ? undefined : (existing.spheres || undefined));
 
-  db.entries[date] = {
+  const entry = {
     ...existing,
     date,
     rating: Number(rating),
     verdict: verdict || getVerdictFromRating(rating),
     notes: notes !== undefined ? notes : (existing.notes || ''),
-    spheres: spheres !== undefined ? spheres : existing.spheres,
     calculatedScore: calculatedScore !== undefined ? calculatedScore : existing.calculatedScore,
     updatedAt: new Date().toISOString(),
     createdAt: existing.createdAt || new Date().toISOString()
   };
+
+  if (cleanSpheres) {
+    entry.spheres = cleanSpheres;
+  } else {
+    delete entry.spheres;
+    delete entry.calculatedScore;
+  }
+
+  db.entries[date] = entry;
 
   writeDatabase(db, req);
 

@@ -23,7 +23,8 @@ import {
   isSphereModeEnabled,
   getSphereConfig,
   calculateCompositeScore,
-  isRehabilitationActive
+  isRehabilitationActive,
+  syncUserPreferenceToCloud
 } from '../services/api';
 import confetti from 'canvas-confetti';
 import { Layers } from 'lucide-react';
@@ -314,8 +315,8 @@ export default function EditDayModal({
       rating: comp ? comp.rating : Number(rating),
       verdict: comp ? comp.verdict : (ratingMeta[rating]?.title || 'Verdict'),
       notes,
-      spheres: sphereModeActive ? spheresData : entryData?.spheres,
-      calculatedScore: comp ? comp.score : entryData?.calculatedScore
+      spheres: sphereModeActive ? spheresData : null,
+      calculatedScore: comp ? comp.score : null
     });
     try {
       localStorage.removeItem(`shit_or_hit_draft_stash_${dateStr}`);
@@ -701,6 +702,8 @@ export default function EditDayModal({
                             const next = aiEngine === 'qwen' ? 'gemini' : 'qwen';
                             setAiEngine(next);
                             localStorage.setItem('daily_verdict_ai_engine', next);
+                            window.dispatchEvent(new CustomEvent('ai-engine-changed', { detail: next }));
+                            syncUserPreferenceToCloud('aiEngine', next);
                             try { soundEngine.playClick(); } catch (e) {}
                           }}
                           title={aiEngine === 'qwen' ? 'Using Sovereign Qwen 2.5 on ZeroGPU (Zero Tracking). Tap to switch to Gemini.' : 'Using Google Gemini. Tap to switch to Sovereign Qwen 2.5.'}

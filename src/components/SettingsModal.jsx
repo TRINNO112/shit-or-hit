@@ -121,7 +121,9 @@ import {
   saveGuardianConfig,
   getGuardianEmailQuota,
   dispatchGuardianSOS,
-  generateGuardianBriefing
+  generateGuardianBriefing,
+  syncUserPreferenceToCloud,
+  syncAllUserSettingsToCloud
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
@@ -372,6 +374,7 @@ export default function SettingsModal({
       setIsAddingSphere(false);
       setEditingSphereId(null);
       refreshStorageTier();
+      syncAllUserSettingsToCloud();
     }
   }, [isOpen]);
 
@@ -391,6 +394,16 @@ export default function SettingsModal({
     try {
       localStorage.setItem('daily_verdict_ai_engine', engine);
       window.dispatchEvent(new CustomEvent('ai-engine-changed', { detail: engine }));
+      syncUserPreferenceToCloud('aiEngine', engine);
+    } catch (e) {}
+  };
+
+  const handleAiLanguageChange = (lang) => {
+    soundEngine.playClick();
+    setAiLanguage(lang);
+    try {
+      localStorage.setItem('daily_verdict_ai_language', lang);
+      syncUserPreferenceToCloud('aiLanguage', lang);
     } catch (e) {}
   };
 
@@ -626,11 +639,6 @@ export default function SettingsModal({
     setNewSphereDesc('');
     setIsAddingSphere(false);
     if (onSettingsChanged) onSettingsChanged();
-  };
-
-  const handleAiLanguageChange = (lang) => {
-    setAiLanguage(lang);
-    localStorage.setItem('daily_verdict_ai_language', lang);
   };
 
   if (isOpen === false) return null;

@@ -386,8 +386,8 @@ export default function TodayHero({
         rating: val,
         verdict: ratingMeta[val]?.title || 'Verdict',
         notes: noteText || activeEntry?.notes || '',
-        spheres: sphereModeActive ? spheresData : undefined,
-        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : undefined,
+        spheres: sphereModeActive ? spheresData : null,
+        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : null,
         autopsy: activeEntry?.autopsy
       });
     }
@@ -414,8 +414,8 @@ export default function TodayHero({
         rating: selectedRating || activeEntry?.rating || 1,
         verdict: activeEntry?.verdict || ratingMeta[selectedRating || 1]?.title || 'Verdict',
         notes: noteText,
-        spheres: sphereModeActive ? spheresData : undefined,
-        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : undefined,
+        spheres: sphereModeActive ? spheresData : null,
+        calculatedScore: sphereModeActive ? activeEntry?.calculatedScore : null,
         autopsy: autopsyData
       });
     }
@@ -432,7 +432,7 @@ export default function TodayHero({
           verdict: ratingMeta[roundedRating]?.title || 'Verdict',
           notes: noteText,
           calculatedScore: scoreInfo.calculatedRating,
-          spheres: sphereModeActive ? spheresData : undefined
+          spheres: sphereModeActive ? spheresData : null
         });
       }
     } else if (scoreInfo.mode === 'hybrid_50_50' && selectedRating) {
@@ -445,7 +445,7 @@ export default function TodayHero({
           verdict: ratingMeta[roundedRating]?.title || 'Verdict',
           notes: noteText,
           calculatedScore: blended,
-          spheres: sphereModeActive ? spheresData : undefined
+          spheres: sphereModeActive ? spheresData : null
         });
       }
     }
