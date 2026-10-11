@@ -173,9 +173,23 @@ export async function syncAllUserSettingsToCloud() {
       if (rawR) parsedRehab = JSON.parse(rawR);
     } catch (_) {}
 
+    let parsedAnchors = null;
+    try {
+      const rawA = localStorage.getItem('daily_verdict_non_negotiables_config');
+      if (rawA) parsedAnchors = JSON.parse(rawA);
+    } catch (_) {}
+
+    let parsedTags = null;
+    try {
+      const rawT = localStorage.getItem('daily_verdict_custom_tags');
+      if (rawT) parsedTags = JSON.parse(rawT);
+    } catch (_) {}
+
     const payload = {
       aiEngine: localStorage.getItem('daily_verdict_ai_engine') || 'qwen',
       aiLanguage: localStorage.getItem('daily_verdict_ai_language') || 'auto',
+      defaultDirective: localStorage.getItem('daily_verdict_default_directive') || 'auto',
+      customPrompt: localStorage.getItem('daily_verdict_custom_prompt') || '',
       sphereModeEnabled: isSphereModeEnabled(),
       spheresConfig: getSphereConfig(),
       guardianConfig: parsedGuardian || getGuardianConfig(),
@@ -184,6 +198,16 @@ export async function syncAllUserSettingsToCloud() {
       enableAutopsyChamber: isAutopsyChamberEnabled(),
       enableReceiptOfTruth: isReceiptOfTruthEnabled(),
       rehabConfig: parsedRehab || getRehabilitationConfig(),
+      nonNegotiablesConfig: parsedAnchors || [],
+      nonNegotiablesMode: localStorage.getItem('daily_verdict_non_negotiables_mode') || 'checklist',
+      nonNegotiablesActive: localStorage.getItem('daily_verdict_non_negotiables_active') === 'true',
+      customTags: parsedTags || ['Work', 'Study', 'Fitness', 'Family', 'Travel', 'Creative'],
+      activeSticker: localStorage.getItem('daily_verdict_active_sticker') || 'mascot_default',
+      soundFxEnabled: localStorage.getItem('daily_verdict_sound_enabled') !== 'false',
+      bannerEnabled: localStorage.getItem('daily_verdict_banner_enabled') !== 'false',
+      reminderTime: localStorage.getItem('daily_verdict_reminder_time') || '21:00',
+      notificationsEnabled: localStorage.getItem('daily_verdict_notifications_enabled') === 'true',
+      customDisplayName: localStorage.getItem('custom_display_name') || '',
       updatedAt: new Date().toISOString()
     };
 

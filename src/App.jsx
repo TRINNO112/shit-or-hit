@@ -830,6 +830,43 @@ export default function App() {
               localStorage.setItem('goodness_rehab_config', JSON.stringify(cloudSettings.rehabConfig));
               window.dispatchEvent(new Event('rehab-config-updated'));
             }
+            if (cloudSettings.defaultDirective) {
+              localStorage.setItem('daily_verdict_default_directive', cloudSettings.defaultDirective);
+            }
+            if (cloudSettings.customPrompt !== undefined) {
+              localStorage.setItem('daily_verdict_custom_prompt', cloudSettings.customPrompt);
+            }
+            if (cloudSettings.nonNegotiablesConfig && Array.isArray(cloudSettings.nonNegotiablesConfig)) {
+              localStorage.setItem('daily_verdict_non_negotiables_config', JSON.stringify(cloudSettings.nonNegotiablesConfig));
+              window.dispatchEvent(new Event('non-negotiables-updated'));
+            }
+            if (cloudSettings.nonNegotiablesMode) {
+              localStorage.setItem('daily_verdict_non_negotiables_mode', cloudSettings.nonNegotiablesMode);
+            }
+            if (cloudSettings.nonNegotiablesActive !== undefined) {
+              localStorage.setItem('daily_verdict_non_negotiables_active', cloudSettings.nonNegotiablesActive ? 'true' : 'false');
+            }
+            if (cloudSettings.customTags && Array.isArray(cloudSettings.customTags)) {
+              localStorage.setItem('daily_verdict_custom_tags', JSON.stringify(cloudSettings.customTags));
+            }
+            if (cloudSettings.activeSticker) {
+              localStorage.setItem('daily_verdict_active_sticker', cloudSettings.activeSticker);
+            }
+            if (cloudSettings.soundFxEnabled !== undefined) {
+              localStorage.setItem('daily_verdict_sound_enabled', cloudSettings.soundFxEnabled ? 'true' : 'false');
+            }
+            if (cloudSettings.bannerEnabled !== undefined) {
+              localStorage.setItem('daily_verdict_banner_enabled', cloudSettings.bannerEnabled ? 'true' : 'false');
+            }
+            if (cloudSettings.reminderTime) {
+              localStorage.setItem('daily_verdict_reminder_time', cloudSettings.reminderTime);
+            }
+            if (cloudSettings.notificationsEnabled !== undefined) {
+              localStorage.setItem('daily_verdict_notifications_enabled', cloudSettings.notificationsEnabled ? 'true' : 'false');
+            }
+            if (cloudSettings.customDisplayName) {
+              localStorage.setItem('custom_display_name', cloudSettings.customDisplayName);
+            }
             if (cloudSettings.vaultPinEncrypted) {
               const decrypted = await decryptVaultPin(cloudSettings.vaultPinEncrypted);
               if (decrypted) {
