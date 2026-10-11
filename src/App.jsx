@@ -833,10 +833,10 @@ export default function App() {
             if (cloudSettings.defaultDirective) {
               localStorage.setItem('daily_verdict_default_directive', cloudSettings.defaultDirective);
             }
-            if (cloudSettings.customPrompt !== undefined) {
+            if (cloudSettings.customPrompt && cloudSettings.customPrompt.trim() !== '') {
               localStorage.setItem('daily_verdict_custom_prompt', cloudSettings.customPrompt);
             }
-            if (cloudSettings.nonNegotiablesConfig && Array.isArray(cloudSettings.nonNegotiablesConfig)) {
+            if (cloudSettings.nonNegotiablesConfig && Array.isArray(cloudSettings.nonNegotiablesConfig) && cloudSettings.nonNegotiablesConfig.length > 0) {
               localStorage.setItem('daily_verdict_non_negotiables_config', JSON.stringify(cloudSettings.nonNegotiablesConfig));
               window.dispatchEvent(new Event('non-negotiables-updated'));
             }
@@ -846,7 +846,7 @@ export default function App() {
             if (cloudSettings.nonNegotiablesActive !== undefined) {
               localStorage.setItem('daily_verdict_non_negotiables_active', cloudSettings.nonNegotiablesActive ? 'true' : 'false');
             }
-            if (cloudSettings.customTags && Array.isArray(cloudSettings.customTags)) {
+            if (cloudSettings.customTags && Array.isArray(cloudSettings.customTags) && cloudSettings.customTags.length > 0) {
               localStorage.setItem('daily_verdict_custom_tags', JSON.stringify(cloudSettings.customTags));
             }
             if (cloudSettings.activeSticker) {
@@ -864,7 +864,7 @@ export default function App() {
             if (cloudSettings.notificationsEnabled !== undefined) {
               localStorage.setItem('daily_verdict_notifications_enabled', cloudSettings.notificationsEnabled ? 'true' : 'false');
             }
-            if (cloudSettings.customDisplayName) {
+            if (cloudSettings.customDisplayName && cloudSettings.customDisplayName.trim() !== '') {
               localStorage.setItem('custom_display_name', cloudSettings.customDisplayName);
             }
             if (cloudSettings.vaultPinEncrypted) {
