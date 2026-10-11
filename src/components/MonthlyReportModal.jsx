@@ -510,7 +510,9 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                       report.hitRate < 50 ? 'bg-neutral-900 text-white' : 'bg-white text-black'
                     }`}>
                       <span className="block text-[8px] font-mono font-bold text-neutral-400">AVG SCORE</span>
-                      <span className="font-display font-black text-base sm:text-lg leading-none mt-0.5 text-black">
+                      <span className={`font-display font-black text-base sm:text-lg leading-none mt-0.5 ${
+                        report.hitRate < 50 ? 'text-[#FDC800]' : 'text-black'
+                      }`}>
                         {report.avgScore}
                       </span>
                     </div>

@@ -626,16 +626,31 @@ export async function saveCloudUserSettings(userId, settingsData) {
       updatedAt: new Date().toISOString()
     });
 
-    // 1. Primary write to targeted userId
+    // 1. Primary write to targeted userId subcollection (users/{userId}/settings/config)
     const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
     await fb.firestoreMod.setDoc(settingsRef, sanitized, { merge: true });
 
-    // 2. Dual-mirror for unified owner accounts (sync both trinno_owner_vault and native auth UID)
+    // 2. Also merge into root user document so settings are immediately visible in Firebase Console root doc view
+    try {
+      const userDocRef = fb.firestoreMod.doc(fb.db, 'users', userId);
+      await fb.firestoreMod.setDoc(userDocRef, {
+        settings: sanitized,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (e) {}
+
+    // 3. Dual-mirror for unified owner accounts (sync both trinno_owner_vault and native auth UID)
     const curUser = getCurrentUser();
     if (curUser?.uid && curUser.uid !== userId) {
       try {
         const mirrorRef = fb.firestoreMod.doc(fb.db, 'users', curUser.uid, 'settings', 'config');
         await fb.firestoreMod.setDoc(mirrorRef, sanitized, { merge: true });
+
+        const mirrorUserDocRef = fb.firestoreMod.doc(fb.db, 'users', curUser.uid);
+        await fb.firestoreMod.setDoc(mirrorUserDocRef, {
+          settings: sanitized,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
       } catch (e) {}
     }
 
@@ -653,6 +668,17 @@ export async function fetchCloudUserSettings(userId) {
     const settingsRef = fb.firestoreMod.doc(fb.db, 'users', userId, 'settings', 'config');
     const snap = await fb.firestoreMod.getDoc(settingsRef);
     let data = snap.exists() ? snap.data() : null;
+
+    // Fallback: check root user document settings field
+    if (!data) {
+      try {
+        const userDocRef = fb.firestoreMod.doc(fb.db, 'users', userId);
+        const userSnap = await fb.firestoreMod.getDoc(userDocRef);
+        if (userSnap.exists() && userSnap.data()?.settings) {
+          data = userSnap.data().settings;
+        }
+      } catch (e) {}
+    }
 
     // Check if current user has a raw UID document with additional or fallback preferences
     const curUser = getCurrentUser();

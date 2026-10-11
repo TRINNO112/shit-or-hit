@@ -248,6 +248,46 @@ export async function showInstantReminderNotification(customBody = null, overrid
  * 3. Standard: 1-5★ digit (e.g. "5 Today was legendary")
  * 4. Freeform/Keywords: Keywords or journal chronicles
  */
+function extractEmbeddedHabits(noteText) {
+  if (!noteText || typeof noteText !== 'string') return { habits: null, cleanNote: noteText };
+  const habitMatch = noteText.match(/(?:#|\[)([01]{2,8})(?:\])?/);
+  if (!habitMatch) return { habits: null, cleanNote: noteText };
+
+  const binDigits = habitMatch[1].split('');
+  let anchorList = [
+    { id: 'focus_deepwork', name: 'Deep Work / Coding Session', utils: 2.0 },
+    { id: 'hydration_water', name: '2L Water / Hydration', utils: 1.5 },
+    { id: 'exercise_movement', name: 'Physical Workout / Movement', utils: 1.5 },
+    { id: 'evening_shutdown', name: 'Timely Evening Shutdown', utils: 1.0 }
+  ];
+  try {
+    const saved = localStorage.getItem('daily_verdict_non_negotiables_config') || localStorage.getItem('daily_verdict_custom_anchor_templates');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) anchorList = parsed.filter(a => a && a.enabled !== false);
+    }
+  } catch (e) {}
+
+  const checkedState = {};
+  let completedCount = 0;
+  anchorList.forEach((anchor, idx) => {
+    const isDone = binDigits[idx] === '1';
+    checkedState[anchor.id] = isDone;
+    if (isDone) completedCount++;
+  });
+
+  const cleanNote = noteText.replace(habitMatch[0], '').replace(/\s{2,}/g, ' ').trim() || null;
+  return {
+    habits: {
+      checkedState,
+      completedCount,
+      totalCount: anchorList.length,
+      digits: binDigits.join('')
+    },
+    cleanNote
+  };
+}
+
 export function parseNotificationReply(replyText, engineContext = null) {
   if (!replyText || typeof replyText !== 'string') return null;
   const raw = replyText.trim();
@@ -268,10 +308,10 @@ export function parseNotificationReply(replyText, engineContext = null) {
       { id: 'anchor_3', utils: 1.5 }
     ];
     try {
-      const savedAnchors = localStorage.getItem('daily_verdict_custom_anchor_templates');
+      const savedAnchors = localStorage.getItem('daily_verdict_custom_anchor_templates') || localStorage.getItem('daily_verdict_non_negotiables_config');
       if (savedAnchors) {
         const parsed = JSON.parse(savedAnchors);
-        if (Array.isArray(parsed) && parsed.length > 0) anchorList = parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) anchorList = parsed.filter(a => a && a.enabled !== false);
       }
     } catch (e) {}
 
@@ -345,14 +385,15 @@ export function parseNotificationReply(replyText, engineContext = null) {
 
     const avg = count > 0 ? sum / count : 3;
     const rating = Math.max(1, Math.min(5, Math.round(avg)));
+    const habitInfo = extractEmbeddedHabits(remainderNote);
 
     return {
       type: 'spheres',
       rating,
       compositeScore: Number(avg.toFixed(1)),
-      notes: remainderNote || null,
+      notes: habitInfo.cleanNote || null,
       spheres,
-      nonNegotiables: null,
+      nonNegotiables: habitInfo.habits,
       raw
     };
   }
@@ -362,12 +403,14 @@ export function parseNotificationReply(replyText, engineContext = null) {
   if (numMatch) {
     const rating = parseInt(numMatch[1], 10);
     const notes = (numMatch[2] && numMatch[2].trim()) ? numMatch[2].trim() : null;
+    const habitInfo = extractEmbeddedHabits(notes);
+
     return {
       type: 'standard',
       rating,
-      notes,
+      notes: habitInfo.cleanNote || null,
       spheres: null,
-      nonNegotiables: null,
+      nonNegotiables: habitInfo.habits,
       raw
     };
   }
@@ -447,8 +490,20 @@ export function validateNotificationReply(replyText, engineContext = null) {
     };
   }
 
-  // 2. Non-Negotiables Engine: Expects binary digits (1 and 0)
+  // 2. Non-Negotiables Engine: Expects binary digits (1 and 0) or hybrid combo
   if (engine === 'non-negotiables') {
+    // Support hybrid combination inputs like "4 #110 Great day"
+    const hybridMatch = raw.match(/^([1-5])\s*(?:#|\[)?([01]{2,8})/);
+    if (hybridMatch) {
+      return {
+        isValid: true,
+        error: null,
+        warning: null,
+        parsed: parseNotificationReply(raw, engine),
+        suggestion: null
+      };
+    }
+
     // Check if input begins with digits that are NOT 0 or 1 (e.g. 234 or 5)
     const nonBinaryNumMatch = raw.match(/^([2-9]+)/);
     if (nonBinaryNumMatch) {

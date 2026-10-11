@@ -24,7 +24,10 @@ import {
   AlertTriangle,
   RotateCcw,
   Lightbulb,
-  Keyboard
+  Keyboard,
+  Calculator,
+  ExternalLink,
+  Zap
 } from 'lucide-react';
 import { playMood } from '../services/soundEffects';
 import { soundEngine } from '../services/soundEngine';
@@ -257,6 +260,7 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
   const [testSent, setTestSent] = useState(false);
   const [testError, setTestError] = useState(null);
   const [permissionState, setPermissionState] = useState(() => getNotificationPermission());
+  const [combinationTab, setCombinationTab] = useState('unified-habits');
   const [inlineInputVal, setInlineInputVal] = useState(() => DEFAULT_PRESET_TEXTS[detectActiveEngine()] || DEFAULT_PRESET_TEXTS.standard);
   const [simulatorFeedback, setSimulatorFeedback] = useState(null);
   const [slotFeedback, setSlotFeedback] = useState(null);
@@ -988,13 +992,274 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
           </div>
         </section>
 
-        {/* SECTION 4: Live Device Simulator & Test */}
+        {/* SECTION 4: Active Combinations & Hybrid Modes Guide */}
+        <section className="bg-white border-3 border-black rounded-3xl p-4 sm:p-6 shadow-[5px_5px_0px_#000000] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 bg-[#FF8A00] text-black border-2 border-black rounded-md font-mono font-black text-[10px] uppercase shadow-[1.5px_1.5px_0px_#000000]">
+                  HYBRID ENGINE MANUAL
+                </span>
+                <span className="font-mono text-[10px] bg-black text-[#00E599] px-2 py-0.5 rounded font-black">
+                  6 VALID PAIR RATIOS
+                </span>
+              </div>
+              <h2 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-black flex items-center gap-2 mt-1">
+                <Layers className="w-5 h-5 text-black" />
+                <span>4. Running Combinations? Hybrid Entry Guide</span>
+              </h2>
+              <p className="text-xs font-mono text-neutral-600">
+                How to log your daily entries from notifications when multiple engines run simultaneously.
+              </p>
+            </div>
+          </div>
+
+          {/* Combination Selector Tabs */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setCombinationTab('unified-habits');
+                soundEngine.playClick();
+              }}
+              className={`p-3 rounded-2xl border-2 border-black font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 text-center active:translate-x-px active:translate-y-px ${combinationTab === 'unified-habits'
+                ? 'bg-[#FDC800] text-black shadow-[3px_3px_0px_#000000]'
+                : 'bg-white hover:bg-neutral-50 text-neutral-700 shadow-[2px_2px_0px_#000000]'
+                }`}
+            >
+              <Flame className="w-4 h-4 shrink-0" />
+              <span>UNIFIED + HABITS</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCombinationTab('spheres-habits');
+                soundEngine.playClick();
+              }}
+              className={`p-3 rounded-2xl border-2 border-black font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 text-center active:translate-x-px active:translate-y-px ${combinationTab === 'spheres-habits'
+                ? 'bg-[#38BDF8] text-black shadow-[3px_3px_0px_#000000]'
+                : 'bg-white hover:bg-neutral-50 text-neutral-700 shadow-[2px_2px_0px_#000000]'
+                }`}
+            >
+              <Layers className="w-4 h-4 shrink-0" />
+              <span>SPHERES + HABITS</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCombinationTab('golden-shortcut');
+                soundEngine.playClick();
+              }}
+              className={`p-3 rounded-2xl border-2 border-black font-mono font-black text-xs uppercase cursor-pointer transition-all flex items-center justify-center gap-2 text-center active:translate-x-px active:translate-y-px ${combinationTab === 'golden-shortcut'
+                ? 'bg-[#00E599] text-black shadow-[3px_3px_0px_#000000]'
+                : 'bg-white hover:bg-neutral-50 text-neutral-700 shadow-[2px_2px_0px_#000000]'
+                }`}
+            >
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>1-TAP "OPEN DIARY"</span>
+            </button>
+          </div>
+
+          {/* TAB 1: UNIFIED VERDICT + NON-NEGOTIABLE HABITS */}
+          {combinationTab === 'unified-habits' && (
+            <div className="space-y-3 animate-fade-in">
+              <div className="p-3 bg-[#FFFDF5] border-2 border-black rounded-xl text-xs font-mono text-neutral-700 leading-snug">
+                <span className="font-black text-black uppercase block mb-1">
+                  MUTUALLY EXCLUSIVE INVARIANT:
+                </span>
+                Unified Mode (1-5★) and Multi-Sphere Mode never run together. When Unified Mode is active, Non-Negotiables run in one of three mathematical algorithms configured in Settings:
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* 1. Deterministic 100% */}
+                <div className="p-3.5 bg-white border-2 border-black rounded-2xl space-y-2 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                  <div className="space-y-1.5">
+                    <span className="px-2 py-0.5 bg-[#FF4D4D] text-white border border-black rounded font-mono font-black text-[9px] uppercase">
+                      1. DETERMINISTIC 100%
+                    </span>
+                    <h4 className="font-display font-black text-sm uppercase text-black">
+                      Score Governed by Habits
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                      Your day score is calculated 100% by mathematical habit completion (0% done = 1★, 100% done = 5★). Manual 1-tap rating buttons are locked.
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-black/10 space-y-1">
+                    <span className="text-[10px] font-mono font-black text-neutral-500 uppercase block">
+                      How to reply:
+                    </span>
+                    <span className="px-2 py-1 bg-[#FFFDF5] border border-black rounded-lg font-mono font-black text-[11px] text-black block truncate">
+                      110 Crushed gym, missed shutdown
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-500 block">
+                      Math: 2 of 3 done (67%) logs 4★ Hit.
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Hybrid 50/50 */}
+                <div className="p-3.5 bg-white border-2 border-black rounded-2xl space-y-2 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                  <div className="space-y-1.5">
+                    <span className="px-2 py-0.5 bg-[#FDC800] text-black border border-black rounded font-mono font-black text-[9px] uppercase">
+                      2. HYBRID 50/50 RATIO
+                    </span>
+                    <h4 className="font-display font-black text-sm uppercase text-black">
+                      Blended Subjective & Math
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                      Blends your subjective feeling (50%) with mathematical habit execution (50%) into one composite score.
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-black/10 space-y-1">
+                    <span className="text-[10px] font-mono font-black text-neutral-500 uppercase block">
+                      How to reply:
+                    </span>
+                    <span className="px-2 py-1 bg-[#FFFDF5] border border-black rounded-lg font-mono font-black text-[11px] text-black block truncate">
+                      5 #110 Great day, 2 anchors done
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-500 block">
+                      Or reply "110" to calculate habit factor.
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Checklist Mode */}
+                <div className="p-3.5 bg-white border-2 border-black rounded-2xl space-y-2 shadow-[2px_2px_0px_#000] flex flex-col justify-between">
+                  <div className="space-y-1.5">
+                    <span className="px-2 py-0.5 bg-[#00E599] text-black border border-black rounded font-mono font-black text-[9px] uppercase">
+                      3. CHECKLIST MODE
+                    </span>
+                    <h4 className="font-display font-black text-sm uppercase text-black">
+                      Rating Governs Verdict
+                    </h4>
+                    <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                      Habits serve as a daily checklist while preserving your subjective 1-5★ star verdict for streaks.
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-black/10 space-y-1">
+                    <span className="text-[10px] font-mono font-black text-neutral-500 uppercase block">
+                      How to reply:
+                    </span>
+                    <span className="px-2 py-1 bg-[#FFFDF5] border border-black rounded-lg font-mono font-black text-[11px] text-black block truncate">
+                      5 #110 Shipped everything today
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-500 block">
+                      Logs 5★ and checks off habits 1 & 2.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: MULTI-SPHERE LIFE + NON-NEGOTIABLE HABITS */}
+          {combinationTab === 'spheres-habits' && (
+            <div className="space-y-3 animate-fade-in">
+              <div className="p-3 bg-[#FFFDF5] border-2 border-black rounded-xl text-xs font-mono text-neutral-700 leading-snug">
+                <span className="font-black text-black uppercase block mb-1">
+                  DOMAIN SEPARATION ARCHITECTURE:
+                </span>
+                Multi-Sphere Life breaks your day into 3 Life Domains (Work & School, Home Sanctuary, Social Events). Non-Negotiables track your daily habit anchors.
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-3.5 bg-white border-2 border-black rounded-2xl space-y-2 shadow-[2px_2px_0px_#000]">
+                  <span className="px-2 py-0.5 bg-[#38BDF8] text-black border border-black rounded font-mono font-black text-[9px] uppercase">
+                    OPTION A: DUAL INLINE LOGGING
+                  </span>
+                  <h4 className="font-display font-black text-sm uppercase text-black">
+                    Domains + Habits in One Message
+                  </h4>
+                  <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                    Type your 3 sphere scores (1-5), followed by "#" with binary habit digits, and your diary reflection.
+                  </p>
+                  <div className="p-2.5 bg-[#FFFDF5] border border-black rounded-xl space-y-1">
+                    <span className="font-mono font-black text-xs text-black block">
+                      321 #110 Heavy office sprint, calm home, gym done
+                    </span>
+                    <p className="text-[10px] font-mono text-neutral-500">
+                      Work=3★, Home=2★, Social=1★ (Composite 2.0★), and checks off 2 habit anchors simultaneously.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-white border-2 border-black rounded-2xl space-y-2 shadow-[2px_2px_0px_#000]">
+                  <span className="px-2 py-0.5 bg-[#FDC800] text-black border border-black rounded font-mono font-black text-[9px] uppercase">
+                    OPTION B: FOCUSED LOGGING
+                  </span>
+                  <h4 className="font-display font-black text-sm uppercase text-black">
+                    Log Spheres Only or Habits Only
+                  </h4>
+                  <p className="text-[11px] font-mono text-neutral-600 leading-snug">
+                    Only want to rate domains right now? Or only check off habits? Send either format anytime.
+                  </p>
+                  <div className="p-2.5 bg-[#FFFDF5] border border-black rounded-xl space-y-1.5">
+                    <div>
+                      <span className="text-[10px] font-mono font-bold text-neutral-500 uppercase block">Spheres Only:</span>
+                      <span className="font-mono font-black text-xs text-black block">321 Heavy coding sprint</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono font-bold text-neutral-500 uppercase block">Habits Only:</span>
+                      <span className="font-mono font-black text-xs text-black block">110 Crushed daily anchors</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: GOLDEN SHORTCUT (OPEN DIARY BUTTON) */}
+          {combinationTab === 'golden-shortcut' && (
+            <div className="p-4 bg-[#FFFDF5] border-2 border-black rounded-2xl space-y-3 shadow-[2px_2px_0px_#000] animate-fade-in">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#00E599] border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#000]">
+                  <CheckCircle2 className="w-5 h-5 text-black stroke-[2.5]" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-display font-black text-base uppercase text-black">
+                    Zero Mental Arithmetic: The Lockscreen "Open Diary" Action
+                  </h4>
+                  <p className="text-xs font-mono text-neutral-700 leading-relaxed">
+                    When you run complex configurations (such as 3 multi-sphere sliders combined with 4 daily habit checkboxes), memorizing numbers and hashtags on your lockscreen is completely optional.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                <div className="p-3 bg-white border-2 border-black rounded-xl">
+                  <span className="font-mono font-black text-[10px] text-neutral-500 uppercase block">1. IN NOTIFICATION TRAY</span>
+                  <p className="text-[11px] font-mono text-neutral-800 font-bold mt-1">
+                    Tap the physical "OPEN DIARY" action button on the reminder banner.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white border-2 border-black rounded-xl">
+                  <span className="font-mono font-black text-[10px] text-neutral-500 uppercase block">2. INSTANT DIALOG</span>
+                  <p className="text-[11px] font-mono text-neutral-800 font-bold mt-1">
+                    App opens directly to today's date with interactive sliders &amp; checkboxes ready.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white border-2 border-black rounded-xl">
+                  <span className="font-mono font-black text-[10px] text-neutral-500 uppercase block">3. 2-TAP RECORD</span>
+                  <p className="text-[11px] font-mono text-neutral-800 font-bold mt-1">
+                    Adjust your domain sliders, tap your habit anchors, and hit SAVE in under 5 seconds.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* SECTION 5: Live Device Simulator & Test */}
         <section className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-black flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-black" />
-                <span>4. Live Device Simulator</span>
+                <span>5. Live Device Simulator</span>
               </h2>
               <p className="text-xs font-mono text-neutral-600">
                 Test and interact with the notification exactly as it renders on your device.
@@ -1142,6 +1407,56 @@ export default function NotificationStudioPage({ onBack, entries = {}, todayStr 
                       SUBMIT DIRECTLY
                     </button>
                   </form>
+
+                  {/* Quick Preset Selector Pills */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    <span className="text-[10px] font-mono text-white/50 uppercase font-black">
+                      TRY PRESET:
+                    </span>
+                    {(SIMULATOR_QUICK_PILLS[selectedEngine] || SIMULATOR_QUICK_PILLS.standard).map((pill, pIdx) => (
+                      <button
+                        key={pIdx}
+                        type="button"
+                        onClick={() => {
+                          setInlineInputVal(pill.text);
+                          soundEngine.playClick();
+                        }}
+                        className="px-2 py-1 bg-white/10 hover:bg-[#FDC800] text-white hover:text-black border border-white/20 hover:border-black rounded-lg text-[10px] font-mono font-bold cursor-pointer transition-all active:scale-95"
+                      >
+                        {pill.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInlineInputVal('110 Crushed workout and deep focus, skipped reading');
+                        soundEngine.playClick();
+                      }}
+                      className="px-2 py-1 bg-[#FF8A00]/20 hover:bg-[#FF8A00] text-[#FF8A00] hover:text-black border border-[#FF8A00]/40 rounded-lg text-[10px] font-mono font-bold cursor-pointer transition-all active:scale-95"
+                    >
+                      Combo: 110 (Habits)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInlineInputVal('5 #110 Shipped new release, gym completed');
+                        soundEngine.playClick();
+                      }}
+                      className="px-2 py-1 bg-[#00E599]/20 hover:bg-[#00E599] text-[#00E599] hover:text-black border border-[#00E599]/40 rounded-lg text-[10px] font-mono font-bold cursor-pointer transition-all active:scale-95"
+                    >
+                      Combo: 5 #110 (Score+Habits)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInlineInputVal('321 #110 Work=3, Home=2, Social=1, 2 habits done');
+                        soundEngine.playClick();
+                      }}
+                      className="px-2 py-1 bg-[#38BDF8]/20 hover:bg-[#38BDF8] text-[#38BDF8] hover:text-black border border-[#38BDF8]/40 rounded-lg text-[10px] font-mono font-bold cursor-pointer transition-all active:scale-95"
+                    >
+                      Combo: 321 #110 (Spheres+Habits)
+                    </button>
+                  </div>
 
                   {/* Real-time Syntax Diagnostic / Message Anatomy Card */}
                   {inlineInputVal.trim() && (
