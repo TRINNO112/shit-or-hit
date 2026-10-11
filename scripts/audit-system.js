@@ -36,7 +36,7 @@ function readSrc(relPath) {
 }
 
 console.log('\n======================================================================');
-console.log('🏛️  STARTING TRINNO MASTER 33-COMPONENT FULL-SYSTEM AUDIT');
+console.log('🏛️  STARTING TRINNO MASTER FULL-SYSTEM ARCHITECTURAL AUDIT');
 console.log('======================================================================\n');
 
 // ----------------------------------------------------------------------
@@ -427,7 +427,8 @@ for (const file of jsxFiles) {
   }
 }
 
-assert(missingImportErrors.length === 0, `Static JSX Import Scanner: ${missingImportErrors.length === 0 ? 'All JSX tags across all 33+ components have valid imports' : missingImportErrors.join(', ')}`);
+const actualComponentCount = fs.readdirSync(path.join(ROOT_DIR, 'src/components')).filter(f => f.endsWith('.jsx')).length + 1;
+assert(missingImportErrors.length === 0, `Static JSX Import Scanner: ${missingImportErrors.length === 0 ? `All JSX tags across all ${actualComponentCount} components have valid imports` : missingImportErrors.join(', ')}`);
 
 // ----------------------------------------------------------------------
 // COMPILER VERIFICATION
@@ -451,6 +452,6 @@ if (failCount > 0) {
   console.error('❌ Audit encountered test failures. Inspect the logs above.\n');
   process.exit(1);
 } else {
-  console.log('✨ ALL 33 COMPONENTS, ENGINES & DATA PIPELINES ARE 100% OPERATIONAL!\n');
+  console.log(`✨ ALL ${actualComponentCount} COMPONENTS, ENGINES & DATA PIPELINES ARE 100% OPERATIONAL!\n`);
   process.exit(0);
 }

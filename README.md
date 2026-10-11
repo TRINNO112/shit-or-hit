@@ -462,7 +462,7 @@ Your data belongs entirely to you. SHIT OR HIT combines instant local performanc
 
 ## 🤖 Master Automated System Audit Suite
 
-The application includes a built-in automated test suite covering all **33 components, math engines, audio synthesizers, and security layers**.
+The application includes a built-in automated test suite covering all **67+ components, math engines, audio synthesizers, and security layers**.
 
 ```bash
 # Run the 10-suite audit anytime:

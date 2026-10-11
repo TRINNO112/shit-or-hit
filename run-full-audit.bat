@@ -20,7 +20,7 @@ if %ERRORLEVEL% EQU 0 (
     color 0A
     echo.
     echo ======================================================================
-    echo 🏆 ALL 33 COMPONENTS, WEB VITALS, E2E ^& DATA PIPELINES PASSED 100%%!
+    echo 🏆 ALL 67+ COMPONENTS, WEB VITALS, E2E ^& DATA PIPELINES PASSED 100%%!
     echo ======================================================================
 ) else (
     color 0C
