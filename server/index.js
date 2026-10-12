@@ -437,6 +437,18 @@ async function callQwenSpaceApi({ notes, verdict = 'Down', customInstruction = '
       }
     }
 
+    // Capture explicit Gradio/ZeroGPU error events from SSE stream
+    const errorMatch = streamText.match(/event:\s*(?:error|unexpected_error)[\r\n]+data:\s*([^\r\n]+)/);
+    if (errorMatch) {
+      try {
+        const errJson = JSON.parse(errorMatch[1]);
+        const errMsg = errJson?.error || errJson?.message || errJson?.title || errorMatch[1];
+        return { ok: false, error: errMsg };
+      } catch (_) {
+        return { ok: false, error: errorMatch[1] };
+      }
+    }
+
     return { ok: false, error: 'Failed to extract text from Space stream' };
   } catch (err) {
     return { ok: false, error: err.name === 'AbortError' ? 'Space request timed out (60s)' : err.message };
@@ -496,6 +508,18 @@ async function callQwenPromptApi({ prompt, systemInstruction = '', maxTokens = 2
           text: parsedData[0],
           model: 'Qwen 2.5 (Sovereign ZeroGPU A10G Private)'
         };
+      }
+    }
+
+    // Capture explicit Gradio/ZeroGPU error events from SSE stream
+    const errorMatch = streamText.match(/event:\s*(?:error|unexpected_error)[\r\n]+data:\s*([^\r\n]+)/);
+    if (errorMatch) {
+      try {
+        const errJson = JSON.parse(errorMatch[1]);
+        const errMsg = errJson?.error || errJson?.message || errJson?.title || errorMatch[1];
+        return { ok: false, error: errMsg };
+      } catch (_) {
+        return { ok: false, error: errorMatch[1] };
       }
     }
 

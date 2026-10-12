@@ -1110,6 +1110,9 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
                   try {
                     const rawJson = line.slice(5).trim();
                     const parsed = JSON.parse(rawJson);
+                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.error) {
+                      throw new Error(parsed.error);
+                    }
                     if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
                       const cleaned = cleanAiEnhancedText(parsed[0]);
                       const resultStr = new String(cleaned);
@@ -1123,7 +1126,11 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
                       }
                       return resultStr;
                     }
-                  } catch (e) {}
+                  } catch (e) {
+                    if (e.message && !e.message.startsWith('Unexpected')) {
+                      throw e;
+                    }
+                  }
                 }
               }
             } else {
