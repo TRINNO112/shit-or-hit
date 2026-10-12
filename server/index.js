@@ -456,7 +456,7 @@ async function callQwenSpaceApi({ notes, verdict = 'Down', customInstruction = '
 }
 
 // Generic Sovereign Qwen 2.5 Prompt Execution via ZeroGPU Space (for Dossiers, Autopsies, Briefings)
-async function callQwenPromptApi({ prompt, systemInstruction = '', maxTokens = 2048, timeoutMs = 90000 }) {
+async function callQwenPromptApi({ prompt, systemInstruction = '', maxTokens = 1536, timeoutMs = 90000 }) {
   if (!HF_TOKEN) return { ok: false, error: 'HF_TOKEN not configured' };
   try {
     const spaceSubdomain = (HF_SPACE_ID || 'Trinno112/Daily-verdict').toLowerCase().replace('/', '-');
@@ -465,13 +465,16 @@ async function callQwenPromptApi({ prompt, systemInstruction = '', maxTokens = 2
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    // Clamp token count to prevent exceeding Space Gradio slider bounds
+    const safeMaxTokens = Math.max(256, Math.min(Number(maxTokens) || 1024, 1536));
+
     const initRes = await fetch(initUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${HF_TOKEN}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ data: [prompt, systemInstruction || '', maxTokens] }),
+      body: JSON.stringify({ data: [prompt, systemInstruction || '', safeMaxTokens] }),
       signal: controller.signal
     });
 
@@ -1294,7 +1297,7 @@ Return ONLY a valid JSON object matching this exact schema:
       const qwenDossierRes = await callQwenPromptApi({
         prompt: prompt + '\n\nCRITICAL: Output ONLY valid JSON adhering to the exact schema. No markdown formatting, preamble, or commentary.',
         systemInstruction: 'You are an introspective brotherly habit mentor and behavioral chronicler. Output valid JSON strictly.',
-        maxTokens: 2500,
+        maxTokens: 1536,
         timeoutMs: 90000
       });
       if (qwenDossierRes.ok) {
