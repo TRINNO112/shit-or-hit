@@ -1257,6 +1257,8 @@ Return ONLY a valid JSON object matching this exact schema:
     "Directive 2: Concrete practical step",
     "Directive 3: Concrete practical step"
   ]
+}`;
+
     if (aiEngine === 'qwen') {
       if (!HF_TOKEN) {
         return res.status(500).json({
