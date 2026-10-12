@@ -1088,7 +1088,7 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
             'Authorization': `Bearer ${hfToken}`
           },
           body: JSON.stringify({
-            data: [journalInput, verdictName]
+            data: [journalInput, verdictName, customInstruction || '', preferredLanguage || 'auto']
           })
         });
 
@@ -1351,6 +1351,7 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
   // 1. Try local dev backend if running (and not on static host)
   if (!isStaticHost) {
     try {
+      const aiEngine = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen';
       const res = await fetch(`${API_BASE}/monthly-report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1360,13 +1361,19 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
           customEntries: entriesPayload, 
           archetypeId, 
           forceReevaluate, 
-          preferredLanguage 
+          preferredLanguage,
+          aiEngine
         })
       });
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
           finalReport = json.data;
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        if (errJson?.error) {
+          console.warn(`[Monthly Dossier Backend Error] ${errJson.error}`);
         }
       }
     } catch (err) {
@@ -3359,6 +3366,73 @@ export async function generateAiGuardianBriefing(entries = {}, guardianConfig = 
   const config = guardianConfig || getGuardianConfig();
   const today = todayStr || new Date().toISOString().slice(0, 10);
   
+  const aiEngine = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen';
+
+  // 1. Try Sovereign Qwen if selected
+  if (aiEngine === 'qwen') {
+    let hfToken = null;
+    let spaceId = 'Trinno112/Daily-verdict';
+    try {
+      const { fetchCloudHuggingFaceToken } = await import('./firebase');
+      const cloudHf = await fetchCloudHuggingFaceToken();
+      if (cloudHf?.token) {
+        hfToken = cloudHf.token;
+        if (cloudHf.spaceId) spaceId = cloudHf.spaceId;
+      }
+    } catch (e) {}
+
+    if (!hfToken && typeof import.meta !== 'undefined' && import.meta.env) {
+      hfToken = import.meta.env.VITE_HF_TOKEN || null;
+    }
+
+    if (hfToken) {
+      try {
+        const cleanHost = spaceId.replace(/\//g, '-').toLowerCase();
+        const spaceUrl = `https://${cleanHost}.hf.space`;
+        const endpointUrl = `${spaceUrl}/gradio_api/call/process_ai_prompt`;
+        const callRes = await fetch(endpointUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${hfToken}`
+          },
+          body: JSON.stringify({
+            data: [prompt + '\n\nIMPORTANT: Output ONLY the raw JSON object adhering to the schema. No markdown formatting.', 'You are a clinical adolescent wellness advisor. Output valid JSON strictly.', 1024]
+          })
+        });
+
+        if (callRes.ok) {
+          const callData = await callRes.json();
+          if (callData?.event_id) {
+            const eventRes = await fetch(`${spaceUrl}/gradio_api/call/process_ai_prompt/${callData.event_id}`, {
+              headers: { 'Authorization': `Bearer ${hfToken}` }
+            });
+            if (eventRes.ok) {
+              const streamText = await eventRes.text();
+              const completeMatch = streamText.match(/event:\s*complete[\r\n]+data:\s*(\[[\s\S]*?\])/);
+              if (completeMatch) {
+                const parsedData = JSON.parse(completeMatch[1]);
+                if (Array.isArray(parsedData) && parsedData[0]) {
+                  const cleaned = parsedData[0].replace(/```json/g, '').replace(/```/g, '').trim();
+                  const parsed = JSON.parse(cleaned);
+                  return {
+                    ...parsed,
+                    studentName,
+                    generatedAt: new Date().toISOString(),
+                    engine: 'qwen-cloud'
+                  };
+                }
+              }
+            }
+          }
+        }
+      } catch (qwenErr) {
+        console.warn('Qwen guardian briefing failed, trying Gemini fallback:', qwenErr);
+      }
+    }
+  }
+
+  // 2. Gemini execution
   let apiKey = null;
   try {
     const { fetchCloudGeminiApiKey } = await import('./firebase');
@@ -3370,46 +3444,8 @@ export async function generateAiGuardianBriefing(entries = {}, guardianConfig = 
   }
 
   if (!apiKey) {
-    throw new Error('Gemini API key not configured');
+    throw new Error('AI API key not configured (Neither Qwen nor Gemini available)');
   }
-
-  const recentEntries = Object.entries(entries || {})
-    .filter(([d]) => d <= today)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-7)
-    .map(([date, entry]) => ({
-      date,
-      rating: entry.rating || 3,
-      notes: entry.notes || ''
-    }));
-
-  const guardianName = config.guardianName || 'Parent / Guardian';
-  const studentName = config.studentName || 'Student';
-  const enabledTriggers = Object.entries(config.categories || {})
-    .filter(([_, enabled]) => enabled)
-    .map(([cat]) => cat);
-
-  const prompt = `You are a clinical adolescent wellness and academic triage advisor for an Indian student (GCERT Science Track).
-Evaluate whether the student is in acute distress or illness based on their recent daily diary entries:
-${JSON.stringify(recentEntries, null, 2)}
-
-Active Parent Opt-In Alert Triggers: ${enabledTriggers.join(', ')} (Slump threshold: ${config.slumpThresholdDays || 2} rough days).
-Parent/Guardian name: "${guardianName}". Student name: "${studentName}".
-
-Return STRICTLY a JSON object with this exact shape:
-{
-  "category": "SEVERE_ILLNESS" | "REPEATED_BREAKDOWN" | "SLEEP_DEFICIT" | "SLUMP_TRIGGER" | "MANUAL_SOS" | "EQUILIBRIUM_CHECKIN",
-  "categoryLabel": "Human readable title of trigger",
-  "headline": "Empathetic, clear email subject line without any emoji",
-  "salutation": "Dear ${guardianName}",
-  "observations": ["Clinical observation 1", "Observation 2", "Observation 3"],
-  "suggestedActions": ["Actionable compassionate parental step 1", "Step 2", "Step 3"]
-}
-
-CRITICAL RULES:
-- Zero emojis anywhere in the output.
-- Return ONLY the raw JSON object, without markdown code blocks or commentary.
-- Be clinically sound, compassionate, and focused on student relief without causing panic.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
@@ -3435,7 +3471,8 @@ CRITICAL RULES:
   return {
     ...parsed,
     studentName,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
+    engine: 'gemini-cloud'
   };
 }
 

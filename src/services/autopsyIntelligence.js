@@ -247,6 +247,8 @@ export async function getAutopsyAnalysis({
     };
   }
 
+  const aiEngine = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen';
+
   try {
     const res = await fetch('/api/ai/autopsy', {
       method: 'POST',
@@ -256,7 +258,8 @@ export async function getAutopsyAnalysis({
         rating: Number(rating) || 1,
         notes: notes || '',
         spheres: spheres || {},
-        anchors: anchors || {}
+        anchors: anchors || {},
+        aiEngine
       })
     });
 
@@ -268,7 +271,7 @@ export async function getAutopsyAnalysis({
           autopsy: {
             ...data.autopsy,
             isLocal: false,
-            engine: 'GEMINI AI CLOUD CORONER'
+            engine: data.autopsy.engine || (aiEngine === 'qwen' ? 'SOVEREIGN QWEN 2.5 CLOUD CORONER' : 'GEMINI AI CLOUD CORONER')
           },
           source: 'cloud'
         };

@@ -382,14 +382,14 @@ app.post('/api/entries', validateBody(entrySchema), (req, res) => {
 });
 
 // Private Sovereign Qwen 2.5 Inference via Hugging Face ZeroGPU Space
-async function callQwenSpaceApi({ notes, verdict = 'Down' }) {
+async function callQwenSpaceApi({ notes, verdict = 'Down', customInstruction = '', preferredLanguage = 'auto' }) {
   if (!HF_TOKEN) return { ok: false, error: 'HF_TOKEN not configured' };
   try {
     const spaceSubdomain = (HF_SPACE_ID || 'Trinno112/Daily-verdict').toLowerCase().replace('/', '-');
     const initUrl = `https://${spaceSubdomain}.hf.space/gradio_api/call/enhance_diary`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const initRes = await fetch(initUrl, {
       method: 'POST',
@@ -397,7 +397,7 @@ async function callQwenSpaceApi({ notes, verdict = 'Down' }) {
         'Authorization': `Bearer ${HF_TOKEN}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ data: [notes, verdict] }),
+      body: JSON.stringify({ data: [notes, verdict, customInstruction || '', preferredLanguage || 'auto'] }),
       signal: controller.signal
     });
 
@@ -439,7 +439,69 @@ async function callQwenSpaceApi({ notes, verdict = 'Down' }) {
 
     return { ok: false, error: 'Failed to extract text from Space stream' };
   } catch (err) {
-    return { ok: false, error: err.name === 'AbortError' ? 'Space request timed out (30s)' : err.message };
+    return { ok: false, error: err.name === 'AbortError' ? 'Space request timed out (60s)' : err.message };
+  }
+}
+
+// Generic Sovereign Qwen 2.5 Prompt Execution via ZeroGPU Space (for Dossiers, Autopsies, Briefings)
+async function callQwenPromptApi({ prompt, systemInstruction = '', maxTokens = 2048, timeoutMs = 90000 }) {
+  if (!HF_TOKEN) return { ok: false, error: 'HF_TOKEN not configured' };
+  try {
+    const spaceSubdomain = (HF_SPACE_ID || 'Trinno112/Daily-verdict').toLowerCase().replace('/', '-');
+    const initUrl = `https://${spaceSubdomain}.hf.space/gradio_api/call/process_ai_prompt`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    const initRes = await fetch(initUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${HF_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data: [prompt, systemInstruction || '', maxTokens] }),
+      signal: controller.signal
+    });
+
+    if (!initRes.ok) {
+      clearTimeout(timeoutId);
+      const err = await initRes.text().catch(() => '');
+      return { ok: false, error: `Space prompt initiation HTTP ${initRes.status}: ${err.slice(0, 100)}` };
+    }
+
+    const { event_id } = await initRes.json();
+    if (!event_id) {
+      clearTimeout(timeoutId);
+      return { ok: false, error: 'No event_id returned by Space' };
+    }
+
+    const streamUrl = `https://${spaceSubdomain}.hf.space/gradio_api/call/process_ai_prompt/${event_id}`;
+    const streamRes = await fetch(streamUrl, {
+      headers: { 'Authorization': `Bearer ${HF_TOKEN}` },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!streamRes.ok) {
+      return { ok: false, error: `Space stream HTTP ${streamRes.status}` };
+    }
+
+    const streamText = await streamRes.text();
+    const completeMatch = streamText.match(/event:\s*complete[\r\n]+data:\s*(\[[\s\S]*?\])/);
+    if (completeMatch) {
+      const parsedData = JSON.parse(completeMatch[1]);
+      if (Array.isArray(parsedData) && parsedData[0]) {
+        return {
+          ok: true,
+          text: parsedData[0],
+          model: 'Qwen 2.5 (Sovereign ZeroGPU A10G Private)'
+        };
+      }
+    }
+
+    return { ok: false, error: 'Failed to extract text from Space stream' };
+  } catch (err) {
+    return { ok: false, error: err.name === 'AbortError' ? `Space request timed out (${Math.round(timeoutMs / 1000)}s)` : err.message };
   }
 }
 
@@ -582,7 +644,12 @@ CRITICAL INSTRUCTIONS:
       });
     }
     const verdictName = rating ? getVerdictFromRating(rating) : 'Down';
-    const qwenResult = await callQwenSpaceApi({ notes: journalInput, verdict: verdictName });
+    const qwenResult = await callQwenSpaceApi({
+      notes: journalInput,
+      verdict: verdictName,
+      customInstruction: customInstruction || '',
+      preferredLanguage: preferredLanguage || 'auto'
+    });
     if (qwenResult.ok) {
       logger.info(`[Sovereign Qwen Proof] Inference succeeded on ZeroGPU Space (${qwenResult.model}) for verdict: ${verdictName}`);
       return res.json({
@@ -677,17 +744,10 @@ function sharpenReflectionLocally(text, rating) {
 
 // 🩺 AI Forensic Autopsy Chamber Endpoint
 app.post('/api/ai/autopsy', tokenBucketMiddleware({ capacity: 5, refillRatePerSec: 0.2, name: 'ai-autopsy' }), validateBody(aiAutopsySchema), async (req, res) => {
-  const { date, rating, notes = '', spheres = {}, anchors = {}, recentHistory = [] } = req.body;
+  const { date, rating, notes = '', spheres = {}, anchors = {}, recentHistory = [], aiEngine = 'auto' } = req.body;
   const apiKey = GEMINI_API_KEY;
 
   const localFallback = generateLocalAutopsy(notes, rating, spheres, anchors);
-
-  if (!apiKey) {
-    return res.json({
-      success: true,
-      autopsy: localFallback
-    });
-  }
 
   const prompt = `You are a Behavioral Forensic Detective and Tough-Love Accountability Coroner for the daily logging system "SHIT OR HIT".
 The user had a 1★ or 2★ rough day. Conduct an unfiltered, insightful, and constructive behavioral autopsy on what went wrong.
@@ -722,6 +782,46 @@ Your diagnosis MUST be structured as a valid JSON object with these exact keys:
 }
 
 Do NOT wrap in markdown backticks or preamble. Output raw JSON only.`;
+
+  // 1. Sovereign Qwen Execution
+  if (aiEngine === 'qwen') {
+    if (HF_TOKEN) {
+      const qwenRes = await callQwenPromptApi({
+        prompt: prompt + '\n\nIMPORTANT: Output ONLY the raw JSON object adhering to the schema. No markdown formatting.',
+        systemInstruction: 'You are a Behavioral Forensic Detective. Output valid JSON strictly.',
+        maxTokens: 1024,
+        timeoutMs: 60000
+      });
+      if (qwenRes.ok) {
+        try {
+          const cleaned = qwenRes.text.replace(/^```json\s*|^```\s*|```$/g, '').trim();
+          const parsed = JSON.parse(cleaned);
+          if (parsed && parsed.causeOfDeath && Array.isArray(parsed.questions)) {
+            return res.json({
+              success: true,
+              autopsy: {
+                ...parsed,
+                isLocal: false,
+                engine: 'SOVEREIGN QWEN 2.5 CLOUD CORONER'
+              }
+            });
+          }
+        } catch (parseErr) {
+          logger.warn(`[Sovereign Qwen Autopsy] JSON Parse error: ${parseErr.message}`);
+        }
+      } else {
+        logger.warn(`[Sovereign Qwen Autopsy] Failed: ${qwenRes.error}`);
+      }
+    }
+  }
+
+  // 2. Gemini Fallback or Primary Execution
+  if (!apiKey) {
+    return res.json({
+      success: true,
+      autopsy: localFallback
+    });
+  }
 
   try {
     const primaryModel = 'gemini-3.5-flash-lite';
@@ -853,7 +953,7 @@ app.get('/api/monthly-report', validateQuery(monthlyReportQuerySchema), (req, re
 
 // Monthly AI Performance Dossier Report Route (POST generate / re-evaluate)
 app.post('/api/monthly-report', tokenBucketMiddleware({ capacity: 3, refillRatePerSec: 0.1, name: 'ai-dossier' }), validateBody(monthlyReportBodySchema), async (req, res) => {
-  const { year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage = 'auto' } = req.body;
+  const { year, month, customEntries, archetypeId, forceReevaluate, preferredLanguage = 'auto', aiEngine = 'auto' } = req.body;
   const targetDataset = archetypeId || 'real';
   const monthStr = String(month).padStart(2, '0');
   const baseKey = `${targetDataset}_${year}_${monthStr}`;
@@ -1157,29 +1257,62 @@ Return ONLY a valid JSON object matching this exact schema:
     "Directive 2: Concrete practical step",
     "Directive 3: Concrete practical step"
   ]
-}`;
-
-    try {
-      const geminiReportResult = await callGeminiApi({
-        prompt,
-        apiKey,
-        temperature: 0.75,
-        maxTokens: 8000,
-        responseMimeType: 'application/json'
+    if (aiEngine === 'qwen') {
+      if (!HF_TOKEN) {
+        return res.status(500).json({
+          success: false,
+          error: 'Sovereign Qwen token is not configured on the server. Please check settings or switch to Gemini.'
+        });
+      }
+      logger.info(`[Monthly Dossier] Evaluating via Sovereign Qwen 2.5 ZeroGPU for ${monthName}...`);
+      const qwenDossierRes = await callQwenPromptApi({
+        prompt: prompt + '\n\nCRITICAL: Output ONLY valid JSON adhering to the exact schema. No markdown formatting, preamble, or commentary.',
+        systemInstruction: 'You are an introspective brotherly habit mentor and behavioral chronicler. Output valid JSON strictly.',
+        maxTokens: 2500,
+        timeoutMs: 90000
       });
-
-      if (geminiReportResult.ok) {
+      if (qwenDossierRes.ok) {
         try {
-          aiReport = JSON.parse(geminiReportResult.text);
-          console.log(`Successfully generated monthly report using model: ${geminiReportResult.model}`);
+          const cleaned = qwenDossierRes.text.replace(/^```json\s*|^```\s*|```$/g, '').trim();
+          aiReport = JSON.parse(cleaned);
+          logger.info(`[Monthly Dossier] Sovereign Qwen 2.5 synthesis successful!`);
         } catch (jsonErr) {
-          console.warn('Failed to parse Gemini monthly JSON response:', jsonErr.message);
+          logger.warn(`[Monthly Dossier] Qwen JSON parse error: ${jsonErr.message}`);
+          return res.status(502).json({
+            success: false,
+            error: 'Sovereign Qwen generated the dossier, but the JSON format was malformed. You can retry or switch to Gemini in settings.'
+          });
         }
       } else {
-        console.warn('Gemini monthly report API unavailable:', geminiReportResult.error);
+        logger.warn(`[Monthly Dossier] Qwen generation error: ${qwenDossierRes.error}`);
+        return res.status(503).json({
+          success: false,
+          error: `Sovereign Qwen Dossier evaluation was not successful: ${qwenDossierRes.error}. You can retry or switch to Gemini in settings.`
+        });
       }
-    } catch (err) {
-      console.error('Gemini monthly report error:', err);
+    } else if (apiKey) {
+      try {
+        const geminiReportResult = await callGeminiApi({
+          prompt,
+          apiKey,
+          temperature: 0.75,
+          maxTokens: 8000,
+          responseMimeType: 'application/json'
+        });
+
+        if (geminiReportResult.ok) {
+          try {
+            aiReport = JSON.parse(geminiReportResult.text);
+            console.log(`Successfully generated monthly report using model: ${geminiReportResult.model}`);
+          } catch (jsonErr) {
+            console.warn('Failed to parse Gemini monthly JSON response:', jsonErr.message);
+          }
+        } else {
+          console.warn('Gemini monthly report API unavailable:', geminiReportResult.error);
+        }
+      } catch (err) {
+        console.error('Gemini monthly report error:', err);
+      }
     }
   }
 
