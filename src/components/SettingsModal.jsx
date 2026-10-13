@@ -127,10 +127,10 @@ import {
 } from '../services/api';
 import RadialClockPicker from './RadialClockPicker';
 import SphereIcon, { SPHERE_INFOGRAPHIC_ICONS } from './SphereIcon';
-import StickerVaultModal from './StickerVaultModal';
-import PrivacyPolicyModal from './PrivacyPolicyModal';
-import RehabilitationModal from './RehabilitationModal';
-import SnapshotPreviewModal from './SnapshotPreviewModal';
+const StickerVaultModal = lazy(() => import('./StickerVaultModal'));
+const PrivacyPolicyModal = lazy(() => import('./PrivacyPolicyModal'));
+const RehabilitationModal = lazy(() => import('./RehabilitationModal'));
+const SnapshotPreviewModal = lazy(() => import('./SnapshotPreviewModal'));
 import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../services/p2pSyncEngine';
 import VerdictIconGallery from './VerdictIconGallery';
 import NotificationSetterCard from './NotificationSetterCard';
@@ -2681,12 +2681,14 @@ export default function SettingsModal({
       />
 
       {/* Sticker Vault Modal */}
-      {isStickerVaultOpen && (
-        <StickerVaultModal
-          isOpen={isStickerVaultOpen}
-          onClose={() => setIsStickerVaultOpen(false)}
-        />
-      )}
+      <Suspense fallback={null}>
+        {isStickerVaultOpen && (
+          <StickerVaultModal
+            isOpen={isStickerVaultOpen}
+            onClose={() => setIsStickerVaultOpen(false)}
+          />
+        )}
+      </Suspense>
 
       {/* Dedicated Non-Negotiables Studio Modal */}
       <NonNegotiablesStudioModal
@@ -2726,19 +2728,27 @@ export default function SettingsModal({
       </Suspense>
 
       {/* Privacy Policy Modal (DPDPA 2023) */}
-      <PrivacyPolicyModal
-        isOpen={isPrivacyModalOpen}
-        onClose={() => setIsPrivacyModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        {isPrivacyModalOpen && (
+          <PrivacyPolicyModal
+            isOpen={isPrivacyModalOpen}
+            onClose={() => setIsPrivacyModalOpen(false)}
+          />
+        )}
+      </Suspense>
 
       {/* Rehabilitation & Streak Freeze Modal */}
-      <RehabilitationModal
-        isOpen={isRehabModalOpen}
-        onClose={() => {
-          setIsRehabModalOpen(false);
-          if (onSettingsChanged) onSettingsChanged();
-        }}
-      />
+      <Suspense fallback={null}>
+        {isRehabModalOpen && (
+          <RehabilitationModal
+            isOpen={isRehabModalOpen}
+            onClose={() => {
+              setIsRehabModalOpen(false);
+              if (onSettingsChanged) onSettingsChanged();
+            }}
+          />
+        )}
+      </Suspense>
 
       {/* Nuclear Right to Erasure Confirmation Modal */}
       {isErasureConfirmOpen && (
@@ -2817,12 +2827,16 @@ export default function SettingsModal({
       )}
 
       {/* 📂 Time Machine Snapshot Inspection Modal (Zero-Risk Read-Only Preview) */}
-      <SnapshotPreviewModal
-        isOpen={Boolean(previewSnapshot)}
-        onClose={() => setPreviewSnapshot(null)}
-        snapshot={previewSnapshot}
-        onRestore={handleRestoreSnapshot}
-      />
+      <Suspense fallback={null}>
+        {previewSnapshot && (
+          <SnapshotPreviewModal
+            isOpen={Boolean(previewSnapshot)}
+            onClose={() => setPreviewSnapshot(null)}
+            snapshot={previewSnapshot}
+            onRestore={handleRestoreSnapshot}
+          />
+        )}
+      </Suspense>
     </>
   );
 }

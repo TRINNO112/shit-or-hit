@@ -74,11 +74,10 @@ import { getMutualPeerBackupMeta, restoreFromMutualPeerBackup } from '../service
 import { loginWithGoogle, logoutUser } from '../services/firebase';
 import { isVaultPinActive } from './VaultPinModal';
 import VerdictIconGallery from './VerdictIconGallery';
-import AIDirectivesModal from './AIDirectivesModal';
-import SnapshotPreviewModal from './SnapshotPreviewModal';
-import PrivacyPolicyModal from './PrivacyPolicyModal';
-import RehabilitationModal from './RehabilitationModal';
-
+const AIDirectivesModal = lazy(() => import('./AIDirectivesModal'));
+const SnapshotPreviewModal = lazy(() => import('./SnapshotPreviewModal'));
+const PrivacyPolicyModal = lazy(() => import('./PrivacyPolicyModal'));
+const RehabilitationModal = lazy(() => import('./RehabilitationModal'));
 const RansomCapsuleModal = lazy(() => import('./RansomCapsuleModal'));
 const P2PDeviceSyncModal = lazy(() => import('./P2PDeviceSyncModal'));
 
@@ -1764,18 +1763,20 @@ export default function DetailedSettingsView({
       </main>
 
       {/* Snapshot Preview Modal */}
-      {previewSnapId && previewSnapData && (
-        <SnapshotPreviewModal
-          isOpen={Boolean(previewSnapId)}
-          snapshotId={previewSnapId}
-          snapshotData={previewSnapData}
-          onClose={() => {
-            setPreviewSnapId(null);
-            setPreviewSnapData(null);
-          }}
-          onRestoreConfirm={(id) => handleRestoreSnapshot(id)}
-        />
-      )}
+      <Suspense fallback={null}>
+        {previewSnapId && previewSnapData && (
+          <SnapshotPreviewModal
+            isOpen={Boolean(previewSnapId)}
+            snapshotId={previewSnapId}
+            snapshotData={previewSnapData}
+            onClose={() => {
+              setPreviewSnapId(null);
+              setPreviewSnapData(null);
+            }}
+            onRestoreConfirm={(id) => handleRestoreSnapshot(id)}
+          />
+        )}
+      </Suspense>
 
       {/* Ransom Capsule Vault Management Modal */}
       <Suspense fallback={null}>
@@ -1789,40 +1790,50 @@ export default function DetailedSettingsView({
       </Suspense>
 
       {/* Statutory Privacy Policy Modal */}
-      <PrivacyPolicyModal
-        isOpen={isPrivacyModalOpen}
-        onClose={() => setIsPrivacyModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        {isPrivacyModalOpen && (
+          <PrivacyPolicyModal
+            isOpen={isPrivacyModalOpen}
+            onClose={() => setIsPrivacyModalOpen(false)}
+          />
+        )}
+      </Suspense>
 
       {/* Interactive Anti-Burnout Rehabilitation & Stasis Modal */}
-      <RehabilitationModal
-        isOpen={isRehabModalOpen}
-        onClose={() => {
-          setIsRehabModalOpen(false);
-          setRehabConfig(getRehabilitationConfig());
-          if (onSettingsChanged) onSettingsChanged();
-          window.dispatchEvent(new Event('storage'));
-        }}
-      />
+      <Suspense fallback={null}>
+        {isRehabModalOpen && (
+          <RehabilitationModal
+            isOpen={isRehabModalOpen}
+            onClose={() => {
+              setIsRehabModalOpen(false);
+              setRehabConfig(getRehabilitationConfig());
+              if (onSettingsChanged) onSettingsChanged();
+              window.dispatchEvent(new Event('storage'));
+            }}
+          />
+        )}
+      </Suspense>
 
       {/* AI Directives Reference Modal */}
-      {isDirectivesModalOpen && (
-        <AIDirectivesModal
-          isOpen={isDirectivesModalOpen}
-          onClose={() => setIsDirectivesModalOpen(false)}
-          activeDirective={localStorage.getItem('daily_verdict_default_directive') || 'auto'}
-          onSelectDirective={(dirId, customText) => {
-            localStorage.setItem('daily_verdict_default_directive', dirId);
-            if (customText) {
-              localStorage.setItem('daily_verdict_custom_prompt', customText.trim());
-            }
-          }}
-          customPrompt={localStorage.getItem('daily_verdict_custom_prompt') || ''}
-          onSaveCustomPrompt={(val) => {
-            localStorage.setItem('daily_verdict_custom_prompt', val.trim());
-          }}
-        />
-      )}
+      <Suspense fallback={null}>
+        {isDirectivesModalOpen && (
+          <AIDirectivesModal
+            isOpen={isDirectivesModalOpen}
+            onClose={() => setIsDirectivesModalOpen(false)}
+            activeDirective={localStorage.getItem('daily_verdict_default_directive') || 'auto'}
+            onSelectDirective={(dirId, customText) => {
+              localStorage.setItem('daily_verdict_default_directive', dirId);
+              if (customText) {
+                localStorage.setItem('daily_verdict_custom_prompt', customText.trim());
+              }
+            }}
+            customPrompt={localStorage.getItem('daily_verdict_custom_prompt') || ''}
+            onSaveCustomPrompt={(val) => {
+              localStorage.setItem('daily_verdict_custom_prompt', val.trim());
+            }}
+          />
+        )}
+      </Suspense>
 
       {/* 📡 WebRTC P2P Direct Device-to-Device Sync Modal */}
       {isP2PModalOpen && (

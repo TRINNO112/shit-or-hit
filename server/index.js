@@ -1521,19 +1521,46 @@ app.post('/api/entries/bulk', validateBody(bulkEntriesSchema), (req, res) => {
 
 // 🛡️ Guardian SOS Family Triage Dispatch (GCERT RBVP 2026-27 Subtheme 1A)
 // Strict Hard Cap: Max 2 emergency emails per 24-hour rolling window per target address
-const guardianDispatchLog = []; // [{ timestamp: number, email: string }]
+// Persisted atomically to disk (data/guardian_dispatch_log.json) to survive server restarts
+const GUARDIAN_LOG_FILE = path.join(DATA_DIR, 'guardian_dispatch_log.json');
+
+function readGuardianLog() {
+  try {
+    if (!fs.existsSync(GUARDIAN_LOG_FILE)) return [];
+    const raw = fs.readFileSync(GUARDIAN_LOG_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    logger.warn(`Failed to read guardian log: ${err.message}`);
+    return [];
+  }
+}
+
+function writeGuardianLog(log) {
+  try {
+    const tempPath = `${GUARDIAN_LOG_FILE}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(log, null, 2), 'utf-8');
+    fs.renameSync(tempPath, GUARDIAN_LOG_FILE);
+  } catch (err) {
+    logger.error(`Failed to write guardian log: ${err.message}`);
+  }
+}
 
 app.get(['/api/guardian-sos/quota', '/guardian-sos/quota', '/api/api/guardian-sos/quota'], (req, res) => {
   const email = (req.query.email || '').toLowerCase().trim();
   const now = Date.now();
   const windowMs = 24 * 60 * 60 * 1000;
 
+  let log = readGuardianLog();
+  const initialLength = log.length;
+
   // Prune entries older than 24h
-  while (guardianDispatchLog.length > 0 && (now - guardianDispatchLog[0].timestamp) >= windowMs) {
-    guardianDispatchLog.shift();
+  log = log.filter(d => (now - d.timestamp) < windowMs);
+  if (log.length !== initialLength) {
+    writeGuardianLog(log);
   }
 
-  const matching = email ? guardianDispatchLog.filter(d => d.email === email) : guardianDispatchLog;
+  const matching = email ? log.filter(d => d.email === email) : log;
   const sentCount = matching.length;
   const maxAllowed = 2;
   const remaining = Math.max(0, maxAllowed - sentCount);
@@ -1561,13 +1588,17 @@ app.post(['/api/guardian-sos/dispatch', '/guardian-sos/dispatch', '/api/api/guar
   const now = Date.now();
   const windowMs = 24 * 60 * 60 * 1000;
 
+  let log = readGuardianLog();
+  const initialLength = log.length;
+
   // Prune expired entries
-  while (guardianDispatchLog.length > 0 && (now - guardianDispatchLog[0].timestamp) >= windowMs) {
-    guardianDispatchLog.shift();
+  log = log.filter(d => (now - d.timestamp) < windowMs);
+  if (log.length !== initialLength) {
+    writeGuardianLog(log);
   }
 
   const normalizedEmail = (guardianEmail || '').toLowerCase().trim();
-  const recentCount = guardianDispatchLog.filter(d => d.email === normalizedEmail).length;
+  const recentCount = log.filter(d => d.email === normalizedEmail).length;
 
   // 🛡️ Strict Server-Side Hard Cap: 2 emails / 24h maximum
   if (recentCount >= 2) {
@@ -1642,8 +1673,9 @@ app.post(['/api/guardian-sos/dispatch', '/guardian-sos/dispatch', '/api/api/guar
 
     logger.info(`[Resend Email Dispatched] ID: ${resendData.id || 'ok'}`);
 
-    // Commit to sliding window hard cap
-    guardianDispatchLog.push({ timestamp: now, email: normalizedEmail });
+    // Commit to persistent sliding window hard cap
+    log.push({ timestamp: now, email: normalizedEmail });
+    writeGuardianLog(log);
 
     return res.json({
       success: true,
