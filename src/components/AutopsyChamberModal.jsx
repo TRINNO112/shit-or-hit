@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   Terminal,
   Crosshair,
-  AlertTriangle
+  AlertTriangle,
+  AlertCircle,
+  RotateCw
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { AutopsyBadge } from './AutopsyBadge';
@@ -102,14 +104,10 @@ export default function AutopsyChamberModal({
         throw new Error('Could not parse autopsy response');
       }
     } catch (err) {
-      console.warn('Autopsy retrieval exception, fallback engaged:', err);
-      setErrorMsg(err.message || 'Failed to generate autopsy analysis');
-      // Fallback: use local autopsy directly if exception occurred
-      const fallback = generateLocalAutopsy({ notes, rating, spheres, anchors, date: entryDate });
-      if (fallback) {
-        setAutopsyData(fallback);
-        setStage('interrogating');
-      }
+      console.warn('Autopsy retrieval exception:', err);
+      setErrorMsg(err.message || 'Sovereign AI tiers unreachable. Check internet connection.');
+      setStage('failed');
+      soundEngine?.playRoughTone?.();
     } finally {
       setIsLoading(false);
     }
@@ -369,6 +367,49 @@ export default function AutopsyChamberModal({
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* -------------------------------------------------------------
+            STAGE: FAILED / OFFLINE ERROR STATE
+        -------------------------------------------------------------- */}
+        {stage === 'failed' && (
+          <div className="flex-1 py-10 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#FF4D4D] border-2 border-[#1C1917] flex items-center justify-center shadow-[3px_3px_0px_#1C1917]">
+              <AlertCircle className="w-7 h-7 text-white stroke-[2.5]" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-mono font-black text-base uppercase text-[#1C1917]">
+                Forensic Inquest Evaluation Failed
+              </h4>
+              <p className="font-mono text-xs text-neutral-700 max-w-sm mx-auto leading-relaxed">
+                {errorMsg || 'All Sovereign AI tiers (Hugging Face & Cloudflare) are offline or unreachable.'}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 w-full max-w-xs">
+              <button
+                type="button"
+                onClick={fetchAutopsyAnalysis}
+                className="w-full sm:flex-1 py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 text-black border-2 border-[#1C1917] rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#1C1917] active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Retry Inquest</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const fallback = generateLocalAutopsy({ notes, rating, spheres, anchors, date: entryDate });
+                  if (fallback) {
+                    setAutopsyData({ ...fallback, engine: 'OFFLINE HEURISTIC' });
+                    setStage('interrogating');
+                  }
+                }}
+                className="w-full sm:flex-1 py-2.5 px-3 bg-[#FAF6ED] hover:bg-[#EAE0CD] text-black border-2 border-[#1C1917] rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#1C1917] active:scale-95 cursor-pointer"
+              >
+                Use Offline Diagnostic
+              </button>
+            </div>
           </div>
         )}
 

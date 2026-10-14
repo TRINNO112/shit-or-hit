@@ -867,13 +867,12 @@ CRITICAL INSTRUCTIONS:
       }
     }
 
-    // Resilient local fallback so diary workflow is never interrupted
-    logger.warn(`[Sovereign AI Gateway] All tiers unavailable, applying local sharpener: ${gatewayRes.error}`);
-    return res.json({
-      success: true,
-      enhancedText: cleanAiEnhancedText(sharpenReflectionLocally(notes, rating)),
-      isLocalFallback: true,
-      fallbackReason: `Sovereign AI unavailable (${gatewayRes.error}). Heuristic reflection sharpener applied.`
+    // Honest error reporting: Inform the client that Sovereign AI is unavailable
+    logger.warn(`[Sovereign AI Gateway] All tiers unavailable: ${gatewayRes.error}`);
+    return res.status(503).json({
+      success: false,
+      error: gatewayRes.error || 'All Sovereign AI tiers (Hugging Face & Cloudflare) unavailable. Please check your internet connection.',
+      isOffline: true
     });
   }
 
@@ -895,20 +894,17 @@ CRITICAL INSTRUCTIONS:
       });
     }
 
-    console.warn('Gemini AI enhance unavailable, falling back to local sharpener:', geminiResult.error);
-    return res.json({
-      success: true,
-      enhancedText: cleanAiEnhancedText(sharpenReflectionLocally(notes, rating)),
-      isLocalFallback: true,
-      fallbackReason: 'Google Gemini servers experiencing temporary high demand (503). Local sharpener applied.'
+    console.warn('Gemini AI enhance unavailable:', geminiResult.error);
+    return res.status(503).json({
+      success: false,
+      error: geminiResult.error || 'Google Gemini AI servers unavailable. Please check your internet connection or API quota.',
+      isOffline: true
     });
   } catch (err) {
     console.error('AI Enhance route exception:', err);
-    res.json({
-      success: true,
-      enhancedText: cleanAiEnhancedText(sharpenReflectionLocally(notes, rating)),
-      isLocalFallback: true,
-      fallbackReason: err.message || 'AI service error. Local sharpener applied.'
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'AI service error encountered.'
     });
   }
 });
@@ -955,17 +951,6 @@ function extractJsonFromLlmText(rawText) {
     } catch (e) {}
   }
   return null;
-}
-
-function sharpenReflectionLocally(text, rating) {
-  const clean = text.trim();
-  if (rating <= 2) {
-    return `${clean} — Identified friction points; resetting focus to eliminate bottlenecks tomorrow.`;
-  } else if (rating >= 4) {
-    return `${clean} — High-velocity execution and sharp focus; lock in this momentum.`;
-  } else {
-    return `${clean} — Maintained steady baseline and discipline throughout the day.`;
-  }
 }
 
 // 🩺 AI Forensic Autopsy Chamber Endpoint

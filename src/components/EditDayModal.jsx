@@ -61,6 +61,7 @@ export default function EditDayModal({
   const [rating, setRating] = useState(entryData?.rating || 3);
   const [notes, setNotes] = useState(entryData?.notes || '');
   const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'error'
+  const [enhanceError, setEnhanceError] = useState(null);
   const [aiEngine, setAiEngine] = useState(() => (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen');
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -259,6 +260,7 @@ export default function EditDayModal({
     const activePrompt = savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null);
     
     setEnhanceStatus('polishing');
+    setEnhanceError(null);
     try {
       const comp = calculateCompositeScore(spheresData);
       const enhanced = await enhanceReflectionWithAI(
@@ -280,7 +282,8 @@ export default function EditDayModal({
       console.error('AI Enhance error:', err);
       soundEngine.playRoughTone();
       setEnhanceStatus('error');
-      setTimeout(() => setEnhanceStatus('idle'), 2500);
+      setEnhanceError(err.message || 'Sovereign AI tiers unreachable. Check internet connection.');
+      setTimeout(() => setEnhanceStatus('idle'), 3500);
     }
   };
 
@@ -345,7 +348,7 @@ export default function EditDayModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className={`w-full ${sphereModeActive ? 'max-w-6xl 3xl:max-w-7xl 4k:max-w-[1920px]' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl'} min-h-[360px] sm:min-h-140 max-h-[94vh] h-[90vh] sm:h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[4px_4px_0px_#000000] sm:shadow-[10px_10px_0px_#000000] overflow-hidden p-3.5 sm:p-7 3xl:p-9 4k:p-12`}
+            className={`w-full ${sphereModeActive ? 'max-w-6xl 3xl:max-w-7xl 4k:max-w-[1920px]' : 'max-w-3xl 2xl:max-w-4xl 3xl:max-w-5xl 4k:max-w-6xl'} min-h-90 sm:min-h-140 max-h-[94vh] h-[90vh] sm:h-[85vh] flex flex-col bg-white border-3 border-black rounded-3xl shadow-[4px_4px_0px_#000000] sm:shadow-[10px_10px_0px_#000000] overflow-hidden p-3.5 sm:p-7 3xl:p-9 4k:p-12`}
             onClick={(e) => e.stopPropagation()}
           >
 
@@ -768,6 +771,35 @@ export default function EditDayModal({
                       className="w-full flex-1 min-h-32 sm:min-h-56 p-3 sm:p-4 text-xs sm:text-sm font-mono bg-white border-2 border-black rounded-2xl placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-black leading-relaxed shadow-[2px_2px_0px_#000000] resize-none"
                       style={{ color: '#000000' }}
                     />
+
+                    {/* AI Error Notification Banner */}
+                    {enhanceError && (
+                      <div className="p-2.5 bg-red-100 border-2 border-black rounded-xl flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000000] shrink-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <AlertCircle className="w-4 h-4 text-red-600 shrink-0 stroke-[2.5]" />
+                          <span className="font-mono text-xs font-bold text-red-950 truncate">
+                            AI Polish Failed: {enhanceError}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleAIEnhance}
+                            className="px-2.5 py-1 bg-black text-[#FDC800] hover:bg-neutral-800 rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer"
+                          >
+                            Retry
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEnhanceError(null)}
+                            className="p-1 text-neutral-600 hover:text-black cursor-pointer"
+                            title="Dismiss"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

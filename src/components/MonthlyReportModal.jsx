@@ -310,13 +310,31 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                 <button
                   onClick={() => loadReportData(year, month, true)}
                   disabled={isLoading}
-                  title={report ? "Re-evaluate Gemini AI with latest data" : "Run Gemini AI Performance Evaluation"}
-                  className={`h-8 sm:h-9 neo-btn px-2.5 sm:px-4 text-black font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0 ${
-                    report ? 'bg-[#FDC800] hover:bg-amber-300' : 'bg-[#00E599] hover:bg-emerald-400'
+                  title={error ? "AI evaluation failed. Tap to retry." : report ? "Re-evaluate Sovereign AI with latest data" : "Run Sovereign AI Performance Evaluation"}
+                  className={`h-8 sm:h-9 neo-btn px-2.5 sm:px-4 font-mono font-black text-xs flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] cursor-pointer disabled:opacity-50 shrink-0 ${
+                    error
+                      ? 'bg-[#FF4D4D] text-white hover:bg-red-500'
+                      : report
+                      ? 'bg-[#FDC800] text-black hover:bg-amber-300'
+                      : 'bg-[#00E599] text-black hover:bg-emerald-400'
                   }`}
                 >
-                  <Wand2 className={`w-3.5 h-3.5 stroke-[2.5] ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>{isLoading ? 'EVALUATING...' : report ? 'RE-EVALUATE' : 'RUN EVALUATION'}</span>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>EVALUATING...</span>
+                    </>
+                  ) : error ? (
+                    <>
+                      <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>FAILED (RETRY)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>{report ? 'RE-EVALUATE' : 'RUN EVALUATION'}</span>
+                    </>
+                  )}
                 </button>
 
                 {report && (
@@ -595,7 +613,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
 
                                 return (
                                   <React.Fragment key={nIdx}>
-                                    <div className="w-[230px] sm:w-[260px] min-w-[210px] max-w-[280px] shrink-0 p-3 sm:p-3.5 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5">
+                                    <div className="w-57.5 sm:w-65 min-w-52.5 max-w-70 shrink-0 p-3 sm:p-3.5 rounded-xl border-2 border-black bg-white shadow-[2px_2px_0px_#000000] flex flex-col justify-between gap-2.5">
                                       {/* Stage Badge & Date Rating */}
                                       <div className="flex items-center justify-between gap-1 pb-1 border-b border-black/10">
                                         <div className="flex items-center gap-1.5 min-w-0">
@@ -621,7 +639,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                       </div>
 
                                       {/* Summary Description */}
-                                      <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-relaxed break-words">
+                                      <p className="text-[11px] sm:text-xs font-mono font-bold text-neutral-800 leading-relaxed wrap-break-word">
                                         {node.summary}
                                       </p>
 
@@ -629,7 +647,7 @@ ${report.nextMonthDirectives?.map(d => `1. ${d}`).join('\n')}
                                       <div className="flex items-center justify-between gap-1 pt-1 border-t border-black/10 text-[8px] font-mono font-bold text-neutral-500">
                                         <span>STAGE {nIdx + 1} OF {arr.length}</span>
                                         {node.frictionTag && (
-                                          <span className="uppercase truncate max-w-[120px] text-neutral-600 font-black">
+                                          <span className="uppercase truncate max-w-30 text-neutral-600 font-black">
                                             {node.frictionTag}
                                           </span>
                                         )}

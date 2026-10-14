@@ -1150,16 +1150,21 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
         }
       } else {
         const errJson = await res.json().catch(() => ({}));
-        if (errJson?.error) {
-          console.warn(`[Monthly Dossier Backend Error] ${errJson.error}`);
+        const errMsg = errJson?.error || `Monthly dossier server error (${res.status})`;
+        console.warn(`[Monthly Dossier Backend Error] ${errMsg}`);
+        if (forceReevaluate) {
+          throw new Error(errMsg);
         }
       }
     } catch (err) {
-      console.warn('Backend POST /api/monthly-report unavailable, falling back to client generation:', err);
+      console.warn('Backend POST /api/monthly-report unavailable:', err);
+      if (forceReevaluate) {
+        throw err;
+      }
     }
   }
 
-  // 2. Direct client-side forensic synthesis with live Gemini AI fallback if backend didn't return report
+  // 2. Direct client-side forensic synthesis if initial evaluation and backend offline
   if (!finalReport) {
     finalReport = await generateClientMonthlyReport(year, month, entriesPayload, preferredLanguage);
   }

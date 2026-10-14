@@ -125,7 +125,8 @@ export default function TodayHero({
   const [showNote, setShowNote] = useState(Boolean(activeEntry?.notes));
   const [noteText, setNoteText] = useState(activeEntry?.notes || '');
   const [syncedBadge, setSyncedBadge] = useState(false);
-  const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'fallback' | 'error'
+  const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'error'
+  const [enhanceError, setEnhanceError] = useState(null);
   const [sadSettle, setSadSettle] = useState(false);
   const [verdictIconsVer, setVerdictIconsVer] = useState(0);
 
@@ -574,6 +575,7 @@ export default function TodayHero({
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
     setEnhanceStatus('polishing');
+    setEnhanceError(null);
     try {
       const enhanced = await enhanceReflectionWithAI(
         currentVal,
@@ -590,20 +592,15 @@ export default function TodayHero({
       setNoteText(enhanced);
       setShowNote(true);
 
-      if (enhanced?.isLocalFallback) {
-        soundEngine.playClick();
-        setEnhanceStatus('fallback');
-        setTimeout(() => setEnhanceStatus('idle'), 2500);
-      } else {
-        soundEngine.playSuccessChime();
-        setEnhanceStatus('success');
-        setTimeout(() => setEnhanceStatus('idle'), 2000);
-      }
+      soundEngine.playSuccessChime();
+      setEnhanceStatus('success');
+      setTimeout(() => setEnhanceStatus('idle'), 2000);
     } catch (err) {
       console.error('AI Enhance error:', err);
       soundEngine.playRoughTone();
       setEnhanceStatus('error');
-      setTimeout(() => setEnhanceStatus('idle'), 2500);
+      setEnhanceError(err.message || 'Sovereign AI tiers unreachable. Check internet connection.');
+      setTimeout(() => setEnhanceStatus('idle'), 3500);
     }
   };
 
@@ -1887,12 +1884,10 @@ export default function TodayHero({
                   type="button"
                   onClick={() => handleAIEnhance()}
                   disabled={enhanceStatus === 'polishing' || (!noteText.trim() && !Object.values(spheresData).some(s => s?.notes && s.notes.trim()))}
-                  title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : 'Polish and organize your diary entry with Gemini AI using your Settings directive'}
+                  title={enhanceStatus === 'error' ? 'AI Enhancement failed. Tap to retry.' : 'Polish and organize your diary entry with Sovereign AI using your Settings directive'}
                   className={`px-3.5 py-1.5 border-2 border-black rounded-xl text-black text-xs font-mono font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000000] transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                     enhanceStatus === 'success'
                       ? 'bg-[#00E599]'
-                      : enhanceStatus === 'fallback'
-                      ? 'bg-amber-200'
                       : enhanceStatus === 'error'
                       ? 'bg-[#FF4D4D] text-white'
                       : 'bg-[#FDC800] hover:bg-amber-300'
@@ -1907,11 +1902,6 @@ export default function TodayHero({
                     <>
                       <Check className="w-3.5 h-3.5 stroke-3 text-black" />
                       <span>POLISHED!</span>
-                    </>
-                  ) : enhanceStatus === 'fallback' ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 stroke-3 text-black" />
-                      <span>POLISHED (LOCAL)</span>
                     </>
                   ) : enhanceStatus === 'error' ? (
                     <>
@@ -1934,6 +1924,35 @@ export default function TodayHero({
                 </button>
               </div>
             </div>
+
+            {/* AI Error Notification Banner (Tactile Graceful Degradation) */}
+            {enhanceError && (
+              <div className="p-3 bg-red-100 border-2 border-black rounded-xl flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000000]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0 stroke-[2.5]" />
+                  <span className="font-mono text-xs font-bold text-red-950 truncate">
+                    AI Polish Failed: {enhanceError}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhance()}
+                    className="px-2.5 py-1 bg-black text-[#FDC800] hover:bg-neutral-800 rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEnhanceError(null)}
+                    className="p-1 text-neutral-600 hover:text-black cursor-pointer"
+                    title="Dismiss error"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Unsaved Draft Notification Pill */}
             {hasUnsavedDraft && (

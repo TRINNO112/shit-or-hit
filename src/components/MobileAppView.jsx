@@ -243,6 +243,7 @@ export default function MobileAppView({
 
   // AI Polish State & History Stack
   const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'error'
+  const [enhanceError, setEnhanceError] = useState(null);
   const [aiEngine, setAiEngine] = useState(() => (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen');
   const [historyStack, setHistoryStack] = useState([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
@@ -480,6 +481,7 @@ export default function MobileAppView({
     const foundPreset = DIRECTIVES.find(d => d.id === savedDirective);
     const activePrompt = overridePrompt || (savedCustomPrompt ? savedCustomPrompt : (foundPreset ? foundPreset.instruction : null));
     setEnhanceStatus('polishing');
+    setEnhanceError(null);
     try {
       const comp = calculateCompositeScore(spheresData);
       const enhanced = await enhanceReflectionWithAI(
@@ -506,7 +508,8 @@ export default function MobileAppView({
       triggerHaptic('warning');
       soundFx.playRough();
       setEnhanceStatus('error');
-      setTimeout(() => setEnhanceStatus('idle'), 2500);
+      setEnhanceError(err.message || 'Sovereign AI tiers unreachable. Check internet connection.');
+      setTimeout(() => setEnhanceStatus('idle'), 3500);
     }
   };
 
@@ -925,7 +928,7 @@ export default function MobileAppView({
               soundEngine.playClick();
               setIsQuickSettingsOpen(true);
             }}
-            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer shrink-0 transition-colors"
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer shrink-0 transition-colors"
             title="Quick Controls"
           >
             <Settings className="w-4 h-4 text-black" />
@@ -2232,6 +2235,35 @@ export default function MobileAppView({
                   placeholder="What went wrong? What went right? Write your unfiltered thoughts..."
                   className="flex-1 w-full p-3.5 sm:p-4 rounded-2xl border-2 border-black bg-white font-mono text-sm sm:text-base text-black resize-none focus:outline-none focus:ring-2 focus:ring-[#FDC800] leading-relaxed shadow-[inset_1.5px_1.5px_0px_rgba(0,0,0,0.1)] overflow-y-auto min-h-35"
                 />
+
+                {/* AI Error Notification Banner (Tactile Graceful Degradation) */}
+                {enhanceError && (
+                  <div className="p-2.5 bg-red-100 border-2 border-black rounded-xl flex items-center justify-between gap-2 shadow-[2px_2px_0px_#000000] shrink-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0 stroke-[2.5]" />
+                      <span className="font-mono text-xs font-bold text-red-950 truncate">
+                        AI Polish Failed: {enhanceError}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleAIEnhance()}
+                        className="px-2.5 py-1 bg-black text-[#FDC800] hover:bg-neutral-800 rounded-lg font-mono text-[10px] font-black uppercase cursor-pointer"
+                      >
+                        Retry
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEnhanceError(null)}
+                        className="p-1 text-neutral-600 hover:text-black cursor-pointer"
+                        title="Dismiss error"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* 🧠 Real-Time Cognitive Distortion Scanner & CBT Reframing Mirror */}
                 <CognitiveDistortionScanner
