@@ -22,6 +22,7 @@ import {
 import { soundEngine } from '../services/soundEngine';
 import { AutopsyBadge } from './AutopsyBadge';
 import { getAutopsyAnalysis, generateLocalAutopsy } from '../services/autopsyIntelligence';
+import { formatAiErrorMessage } from '../services/api';
 
 // Re-export for seamless backward compatibility
 export { AutopsyBadge };
@@ -105,7 +106,7 @@ export default function AutopsyChamberModal({
       }
     } catch (err) {
       console.warn('Autopsy retrieval exception:', err);
-      setErrorMsg(err.message || 'Sovereign AI tiers unreachable. Check internet connection.');
+      setErrorMsg(formatAiErrorMessage(err, 'autopsy'));
       setStage('failed');
       soundEngine?.playRoughTone?.();
     } finally {
@@ -356,7 +357,7 @@ export default function AutopsyChamberModal({
               <div className="mt-3 p-2.5 bg-[#FEE2E2] border-2 border-[#B91C1C] text-[#991B1B] rounded-xl text-xs font-mono max-w-sm">
                 <p className="font-bold flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-[#B91C1C]" />
-                  <span>Notice: {errorMsg}</span>
+                  <span>{errorMsg}</span>
                 </p>
                 <button
                   type="button"
@@ -383,7 +384,7 @@ export default function AutopsyChamberModal({
                 Forensic Inquest Evaluation Failed
               </h4>
               <p className="font-mono text-xs text-neutral-700 max-w-sm mx-auto leading-relaxed">
-                {errorMsg || 'All Sovereign AI tiers (Hugging Face & Cloudflare) are offline or unreachable.'}
+                {errorMsg || 'Sovereign AI servers are temporarily busy or unreachable. Tap Retry Inquest or use Offline Diagnostic.'}
               </p>
             </div>
 

@@ -20,6 +20,7 @@ import { soundEngine } from '../services/soundEngine';
 import {
   ratingMeta,
   enhanceReflectionWithAI,
+  formatAiErrorMessage,
   isSphereModeEnabled,
   getSphereConfig,
   calculateCompositeScore,
@@ -282,7 +283,7 @@ export default function EditDayModal({
       console.error('AI Enhance error:', err);
       soundEngine.playRoughTone();
       setEnhanceStatus('error');
-      setEnhanceError(err.message || 'Sovereign AI tiers unreachable. Check internet connection.');
+      setEnhanceError(formatAiErrorMessage(err, 'reflection'));
       setTimeout(() => setEnhanceStatus('idle'), 3500);
     }
   };
@@ -778,7 +779,7 @@ export default function EditDayModal({
                         <div className="flex items-center gap-2 min-w-0">
                           <AlertCircle className="w-4 h-4 text-red-600 shrink-0 stroke-[2.5]" />
                           <span className="font-mono text-xs font-bold text-red-950 truncate">
-                            AI Polish Failed: {enhanceError}
+                            {enhanceError}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">

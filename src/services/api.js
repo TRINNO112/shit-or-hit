@@ -13,6 +13,7 @@ import {
   deleteCloudUserData
 } from './firebase';
 import { encryptCapsuleMessage, decryptCapsuleMessage } from './cipherEngine';
+import { dispatchEnhanceReflection, callDirectCloudflareWorkersAI } from './aiGateway';
 
 export { getCurrentUser, getEffectiveUserId };
 
@@ -1008,7 +1009,6 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
   const aiEngine = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen';
 
-  const { dispatchEnhanceReflection } = await import('./aiGateway');
   return await dispatchEnhanceReflection({
     notes,
     rating,
@@ -1019,6 +1019,148 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
     aiEngine,
     cleanAiEnhancedText
   });
+}
+
+/**
+ * Formats any raw network, HTTP, dynamic import, or AI failure into a human-friendly,
+ * reassuring, zero-technical-jargon message.
+ * 
+ * @param {Error|Object|string} err - The error object, response JSON, or raw string.
+ * @param {'reflection'|'dossier'|'email'|'autopsy'|'default'} context - UI surface context.
+ * @returns {string} Human-friendly message suitable for UI display.
+ */
+export function formatAiErrorMessage(err, context = 'default') {
+  const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  const rawMsg = typeof err === 'string' 
+    ? err 
+    : (err?.message || err?.error || err?.statusText || '');
+  const lowerMsg = String(rawMsg).toLowerCase();
+  const statusCode = Number(err?.status) || 0;
+
+  // 1. Offline or Failed Network Connection
+  const isNetworkFailure = isOffline ||
+    lowerMsg.includes('failed to fetch') ||
+    lowerMsg.includes('dynamically imported module') ||
+    lowerMsg.includes('networkerror') ||
+    lowerMsg.includes('network request failed') ||
+    lowerMsg.includes('load failed') ||
+    lowerMsg.includes('econnrefused') ||
+    lowerMsg.includes('net::err') ||
+    lowerMsg.includes('offline');
+
+  if (isNetworkFailure) {
+    if (context === 'dossier') {
+      return 'You are currently offline. Connect to the internet to generate your monthly intelligence dossier.';
+    }
+    if (context === 'email') {
+      return 'You are currently offline. Connect to the internet to dispatch the emergency briefing email.';
+    }
+    if (context === 'autopsy') {
+      return 'You are currently offline. Connect to the internet for AI forensics, or use the offline diagnostic below.';
+    }
+    return 'You are currently offline. Connect to the internet to polish your reflection with Sovereign AI.';
+  }
+
+  // 2. Rate Limit / Quota Exceeded (HTTP 429)
+  const isRateLimit = statusCode === 429 ||
+    lowerMsg.includes('429') ||
+    lowerMsg.includes('quota') ||
+    lowerMsg.includes('rate limit') ||
+    lowerMsg.includes('too many requests') ||
+    lowerMsg.includes('hard cap') ||
+    lowerMsg.includes('cooldown');
+
+  if (isRateLimit) {
+    if (context === 'email') {
+      return 'Daily emergency email limit reached (2 emails / 24 hours). Rate limit protection active.';
+    }
+    if (context === 'dossier') {
+      return 'AI evaluation rate limit reached. Please wait a moment before re-evaluating.';
+    }
+    if (context === 'autopsy') {
+      return 'Forensic inquiry rate limit reached. Please wait a few moments or use offline diagnostic.';
+    }
+    return 'Daily AI quota reached. Please try again later or switch your AI engine in Settings.';
+  }
+
+  // 3. Service Unavailable / Server Busy / 503 / 502 / Sovereign Cascade Offline
+  const isServerUnavailable = statusCode === 503 || statusCode === 502 ||
+    lowerMsg.includes('503') ||
+    lowerMsg.includes('502') ||
+    lowerMsg.includes('service unavailable') ||
+    lowerMsg.includes('server error') ||
+    lowerMsg.includes('unavailable') ||
+    lowerMsg.includes('zero google leak preserved') ||
+    lowerMsg.includes('sovereign ai tiers') ||
+    lowerMsg.includes('busy');
+
+  if (isServerUnavailable) {
+    if (context === 'dossier') {
+      return 'Sovereign AI servers are temporarily busy. Tap Retry Synthesis to try again.';
+    }
+    if (context === 'email') {
+      return 'Email dispatch service is temporarily busy. Tap Retry to send again.';
+    }
+    if (context === 'autopsy') {
+      return 'Sovereign AI servers are temporarily busy. Tap Retry Inquest or use Offline Diagnostic.';
+    }
+    return 'Sovereign AI servers are temporarily busy. Tap Retry to polish again.';
+  }
+
+  // 4. Request Timeout / Abort
+  const isTimeout = err?.name === 'AbortError' ||
+    lowerMsg.includes('timeout') ||
+    lowerMsg.includes('timed out') ||
+    lowerMsg.includes('aborted');
+
+  if (isTimeout) {
+    if (context === 'dossier') {
+      return 'Analysis timed out while processing entries. Tap Retry Synthesis to resume.';
+    }
+    if (context === 'email') {
+      return 'Email dispatch timed out. Please check your connection and tap Retry.';
+    }
+    if (context === 'autopsy') {
+      return 'Forensic scan timed out. Tap Retry Inquest or use Offline Diagnostic.';
+    }
+    return 'AI polish timed out. Tap Retry to try again.';
+  }
+
+  // 5. Missing Credentials / API Keys
+  if (lowerMsg.includes('api key') || lowerMsg.includes('credentials') || lowerMsg.includes('token missing')) {
+    if (context === 'email') {
+      return 'Email credentials missing. Please configure your Resend API Key in Settings.';
+    }
+    return 'AI credentials missing. Please configure your API key in Settings to proceed.';
+  }
+
+  // 6. Generic Fallback without ANY technical trace or jargon
+  const hasTechnicalJargon = lowerMsg.includes('typeerror') ||
+    lowerMsg.includes('syntaxerror') ||
+    lowerMsg.includes('referenceerror') ||
+    lowerMsg.includes('[object') ||
+    lowerMsg.includes('undefined') ||
+    lowerMsg.includes('null') ||
+    lowerMsg.includes('http') ||
+    lowerMsg.includes('json') ||
+    lowerMsg.includes('{') ||
+    lowerMsg.includes('stack') ||
+    lowerMsg.includes('at ');
+
+  if (!hasTechnicalJargon && rawMsg && rawMsg.length > 5 && rawMsg.length < 120) {
+    return rawMsg;
+  }
+
+  if (context === 'dossier') {
+    return 'Could not generate monthly intelligence right now. Tap Retry Synthesis to try again.';
+  }
+  if (context === 'email') {
+    return 'Could not dispatch email at this moment. Tap Retry to try again.';
+  }
+  if (context === 'autopsy') {
+    return 'Forensic inquest could not be completed right now. Tap Retry or use Offline Diagnostic.';
+  }
+  return 'AI polish temporarily unavailable. Tap Retry to try again.';
 }
 
 export async function getSavedMonthlyReport(year, month) {
@@ -1291,7 +1433,7 @@ async function generateClientMonthlyReport(year, month, customEntries = null, pr
   let nextMonthDirectives = [];
 
   if (hitRate >= 80) {
-    personaTitle = 'The Relentless Velocity Builder ⚡';
+    personaTitle = 'The Relentless Velocity Builder';
     executiveSummary = `Dominated ${monthName} with an exceptional ${hitRate}% Hit Rate across ${loggedCount} days. Maintained relentless forward momentum and deep flow-state consistency.`;
     homieLetter = [
       `Bro... look at this board. You absolutely ran the table this month with a ${hitRate}% Hit Rate. That is elite execution.`,
@@ -1312,7 +1454,7 @@ async function generateClientMonthlyReport(year, month, customEntries = null, pr
       `Maintain clean nutrition and recovery to sustain high velocity.`
     ];
   } else if (hitRate >= 50) {
-    personaTitle = 'The Resilient Equilibrium Builder 🛡️';
+    personaTitle = 'The Resilient Equilibrium Builder';
     executiveSummary = `Maintained steady discipline in ${monthName} with a ${hitRate}% Hit Rate. Balanced standard routines while holding the baseline through fluctuating demands.`;
     homieLetter = [
       `Solid month of holding the line, bro. You finished with a ${hitRate}% Hit Rate across ${loggedCount} logged days.`,
@@ -1333,7 +1475,7 @@ async function generateClientMonthlyReport(year, month, customEntries = null, pr
       `Aim for an 80%+ Hit Rate next month.`
     ];
   } else {
-    personaTitle = 'The 3:45 AM Dopamine Goblin 👺';
+    personaTitle = 'The 3:45 AM Dopamine Goblin';
     executiveSummary = `Bro... look at this chart. Your month was cooked as shit. Genuinely raw-dogging the trenches with ${ratingCounts[1]} Rough days, ${ratingCounts[2]} Down days, and only 1 win—but you logged every single day and clutched up on Day 31.`;
     homieLetter = [
       `Listen to me bro: this month was an absolute blender. You had failed Accounts papers, public teacher callouts, morning stomach cramps in class, family tension over gas cylinders, and sitting in the canteen watching your friends flex their dating life while you felt completely invisible. I hear you, and that shit genuinely hurts.`,
@@ -3216,7 +3358,6 @@ export async function generateAiGuardianBriefing(entries = {}, guardianConfig = 
 
     // Sovereign Tier 2: Cloudflare Workers AI Edge Pool (Zero Training Guarantee)
     try {
-      const { callDirectCloudflareWorkersAI } = await import('./aiGateway');
       const cfRes = await callDirectCloudflareWorkersAI({
         prompt: prompt + '\n\nIMPORTANT: Output ONLY the raw JSON object adhering to the schema. No markdown formatting.',
         systemInstruction: 'You are a clinical adolescent wellness advisor. Output valid JSON strictly.',
@@ -3359,7 +3500,7 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
       return {
         success: false,
         capReached: true,
-        error: err.message || 'Daily hard cap reached: Maximum 2 emails per 24 hours allowed.',
+        error: formatAiErrorMessage(err.message || { status: 429 }, 'email'),
         remaining: 0,
         quota: getGuardianEmailQuota()
       };
@@ -3367,7 +3508,11 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      return { success: false, error: err.error || err.message || 'Server email dispatch failed', capReached: err.capReached };
+      return { 
+        success: false, 
+        error: formatAiErrorMessage(err.error || err.message || { status: res.status }, 'email'), 
+        capReached: err.capReached 
+      };
     }
 
     const data = await res.json();
@@ -3382,7 +3527,7 @@ export async function dispatchGuardianSOS({ guardianConfig, briefing, user = nul
     console.warn('Network email dispatch failed:', err);
     return {
       success: false,
-      error: 'Backend email service offline or unreachable. Please ensure the server is running.',
+      error: formatAiErrorMessage(err, 'email'),
       quota: getGuardianEmailQuota()
     };
   }

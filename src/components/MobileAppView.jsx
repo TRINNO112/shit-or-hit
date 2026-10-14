@@ -63,6 +63,7 @@ import {
   fetchMonthlyReport, 
   getSavedMonthlyReport, 
   enhanceReflectionWithAI,
+  formatAiErrorMessage,
   isSphereModeEnabled,
   getSphereConfig,
   calculateCompositeScore,
@@ -406,7 +407,7 @@ export default function MobileAppView({
       setDossierReport(data);
     } catch (err) {
       console.error('Failed to load mobile monthly report:', err);
-      setDossierError(err.message || 'Failed to synthesize dossier.');
+      setDossierError(formatAiErrorMessage(err, 'dossier'));
     } finally {
       setDossierLoading(false);
     }
@@ -508,7 +509,7 @@ export default function MobileAppView({
       triggerHaptic('warning');
       soundFx.playRough();
       setEnhanceStatus('error');
-      setEnhanceError(err.message || 'Sovereign AI tiers unreachable. Check internet connection.');
+      setEnhanceError(formatAiErrorMessage(err, 'reflection'));
       setTimeout(() => setEnhanceStatus('idle'), 3500);
     }
   };
@@ -1595,7 +1596,7 @@ export default function MobileAppView({
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 stroke-[2.5]" />
                 <span className="font-mono text-xs font-bold text-amber-950">
-                  AI Re-Evaluation Failed ({dossierError}) • Existing Dossier Preserved
+                  {dossierError} • Existing Dossier Preserved
                 </span>
               </div>
               <button
@@ -2242,7 +2243,7 @@ export default function MobileAppView({
                     <div className="flex items-center gap-2 min-w-0">
                       <AlertCircle className="w-4 h-4 text-red-600 shrink-0 stroke-[2.5]" />
                       <span className="font-mono text-xs font-bold text-red-950 truncate">
-                        AI Polish Failed: {enhanceError}
+                        {enhanceError}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">

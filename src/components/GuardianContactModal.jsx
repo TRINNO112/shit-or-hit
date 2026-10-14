@@ -26,7 +26,8 @@ import {
   generateGuardianBriefing,
   generateTwoPhaseGuardianBriefing,
   dispatchGuardianSOS,
-  getGuardianEmailQuota
+  getGuardianEmailQuota,
+  formatAiErrorMessage
 } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 
@@ -120,51 +121,61 @@ export default function GuardianContactModal({
     setStatusMessage('Executing Two-Phase Gemini AI analysis & approval...');
     try { soundEngine.playClick(); } catch (e) {}
 
-    // Two-Phase Dispatch Mechanism:
-    // Phase 1: Gemini analyzes notes & trigger context.
-    // Phase 2: If underwhelmed/offline, deterministic hardcoded rule engine seamlessly executes.
-    const activeBriefing = await generateTwoPhaseGuardianBriefing(entries, config, todayStr);
-    setBriefing(activeBriefing);
+    try {
+      // Two-Phase Dispatch Mechanism:
+      // Phase 1: Gemini analyzes notes & trigger context.
+      // Phase 2: If underwhelmed/offline, deterministic hardcoded rule engine seamlessly executes.
+      const activeBriefing = await generateTwoPhaseGuardianBriefing(entries, config, todayStr);
+      setBriefing(activeBriefing);
 
-    const res = await dispatchGuardianSOS({
-      guardianConfig: {
-        ...config,
-        guardianEmail: targetEmail
-      },
-      briefing: {
-        ...activeBriefing,
+      const res = await dispatchGuardianSOS({
+        guardianConfig: {
+          ...config,
+          guardianEmail: targetEmail
+        },
+        briefing: {
+          ...activeBriefing,
+          isTest
+        },
+        user,
         isTest
-      },
-      user,
-      isTest
-    });
+      });
 
-    const updatedQuota = getGuardianEmailQuota();
-    setQuota(updatedQuota);
+      const updatedQuota = getGuardianEmailQuota();
+      setQuota(updatedQuota);
 
-    if (res.success) {
-      setDispatchStatus('success');
-      try { soundEngine.playSuccess(); } catch (e) {}
-      
-      const engineLabel = activeBriefing.engine === 'gemini-cloud' ? 'Two-Phase Gemini AI Approved' : 'Deterministic Hardcoded Rule Engine';
-      setStatusMessage(isTest 
-        ? `[TEST DISPATCH] Delivered via ${engineLabel} to ${targetEmail} (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)`
-        : `Emergency briefing delivered via ${engineLabel} to ${targetEmail} (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used).`
-      );
-      setTimeout(() => {
-        setDispatchStatus('idle');
-        setStatusMessage('');
-      }, 5000);
-    } else if (res.capReached) {
+      if (res.success) {
+        setDispatchStatus('success');
+        try { soundEngine.playSuccess(); } catch (e) {}
+        
+        const engineLabel = activeBriefing.engine === 'gemini-cloud' ? 'Two-Phase Gemini AI Approved' : 'Deterministic Hardcoded Rule Engine';
+        setStatusMessage(isTest 
+          ? `[TEST DISPATCH] Delivered via ${engineLabel} to ${targetEmail} (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used)`
+          : `Emergency briefing delivered via ${engineLabel} to ${targetEmail} (${updatedQuota.sentCount}/${updatedQuota.maxAllowed} quota used).`
+        );
+        setTimeout(() => {
+          setDispatchStatus('idle');
+          setStatusMessage('');
+        }, 5000);
+      } else if (res.capReached) {
+        setDispatchStatus('error');
+        setStatusMessage(formatAiErrorMessage(res.error || { status: 429 }, 'email'));
+        setTimeout(() => {
+          setDispatchStatus('idle');
+          setStatusMessage('');
+        }, 5000);
+      } else {
+        setDispatchStatus('error');
+        setStatusMessage(formatAiErrorMessage(res.error || 'Dispatch failed', 'email'));
+        setTimeout(() => {
+          setDispatchStatus('idle');
+          setStatusMessage('');
+        }, 5000);
+      }
+    } catch (err) {
+      console.error('Guardian SOS dispatch error:', err);
       setDispatchStatus('error');
-      setStatusMessage(res.error || 'Daily hard cap reached (2/2 emails). Rate limit protection active.');
-      setTimeout(() => {
-        setDispatchStatus('idle');
-        setStatusMessage('');
-      }, 5000);
-    } else {
-      setDispatchStatus('error');
-      setStatusMessage(res.error || 'Dispatch failed. Ensure Resend API Key is set in server environment or Firestore config.');
+      setStatusMessage(formatAiErrorMessage(err, 'email'));
       setTimeout(() => {
         setDispatchStatus('idle');
         setStatusMessage('');

@@ -37,7 +37,7 @@ import {
   ShieldAlert,
   HelpCircle
 } from 'lucide-react';
-import { fetchMonthlyReport, getSavedMonthlyReport } from '../services/api';
+import { fetchMonthlyReport, getSavedMonthlyReport, formatAiErrorMessage } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 import confetti from 'canvas-confetti';
 import HitRateInfoModal from './HitRateInfoModal';
@@ -107,7 +107,7 @@ export default function MonthlyReportModal({
       }
     } catch (err) {
       console.error('Failed to load monthly report:', err);
-      setError(err.message || 'Failed to generate monthly intelligence report.');
+      setError(formatAiErrorMessage(err, 'dossier'));
     } finally {
       setIsLoading(false);
     }

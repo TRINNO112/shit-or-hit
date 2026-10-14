@@ -480,7 +480,7 @@ assert(aiServerCode.includes('Zero-Training Guarantee') || aiServerCode.includes
 assert(aiServerCode.includes('zero Google leak'), 'Central AI Gateway: Strict Sovereign pipeline guarantees zero Google Gemini leakage');
 assert(aiGatewayCode.includes('dispatchEnhanceReflection') && aiGatewayCode.includes('callDirectCloudflareWorkersAI'), 'aiGateway.js: Client-side Sovereign dispatcher & direct Cloudflare edge inference active');
 assert(aiGatewayCode.includes('accountId2') && aiGatewayCode.includes('apiToken2'), 'aiGateway.js: Dual-account client failover pool active for edge direct inference');
-assert(aiApiCode.includes("import('./aiGateway')"), 'api.js: enhanceReflectionWithAI cleanly delegates to aiGateway facade');
+assert(aiApiCode.includes("from './aiGateway'") || aiApiCode.includes("import('./aiGateway')"), 'api.js: enhanceReflectionWithAI cleanly delegates to aiGateway facade');
 assert(aiFbCode.includes('fetchCloudCloudflareCredentials') && aiFbCode.includes('saveCloudCloudflareCredentials'), 'firebase.js: Cloudflare credentials sync helpers operational');
 assert(aiAutopsyCode.includes("fetch('/api/ai/autopsy'"), 'autopsyIntelligence.js: Inquest engine prioritizes Sovereign AI over static heuristics');
 
