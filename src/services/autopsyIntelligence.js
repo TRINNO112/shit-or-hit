@@ -236,17 +236,6 @@ export async function getAutopsyAnalysis({
   anchors = {},
   isWhitelisted = false
 }) {
-  // If definitely not whitelisted or explicitly in guest offline mode, generate local immediately
-  if (!isWhitelisted && typeof window !== 'undefined' && !window.__ENABLE_CLOUD_AI__) {
-    // Give a slight delay for dramatic forensics scanner effect in UI
-    await new Promise(r => setTimeout(r, 600));
-    return {
-      success: true,
-      autopsy: generateLocalAutopsy({ notes, rating, spheres, anchors, date }),
-      source: 'local'
-    };
-  }
-
   const aiEngine = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen';
 
   try {

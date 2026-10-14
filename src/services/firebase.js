@@ -617,6 +617,49 @@ export async function saveCloudHuggingFaceToken(token, spaceId = 'Trinno112/Dail
   }
 }
 
+export async function fetchCloudCloudflareCredentials() {
+  const fb = await getFirebase();
+  if (!fb || !fb.db) return null;
+  try {
+    const configRef = fb.firestoreMod.doc(fb.db, 'config', 'cloudflare');
+    const snap = await fb.firestoreMod.getDoc(configRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return {
+        accountId: data?.accountId || null,
+        apiToken: data?.apiToken || null,
+        model: data?.model || '@cf/meta/llama-3.1-8b-instruct-fp8',
+        accountId2: data?.accountId2 || null,
+        apiToken2: data?.apiToken2 || null
+      };
+    }
+    return null;
+  } catch (err) {
+    console.warn('Could not fetch cloud Cloudflare credentials:', err.message);
+    return null;
+  }
+}
+
+export async function saveCloudCloudflareCredentials({ accountId, apiToken, model = '@cf/meta/llama-3.1-8b-instruct-fp8', accountId2 = '', apiToken2 = '' }) {
+  const fb = await getFirebase();
+  if (!fb || !fb.db || !accountId || !apiToken) return false;
+  try {
+    const configRef = fb.firestoreMod.doc(fb.db, 'config', 'cloudflare');
+    await fb.firestoreMod.setDoc(configRef, {
+      accountId: accountId.trim(),
+      apiToken: apiToken.trim(),
+      model: (model || '@cf/meta/llama-3.1-8b-instruct-fp8').trim(),
+      accountId2: (accountId2 || '').trim(),
+      apiToken2: (apiToken2 || '').trim(),
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    console.warn('Could not save cloud Cloudflare credentials:', err.message);
+    return false;
+  }
+}
+
 export async function saveCloudUserSettings(userId, settingsData) {
   if (!userId || !settingsData) return;
   const fb = await getFirebase();

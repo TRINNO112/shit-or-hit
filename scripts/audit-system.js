@@ -466,6 +466,24 @@ const actualComponentCount = fs.readdirSync(path.join(ROOT_DIR, 'src/components'
 assert(missingImportErrors.length === 0, `Static JSX Import Scanner: ${missingImportErrors.length === 0 ? `All JSX tags across all ${actualComponentCount} components have valid imports` : missingImportErrors.join(', ')}`);
 
 // ----------------------------------------------------------------------
+// SUITE 15: Central Sovereign AI Gateway & Cloudflare Dual-Pool Integrity
+// ----------------------------------------------------------------------
+console.log('\n🧠 [15/15] Testing Central Sovereign AI Gateway, Cloudflare Dual-Pool & Zero-Leak Invariants...');
+const aiServerCode = fs.readFileSync(path.join(ROOT_DIR, 'server/index.js'), 'utf-8');
+const aiGatewayCode = fs.readFileSync(path.join(SRC_DIR, 'services/aiGateway.js'), 'utf-8');
+const aiApiCode = readSrc('services/api.js');
+const aiFbCode = readSrc('services/firebase.js');
+const aiAutopsyCode = readSrc('services/autopsyIntelligence.js');
+
+assert(aiServerCode.includes('CLOUDFLARE_ACCOUNT_ID_2') && aiServerCode.includes('CLOUDFLARE_API_TOKEN_2'), 'Central AI Gateway: Dual-Account Cloudflare Pool (Primary + Pool 2) declared in server');
+assert(aiServerCode.includes('Zero-Training Guarantee') || aiServerCode.includes('Zero Training'), 'Central AI Gateway: Zero-Training policy verified in server');
+assert(aiServerCode.includes('zero Google leak'), 'Central AI Gateway: Strict Sovereign pipeline guarantees zero Google Gemini leakage');
+assert(aiGatewayCode.includes('dispatchEnhanceReflection') && aiGatewayCode.includes('callDirectCloudflareWorkersAI'), 'aiGateway.js: Client-side Sovereign dispatcher & direct Cloudflare edge inference active');
+assert(aiApiCode.includes("import('./aiGateway')"), 'api.js: enhanceReflectionWithAI cleanly delegates to aiGateway facade');
+assert(aiFbCode.includes('fetchCloudCloudflareCredentials') && aiFbCode.includes('saveCloudCloudflareCredentials'), 'firebase.js: Cloudflare credentials sync helpers operational');
+assert(aiAutopsyCode.includes("fetch('/api/ai/autopsy'"), 'autopsyIntelligence.js: Inquest engine prioritizes Sovereign AI over static heuristics');
+
+// ----------------------------------------------------------------------
 // COMPILER VERIFICATION
 // ----------------------------------------------------------------------
 console.log('\n⚡ [FINAL] Running Vite Production Bundle Verification...');

@@ -1008,246 +1008,17 @@ export async function enhanceReflectionWithAI(notes, rating, date, spheres = nul
   const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
   const aiEngine = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_engine')) || 'qwen';
 
-  let lastError = null;
-
-  // 1. Try local dev backend if running (and not on static host)
-  if (!isStaticHost) {
-    try {
-      const res = await fetch(`${API_BASE}/ai/enhance`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes, rating, date, preferredLanguage, spheres, customInstruction, aiEngine })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.enhancedText) {
-          const cleaned = cleanAiEnhancedText(data.enhancedText);
-          const resultStr = new String(cleaned);
-          resultStr.isLocalFallback = Boolean(data.isLocalFallback);
-          resultStr.fallbackReason = data.fallbackReason || null;
-          resultStr.modelUsed = data.modelUsed || null;
-          if (import.meta.env?.DEV && (data.engine === 'qwen' || data.modelUsed?.includes('Qwen'))) {
-            console.log(
-              `%c[AI PROVENANCE AUDIT] Model: ${data.modelUsed || 'Qwen 2.5'} | Engine: Sovereign Qwen (Backend Verified)`,
-              'background: #000; color: #00E599; font-weight: 900; font-family: monospace; padding: 4px 8px; border: 2px solid #00E599; border-radius: 4px;'
-            );
-          }
-          return resultStr;
-        }
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        if (errData?.error) lastError = new Error(errData.error);
-      }
-    } catch (err) {
-      lastError = err;
-      // Backend offline (e.g. GitHub Pages static deployment)
-    }
-  }
-
-  // 2. Direct client-side Sovereign Qwen 2.5 Space execution (via Firebase cloud token)
-  if (aiEngine === 'qwen') {
-    try {
-      let hfToken = null;
-      let spaceId = 'Trinno112/Daily-verdict';
-      try {
-        const { fetchCloudHuggingFaceToken } = await import('./firebase');
-        const cloudHf = await fetchCloudHuggingFaceToken();
-        if (cloudHf && cloudHf.token) {
-          hfToken = cloudHf.token;
-          if (cloudHf.spaceId) spaceId = cloudHf.spaceId;
-        }
-      } catch (e) {}
-
-      if (!hfToken && typeof import.meta !== 'undefined' && import.meta.env) {
-        hfToken = import.meta.env.VITE_HF_TOKEN || null;
-      }
-
-      if (!hfToken) {
-        lastError = new Error('Sovereign Qwen token is not configured in Firestore or environment');
-      } else {
-        const cleanHost = spaceId.replace(/\//g, '-').toLowerCase();
-        const spaceUrl = `https://${cleanHost}.hf.space`;
-
-        let journalInput = notes || '';
-        if (spheres && Object.keys(spheres).length > 0) {
-          const sphereDetails = Object.entries(spheres)
-            .filter(([_, s]) => s && (s.rating || (s.notes && s.notes.trim())))
-            .map(([id, s]) => `[${s.name || id} — Rated ${s.rating || 'N/A'}/5]: ${s.notes || '(No notes logged)'}`)
-            .join('\n\n');
-          if (sphereDetails) journalInput = `${journalInput ? journalInput + '\n\n' : ''}--- Domain Breakdown ---\n${sphereDetails}`;
-        }
-
-        const verdictNames = { 1: 'Rough', 2: 'Down', 3: 'Okay', 4: 'Good', 5: 'Peak' };
-        const verdictName = verdictNames[Number(rating)] || 'Down';
-
-        const endpointUrl = `${spaceUrl}/gradio_api/call/enhance_diary`;
-        const callRes = await fetch(endpointUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${hfToken}`
-          },
-          body: JSON.stringify({
-            data: [journalInput, verdictName, customInstruction || '', preferredLanguage || 'auto']
-          })
-        });
-
-        if (callRes.ok) {
-          const callData = await callRes.json();
-          if (callData?.event_id) {
-            const eventRes = await fetch(`${spaceUrl}/gradio_api/call/enhance_diary/${callData.event_id}`, {
-              headers: {
-                'Authorization': `Bearer ${hfToken}`,
-                'Accept': 'text/event-stream'
-              }
-            });
-
-            if (eventRes.ok) {
-              const streamText = await eventRes.text();
-              const lines = streamText.split('\n');
-              for (const line of lines) {
-                if (line.startsWith('data:')) {
-                  try {
-                    const rawJson = line.slice(5).trim();
-                    const parsed = JSON.parse(rawJson);
-                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.error) {
-                      throw new Error(parsed.error);
-                    }
-                    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
-                      const cleaned = cleanAiEnhancedText(parsed[0]);
-                      const resultStr = new String(cleaned);
-                      resultStr.isLocalFallback = false;
-                      resultStr.modelUsed = 'Qwen/Qwen2.5-7B-Instruct (Cloud Token Direct)';
-                      if (import.meta.env?.DEV) {
-                        console.log(
-                          `%c[AI PROVENANCE AUDIT] Model: Qwen/Qwen2.5-7B-Instruct | Source: Sovereign ZeroGPU | Space: ${spaceId}`,
-                          'background: #000; color: #00E599; font-weight: 900; font-family: monospace; padding: 4px 8px; border: 2px solid #00E599; border-radius: 4px;'
-                        );
-                      }
-                      return resultStr;
-                    }
-                  } catch (e) {
-                    if (e.message && !e.message.startsWith('Unexpected')) {
-                      throw e;
-                    }
-                  }
-                }
-              }
-            } else {
-              lastError = new Error(`Qwen Space stream response error (${eventRes.status})`);
-            }
-          }
-        } else {
-          lastError = new Error(`Qwen Space endpoint response error (${callRes.status})`);
-        }
-      }
-    } catch (qwenErr) {
-      lastError = qwenErr;
-      console.warn('Client-side Qwen invocation attempt note:', qwenErr.message);
-    }
-
-    // Strict Sovereign Qwen Isolation: NEVER fall back to Gemini!
-    // Data sovereignty guarantee: Private diary reflections must never route to Google Cloud when Qwen is selected.
-    throw new Error(lastError?.message || 'AI processing with Sovereign Qwen was not successful due to an error. Please try again in a moment.');
-  }
-
-  // 3. Direct client-side Gemini fallback
-  try {
-    let apiKey = null;
-    try {
-      const { fetchCloudGeminiApiKey } = await import('./firebase');
-      apiKey = await fetchCloudGeminiApiKey();
-    } catch (e) {}
-
-    if (!apiKey && typeof import.meta !== 'undefined' && import.meta.env) {
-      apiKey = import.meta.env.VITE_GEMINI_API_KEY || null;
-    }
-
-    if (apiKey) {
-      let languageRule = '';
-      if (preferredLanguage === 'english') {
-        languageRule = 'STRICT LANGUAGE MANDATE: The user has chosen ENGLISH. Write 100% in polished, natural English. Do NOT include any Hindi, Hinglish, or foreign words.';
-      } else if (preferredLanguage === 'hinglish') {
-        languageRule = 'STRICT LANGUAGE MANDATE: The user has chosen HINGLISH. Write in natural, expressive 1st-person Hinglish (Hindi in Roman script).';
-      } else {
-        languageRule = 'LANGUAGE MIRRORING MANDATE: Strictly mirror the exact language and blend of the user input. If the user wrote in standard English, you MUST output 100% pure English with ZERO Hindi/Hinglish words. If the user wrote in Hinglish, output in Hinglish. NEVER translate English notes into Hinglish.';
-      }
-
-      let journalInput = notes || '';
-      if (spheres && Object.keys(spheres).length > 0) {
-        const sphereDetails = Object.entries(spheres)
-          .filter(([_, s]) => s && (s.rating || (s.notes && s.notes.trim())))
-          .map(([id, s]) => `[${s.icon || '⚡'} ${s.name || id} — Rated ${s.rating || 'N/A'}/5]: ${s.notes || '(No specific notes, just score logged)'}`)
-          .join('\n\n');
-        
-        if (sphereDetails) {
-          journalInput = `${journalInput ? journalInput + '\n\n' : ''}--- Segmented Life Domain Breakdown ---\n${sphereDetails}`;
-        }
-      }
-
-      const directiveSection = customInstruction && customInstruction.trim()
-        ? `\n\n🎯 USER'S DIRECT CUSTOM DIRECTIVE / COMMAND TO YOU:
-"${customInstruction.trim()}"
-You MUST strictly prioritize and execute this specific custom command while maintaining the 1st-person diary structure.`
-        : '';
-
-      const prompt = `You are a personal diary ghostwriter and tactical reflection co-pilot.
-The user logged their day (${date || 'Today'}, Verdict: ${rating || 3}/5).
-${spheres ? 'The user logged segmented life domains (e.g. Work/School, Home, Social).' : ''}
-
-User's raw journal inputs and domain ratings:
-"${journalInput}"${directiveSection}
-
-CRITICAL INSTRUCTIONS:
-- You must write strictly in the FIRST PERSON ("I", "my", "me", "myself").
-- NEVER use "You" or "Your" under any circumstances.
-- PRESERVE FULL LENGTH AND EVERY SINGLE DETAIL: Synthesize the domain events into a unified, chronological, vivid personal diary reflection (from morning through night).
-- ${languageRule}
-- Fix grammatical roughness, awkward phrasing, and run-on sentences while keeping the user's raw, authentic voice.
-- Write it as a deep, vivid, complete personal diary entry written by ME about MY own day.
-- DO NOT prepend any date, timestamp, or greeting (NEVER write "${date || '2026-09-30'}" or "Dear Diary" at the start). Start immediately with the first sentence of the reflection.
-- Use natural double line breaks between paragraphs for clean readability, NEVER output literal "\\n" text.
-
-Return ONLY the complete polished diary entry text without quotes or preamble.`;
-
-      let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-        })
-      });
-
-      // Fallback to gemini-3.1-flash-lite if 3.5 is busy
-      if (!response.ok) {
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-          })
-        });
-      }
-
-      if (response.ok) {
-        const result = await response.json();
-        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text && text.trim()) return cleanAiEnhancedText(text);
-      } else {
-        const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || `Gemini API returned status ${response.status}`);
-      }
-    } else {
-      throw new Error(lastError?.message || 'No Gemini API key found. Please configure your key in Settings or connect to the backend server.');
-    }
-  } catch (err) {
-    console.error('Direct Gemini Polish error:', err);
-    throw err;
-  }
-
-  throw new Error('AI ghostwriter service unavailable. Check your connection or API key.');
+  const { dispatchEnhanceReflection } = await import('./aiGateway');
+  return await dispatchEnhanceReflection({
+    notes,
+    rating,
+    date,
+    preferredLanguage,
+    spheres,
+    customInstruction,
+    aiEngine,
+    cleanAiEnhancedText
+  });
 }
 
 export async function getSavedMonthlyReport(year, month) {
@@ -3434,9 +3205,34 @@ export async function generateAiGuardianBriefing(entries = {}, guardianConfig = 
           }
         }
       } catch (qwenErr) {
-        console.warn('Qwen guardian briefing failed, trying Gemini fallback:', qwenErr);
+        console.warn('Qwen guardian briefing failed, trying Cloudflare Workers AI fallback:', qwenErr);
       }
     }
+
+    // Sovereign Tier 2: Cloudflare Workers AI Edge Pool (Zero Training Guarantee)
+    try {
+      const { callDirectCloudflareWorkersAI } = await import('./aiGateway');
+      const cfRes = await callDirectCloudflareWorkersAI({
+        prompt: prompt + '\n\nIMPORTANT: Output ONLY the raw JSON object adhering to the schema. No markdown formatting.',
+        systemInstruction: 'You are a clinical adolescent wellness advisor. Output valid JSON strictly.',
+        maxTokens: 1024
+      });
+      if (cfRes.ok) {
+        const cleaned = cfRes.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+        return {
+          ...parsed,
+          studentName,
+          generatedAt: new Date().toISOString(),
+          engine: 'cloudflare-edge'
+        };
+      }
+    } catch (cfErr) {
+      console.warn('Cloudflare guardian briefing failed:', cfErr);
+    }
+
+    // Strict Privacy Mandate: Never route to Gemini when Sovereign mode is active
+    throw new Error('All Sovereign AI tiers (Qwen & Cloudflare) unavailable for Guardian briefing. Privacy preserved.');
   }
 
   // 2. Gemini execution

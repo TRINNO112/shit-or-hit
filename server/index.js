@@ -42,6 +42,11 @@ const PORT = process.env.PORT || 5001;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const HF_TOKEN = process.env.HF_TOKEN || '';
 const HF_SPACE_ID = process.env.HF_SPACE_ID || 'Trinno112/Daily-verdict';
+const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
+const CLOUDFLARE_ACCOUNT_ID_2 = process.env.CLOUDFLARE_ACCOUNT_ID_2 || '';
+const CLOUDFLARE_API_TOKEN_2 = process.env.CLOUDFLARE_API_TOKEN_2 || '';
+const CLOUDFLARE_MODEL = process.env.CLOUDFLARE_MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8';
 
 // CORS Whitelist Protection
 const ALLOWED_ORIGINS = [
@@ -532,6 +537,166 @@ async function callQwenPromptApi({ prompt, systemInstruction = '', maxTokens = 1
   }
 }
 
+// Cloudflare Workers AI Sovereign Inference with Multi-Account Pool & Zero-Training Guarantee
+async function callCloudflarePromptApi({ prompt, systemInstruction = '', maxTokens = 1536, timeoutMs = 25000 }) {
+  const accounts = [
+    { id: CLOUDFLARE_ACCOUNT_ID, token: CLOUDFLARE_API_TOKEN, name: 'Primary Account' },
+    { id: CLOUDFLARE_ACCOUNT_ID_2, token: CLOUDFLARE_API_TOKEN_2, name: 'Secondary Account (Pool 2)' }
+  ].filter(acc => Boolean(acc.id && acc.token));
+
+  if (accounts.length === 0) {
+    return { ok: false, error: 'No Cloudflare credentials configured' };
+  }
+
+  let lastError = null;
+
+  for (let i = 0; i < accounts.length; i++) {
+    const acc = accounts[i];
+    try {
+      const url = `https://api.cloudflare.com/client/v4/accounts/${acc.id}/ai/v1/chat/completions`;
+      const messages = [];
+      if (systemInstruction && systemInstruction.trim()) {
+        messages.push({ role: 'system', content: systemInstruction.trim() });
+      }
+      messages.push({ role: 'user', content: prompt });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${acc.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: CLOUDFLARE_MODEL,
+          messages,
+          max_tokens: Math.min(Number(maxTokens) || 1024, 2048)
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        lastError = `Cloudflare HTTP ${res.status} on ${acc.name}: ${errText.slice(0, 150)}`;
+        logger.warn(`[Central AI Gateway] ${lastError}`);
+        // If 429 or quota limit, try next account in pool
+        continue;
+      }
+
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content;
+      if (text && text.trim()) {
+        return {
+          ok: true,
+          text: text.trim(),
+          model: `Cloudflare Edge (${CLOUDFLARE_MODEL} - ${acc.name})`,
+          provider: 'cloudflare',
+          accountUsed: acc.name
+        };
+      }
+      lastError = `Empty output from Cloudflare Workers AI (${acc.name})`;
+    } catch (err) {
+      lastError = err.name === 'AbortError' ? `Cloudflare request timed out (${Math.round(timeoutMs / 1000)}s) on ${acc.name}` : err.message;
+      logger.warn(`[Central AI Gateway] ${lastError}`);
+    }
+  }
+
+  return { ok: false, error: lastError || 'All Cloudflare pool accounts exhausted' };
+}
+
+/**
+ * 🏛️ CENTRAL SOVEREIGN AI DISPATCHER NODE (Multi-Cloud Resilient Cascade)
+ * Centralizes all AI operations across the application (Diary, Autopsies, Dossiers, Guardian).
+ * Tier A: Sovereign Qwen 2.5 ZeroGPU Space (Trinno112/Daily-verdict)
+ * Tier B: Cloudflare Edge Workers AI Multi-Account Pool (Llama 3.1 8B FP8, ~2.3s, Zero Training Guarantee)
+ * 
+ * Strict Privacy Mandate:
+ * When Sovereign AI is selected (default 'auto' or 'qwen'), user data is NEVER routed to Google Gemini.
+ * Gemini is only invoked if the user explicitly configures preferEngine === 'gemini' in settings.
+ */
+async function executeSovereignAiGateway({
+  prompt,
+  systemInstruction = '',
+  maxTokens = 1536,
+  timeoutMs = 25000,
+  preferEngine = 'auto'
+}) {
+  const attempts = [];
+
+  const tryCloudflare = async () => {
+    const cfStart = Date.now();
+    const cfRes = await callCloudflarePromptApi({ prompt, systemInstruction, maxTokens, timeoutMs });
+    if (cfRes.ok) {
+      logger.info(`[Central AI Gateway] Cloudflare Edge inference succeeded in ${Date.now() - cfStart}ms (${cfRes.model})`);
+      return { ...cfRes, tier: 'cloudflare', latencyMs: Date.now() - cfStart };
+    }
+    logger.warn(`[Central AI Gateway] Cloudflare Edge unavailable or limit reached (${cfRes.error})`);
+    attempts.push({ provider: 'cloudflare', error: cfRes.error });
+    return null;
+  };
+
+  const tryQwenSpace = async () => {
+    if (!HF_TOKEN) return null;
+    const qwenStart = Date.now();
+    const qwenRes = await callQwenPromptApi({ prompt, systemInstruction, maxTokens, timeoutMs: 35000 });
+    if (qwenRes.ok) {
+      logger.info(`[Central AI Gateway] Sovereign Qwen ZeroGPU Space succeeded in ${Date.now() - qwenStart}ms (${qwenRes.model})`);
+      return { ...qwenRes, tier: 'qwen-space', latencyMs: Date.now() - qwenStart };
+    }
+    logger.warn(`[Central AI Gateway] Sovereign Qwen Space unavailable/exhausted (${qwenRes.error}), evaluating failover...`);
+    attempts.push({ provider: 'qwen-space', error: qwenRes.error });
+    return null;
+  };
+
+  const tryGemini = async () => {
+    if (!GEMINI_API_KEY) return null;
+    const geminiStart = Date.now();
+    const combinedPrompt = systemInstruction ? `${systemInstruction}\n\n${prompt}` : prompt;
+    const geminiRes = await callGeminiApi({ prompt: combinedPrompt, apiKey: GEMINI_API_KEY, maxTokens });
+    if (geminiRes.ok) {
+      logger.info(`[Central AI Gateway] Gemini inference succeeded in ${Date.now() - geminiStart}ms (${geminiRes.model})`);
+      return { ...geminiRes, tier: 'gemini', latencyMs: Date.now() - geminiStart };
+    }
+    attempts.push({ provider: 'gemini', error: geminiRes.error });
+    return null;
+  };
+
+  if (preferEngine === 'cloudflare') {
+    const cf = await tryCloudflare();
+    if (cf) return cf;
+    const qwen = await tryQwenSpace();
+    if (qwen) return qwen;
+  } else if (preferEngine === 'gemini') {
+    // Explicit user opt-in for Gemini only
+    const gemini = await tryGemini();
+    if (gemini) return gemini;
+    const cf = await tryCloudflare();
+    if (cf) return cf;
+  } else {
+    // Default ('qwen' or 'auto'): STRICT SOVEREIGN PIPELINE (Zero Google Training)
+    // 1. Sovereign Qwen ZeroGPU Space
+    const qwen = await tryQwenSpace();
+    if (qwen) return qwen;
+
+    // 2. Automatic Failover: When Hugging Face limits are reached -> Switch to Cloudflare Workers AI Pool (Zero Training Guarantee)
+    logger.info('[Central AI Gateway] Hugging Face Space unavailable/limited. Switching to Cloudflare Workers AI Sovereign Edge Pool...');
+    const cf = await tryCloudflare();
+    if (cf) return cf;
+
+    // Strict Data Sovereignty Mandate: Never fall back to Gemini when Sovereign is selected
+    logger.warn('[Central AI Gateway] Sovereign Qwen & Cloudflare tiers both unavailable. Preserving data privacy (zero Google leak).');
+  }
+
+  return {
+    ok: false,
+    error: 'All Sovereign AI tiers (Hugging Face & Cloudflare) unavailable. Privacy preserved without Google fallback.',
+    attempts
+  };
+}
+
 // 💓 Space Keep-Alive Heartbeat (Pings HF Space config every 25 minutes so it stays warm)
 if (HF_TOKEN) {
   const spaceSubdomain = (HF_SPACE_ID || 'Trinno112/Daily-verdict').toLowerCase().replace('/', '-');
@@ -662,35 +827,53 @@ CRITICAL INSTRUCTIONS:
 - STRICT NON-CLINICAL & NON-MEDICAL DIRECTIVE: You are an introspective personal diary ghostwriter. You must strictly NEVER provide medical, psychiatric, pharmacological, or clinical advice or diagnoses. Frame reflections purely through subjective human experience, time boundaries, and daily personal discipline.
 - Return ONLY the polished, immersive diary reflection text without quotes, markdown headers, or preambles.`;
 
-  // 1. Strict Sovereign Qwen Execution (Zero Tracking, Air-Gapped)
-  if (aiEngine === 'qwen') {
-    if (!HF_TOKEN) {
-      return res.status(500).json({
-        success: false,
-        error: 'Sovereign Qwen token is not configured on the server. Please check settings.'
-      });
-    }
+  // 1. Sovereign AI Execution via Central Gateway (Cloudflare Edge -> Hugging Face ZeroGPU -> Gemini)
+  if (aiEngine === 'qwen' || aiEngine === 'auto') {
     const verdictName = rating ? getVerdictFromRating(rating) : 'Down';
-    const qwenResult = await callQwenSpaceApi({
-      notes: journalInput,
-      verdict: verdictName,
-      customInstruction: customInstruction || '',
-      preferredLanguage: preferredLanguage || 'auto'
+    const gatewayRes = await executeSovereignAiGateway({
+      prompt,
+      systemInstruction: 'You are a personal introspective diary ghostwriter. Return strictly the reflection in first-person without quotes, headers, or preambles.',
+      maxTokens: 1536,
+      timeoutMs: 25000
     });
-    if (qwenResult.ok) {
-      logger.info(`[Sovereign Qwen Proof] Inference succeeded on ZeroGPU Space (${qwenResult.model}) for verdict: ${verdictName}`);
+
+    if (gatewayRes.ok) {
+      logger.info(`[Sovereign AI Gateway] Inference succeeded (${gatewayRes.model}) for verdict: ${verdictName}`);
       return res.json({
         success: true,
-        enhancedText: cleanAiEnhancedText(qwenResult.text),
-        modelUsed: qwenResult.model,
+        enhancedText: cleanAiEnhancedText(gatewayRes.text),
+        modelUsed: gatewayRes.model,
         isLocalFallback: false,
-        engine: 'qwen'
+        engine: 'sovereign-gateway'
       });
     }
-    logger.warn(`[Sovereign Qwen Error] Inference failed: ${qwenResult.error}`);
-    return res.status(503).json({
-      success: false,
-      error: `AI processing with Sovereign Qwen was not successful: ${qwenResult.error || 'Model is warming up, please retry in a moment.'}`
+
+    // Secondary attempt with Space specific endpoint if Space is configured
+    if (HF_TOKEN) {
+      const qwenResult = await callQwenSpaceApi({
+        notes: journalInput,
+        verdict: verdictName,
+        customInstruction: customInstruction || '',
+        preferredLanguage: preferredLanguage || 'auto'
+      });
+      if (qwenResult.ok) {
+        return res.json({
+          success: true,
+          enhancedText: cleanAiEnhancedText(qwenResult.text),
+          modelUsed: qwenResult.model,
+          isLocalFallback: false,
+          engine: 'qwen-space'
+        });
+      }
+    }
+
+    // Resilient local fallback so diary workflow is never interrupted
+    logger.warn(`[Sovereign AI Gateway] All tiers unavailable, applying local sharpener: ${gatewayRes.error}`);
+    return res.json({
+      success: true,
+      enhancedText: cleanAiEnhancedText(sharpenReflectionLocally(notes, rating)),
+      isLocalFallback: true,
+      fallbackReason: `Sovereign AI unavailable (${gatewayRes.error}). Heuristic reflection sharpener applied.`
     });
   }
 
@@ -758,6 +941,22 @@ function cleanAiEnhancedText(raw) {
   return text;
 }
 
+function extractJsonFromLlmText(rawText) {
+  if (!rawText || typeof rawText !== 'string') return null;
+  const trimmed = rawText.replace(/^```json\s*|^```\s*|```$/g, '').trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch (e) {}
+
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {}
+  }
+  return null;
+}
+
 function sharpenReflectionLocally(text, rating) {
   const clean = text.trim();
   if (rating <= 2) {
@@ -810,35 +1009,29 @@ Your diagnosis MUST be structured as a valid JSON object with these exact keys:
 
 Do NOT wrap in markdown backticks or preamble. Output raw JSON only.`;
 
-  // 1. Sovereign Qwen Execution
-  if (aiEngine === 'qwen') {
-    if (HF_TOKEN) {
-      const qwenRes = await callQwenPromptApi({
-        prompt: prompt + '\n\nIMPORTANT: Output ONLY the raw JSON object adhering to the schema. No markdown formatting.',
-        systemInstruction: 'You are a Behavioral Forensic Detective. Output valid JSON strictly.',
-        maxTokens: 1024,
-        timeoutMs: 60000
-      });
-      if (qwenRes.ok) {
-        try {
-          const cleaned = qwenRes.text.replace(/^```json\s*|^```\s*|```$/g, '').trim();
-          const parsed = JSON.parse(cleaned);
-          if (parsed && parsed.causeOfDeath && Array.isArray(parsed.questions)) {
-            return res.json({
-              success: true,
-              autopsy: {
-                ...parsed,
-                isLocal: false,
-                engine: 'SOVEREIGN QWEN 2.5 CLOUD CORONER'
-              }
-            });
+  // 1. Sovereign AI Execution via Central Gateway (Cloudflare Edge -> Hugging Face ZeroGPU -> Gemini)
+  if (aiEngine === 'qwen' || aiEngine === 'auto') {
+    const sovereignRes = await executeSovereignAiGateway({
+      prompt: prompt + '\n\nIMPORTANT: Output ONLY the raw JSON object adhering to the schema. No markdown formatting, backticks, or preamble.',
+      systemInstruction: 'You are a Behavioral Forensic Detective. Output valid JSON strictly without markdown fences.',
+      maxTokens: 1024,
+      timeoutMs: 25000
+    });
+    if (sovereignRes.ok) {
+      const parsed = extractJsonFromLlmText(sovereignRes.text);
+      if (parsed && parsed.causeOfDeath && Array.isArray(parsed.questions)) {
+        return res.json({
+          success: true,
+          autopsy: {
+            ...parsed,
+            isLocal: false,
+            engine: `SOVEREIGN GATEWAY (${sovereignRes.model})`
           }
-        } catch (parseErr) {
-          logger.warn(`[Sovereign Qwen Autopsy] JSON Parse error: ${parseErr.message}`);
-        }
-      } else {
-        logger.warn(`[Sovereign Qwen Autopsy] Failed: ${qwenRes.error}`);
+        });
       }
+      logger.warn(`[Sovereign Gateway Autopsy] Failed to parse schema from model output: ${sovereignRes.text?.slice(0, 100)}`);
+    } else {
+      logger.warn(`[Sovereign Gateway Autopsy] Failed: ${sovereignRes.error}`);
     }
   }
 
@@ -1286,37 +1479,30 @@ Return ONLY a valid JSON object matching this exact schema:
   ]
 }`;
 
-    if (aiEngine === 'qwen') {
-      if (!HF_TOKEN) {
-        return res.status(500).json({
-          success: false,
-          error: 'Sovereign Qwen token is not configured on the server. Please check settings or switch to Gemini.'
-        });
-      }
-      logger.info(`[Monthly Dossier] Evaluating via Sovereign Qwen 2.5 ZeroGPU for ${monthName}...`);
-      const qwenDossierRes = await callQwenPromptApi({
+    if (aiEngine === 'qwen' || aiEngine === 'auto') {
+      logger.info(`[Monthly Dossier] Evaluating via Sovereign AI Gateway for ${monthName}...`);
+      const sovereignRes = await executeSovereignAiGateway({
         prompt: prompt + '\n\nCRITICAL: Output ONLY valid JSON adhering to the exact schema. No markdown formatting, preamble, or commentary.',
-        systemInstruction: 'You are an introspective brotherly habit mentor and behavioral chronicler. Output valid JSON strictly.',
+        systemInstruction: 'You are an introspective brotherly habit mentor and behavioral chronicler. Output valid JSON strictly without markdown fences.',
         maxTokens: 1536,
-        timeoutMs: 90000
+        timeoutMs: 35000
       });
-      if (qwenDossierRes.ok) {
-        try {
-          const cleaned = qwenDossierRes.text.replace(/^```json\s*|^```\s*|```$/g, '').trim();
-          aiReport = JSON.parse(cleaned);
-          logger.info(`[Monthly Dossier] Sovereign Qwen 2.5 synthesis successful!`);
-        } catch (jsonErr) {
-          logger.warn(`[Monthly Dossier] Qwen JSON parse error: ${jsonErr.message}`);
+      if (sovereignRes.ok) {
+        aiReport = extractJsonFromLlmText(sovereignRes.text);
+        if (aiReport && aiReport.executiveSummary) {
+          logger.info(`[Monthly Dossier] Sovereign AI Gateway synthesis successful (${sovereignRes.model})!`);
+        } else {
+          logger.warn(`[Monthly Dossier] Sovereign Gateway JSON parse error: unable to extract JSON schema`);
           return res.status(502).json({
             success: false,
-            error: 'Sovereign Qwen generated the dossier, but the JSON format was malformed. You can retry or switch to Gemini in settings.'
+            error: 'Sovereign AI generated the dossier, but the JSON format was malformed. Please retry in a moment.'
           });
         }
       } else {
-        logger.warn(`[Monthly Dossier] Qwen generation error: ${qwenDossierRes.error}`);
+        logger.warn(`[Monthly Dossier] Sovereign Gateway generation error: ${sovereignRes.error}`);
         return res.status(503).json({
           success: false,
-          error: `Sovereign Qwen Dossier evaluation was not successful: ${qwenDossierRes.error}. You can retry or switch to Gemini in settings.`
+          error: `Sovereign Dossier evaluation was not successful: ${sovereignRes.error}. You can retry or switch to Gemini in settings.`
         });
       }
     } else if (apiKey) {
