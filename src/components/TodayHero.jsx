@@ -123,7 +123,12 @@ export default function TodayHero({
   const [spheresData, setSpheresData] = useState({});
   const [expandedSphereNotes, setExpandedSphereNotes] = useState({});
 
-  const [showNote, setShowNote] = useState(Boolean(activeEntry?.notes));
+  const noteClosedKey = `daily_verdict_note_closed_${todayStr}`;
+  const [showNote, setShowNote] = useState(() => {
+    if (typeof window === 'undefined') return Boolean(activeEntry?.notes);
+    const wasClosed = localStorage.getItem(`daily_verdict_note_closed_${todayStr}`) === 'true';
+    return Boolean(activeEntry?.notes) && !wasClosed;
+  });
   const [noteText, setNoteText] = useState(activeEntry?.notes || '');
   const [syncedBadge, setSyncedBadge] = useState(false);
   const [enhanceStatus, setEnhanceStatus] = useState('idle'); // 'idle' | 'polishing' | 'success' | 'error'
@@ -184,6 +189,9 @@ export default function TodayHero({
     if (unsavedDraftText) {
       setNoteText(unsavedDraftText);
       setShowNote(true);
+      if (typeof window !== 'undefined') {
+        try { localStorage.removeItem(noteClosedKey); } catch (e) {}
+      }
       setHasUnsavedDraft(false);
       localStorage.removeItem(draftKey);
     }
@@ -293,18 +301,20 @@ export default function TodayHero({
     const draftKey = `daily_verdict_draft_notes_${todayStr}`;
     const savedDraft = typeof window !== 'undefined' ? sessionStorage.getItem(draftKey) : null;
 
+    const wasClosed = typeof window !== 'undefined' && localStorage.getItem(noteClosedKey) === 'true';
+
     if (activeEntry?.notes !== undefined) {
       const initialText = activeEntry.notes || savedDraft || '';
       setNoteText(initialText);
       setOriginalDraft(initialText);
       setHistoryStack([initialText]);
       setHistoryIdx(0);
-      if (initialText) setShowNote(true);
+      if (initialText && !wasClosed) setShowNote(true);
     } else if (savedDraft) {
       setNoteText(savedDraft);
-      setShowNote(true);
+      if (!wasClosed) setShowNote(true);
     }
-  }, [activeEntry, sphereSettingsVer, todayStr]);
+  }, [activeEntry, sphereSettingsVer, todayStr, noteClosedKey]);
 
   // Auto-debounce note draft into sessionStorage to protect thoughts from accidental tab closes
   useEffect(() => {
@@ -551,6 +561,12 @@ export default function TodayHero({
       localStorage.removeItem(draftKey);
       setHasUnsavedDraft(false);
     } catch (e) { }
+    // Persist closed state across component switching & tab navigation
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(noteClosedKey, 'true');
+      } catch (e) { }
+    }
     setSyncedBadge(true);
     // Smooth animation: show saved state on the button, then smoothly close the writing box
     setTimeout(() => {
@@ -592,6 +608,9 @@ export default function TodayHero({
       setHistoryIdx(newStack.length - 1);
       setNoteText(enhanced);
       setShowNote(true);
+      if (typeof window !== 'undefined') {
+        try { localStorage.removeItem(noteClosedKey); } catch (e) {}
+      }
 
       soundEngine.playSuccessChime();
       setEnhanceStatus('success');
@@ -1389,7 +1408,7 @@ export default function TodayHero({
                       />
                     </div>
 
-                    <span className="font-display font-black text-[10px] sm:text-xs 3xl:text-sm 4k:text-base uppercase tracking-tight leading-none truncate max-w-full">
+                    <span className="font-display font-black text-[10px] sm:text-xs 3xl:text-sm 4k:text-base uppercase tracking-normal leading-none whitespace-nowrap overflow-visible px-0.5">
                       {m.title}
                     </span>
 
@@ -1660,7 +1679,12 @@ export default function TodayHero({
                 </button>
               )}
               <MagneticButton
-                onClick={() => setShowNote(true)}
+                onClick={() => {
+                  setShowNote(true);
+                  if (typeof window !== 'undefined') {
+                    try { localStorage.removeItem(noteClosedKey); } catch (e) {}
+                  }
+                }}
                 className="text-xs font-mono font-bold text-black bg-white hover:bg-[#FDC800] border-2 border-black px-4 py-2 rounded-xl shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 cursor-pointer"
               >
                 {noteText || currentEntry?.notes ? (
@@ -1918,7 +1942,13 @@ export default function TodayHero({
                 </button>
 
                 <button
-                  onClick={() => setShowNote(false)}
+                  onClick={() => {
+                    setShowNote(false);
+                    if (typeof window !== 'undefined') {
+                      try { localStorage.setItem(noteClosedKey, 'true'); } catch (e) {}
+                    }
+                  }}
+                  title="Close reflection"
                   className="hover:bg-red-200 border-2 border-black p-1.5 rounded-xl cursor-pointer ml-1 shadow-[1px_1px_0px_#000000]"
                 >
                   <X className="w-3.5 h-3.5 stroke-[2.5]" />

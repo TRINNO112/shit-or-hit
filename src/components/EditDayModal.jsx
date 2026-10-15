@@ -615,7 +615,7 @@ export default function EditDayModal({
                             >
                               <SvgIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black stroke-[2.5]" />
                             </div>
-                            <span className="font-display font-black text-[9px] sm:text-[11px] uppercase tracking-tight truncate max-w-full">{m.title}</span>
+                            <span className="font-display font-black text-[9px] sm:text-[11px] uppercase tracking-normal whitespace-nowrap overflow-visible px-0.5">{m.title}</span>
                           </motion.button>
                         );
                       })}

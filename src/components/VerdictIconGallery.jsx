@@ -579,7 +579,7 @@ export default function VerdictIconGallery({ onSelectCustomVariant, isEmbedded =
                       >
                         <Icon size={26} className="text-black stroke-[2.2]" />
                       </div>
-                      <span className="font-mono font-black text-[9px] sm:text-[10px] uppercase text-center truncate max-w-full">
+                      <span className="font-mono font-black text-[9px] sm:text-[10px] uppercase text-center whitespace-nowrap overflow-visible px-0.5">
                         {VARIANT_LABELS[v]}
                       </span>
                     </button>

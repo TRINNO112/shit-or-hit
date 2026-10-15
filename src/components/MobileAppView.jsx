@@ -1161,7 +1161,7 @@ export default function MobileAppView({
                             style={{ backgroundColor: isR ? m.bg : undefined }}
                           >
                             <span className="leading-none text-black">{val}★</span>
-                            <span className="text-[9px] font-display font-bold leading-none mt-1 truncate max-w-full text-black">
+                            <span className="text-[9px] font-display font-bold leading-none mt-1 whitespace-nowrap overflow-visible px-0.5 text-black">
                               {m.title}
                             </span>
                           </button>

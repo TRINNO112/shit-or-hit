@@ -52,6 +52,7 @@ assert(headerCode.includes('layoutId="desktop-active-nav-pill"'), 'Header: Anima
 assert(mobileCode.includes('const handleRateSphere = handleRateSphereMobile'), 'MobileAppView: handleRateSphere callback defined without reference errors');
 assert(mobileCode.includes('handleAnchorScoreUpdateMobile'), 'MobileAppView: handleAnchorScoreUpdateMobile declared');
 assert(todayCode.includes('handleAnchorScoreUpdate'), 'TodayHero: handleAnchorScoreUpdate declared');
+assert(todayCode.includes('daily_verdict_note_closed_'), 'TodayHero: Persistent memory maintains reflection drawer closed state across navigation');
 assert(pwaCode.includes('BeforeInstallPromptEvent') || pwaCode.includes('beforeinstallprompt'), 'PWAInstallBanner: 1-Tap native install handler present');
 
 // ----------------------------------------------------------------------
@@ -493,6 +494,32 @@ function verifyJsonExtraction(rawLlmText) {
 const mockLlmPreamble = 'Certainly! Here is your structured forensic autopsy inquest analysis:\n```json\n{"summary": "Deficit identified", "rootCause": "Sleep deprivation", "recoveryAction": "Sleep at 10 PM"}\n```\nLet me know if you need adjustments.';
 const parsedLlmResult = verifyJsonExtraction(mockLlmPreamble);
 assert(parsedLlmResult.rootCause === 'Sleep deprivation', 'Central AI Gateway: Resilient JSON extractor safely unpacks markdown-fenced LLM payloads without parsing exceptions');
+
+// Validate Multi-Pass Reflection Cleaner (peels date stamps, markdown fences, outer quotes & stray commas)
+function testCleanAiEnhancedText(raw) {
+  if (!raw || typeof raw !== 'string') return raw || '';
+  let text = String(raw).trim();
+  for (let pass = 0; pass < 5; pass++) {
+    const prev = text;
+    if (text.includes('\\n')) text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+    if (text.startsWith('\\"') || text.startsWith("\\'")) text = text.replace(/^\\(['"])/, '$1');
+    if (text.endsWith('\\"') || text.endsWith("\\'")) text = text.replace(/\\(['"])$/, '$1');
+    text = text.replace(/^```[a-zA-Z0-9_-]*\s*\n?([\s\S]*?)\n?```$/i, '$1').trim();
+    text = text.replace(/^(?:(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|[A-Za-z]+ \d{1,2},? \d{4}|[A-Za-z]+, [A-Za-z]+ \d{1,2},? \d{4}|Day \d+|Dear Diary,?|Entry for [^\n:]+|Verdict:[^\n]*):?)\s*\n+/i, '').trim();
+    text = text.replace(/^[,;\s]*["'“‘«„‟]+/, '').replace(/["'”’»‟]+[,;\s]*$/, '').trim();
+    if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+      text = text.slice(1, -1).trim();
+    }
+    if (text === prev) break;
+  }
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+  return text;
+}
+assert(testCleanAiEnhancedText('"Today was great."') === 'Today was great.', 'Central AI Gateway: Strips surrounding double quotation marks');
+assert(testCleanAiEnhancedText('“Today was great.”') === 'Today was great.', 'Central AI Gateway: Strips surrounding curly double quotation marks');
+assert(testCleanAiEnhancedText('October 15, 2026\n\n"Today was great."') === 'Today was great.', 'Central AI Gateway: Strips leading date stamp and surrounding quotes in one clean pass');
+assert(testCleanAiEnhancedText(',"Today was great.",') === 'Today was great.', 'Central AI Gateway: Strips stray boundary commas with quotes');
+assert(testCleanAiEnhancedText('Today was "great" and focused.') === 'Today was "great" and focused.', 'Central AI Gateway: Preserves valid internal quotation marks');
 
 
 // ----------------------------------------------------------------------

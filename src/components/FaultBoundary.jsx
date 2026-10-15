@@ -263,7 +263,7 @@ export default class FaultBoundary extends React.Component {
                     style={{ backgroundColor: meta?.bg || '#fff' }}
                   >
                     <span>{star}★</span>
-                    <span className="text-[9px] sm:text-[10px] font-mono font-bold mt-0.5 truncate max-w-full px-1">{meta?.title}</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono font-bold mt-0.5 whitespace-nowrap overflow-visible px-1">{meta?.title}</span>
                   </button>
                 );
               })}

@@ -259,25 +259,42 @@ export function cleanAiEnhancedText(raw) {
   if (!raw || typeof raw !== 'string') return raw || '';
   let text = String(raw).trim();
 
-  // 1. Unescape literal \n or \r\n (if model output escaped characters)
-  if (text.includes('\\n')) {
-    text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+  // Multi-pass iterative peeling (handles arbitrary ordering of code fences, date stamps, and outer quotes)
+  for (let pass = 0; pass < 5; pass++) {
+    const prev = text;
+
+    // 1. Unescape literal \n or \r\n (if model output escaped characters)
+    if (text.includes('\\n')) {
+      text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+    }
+
+    // 2. Unescape escaped quotes \" or \' at boundaries
+    if (text.startsWith('\\"') || text.startsWith("\\'")) {
+      text = text.replace(/^\\(['"])/, '$1');
+    }
+    if (text.endsWith('\\"') || text.endsWith("\\'")) {
+      text = text.replace(/\\(['"])$/, '$1');
+    }
+
+    // 3. Strip code fences (```markdown ... ``` or ``` ...)
+    text = text.replace(/^```[a-zA-Z0-9_-]*\s*\n?([\s\S]*?)\n?```$/i, '$1').trim();
+
+    // 4. Strip leading date, title, or greeting stamps (e.g. "2026-09-30\n\n", "September 30, 2026\n\n", "Dear Diary,\n\n")
+    text = text.replace(/^(?:(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|[A-Za-z]+ \d{1,2},? \d{4}|[A-Za-z]+, [A-Za-z]+ \d{1,2},? \d{4}|Day \d+|Dear Diary,?|Entry for [^\n:]+|Verdict:[^\n]*):?)\s*\n+/i, '').trim();
+
+    // 5. Strip surrounding / outer quotation marks, inverted commas & stray boundary commas:
+    // Peels ", ', “, ”, ‘, ’, «, », „, ‟ and stray commas/semicolons from the text boundaries
+    text = text.replace(/^[,;\s]*["'“‘«„‟]+/, '').replace(/["'”’»‟]+[,;\s]*$/, '').trim();
+
+    // Also strip boundary matching quotes if any remain
+    if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+      text = text.slice(1, -1).trim();
+    }
+
+    if (text === prev) break;
   }
 
-  // 2. Strip code fences (```markdown ... ``` or ``` ...)
-  if (text.startsWith('```') && text.endsWith('```')) {
-    text = text.replace(/^```[a-zA-Z]*\n([\s\S]*?)\n```$/i, '$1').trim();
-  }
-
-  // 3. Strip surrounding quotation marks
-  if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
-    text = text.slice(1, -1).trim();
-  }
-
-  // 4. Strip leading date / title stamps (e.g. "2026-09-30\n\n", "September 30, 2026\n\n", "Dear Diary,\n\n")
-  text = text.replace(/^(?:(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|[A-Za-z]+ \d{1,2},? \d{4}|[A-Za-z]+, [A-Za-z]+ \d{1,2},? \d{4}|Day \d+|Dear Diary,?|Entry for [^\n:]+):?)\s*\n+/i, '');
-
-  // 5. Normalize multiple blank lines to clean double newlines (paragraph separation)
+  // 6. Normalize multiple blank lines to clean double newlines (paragraph separation)
   text = text.replace(/\n{3,}/g, '\n\n').trim();
 
   return text;
