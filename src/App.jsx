@@ -1131,9 +1131,18 @@ export default function App() {
     setIsGuardianContactOpen(true);
   }, []);
 
-  const handleOpenMonthlyDossierFromLab = useCallback((year = 2026, month = 9) => {
+  const handleOpenMonthlyDossierFromLab = useCallback(async (year = 2026, month = 9) => {
     soundEngine.playClick();
     setIsBehavioralLabOpen(false);
+    // Explicitly populate exemplary demo dataset (Sept 2026) so the dossier displays the complete exemplary data
+    setDemoSandboxActive(true);
+    setIsDemoSandbox(true);
+    try {
+      const res = await populateExemplaryMonth({ year, month, useAi: false });
+      if (res?.success && res?.entries) {
+        setDemoEntries(res.entries);
+      }
+    } catch (e) {}
     setReportTargetMonth({ year, month });
     setIsMonthlyReportOpen(true);
   }, []);

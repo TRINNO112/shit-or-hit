@@ -1181,10 +1181,28 @@ export function formatAiErrorMessage(err, context = 'default') {
 }
 
 export async function getSavedMonthlyReport(year, month) {
-  const currentUser = getCurrentUser();
-  const effectiveId = getEffectiveUserId(currentUser) || 'guest';
-  const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+  const isDemoActive = typeof window !== 'undefined' && 
+    (window.__DEMO_SANDBOX_ACTIVE__ || 
+     sessionStorage.getItem('shit_or_hit_demo_sandbox_active') === 'true' || 
+     (Number(year) === 2026 && Number(month) === 9));
+
   const monthStr = String(month).padStart(2, '0');
+
+  // If in demo mode or querying September 2026 exemplary data, check demo report cache first!
+  if (isDemoActive) {
+    try {
+      const demoKey = `report_demo_sandbox_${year}_${monthStr}`;
+      const demoCached = localStorage.getItem(demoKey) || localStorage.getItem(`${demoKey}_auto`);
+      if (demoCached) {
+        const parsed = JSON.parse(demoCached);
+        if (parsed && parsed.executiveSummary) return parsed;
+      }
+    } catch (e) {}
+  }
+
+  const currentUser = getCurrentUser();
+  const effectiveId = isDemoActive ? 'demo_sandbox' : (getEffectiveUserId(currentUser) || 'guest');
+  const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
   const baseKey = `report_${effectiveId}_${year}_${monthStr}`;
   const langKey = `${baseKey}_${preferredLanguage}`;
   const cloudKey = `${year}_${monthStr}`;
@@ -1218,7 +1236,7 @@ export async function getSavedMonthlyReport(year, month) {
   } catch (e) {}
 
   // 3. Check Firestore Cloud if authenticated
-  if (effectiveId && effectiveId !== 'guest') {
+  if (effectiveId && effectiveId !== 'guest' && !isDemoActive) {
     try {
       const cloudReport = await fetchCloudReport(effectiveId, `${cloudKey}_${preferredLanguage}`) || 
                           await fetchCloudReport(effectiveId, cloudKey);
@@ -1238,16 +1256,33 @@ export async function getSavedMonthlyReport(year, month) {
 }
 
 export async function fetchMonthlyReport(year, month, customEntries = null, archetypeId = null, forceReevaluate = false) {
-  const currentUser = getCurrentUser();
-  const effectiveId = getEffectiveUserId(currentUser) || 'guest';
-  const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+  const isDemoActive = typeof window !== 'undefined' && 
+    (window.__DEMO_SANDBOX_ACTIVE__ || 
+     sessionStorage.getItem('shit_or_hit_demo_sandbox_active') === 'true' || 
+     (Number(year) === 2026 && Number(month) === 9));
+
   const monthStr = String(month).padStart(2, '0');
-  const baseKey = `report_${effectiveId}_${year}_${monthStr}`;
-  const langKey = `${baseKey}_${preferredLanguage}`;
-  const cloudKey = `${year}_${monthStr}`;
 
   // Check cached report if not forcing reevaluation
   if (!forceReevaluate) {
+    if (isDemoActive) {
+      try {
+        const demoKey = `report_demo_sandbox_${year}_${monthStr}`;
+        const demoCached = localStorage.getItem(demoKey) || localStorage.getItem(`${demoKey}_auto`);
+        if (demoCached) {
+          const parsed = JSON.parse(demoCached);
+          if (parsed && parsed.executiveSummary && parsed.dominoChains && parsed.dominoChains.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+
+    const currentUser = getCurrentUser();
+    const effectiveId = isDemoActive ? 'demo_sandbox' : (getEffectiveUserId(currentUser) || 'guest');
+    const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+    const baseKey = `report_${effectiveId}_${year}_${monthStr}`;
+    const langKey = `${baseKey}_${preferredLanguage}`;
+    const cloudKey = `${year}_${monthStr}`;
+
     try {
       const cached = localStorage.getItem(langKey) || localStorage.getItem(baseKey);
       if (cached) {
@@ -1256,7 +1291,7 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
       }
     } catch (e) {}
 
-    if (effectiveId && effectiveId !== 'guest') {
+    if (effectiveId && effectiveId !== 'guest' && !isDemoActive) {
       try {
         const cloudReport = await fetchCloudReport(effectiveId, `${cloudKey}_${preferredLanguage}`) || 
                             await fetchCloudReport(effectiveId, cloudKey);
@@ -1271,14 +1306,28 @@ export async function fetchMonthlyReport(year, month, customEntries = null, arch
     }
   }
 
+  const currentUser = getCurrentUser();
+  const effectiveId = isDemoActive ? 'demo_sandbox' : (getEffectiveUserId(currentUser) || 'guest');
+  const preferredLanguage = (typeof window !== 'undefined' && localStorage.getItem('daily_verdict_ai_language')) || 'auto';
+  const baseKey = `report_${effectiveId}_${year}_${monthStr}`;
+  const langKey = `${baseKey}_${preferredLanguage}`;
+
   // Ensure entries are properly supplied for this user
   let entriesPayload = customEntries;
   if (!entriesPayload) {
     try {
-      const storageKey = getDbStorageKey(effectiveId);
-      const cachedDb = localStorage.getItem(storageKey);
-      if (cachedDb) {
-        entriesPayload = JSON.parse(cachedDb).entries || {};
+      if (isDemoActive) {
+        const demoDbRaw = localStorage.getItem('goodness_db_demo_sandbox');
+        if (demoDbRaw) {
+          entriesPayload = JSON.parse(demoDbRaw).entries || {};
+        }
+      }
+      if (!entriesPayload || Object.keys(entriesPayload).length === 0) {
+        const storageKey = getDbStorageKey(effectiveId);
+        const cachedDb = localStorage.getItem(storageKey);
+        if (cachedDb) {
+          entriesPayload = JSON.parse(cachedDb).entries || {};
+        }
       }
     } catch (e) {}
   }
