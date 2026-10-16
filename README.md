@@ -106,12 +106,12 @@ flowchart TD
 %%{init: {'flowchart': {'nodeSpacing': 40, 'rankSpacing': 60, 'curve': 'basis'}}}%%
 flowchart TD
     AutoTextarea["✍️ AutoExpandTextarea.jsx<br/>(Smart Diary Input)"]
-    GeminiGhostwriter["🤖 AI Diary Ghostwriter<br/>(gemini-3.5-flash-lite / Language Mirror)"]
+    AiGhostwriter["🤖 AI Diary Ghostwriter<br/>(First-Person Stoic Reflection Engine)"]
     ReactionBanner["🎭 MoodReactionBanner.jsx<br/>(Mascot & Live Quotes)"]
     RecoveryModal["🚨 MotivationalRecoveryModal.jsx<br/>(2-Day Slump Interceptor & Stoic Protocol)"]
     CompositeMathLayer2[("🧮 Composite Math Synthesizer<br/>(from Layer 2)")]
 
-    AutoTextarea --> GeminiGhostwriter
+    AutoTextarea --> AiGhostwriter
     CompositeMathLayer2 -->|Triggers| ReactionBanner
     CompositeMathLayer2 -->|Triggers| RecoveryModal
     ReactionBanner
@@ -119,7 +119,7 @@ flowchart TD
 
     classDef l3 fill:#F3E5F5,stroke:#8E24AA,color:#4A148C
     class AutoTextarea,ReactionBanner,RecoveryModal l3
-    class GeminiGhostwriter ai
+    class AiGhostwriter ai
 ```
 
 **Receives from:** Layer 2 — Composite Math Synthesizer drives `ReactionBanner` directly, and triggers `RecoveryModal` after 2 consecutive Rough days. **Feeds into:** Layer 5 (diary/reflection → storage write).
@@ -462,15 +462,15 @@ Your data belongs entirely to you. SHIT OR HIT combines instant local performanc
 
 ## 🤖 Master Automated System Audit Suite
 
-The application includes a built-in automated test suite covering all **67+ components, math engines, audio synthesizers, and security layers**.
+The application includes a built-in automated test suite covering all **67+ components, math engines, stasis protocols, audio synthesizers, and security layers** with **88 passing audits | 0 failures**.
 
 ```bash
-# Run the 10-suite audit anytime:
+# Run the 15-suite master audit anytime:
 npm run audit
 ```
 
-### 10 Test Suites Included:
-1. **Core Navigation & Views**: Validates Header sliding pill, mobile radio ratings, and PWA install handlers.
+### 15 Master Test Suites Included:
+1. **Core Navigation & Views**: Validates Header sliding pill, mobile radio ratings, persistent reflection drawer memory, and PWA install handlers.
 2. **Calendar Matrix & Day Editor**: Verifies date click matrix bindings and outlier event domain injection.
 3. **Forensic Analytics & Telemetry**: Tests hit rates, streak algorithms, and slump progression formulas.
 4. **Monthly Dossier Intelligence**: Asserts executive summaries, homie letters, and on-demand AI re-evaluations.
@@ -479,7 +479,12 @@ npm run audit
 7. **Daily Non-Negotiables**: Tests Checklist, Hybrid 50/50, and Deterministic 100% habit modes.
 8. **Settings & Radial Dial**: Asserts sphere domain customizations, mechanical 24h dial, and notification schedulers.
 9. **Procedural Web Audio**: Verifies oscillator frequencies and 5-level mood sound synthesis.
-10. **Multi-User Isolation & Build**: Validates user-scoped storage keys, static host 405 error prevention on GitHub Pages, and executes a full Vite production build verification.
+10. **Multi-User Isolation & Rate Limiting**: Validates user-scoped storage keys, Token Bucket and Sliding Window rate limiting.
+11. **Mathematical & Component State Invariants**: Formally evaluates all life sphere combinations and modal lifecycle reducers.
+12. **Database Schema & Reconciliation**: Confirms conflict rules and non-destructive data synchronization.
+13. **Rehabilitation Sanctuary, DPDPA 2023 & Export Studio**: Audits 7-day/14-day freeze ceilings, DPDPA data purges, and CSV/JSON export pipelines.
+14. **Static JSX Import & Lucide Icon Integrity**: Verifies 100% of JSX tags across all 67 components have valid static imports.
+15. **AI Synthesis & Privacy Invariants**: Validates multi-pass quote/comma cleaner, local fallback safety, and zero data leakage.
 
 ---
 
@@ -533,11 +538,11 @@ Get the Daily Verdict app up and running on your local machine.
 
 ### Core Technologies
 
-- **Frontend**: React 18, Vite 5, Tailwind CSS, Framer Motion (spring physics), Canvas Confetti, Lucide Icons.
-- **Backend API Server**: Node.js, Express, Watch Mode (`node --watch`).
-- **AI Synthesis Engine**: Google Gemini API (`gemini-3.5-flash-lite`).
-- **Cloud Backend**: Google Firebase Auth & Firestore CDN Client.
-- **Storage Engine**: Offline Local-First Engine (`localStorage`, `data/entries.json`, `data/reports.json`) + Firebase Firestore.
+- **Frontend**: React 19, Vite 5, Tailwind CSS v4, Framer Motion (spring physics), Canvas Confetti, Lucide React Icons.
+- **Backend API Server**: Node.js, Express, Winston Structured Logging, Watch Mode (`node --watch`).
+- **AI Synthesis Engine**: Introspective First-Person Diary Ghostwriter (Tactile In-Place Polish & Slump Triage).
+- **Cloud Backend**: Google Firebase Auth & Multi-tenant Firestore CDN Client with strict payload sanitization.
+- **Storage Engine**: Offline Local-First Engine (`localStorage`, `data/entries.json`, `data/reports.json`) + Persistent Date-Bound Modal Memory + AES-256 Client Vault.
 
 ### Running Locally
 
