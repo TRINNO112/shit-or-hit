@@ -17,7 +17,13 @@ import {
   Crosshair,
   AlertTriangle,
   AlertCircle,
-  RotateCw
+  RotateCw,
+  Skull,
+  ShieldAlert,
+  Flame,
+  Zap,
+  Lock,
+  Radio
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 import { AutopsyBadge } from './AutopsyBadge';
@@ -28,19 +34,19 @@ import { formatAiErrorMessage } from '../services/api';
 export { AutopsyBadge };
 
 /* ------------------------------------------------------------------------
-   Distressed CIA Top Secret Stamp
+   Distressed Top Secret / Declassified Ink Stamp
 ------------------------------------------------------------------------- */
-function TopSecretStamp({ text = "TOP SECRET // EYES ONLY", isDeclassified = false }) {
-  const color = isDeclassified ? '#146B43' : '#B91C1C';
-  const label = isDeclassified ? 'DECLASSIFIED // ACTION REQUIRED' : text;
+function TopSecretStamp({ text = "DAY STATUS: CRITICALLY SCREWED", isDeclassified = false }) {
+  const color = isDeclassified ? '#00E599' : '#FF4D4D';
+  const label = isDeclassified ? 'DECLASSIFIED // ANTIDOTE COMMITTED' : text;
 
   return (
-    <div className="inline-block select-none" style={{ transform: 'rotate(-4deg)' }}>
+    <div className="inline-block select-none" style={{ transform: 'rotate(-2.5deg)' }}>
       <div
-        className="px-3 py-1 border-3 border-dashed font-mono font-black text-xs sm:text-sm tracking-widest uppercase rounded-sm shadow-[2px_2px_0px_rgba(0,0,0,0.15)] flex items-center gap-1.5"
+        className="px-2.5 sm:px-3 py-1 border-3 border-dashed font-mono font-black text-[10px] sm:text-xs tracking-widest uppercase rounded-md shadow-[2px_2px_0px_#000000] flex items-center gap-1.5 bg-black"
         style={{ color, borderColor: color }}
       >
-        <AlertTriangle className="w-3.5 h-3.5" />
+        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
         <span>{label}</span>
       </div>
     </div>
@@ -48,7 +54,7 @@ function TopSecretStamp({ text = "TOP SECRET // EYES ONLY", isDeclassified = fal
 }
 
 /* ------------------------------------------------------------------------
-   Main Modal: Classified CIA Forensic Inquest Dossier
+   Main Modal: Visceral Forensic Autopsy Chamber & Inquest Dossier
 ------------------------------------------------------------------------- */
 export default function AutopsyChamberModal({
   isOpen,
@@ -61,7 +67,7 @@ export default function AutopsyChamberModal({
   existingAutopsy = null,
   onSaveAutopsy
 }) {
-  // States: 'scanning' | 'interrogating' | 'completed'
+  // States: 'scanning' | 'interrogating' | 'completed' | 'failed'
   const [stage, setStage] = useState(existingAutopsy ? 'completed' : 'scanning');
   const [autopsyData, setAutopsyData] = useState(existingAutopsy || null);
   const [userAnswers, setUserAnswers] = useState(existingAutopsy?.userAnswers || {});
@@ -85,7 +91,7 @@ export default function AutopsyChamberModal({
     setIsLoading(true);
     setErrorMsg('');
     setStage('scanning');
-    soundEngine?.playRoughTone?.();
+    try { soundEngine?.playRoughTone?.(); } catch (e) {}
 
     try {
       const res = await getAutopsyAnalysis({
@@ -100,7 +106,7 @@ export default function AutopsyChamberModal({
       if (res?.success && res?.autopsy) {
         setAutopsyData(res.autopsy);
         setStage('interrogating');
-        soundEngine?.playSuccessChime?.();
+        try { soundEngine?.playSuccessChime?.(); } catch (e) {}
       } else {
         throw new Error('Could not parse autopsy response');
       }
@@ -108,7 +114,7 @@ export default function AutopsyChamberModal({
       console.warn('Autopsy retrieval exception:', err);
       setErrorMsg(formatAiErrorMessage(err, 'autopsy'));
       setStage('failed');
-      soundEngine?.playRoughTone?.();
+      try { soundEngine?.playRoughTone?.(); } catch (e) {}
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +133,7 @@ export default function AutopsyChamberModal({
   }, [isOpen, existingAutopsy, entryDate, rating]);
 
   const handleSelectAnswer = (qId, optionText) => {
-    soundEngine?.playClick?.();
+    try { soundEngine?.playClick?.(); } catch (e) {}
     setUserAnswers(prev => ({
       ...prev,
       [qId]: optionText
@@ -135,7 +141,7 @@ export default function AutopsyChamberModal({
   };
 
   const handleSaveAndSeal = () => {
-    soundEngine?.playCapsuleSeal?.();
+    try { soundEngine?.playCapsuleSeal?.(); } catch (e) {}
     const finalReport = {
       ...autopsyData,
       userAnswers,
@@ -147,7 +153,7 @@ export default function AutopsyChamberModal({
       onSaveAutopsy(finalReport);
     }
     setStage('completed');
-    soundEngine?.playSuccessChime?.();
+    try { soundEngine?.playSuccessChime?.(); } catch (e) {}
   };
 
   // Dynamically tailor interrogations according to user's notes and skipped anchors
@@ -245,339 +251,370 @@ export default function AutopsyChamberModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-85 bg-[#0C0A09]/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+          className="fixed inset-0 z-85 bg-black/92 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto select-none"
           onClick={onClose}
         >
-          <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
-
-            .cia-manila-folder {
-              background-color: #E6D7B8;
-              background-image: radial-gradient(#D5C4A1 1px, transparent 1px);
-              background-size: 14px 14px;
-            }
-
-            .cia-tab {
-              background-color: #D8C7A5;
-              clip-path: polygon(0 0, 88% 0, 100% 100%, 0% 100%);
-            }
-
-            .cia-paper-sheet {
-              background-color: #FAF6ED;
-              box-shadow: inset 0 0 40px rgba(180, 150, 110, 0.2);
-            }
-
-            .cia-redacted {
-              background-color: #1C1917;
-              color: #1C1917;
-              user-select: none;
-              padding: 0 4px;
-            }
-          `}</style>
-
           <motion.div
-            initial={{ scale: 0.95, y: 15, opacity: 0 }}
+            initial={{ scale: 0.94, y: 15, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.95, y: 15, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-full max-w-xl cia-manila-folder rounded-3xl border-3 border-[#1C1917] shadow-[8px_8px_0px_#1C1917] p-4 sm:p-6 text-left max-h-[94vh] flex flex-col relative overflow-hidden text-[#1C1917]"
+            exit={{ scale: 0.94, y: 15, opacity: 0 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 380 }}
+            className="w-full max-w-2xl bg-[#0E0E12] rounded-3xl border-4 border-[#FF4D4D] shadow-[10px_10px_0px_#000000] p-4 sm:p-7 text-left max-h-[94vh] flex flex-col relative overflow-hidden text-white"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Top Hazard Caution Tape Banner */}
+            <div className="absolute top-0 left-0 right-0 h-3 bg-[repeating-linear-gradient(-45deg,#000_0,#000_12px,#FF4D4D_12px,#FF4D4D_24px)] shrink-0 border-b-2 border-black" />
 
-        {/* Top Manila Folder File Tab */}
-        <div className="flex items-center justify-between border-b-2 border-[#1C1917] pb-2.5 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="cia-tab px-4 py-1 border-t-2 border-l-2 border-r-2 border-[#1C1917] font-mono text-[10px] font-black tracking-wider uppercase text-[#1C1917]">
-              DOSSIER // REF-{entryDate.replace(/-/g, '')}
-            </div>
-            <span className="hidden sm:inline-block font-mono text-[10px] font-bold text-neutral-600">
-              [BEHAVIORAL FORENSICS]
-            </span>
-          </div>
+            {/* Coroner Dossier Header & Classification Row */}
+            <div className="pt-2.5 flex items-center justify-between border-b-2 border-white/15 pb-3.5 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#FF4D4D] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] text-black shrink-0">
+                  <Skull className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-black text-[#FF4D4D] border border-[#FF4D4D]/50 rounded">
+                      FORENSIC INQUEST
+                    </span>
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FDC800] border border-black rounded text-black">
+                      INCIDENT CASE #{entryDate.replace(/-/g, '')}
+                    </span>
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FF4D4D] text-black rounded">
+                      RATING: {rating}★ FATAL COLLAPSE
+                    </span>
+                  </div>
+                  <h2 className="font-display font-black text-base sm:text-xl uppercase tracking-tight text-white leading-tight mt-0.5 truncate">
+                    CRIME SCENE AUTOPSY CHAMBER
+                  </h2>
+                </div>
+              </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg bg-[#FAF6ED] hover:bg-[#EAE0CD] border-2 border-[#1C1917] cursor-pointer shadow-[1.5px_1.5px_0px_#1C1917] active:scale-95 transition-all"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4 stroke-[2.5]" />
-          </button>
-        </div>
-
-        {/* Dossier Header & Stamped Title */}
-        <div className="pt-3 pb-2 shrink-0 space-y-2">
-          {/* Metadata & Stamp Row */}
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2 py-0.5 rounded bg-[#1C1917] text-[#FAF6ED] text-[9px] font-mono font-black uppercase tracking-wider">
-                CLEARANCE LEVEL 5
-              </span>
-              <span className="text-[10px] font-mono font-bold text-[#854D0E] bg-[#D8C7A5]/50 px-2 py-0.5 rounded border border-[#1C1917]/20">
-                SUBJECT VERDICT: {rating === 1 ? '1★ ROUGH' : '2★ DOWN'}
-              </span>
-              {autopsyData?.engine && (
-                <span className="text-[9px] font-mono font-black text-black bg-[#FAF6ED] px-2 py-0.5 rounded border border-[#1C1917] shadow-[1px_1px_0px_#1C1917] uppercase">
-                  {autopsyData.engine}
-                </span>
-              )}
-            </div>
-
-            <div className="shrink-0">
-              <TopSecretStamp isDeclassified={stage === 'completed'} />
-            </div>
-          </div>
-
-          {/* Full-width Title & Subtitle */}
-          <div className="w-full">
-            <h3 className="font-mono font-black text-xl sm:text-2xl uppercase tracking-tight text-[#1C1917] leading-tight">
-              CRIME SCENE FORENSIC INQUEST
-            </h3>
-            <p className="text-xs sm:text-sm font-mono text-neutral-700 mt-1 leading-normal">
-              Auditing the cognitive chain-of-events that fractured daily momentum.
-            </p>
-          </div>
-        </div>
-
-        {/* -------------------------------------------------------------
-            STAGE 1: SCANNING / LOADING
-        -------------------------------------------------------------- */}
-        {stage === 'scanning' && (
-          <div className="flex-1 py-12 flex flex-col items-center justify-center text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#FAF6ED] border-2 border-[#1C1917] flex items-center justify-center shadow-[3px_3px_0px_#1C1917] animate-pulse">
-              <FileSearch className="w-6 h-6 text-[#B91C1C]" />
-            </div>
-            <h4 className="font-mono font-black text-sm uppercase text-[#1C1917]">
-              Conducting Ballistics & Forensic Audit...
-            </h4>
-            <p className="font-mono text-xs text-neutral-600 max-w-xs">
-              Deconstructing entry notes, failed habit anchors, and friction triggers.
-            </p>
-            {errorMsg && (
-              <div className="mt-3 p-2.5 bg-[#FEE2E2] border-2 border-[#B91C1C] text-[#991B1B] rounded-xl text-xs font-mono max-w-sm">
-                <p className="font-bold flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-[#B91C1C]" />
-                  <span>{errorMsg}</span>
-                </p>
+              <div className="flex items-center gap-2 shrink-0">
+                <TopSecretStamp isDeclassified={stage === 'completed'} />
                 <button
                   type="button"
-                  onClick={fetchAutopsyAnalysis}
-                  className="mt-2 px-3 py-1.5 bg-[#B91C1C] hover:bg-[#991B1B] text-[#FAF6ED] rounded-lg font-black uppercase text-[10px] cursor-pointer shadow-[1.5px_1.5px_0px_#1C1917]"
+                  onClick={onClose}
+                  className="p-1.5 sm:p-2 rounded-xl bg-neutral-900 hover:bg-[#FF4D4D] hover:text-black border-2 border-white/20 text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-colors shrink-0"
+                  aria-label="Close"
                 >
-                  Retry Forensic Scan
+                  <X className="w-4 h-4 stroke-[2.5]" />
                 </button>
               </div>
+            </div>
+
+            {/* Vital Signs / Flatline Telemetry Ticker */}
+            <div className="mt-3 px-3 py-1.5 rounded-xl bg-[#17171E] border border-[#FF4D4D]/40 flex items-center justify-between text-[10px] font-mono shrink-0">
+              <div className="flex items-center gap-2">
+                <Activity className="w-3.5 h-3.5 text-[#FF4D4D] animate-pulse" />
+                <span className="text-[#FF4D4D] font-black uppercase tracking-wider">
+                  VITAL SIGNS: FLATLINE (0% MOMENTUM)
+                </span>
+              </div>
+              <span className="text-neutral-400 font-bold hidden sm:inline">
+                DOWNWARD SLUMP CIRCUIT ACTIVE
+              </span>
+            </div>
+
+            {/* STAGE 1: SCANNING / FORENSIC INVESTIGATION */}
+            {stage === 'scanning' && (
+              <div className="flex-1 py-14 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-3xl bg-neutral-950 border-3 border-[#FF4D4D] flex items-center justify-center shadow-[4px_4px_0px_#FF4D4D] animate-pulse">
+                    <Crosshair className="w-8 h-8 text-[#FF4D4D] stroke-[2.5]" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#00E599] border-2 border-black animate-ping" />
+                </div>
+                <div className="space-y-1 max-w-sm">
+                  <h4 className="font-mono font-black text-sm uppercase text-white tracking-wide">
+                    CONDUCTING FORENSIC BALLISTICS SCAN...
+                  </h4>
+                  <p className="font-mono text-xs text-neutral-400 leading-relaxed">
+                    Deconstructing diary notes, circadian rhythm breaches, and collapsed habit anchors.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900 border border-white/20 font-mono text-[10px] font-bold text-neutral-300">
+                  <div className="w-2 h-2 rounded-full bg-[#FF4D4D] animate-pulse" />
+                  <span>AI CORONER DECOMPOSING INCIDENT DATA</span>
+                </div>
+              </div>
             )}
-          </div>
-        )}
 
-        {/* -------------------------------------------------------------
-            STAGE: FAILED / OFFLINE ERROR STATE
-        -------------------------------------------------------------- */}
-        {stage === 'failed' && (
-          <div className="flex-1 py-10 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#FF4D4D] border-2 border-[#1C1917] flex items-center justify-center shadow-[3px_3px_0px_#1C1917]">
-              <AlertCircle className="w-7 h-7 text-white stroke-[2.5]" />
-            </div>
-            <div className="space-y-1">
-              <h4 className="font-mono font-black text-base uppercase text-[#1C1917]">
-                Forensic Inquest Evaluation Failed
-              </h4>
-              <p className="font-mono text-xs text-neutral-700 max-w-sm mx-auto leading-relaxed">
-                {errorMsg || 'Sovereign AI servers are temporarily busy or unreachable. Tap Retry Inquest or use Offline Diagnostic.'}
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 w-full max-w-xs">
-              <button
-                type="button"
-                onClick={fetchAutopsyAnalysis}
-                className="w-full sm:flex-1 py-2.5 px-3 bg-[#FDC800] hover:bg-amber-400 text-black border-2 border-[#1C1917] rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#1C1917] active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Retry Inquest</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const fallback = generateLocalAutopsy({ notes, rating, spheres, anchors, date: entryDate });
-                  if (fallback) {
-                    setAutopsyData({ ...fallback, engine: 'OFFLINE HEURISTIC' });
-                    setStage('interrogating');
-                  }
-                }}
-                className="w-full sm:flex-1 py-2.5 px-3 bg-[#FAF6ED] hover:bg-[#EAE0CD] text-black border-2 border-[#1C1917] rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#1C1917] active:scale-95 cursor-pointer"
-              >
-                Use Offline Diagnostic
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* -------------------------------------------------------------
-            STAGE 2: INTERROGATION DOSSIER
-        -------------------------------------------------------------- */}
-        {stage === 'interrogating' && (
-          <div className="flex-1 overflow-y-auto space-y-3.5 pr-1 mt-2 min-h-0">
-            {/* Primary Cause of Breakdown Card */}
-            <div className="cia-paper-sheet border-2 border-[#1C1917] rounded-2xl p-3.5 sm:p-4 shadow-[3px_3px_0px_#1C1917]">
-              <div className="text-[10px] font-mono font-black text-[#B91C1C] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <AlertOctagon className="w-3.5 h-3.5" />
-                <span>PRIMARY CAUSE OF FAILURE:</span>
-              </div>
-              <p className="font-mono text-xs sm:text-sm font-bold text-[#1C1917] leading-relaxed">
-                {autopsyData?.causeOfDeath}
-              </p>
-            </div>
-
-            {/* Inquest Interrogation Questions */}
-            <div className="space-y-3">
-              <div className="text-[11px] font-mono font-black text-[#1C1917] uppercase tracking-wider flex items-center gap-1.5">
-                <Crosshair className="w-3.5 h-3.5 text-[#B91C1C]" />
-                <span>MANDATORY INQUEST DEBRIEFING ({Object.keys(userAnswers).length}/{questionsList.length}):</span>
-              </div>
-
-              {questionsList.map((q, idx) => (
-                <div
-                  key={q.id}
-                  className="bg-[#FAF6ED] border-2 border-[#1C1917] rounded-2xl p-3 sm:p-3.5 shadow-[2px_2px_0px_#1C1917]"
-                >
-                  <div className="font-mono text-xs font-bold text-[#1C1917] mb-2 flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#1C1917] text-[#FAF6ED] text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                      {idx + 1}
-                    </span>
-                    <span>{q.question}</span>
-                  </div>
-
-                  <div className="space-y-1.5 pl-7">
-                    {q.options.map((opt, optIdx) => {
-                      const isSelected = userAnswers[q.id] === opt;
-                      return (
-                        <button
-                          key={optIdx}
-                          type="button"
-                          onClick={() => handleSelectAnswer(q.id, opt)}
-                          className={`w-full text-left p-2 rounded-xl border-2 font-mono text-[11px] sm:text-xs transition-all cursor-pointer flex items-center justify-between gap-2 ${
-                            isSelected
-                              ? 'bg-[#1C1917] text-[#FAF6ED] border-[#1C1917] shadow-[2px_2px_0px_#854D0E]'
-                              : 'bg-white text-neutral-800 border-[#1C1917]/30 hover:border-[#1C1917] hover:bg-neutral-50'
-                          }`}
-                        >
-                          <span>{opt}</span>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-[#FDE047] shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
+            {/* STAGE: FAILED / OFFLINE ERROR STATE */}
+            {stage === 'failed' && (
+              <div className="flex-1 py-10 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#FF4D4D] border-3 border-black flex items-center justify-center shadow-[3px_3px_0px_#000000] text-black">
+                  <AlertCircle className="w-7 h-7 stroke-[2.5]" />
                 </div>
-              ))}
-            </div>
-
-            {/* Single Paragraph Tactical Countermeasure */}
-            <div className="cia-paper-sheet border-2 border-[#1C1917] rounded-2xl p-4 shadow-[3px_3px_0px_#1C1917]">
-              <div className="text-[10px] font-mono font-black text-[#146B43] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#146B43]" />
-                <span>TACTICAL PRESCRIPTION FOR TOMORROW:</span>
-              </div>
-              <p className="font-mono text-xs sm:text-sm font-bold text-[#1C1917] leading-relaxed">
-                {solutionParagraph}
-              </p>
-            </div>
-
-            {/* Seal and Complete Button */}
-            <div className="pt-1">
-              <button
-                type="button"
-                onClick={handleSaveAndSeal}
-                disabled={!allQuestionsAnswered}
-                className="w-full py-3 px-4 bg-[#B91C1C] hover:bg-[#991B1B] text-[#FAF6ED] font-mono font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl border-2 border-[#1C1917] shadow-[3px_3px_0px_#1C1917] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FolderLock className="w-4 h-4" />
-                <span>
-                  {allQuestionsAnswered ? 'Seal Autopsy Dossier & Commit Protocol' : 'Answer Inquest Questions to Seal'}
-                </span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* -------------------------------------------------------------
-            STAGE 3: COMPLETED / DECLASSIFIED RECORD
-        -------------------------------------------------------------- */}
-        {stage === 'completed' && (
-          <div className="flex-1 overflow-y-auto space-y-3.5 pr-1 mt-2 min-h-0 flex flex-col">
-            {/* Sealed File Hero Banner */}
-            <div className="cia-paper-sheet border-2 border-[#1C1917] rounded-2xl p-4 shadow-[3px_3px_0px_#1C1917]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-mono font-black text-[#146B43] uppercase tracking-wider flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#146B43]" />
-                  <span>DECLASSIFIED CASE DOSSIER:</span>
-                </span>
-                <span className="text-[10px] font-mono font-bold text-neutral-500">
-                  {entryDate}
-                </span>
-              </div>
-              <p className="font-mono text-xs sm:text-sm font-bold text-[#1C1917] leading-relaxed">
-                {autopsyData?.causeOfDeath}
-              </p>
-            </div>
-
-            {/* User Testimonies recorded */}
-            {Object.keys(userAnswers).length > 0 && (
-              <div className="space-y-2">
-                <div className="text-[10px] font-mono font-black text-neutral-600 uppercase tracking-wider">
-                  RECORDED TESTIMONY &amp; ROOT TRIGGERS:
+                <div className="space-y-1">
+                  <h4 className="font-mono font-black text-base uppercase text-white">
+                    Forensic Inquest Evaluation Failed
+                  </h4>
+                  <p className="font-mono text-xs text-neutral-300 max-w-sm mx-auto leading-relaxed">
+                    {errorMsg || 'AI servers are temporarily unreachable. You can retry or execute the offline forensic heuristic.'}
+                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  {Object.entries(userAnswers).map(([qid, ans], i) => (
-                    <div
-                      key={qid}
-                      className="p-2.5 rounded-xl border-2 border-[#1C1917]/30 bg-[#FAF6ED] font-mono text-xs flex items-center gap-2"
-                    >
-                      <span className="font-bold text-[#B91C1C]">#{i + 1}:</span>
-                      <span className="font-bold text-[#1C1917]">{ans}</span>
+
+                <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 w-full max-w-xs">
+                  <button
+                    type="button"
+                    onClick={fetchAutopsyAnalysis}
+                    className="w-full sm:flex-1 py-2.5 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Retry Inquest</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const fallback = generateLocalAutopsy({ notes, rating, spheres, anchors, date: entryDate });
+                      if (fallback) {
+                        setAutopsyData({ ...fallback, engine: 'OFFLINE HEURISTIC' });
+                        setStage('interrogating');
+                      }
+                    }}
+                    className="w-full sm:flex-1 py-2.5 px-3 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer"
+                  >
+                    Offline Diagnostic
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STAGE 2: VISCERAL INTERROGATION INQUEST */}
+            {stage === 'interrogating' && (
+              <div className="flex-1 overflow-y-auto space-y-4 pr-1 mt-3 min-h-0 text-white">
+                
+                {/* Visual Evidence Toe-Tag */}
+                <div className="relative bg-[#181820] border-2 border-dashed border-[#FF4D4D] rounded-2xl p-3.5 sm:p-4 text-xs font-mono space-y-2">
+                  <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[#0E0E12] border-2 border-[#FF4D4D] flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D4D]" />
+                  </div>
+                  <div className="flex items-center gap-2 text-[#FF4D4D] font-black uppercase text-[11px] tracking-wider">
+                    <FileSearch className="w-4 h-4 shrink-0" />
+                    <span>MORTALITY EVIDENCE TOE-TAG • CASE #{entryDate.replace(/-/g, '')}</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-white/10 text-[10px] font-mono">
+                    <div>
+                      <span className="text-neutral-500 block uppercase">TIME OF DEATH</span>
+                      <span className="text-white font-bold">{entryDate} (CURFEW)</span>
                     </div>
-                  ))}
+                    <div>
+                      <span className="text-neutral-500 block uppercase">FAILURE LEVEL</span>
+                      <span className="text-[#FF4D4D] font-black uppercase">{rating}★ CATASTROPHIC</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500 block uppercase">ANCHORS MISSED</span>
+                      <span className="text-[#FDC800] font-bold">
+                        {Object.values(anchors).filter(v => !v).length || 'CRITICAL DEFICIT'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500 block uppercase">STATUS</span>
+                      <span className="text-[#FF4D4D] font-black uppercase">SCREWED</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trauma Diagnosis Card (Cause of Failure) */}
+                <div className="bg-[#210D10] border-3 border-[#FF4D4D] rounded-2xl p-4 shadow-[4px_4px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between border-b border-[#FF4D4D]/30 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 rounded-lg bg-[#FF4D4D] text-black">
+                        <AlertOctagon className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono text-xs font-black uppercase text-[#FF4D4D]">
+                        CORONER PRIMARY CAUSE OF DEATH
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-[#FF4D4D] text-black font-mono text-[9px] font-black uppercase">
+                      CRITICAL FAILURE
+                    </span>
+                  </div>
+
+                  <p className="font-mono text-xs sm:text-sm font-bold text-white leading-relaxed">
+                    {autopsyData?.causeOfDeath}
+                  </p>
+                </div>
+
+                {/* The 3 Interrogation Exhibits */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Crosshair className="w-4 h-4 text-[#FF4D4D] stroke-[2.5]" />
+                      <span className="font-mono text-xs font-black uppercase text-white">
+                        MANDATORY INQUEST EXHIBITS ({Object.keys(userAnswers).length}/{questionsList.length} ANSWERED)
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-neutral-400">
+                      EXHIBIT A-C
+                    </span>
+                  </div>
+
+                  {questionsList.map((q, idx) => {
+                    const hasAnswered = !!userAnswers[q.id];
+                    return (
+                      <div
+                        key={q.id}
+                        className={`border-2 rounded-2xl p-3.5 sm:p-4 shadow-[3px_3px_0px_#000000] transition-colors space-y-2.5 ${
+                          hasAnswered
+                            ? 'bg-[#15161C] border-[#00E599]/60'
+                            : 'bg-[#181922] border-white/20'
+                        }`}
+                      >
+                        <div className="font-mono text-xs sm:text-sm font-black text-white flex items-start gap-2">
+                          <span className={`w-5 h-5 rounded-md border text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5 ${
+                            hasAnswered
+                              ? 'bg-[#00E599] text-black border-black'
+                              : 'bg-black text-[#FF4D4D] border-[#FF4D4D]'
+                          }`}>
+                            {idx + 1}
+                          </span>
+                          <span className="leading-snug">{q.question}</span>
+                        </div>
+
+                        <div className="space-y-1.5 pl-7">
+                          {q.options.map((opt, optIdx) => {
+                            const isSelected = userAnswers[q.id] === opt;
+                            return (
+                              <button
+                                key={optIdx}
+                                type="button"
+                                onClick={() => handleSelectAnswer(q.id, opt)}
+                                className={`w-full text-left p-2.5 rounded-xl border-2 font-mono text-[11px] sm:text-xs transition-all cursor-pointer flex items-center justify-between gap-2 active:translate-x-px ${
+                                  isSelected
+                                    ? 'bg-[#FDC800] text-black border-black shadow-[3px_3px_0px_#FF4D4D] font-black'
+                                    : 'bg-[#22232E] text-neutral-200 border-white/10 hover:border-[#FF4D4D] hover:bg-[#2A2B38] shadow-[1px_1px_0px_#000000]'
+                                }`}
+                              >
+                                <span className="leading-snug">{opt}</span>
+                                {isSelected && <Check className="w-4 h-4 text-black shrink-0 stroke-[3]" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Tactical Resuscitation Antidote Prescription */}
+                <div className="bg-[#062615] border-3 border-[#00E599] rounded-2xl p-4 shadow-[4px_4px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between border-b border-[#00E599]/30 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 rounded-lg bg-[#00E599] text-black">
+                        <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono text-xs font-black uppercase text-[#00E599]">
+                        CORONER BINDING RESUSCITATION ORDER (FOR TOMORROW)
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-[#00E599] text-black font-mono text-[9px] font-black uppercase border border-black">
+                      BINDING
+                    </span>
+                  </div>
+
+                  <p className="font-mono text-xs sm:text-sm font-bold text-[#E6FFF2] leading-relaxed">
+                    {solutionParagraph}
+                  </p>
+                </div>
+
+                {/* Seal Action Button */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSaveAndSeal}
+                    disabled={!allQuestionsAnswered}
+                    className="w-full py-3.5 px-4 bg-[#FF4D4D] hover:bg-red-600 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:border-neutral-700 text-black font-mono font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl border-3 border-black shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <FolderLock className="w-4 h-4 stroke-[2.5]" />
+                    <span>
+                      {allQuestionsAnswered ? 'SEAL AUTOPSY DOSSIER & COMMIT RESUSCITATION' : 'ANSWER ALL INQUEST QUESTIONS TO SEAL'}
+                    </span>
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* Single Paragraph Tactical Countermeasure */}
-            <div className="cia-paper-sheet border-2 border-[#1C1917] rounded-2xl p-4 shadow-[3px_3px_0px_#1C1917]">
-              <div className="text-[10px] font-mono font-black text-[#146B43] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#146B43]" />
-                <span>BINDING RECOVERY PRESCRIPTION:</span>
+            {/* STAGE 3: COMPLETED / DECLASSIFIED CASE RECORD */}
+            {stage === 'completed' && (
+              <div className="flex-1 overflow-y-auto space-y-4 pr-1 mt-3 min-h-0 flex flex-col text-white">
+                {/* Declassified Hero Card */}
+                <div className="bg-[#14151B] border-3 border-[#00E599] rounded-2xl p-4 shadow-[4px_4px_0px_#000000] space-y-2">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <span className="font-mono text-xs font-black uppercase text-[#00E599] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                      <span>DECLASSIFIED POST-MORTEM VERDICT</span>
+                    </span>
+                    <span className="font-mono text-[10px] font-bold text-neutral-400">
+                      INCIDENT DATE: {entryDate}
+                    </span>
+                  </div>
+                  <p className="font-mono text-xs sm:text-sm font-bold text-neutral-100 leading-relaxed">
+                    {autopsyData?.causeOfDeath}
+                  </p>
+                </div>
+
+                {/* Recorded Testimony Grid */}
+                {Object.keys(userAnswers).length > 0 && (
+                  <div className="space-y-2">
+                    <span className="font-mono text-xs font-black text-white uppercase tracking-wider block">
+                      RECORDED INQUEST TESTIMONIES &amp; ROOT TRIGGERS:
+                    </span>
+                    <div className="space-y-2">
+                      {Object.entries(userAnswers).map(([qid, ans], i) => (
+                        <div
+                          key={qid}
+                          className="p-3 rounded-xl border-2 border-black bg-[#1B1C26] shadow-[2px_2px_0px_#000000] font-mono text-xs flex items-center gap-2.5"
+                        >
+                          <span className="w-5 h-5 rounded-md bg-[#FDC800] text-black text-[10px] font-black flex items-center justify-center shrink-0">
+                            #{i + 1}
+                          </span>
+                          <span className="font-bold text-neutral-200 leading-snug">{ans}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Committed Antidote */}
+                <div className="bg-[#062615] border-3 border-[#00E599] rounded-2xl p-4 shadow-[4px_4px_0px_#000000] space-y-2">
+                  <span className="font-mono text-xs font-black uppercase text-[#00E599] flex items-center gap-1.5 border-b border-[#00E599]/30 pb-1.5">
+                    <ShieldCheck className="w-4 h-4 text-[#00E599] stroke-[2.5]" />
+                    <span>COMMITTED RESUSCITATION PROTOCOL:</span>
+                  </span>
+                  <p className="font-mono text-xs sm:text-sm font-bold text-[#E6FFF2] leading-relaxed">
+                    {solutionParagraph}
+                  </p>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2 mt-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStage('interrogating');
+                      try { soundEngine?.playClick?.(); } catch (e) {}
+                    }}
+                    className="w-full sm:flex-1 py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white border-2 border-white/20 rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Re-Open Inquest</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="w-full sm:flex-1 py-3 px-4 bg-[#00E599] text-black hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px"
+                  >
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <span>Close Case File</span>
+                  </button>
+                </div>
               </div>
-              <p className="font-mono text-xs sm:text-sm font-bold text-[#1C1917] leading-relaxed">
-                {solutionParagraph}
-              </p>
-            </div>
+            )}
 
-            {/* Actions */}
-            <div className="flex items-center gap-2 pt-1 mt-auto shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setStage('interrogating');
-                  soundEngine?.playClick?.();
-                }}
-                className="flex-1 py-2.5 px-3 bg-[#FAF6ED] hover:bg-[#EAE0CD] border-2 border-[#1C1917] rounded-xl font-mono text-xs font-bold uppercase shadow-[2px_2px_0px_#1C1917] cursor-pointer flex items-center justify-center gap-2"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Re-interrogate</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-2.5 px-3 bg-[#1C1917] text-[#FAF6ED] hover:bg-neutral-800 border-2 border-[#1C1917] rounded-xl font-mono text-xs font-bold uppercase shadow-[2px_2px_0px_#1C1917] cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Check className="w-3.5 h-3.5 text-[#FDE047]" />
-                <span>Close Case File</span>
-              </button>
-            </div>
-          </div>
-        )}
+            {/* Bottom Hazard Tape Accent */}
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(-45deg,#000_0,#000_10px,#FF4D4D_10px,#FF4D4D_20px)] border-t border-black pointer-events-none" />
           </motion.div>
         </motion.div>
       )}

@@ -415,6 +415,17 @@ export default function App() {
         e.stopPropagation();
         triggerPopulateDemoData();
       }
+
+      // Ctrl + Shift + X / Alt + Shift + X: Exhibition Master Demo Studio (Stealth Developer Trigger)
+      const isLabKey =
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'X' || e.key === 'x' || e.code === 'KeyX')) ||
+        (e.altKey && e.shiftKey && (e.key === 'X' || e.key === 'x' || e.code === 'KeyX'));
+
+      if (isLabKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsBehavioralLabOpen(prev => !prev);
+      }
     };
     window.addEventListener('keydown', handleGlobalHotkeys);
     return () => window.removeEventListener('keydown', handleGlobalHotkeys);
@@ -603,7 +614,7 @@ export default function App() {
       } else if (keyBuffer.endsWith('404')) {
         setShowNotFound(prev => !prev);
         keyBuffer = '';
-      } else if (keyBuffer.endsWith('lab') || keyBuffer.endsWith('showcase') || keyBuffer.endsWith('trilogy')) {
+      } else if (keyBuffer.endsWith('lab') || keyBuffer.endsWith('showcase') || keyBuffer.endsWith('trilogy') || keyBuffer.endsWith('demo')) {
         setIsBehavioralLabOpen(prev => !prev);
         keyBuffer = '';
       } else if (keyBuffer.endsWith('receipt')) {
@@ -616,7 +627,7 @@ export default function App() {
       } else if (keyBuffer.endsWith('autopsy')) {
         setIsAutopsyOpen(prev => !prev);
         keyBuffer = '';
-      } else if (keyBuffer.endsWith('demo') || keyBuffer.endsWith('fakedata') || keyBuffer.endsWith('exemplary')) {
+      } else if (keyBuffer.endsWith('fakedata') || keyBuffer.endsWith('exemplary')) {
         triggerPopulateDemoData();
         keyBuffer = '';
       }
@@ -694,7 +705,7 @@ export default function App() {
         }
         setIsP2PSyncOpen(true);
       }
-      if (window.location.search.includes('view=lab') || window.location.search.includes('view=showcase') || window.location.hash.includes('lab')) {
+      if (window.location.search.includes('view=lab') || window.location.search.includes('view=showcase') || window.location.search.includes('view=demo') || window.location.hash.includes('lab') || window.location.hash.includes('demo')) {
         setIsBehavioralLabOpen(true);
       }
       if (window.location.search.includes('view=receipt') || window.location.hash.includes('receipt')) {

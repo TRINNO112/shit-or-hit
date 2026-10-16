@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -10,7 +10,6 @@ import {
   Sparkles,
   CheckCircle2,
   TrendingUp,
-  TrendingDown,
   KeyRound,
   FileText,
   Skull,
@@ -21,14 +20,24 @@ import {
   Shield,
   Compass,
   Zap,
-  Play
+  Play,
+  RotateCcw,
+  Radio,
+  Sliders,
+  Flame,
+  Check,
+  Terminal,
+  Activity,
+  Crosshair
 } from 'lucide-react';
 import { soundEngine } from '../services/soundEngine';
 
 /**
- * 🧪 EXHIBITION MASTER DEMO & AI SHOWCASE STUDIO
- * Single-tap control hub to demonstrate every AI engine, behavioral mechanism,
- * emergency protocol, and stasis mode live for evaluators, judges, and exhibitions.
+ * 🧪 EXHIBITION MASTER MISSION CONTROL & PROVING GROUNDS
+ * 
+ * Museum-grade black-ops command console designed exclusively for the developer/owner
+ * to demonstrate every AI engine, behavioral circuit, emergency protocol, and stasis mode live
+ * at the exhibition with zero visible public buttons in the general UI.
  */
 export default function BehavioralLabModal({
   isOpen,
@@ -52,37 +61,44 @@ export default function BehavioralLabModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-85 bg-black/80 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto select-none"
+        className="fixed inset-0 z-85 bg-black/92 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto select-none"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.94, y: 15 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.94, y: 15 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-          className="w-full max-w-3xl bg-[#FFFDF8] rounded-3xl border-3 border-black p-4 sm:p-7 shadow-[8px_8px_0px_#000000] space-y-4 sm:space-y-6 text-left max-h-[92vh] flex flex-col"
+          transition={{ type: 'spring', stiffness: 440, damping: 28 }}
+          className="w-full max-w-4xl bg-[#0B0C10] rounded-3xl border-3 border-[#FDC800] p-4 sm:p-7 shadow-[10px_10px_0px_#000000] space-y-4 sm:space-y-6 text-left max-h-[92vh] flex flex-col relative overflow-hidden text-white"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-black/15 pb-3.5 sm:pb-4 shrink-0">
-            <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#FFE66D] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] text-black shrink-0">
+          {/* Top Hazard Caution Stripe Accent */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(45deg,#000_0,#000_10px,#FDC800_10px,#FDC800_20px)] border-b border-black shrink-0" />
+
+          {/* Cockpit HUD Header */}
+          <div className="pt-2 flex items-center justify-between border-b-2 border-white/15 pb-4 shrink-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#FDC800] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] text-black shrink-0">
                 <FlaskConical className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2 py-0.5 rounded bg-black text-[#FFE66D] text-[9px] font-mono font-black uppercase">
-                    GCERT SUBTHEME 1(A)
+                  <span className="px-2 py-0.5 rounded bg-black text-[#00E599] border border-[#00E599]/60 text-[9px] font-mono font-black uppercase flex items-center gap-1.5">
+                    <Radio className="w-3 h-3 text-[#00E599] animate-pulse" />
+                    <span>LIVE EXHIBITION RIG</span>
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-[#00E599] text-black border border-black text-[9px] font-mono font-black uppercase">
-                    EXHIBITION SUITE
+                  <span className="px-2 py-0.5 rounded bg-black text-[#FDC800] border border-[#FDC800]/60 text-[9px] font-mono font-black uppercase">
+                    DEV CLEARANCE: EXHIBITOR
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-[#FF4D4D] text-black text-[9px] font-mono font-black uppercase font-bold">
+                    STEALTH ACTIVE
                   </span>
                 </div>
-                <h2 className="font-display font-black text-base sm:text-xl uppercase tracking-tight text-black leading-tight mt-0.5 truncate">
-                  EXHIBITION DEMO &amp; AI SHOWCASE STUDIO
+                <h2 className="font-display font-black text-base sm:text-xl uppercase tracking-tight text-white leading-tight mt-0.5 truncate">
+                  MISSION CONTROL &amp; PROVING GROUNDS
                 </h2>
-                <p className="text-[11px] sm:text-xs font-mono text-neutral-600 truncate mt-0.5">
-                  1-Tap instant live simulation of all AI engines &amp; behavioral protocols
+                <p className="text-[11px] sm:text-xs font-mono text-neutral-400 truncate mt-0.5">
+                  1-Tap instant live execution of all AI engines, behavioral circuits &amp; stasis chambers
                 </p>
               </div>
             </div>
@@ -93,449 +109,364 @@ export default function BehavioralLabModal({
                 try { soundEngine.playClick(); } catch (e) {}
                 onClose();
               }}
-              className="p-2 rounded-xl bg-neutral-100 hover:bg-[#FF4D4D] hover:text-white border-2 border-black text-black cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-colors shrink-0"
+              className="p-2 rounded-xl bg-neutral-900 hover:bg-[#FF4D4D] hover:text-black border-2 border-white/20 text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-colors shrink-0"
+              aria-label="Close"
             >
               <X className="w-5 h-5 stroke-[2.5]" />
             </button>
           </div>
 
-          {/* Body Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-black">
-
-            {/* SHOWCASE 1: AI FORENSIC AUTOPSY CHAMBER */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-black/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-red-100 border border-black text-red-600">
-                    <AlertOctagon className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    1. AI Forensic Autopsy Chamber
-                  </h3>
-                </div>
-                <span className="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded border border-black/20 font-bold self-start sm:self-auto">
-                  Gemini Interrogator + 3-Step Antidote
-                </span>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed font-mono">
-                Investigates rough day collapses without touching authentic user data. Pinpoints root cause of failure and prescribes a structured recovery antidote.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenAutopsy) onOpenAutopsy('questioning');
-                  }}
-                  className="p-3 bg-[#FF4D4D]/15 hover:bg-[#FF4D4D]/25 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-red-950 mb-0.5">
-                    <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 stroke-[2.5]" />
-                    <span>LAUNCH INTERROGATION (LIVE)</span>
-                  </div>
-                  <div className="text-[10px] text-red-800 leading-normal">
-                    Loads simulated phone doomscroll &amp; sleep deficit telemetry to generate 3 dynamic questions.
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenAutopsy) onOpenAutopsy('verdict');
-                  }}
-                  className="p-3 bg-[#FDC800]/20 hover:bg-[#FDC800]/35 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900 mb-0.5">
-                    <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0 stroke-[2.5]" />
-                    <span>CORONER VERDICT &amp; ANTIDOTE</span>
-                  </div>
-                  <div className="text-[10px] text-neutral-700 leading-normal">
-                    Displays classified forensic inquest findings and 3-step action recovery blueprint.
-                  </div>
-                </button>
-              </div>
+          {/* Stealth Invocation Guide Banner */}
+          <div className="bg-[#14151D] border-2 border-dashed border-[#FDC800]/50 rounded-2xl p-2.5 sm:p-3 text-[10px] sm:text-[11px] font-mono text-neutral-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00E599] animate-ping shrink-0" />
+              <span className="text-white font-black uppercase">STEALTH ACCESS SECURED:</span>
+              <span className="text-neutral-400">Zero visible public buttons exist in UI.</span>
             </div>
-
-            {/* SHOWCASE 2: GUARDIAN SOS & FAMILY EMERGENCY TRIAGE */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-black/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-emerald-100 border border-black text-emerald-700">
-                    <HeartHandshake className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    2. Guardian SOS &amp; Family Triage Protocol
-                  </h3>
-                </div>
-                <span className="text-[10px] font-mono bg-[#00E599]/20 text-emerald-950 px-2 py-0.5 rounded border border-black/20 font-bold self-start sm:self-auto">
-                  Two-Phase AI + Zero Quota Burn
-                </span>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed font-mono">
-                Automated zero-device crisis notification. Simulates a 2-day academic/health slump to showcase parent briefings without sending unneeded emails.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  if (onOpenGuardianSimulation) onOpenGuardianSimulation();
-                }}
-                className="w-full p-3 bg-[#FFE66D]/30 hover:bg-[#FFE66D]/50 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-neutral-950 mb-0.5">
-                    <HeartHandshake className="w-4 h-4 text-emerald-700 shrink-0 stroke-[2.5]" />
-                    <span>LAUNCH SLUMP SIMULATION (2-DAY COLLAPSE &amp; BRIEFING)</span>
-                  </div>
-                  <div className="text-[10px] text-neutral-700">
-                    Ingests mock Oct 14 1★ fever + Oct 15 2★ insomnia notes. Generates full confidential family briefing instantly.
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-black shrink-0 ml-2" />
-              </button>
+            <div className="flex items-center gap-2 flex-wrap text-neutral-400 font-bold">
+              <span className="px-1.5 py-0.5 bg-black border border-white/20 rounded text-[#FDC800]">Ctrl + Shift + X</span>
+              <span>•</span>
+              <span className="px-1.5 py-0.5 bg-black border border-white/20 rounded text-[#00E599]">3-Tap Logo</span>
+              <span>•</span>
+              <span className="px-1.5 py-0.5 bg-black border border-white/20 rounded text-white">Type &quot;demo&quot;</span>
             </div>
-
-            {/* SHOWCASE 3: AI DIARY GHOSTWRITER LIVE POLISH */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-black/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-yellow-100 border border-black text-amber-700">
-                    <Bot className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    3. AI Diary Ghostwriter (First-Person Stoic Polish)
-                  </h3>
-                </div>
-                <span className="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded border border-black/20 font-bold self-start sm:self-auto">
-                  Multi-Pass Peeling Pipeline
-                </span>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed font-mono">
-                Populates today&apos;s reflection drawer with messy, stream-of-consciousness raw thought so you can click &ldquo;AI POLISH&rdquo; live in front of evaluators.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  if (onInjectGhostwriterSample) onInjectGhostwriterSample();
-                }}
-                className="w-full p-3 bg-[#00E599]/20 hover:bg-[#00E599]/35 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-950 mb-0.5">
-                    <Sparkles className="w-4 h-4 text-emerald-700 shrink-0 stroke-[2.5]" />
-                    <span>LOAD SAMPLE DRAFT &amp; OPEN TODAY&apos;S JOURNAL</span>
-                  </div>
-                  <div className="text-[10px] text-emerald-900">
-                    Loads unedited student draft (&ldquo;bro today was cooked woke up 90 mins late...&rdquo;) ready for 2-second polish.
-                  </div>
-                </div>
-                <Play className="w-4 h-4 text-emerald-950 fill-emerald-950 shrink-0 ml-2" />
-              </button>
-            </div>
-
-            {/* SHOWCASE 4: MONTHLY AI DOSSIER & VELOCITY CURVES */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-black/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-blue-100 border border-black text-blue-700">
-                    <BarChart3 className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    4. Monthly AI Dossier &amp; Executive Intelligence
-                  </h3>
-                </div>
-                <span className="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded border border-black/20 font-bold self-start sm:self-auto">
-                  September 2026 Exemplary Month
-                </span>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed font-mono">
-                Launches the complete 30-day dossier featuring Homie tough-love mentor feedback, behavioral persona archetype, weekly velocity, and live AI re-evaluation.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  if (onOpenMonthlyDossier) onOpenMonthlyDossier(2026, 9);
-                }}
-                className="w-full p-3 bg-blue-50 hover:bg-blue-100 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-blue-950 mb-0.5">
-                    <BarChart3 className="w-4 h-4 text-blue-700 shrink-0 stroke-[2.5]" />
-                    <span>OPEN SEPTEMBER 2026 MASTER DOSSIER</span>
-                  </div>
-                  <div className="text-[10px] text-blue-800">
-                    Comprehensive month-end executive review with 30-day trajectory data and friction diagnostic breakdowns.
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-black shrink-0 ml-2" />
-              </button>
-            </div>
-
-            {/* SHOWCASE 5: TRANQUILITY SANCTUARY & VAGUS PACER */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-black/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-emerald-100 border border-black text-emerald-700">
-                    <Shield className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    5. Life Pause Architecture (Tranquility Sanctuary)
-                  </h3>
-                </div>
-                <span className="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded border border-black/20 font-bold self-start sm:self-auto">
-                  Streak Frozen &amp; Shielded
-                </span>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed font-mono">
-                Calm technology recovery space featuring the Vagus Nerve 4-2-6 Pacer Orb, Somatic Grounding Garden, and zero dopamine pressure.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  if (onOpenSanctuary) onOpenSanctuary();
-                }}
-                className="w-full p-3 bg-emerald-50 hover:bg-emerald-100 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px flex items-center justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-950 mb-0.5">
-                    <Compass className="w-4 h-4 text-emerald-700 shrink-0 stroke-[2.5]" />
-                    <span>ENTER TRANQUILITY SANCTUARY (STASIS PREVIEW)</span>
-                  </div>
-                  <div className="text-[10px] text-emerald-800">
-                    Demonstrate nervous system reset, breath orb pacing, and indefinite streak freeze architecture.
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-black shrink-0 ml-2" />
-              </button>
-            </div>
-
-            {/* SHOWCASE 6: TIME & MOOD CAPSULE VAULT */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-black/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-amber-100 border border-black text-amber-700">
-                    <Hourglass className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    6. Ransom Time-Lock Capsule Vault
-                  </h3>
-                </div>
-                <span className="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded border border-black/20 font-bold self-start sm:self-auto">
-                  Zero-Knowledge AES Cipher
-                </span>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed font-mono">
-                Confidential letters to future self sealed with wax. Unlocked only by specific triggers: Calendar Date, Slump Detection, or Milestone Streaks.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenCapsule) onOpenCapsule('vault');
-                  }}
-                  className="p-2.5 bg-[#FDC800]/20 hover:bg-[#FDC800]/35 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900 mb-0.5">
-                    <KeyRound className="w-4 h-4 text-neutral-800 shrink-0 stroke-[2.5]" />
-                    <span>VAULT GALLERY</span>
-                  </div>
-                  <div className="text-[10px] text-neutral-700">
-                    Browse sealed wax letters &amp; live countdown locks
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenCapsule) onOpenCapsule('create');
-                  }}
-                  className="p-2.5 bg-neutral-100 hover:bg-neutral-200 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900 mb-0.5">
-                    <FileText className="w-4 h-4 text-neutral-800 shrink-0 stroke-[2.5]" />
-                    <span>CRAFT CAPSULE</span>
-                  </div>
-                  <div className="text-[10px] text-neutral-700">
-                    Configure date/slump triggers &amp; seal types
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenCapsule) onOpenCapsule('release');
-                  }}
-                  className="p-2.5 bg-[#00E599]/20 hover:bg-[#00E599]/35 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-900 mb-0.5">
-                    <Sparkles className="w-4 h-4 text-emerald-700 shrink-0 stroke-[2.5]" />
-                    <span>UNSEAL TYPEWRITER</span>
-                  </div>
-                  <div className="text-[10px] text-emerald-800">
-                    Interactive audio typewriter letter unsealing
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* SHOWCASE 7: THERMAL RECEIPT OF TRUTH */}
-            <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-black/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-neutral-100 border border-black text-neutral-800">
-                    <Receipt className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    7. Receipt of Truth (Monthly Life Debt &amp; Equity)
-                  </h3>
-                </div>
-                <span className="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded border border-black/20 font-bold self-start sm:self-auto">
-                  Tactile Thermal Slip
-                </span>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed font-mono">
-                Evaluates discipline balance sheets: Net Equity = Assets (God-mode hits, habit anchors) minus Liabilities (trench fines, slump taxes).
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenReceipt) onOpenReceipt('solvent');
-                  }}
-                  className="p-2.5 bg-[#00E599]/20 hover:bg-[#00E599]/35 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-950 mb-0.5">
-                    <TrendingUp className="w-4 h-4 text-emerald-700 shrink-0 stroke-[2.5]" />
-                    <span>SOLVENT (+140 EQ)</span>
-                  </div>
-                  <div className="text-[10px] text-emerald-800">
-                    Green paid stamp &amp; high consistency equity
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenReceipt) onOpenReceipt('debt');
-                  }}
-                  className="p-2.5 bg-[#FF4D4D]/20 hover:bg-[#FF4D4D]/35 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-red-950 mb-0.5">
-                    <TrendingDown className="w-4 h-4 text-red-700 shrink-0 stroke-[2.5]" />
-                    <span>IN LIFE DEBT (-85 EQ)</span>
-                  </div>
-                  <div className="text-[10px] text-red-800">
-                    Red tilted debt stamp &amp; slump taxes
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { soundEngine.playClick(); } catch (e) {}
-                    if (onOpenReceipt) onOpenReceipt('live');
-                  }}
-                  className="p-2.5 bg-[#FFE66D]/30 hover:bg-[#FFE66D]/50 border-2 border-black rounded-xl text-left font-mono transition-all cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900 mb-0.5">
-                    <Sparkles className="w-4 h-4 text-amber-700 shrink-0 stroke-[2.5]" />
-                    <span>LIVE USER MONTH</span>
-                  </div>
-                  <div className="text-[10px] text-neutral-700">
-                    Calculates ledger directly from active entries
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* SHOWCASE 8: MASTER 30-DAY SANDBOX TOGGLE */}
-            <div className="bg-[#FFF9E6] border-2 border-black rounded-2xl p-4 shadow-[3px_3px_0px_#000000] space-y-2.5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-black text-[#FFE66D]">
-                    <Zap className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <h3 className="font-mono font-black text-xs sm:text-sm uppercase text-black">
-                    8. Master 30-Day Isolated Sandbox
-                  </h3>
-                </div>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border border-black font-black uppercase self-start sm:self-auto ${
-                  isDemoSandboxActive ? 'bg-[#00E599] text-black' : 'bg-neutral-200 text-neutral-700'
-                }`}>
-                  {isDemoSandboxActive ? 'SANDBOX ACTIVE' : 'REAL DIARY ACTIVE'}
-                </span>
-              </div>
-              <p className="text-xs text-neutral-700 leading-relaxed font-mono">
-                Instantly switch the entire application between your authentic diary and the complete 30-day September 2026 dataset. Zero cloud upload.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playClick(); } catch (e) {}
-                  if (onToggleDemoSandbox) onToggleDemoSandbox();
-                }}
-                className={`w-full py-2.5 px-4 font-mono text-xs font-black uppercase rounded-xl border-2 border-black shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  isDemoSandboxActive 
-                    ? 'bg-[#FF4D4D] text-white hover:bg-red-600' 
-                    : 'bg-[#FDC800] text-black hover:bg-yellow-400'
-                }`}
-              >
-                <Zap className="w-4 h-4 stroke-[2.5]" />
-                <span>{isDemoSandboxActive ? 'EXIT DEMO SANDBOX (RESTORE REAL DIARY)' : 'ENTER 30-DAY DEMO SANDBOX (SEPTEMBER 2026)'}</span>
-              </button>
-            </div>
-
-            {/* SHOWCASE 9: REACTOR CORE ERROR TEST */}
-            <div className="bg-neutral-50 border-2 border-dashed border-black/30 rounded-2xl p-3.5 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Skull className="w-4 h-4 text-neutral-600" />
-                  <span className="font-mono text-xs font-black uppercase text-neutral-700">
-                    9. Graceful Error Boundary Test
-                  </span>
-                </div>
-                <span className="text-[9px] font-mono bg-neutral-200 px-2 py-0.5 rounded font-bold text-neutral-700">
-                  DEVELOPER DIAGNOSTIC
-                </span>
-              </div>
-              <p className="text-[11px] font-mono text-neutral-600">
-                Trigger a simulated render exception to verify the Nerdy Reactor Core recovery screen.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  try { soundEngine.playRoughTone(); } catch (e) {}
-                  if (onTriggerErrorTest) onTriggerErrorTest();
-                }}
-                className="py-1.5 px-3 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 font-mono text-[10px] font-black uppercase rounded-lg border border-black cursor-pointer shadow-[1px_1px_0px_#000000] active:translate-x-px active:translate-y-px transition-all"
-              >
-                SIMULATE EXCEPTION
-              </button>
-            </div>
-
           </div>
 
-          {/* Footer note */}
-          <div className="border-t-2 border-black/10 pt-3 flex items-center justify-between text-[11px] font-mono text-neutral-600 shrink-0">
-            <span>Shortcut: Press Ctrl+Shift+D for Demo Sandbox</span>
-            <span className="font-bold text-black">TRINNO EXHIBITION ENGINE</span>
+          {/* 2-Column Bento Command Grid (Desktop) / 1-Column (Mobile) */}
+          <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+
+              {/* BENTO 1: AI FORENSIC AUTOPSY CHAMBER */}
+              <div className="bg-[#13131A] border-2 border-[#FF4D4D]/70 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#FF4D4D] text-black flex items-center justify-center shrink-0">
+                        <Skull className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        1. AI Forensic Autopsy Chamber
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-black text-[#FF4D4D] px-2 py-0.5 rounded border border-[#FF4D4D]/40 font-black">
+                      M-01 // BIOHAZARD
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    Diagnose catastrophic 1★ rough days. AI coroner deconstructs circadian breaches, habit wreckage, and prescribes a binding resuscitation antidote.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => onOpenAutopsy?.('inquest')}
+                    className="flex-1 py-2 px-3 bg-[#FF4D4D] hover:bg-red-500 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Crosshair className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Launch 1★ Inquest</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenAutopsy?.('verdict')}
+                    className="py-2 px-3 bg-neutral-900 hover:bg-neutral-800 text-white border-2 border-white/20 rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <span>Verdict</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* BENTO 2: GUARDIAN ANGEL RELAPSE SOS */}
+              <div className="bg-[#13131A] border-2 border-[#00E599]/70 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#00E599] text-black flex items-center justify-center shrink-0">
+                        <ShieldAlert className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        2. Guardian Relapse SOS
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-black text-[#00E599] px-2 py-0.5 rounded border border-[#00E599]/40 font-black">
+                      M-02 // CRISIS
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    Social accountability failsafe. Automatically detects 2 consecutive rough days, prepares crisis message, and unlocks 1-tap WhatsApp broadcast.
+                  </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={onOpenGuardianSimulation}
+                    className="w-full py-2 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <HeartHandshake className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Simulate Slump Broadcast</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* BENTO 3: AI DIARY GHOSTWRITER */}
+              <div className="bg-[#13131A] border-2 border-[#FDC800]/70 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#FDC800] text-black flex items-center justify-center shrink-0">
+                        <Bot className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        3. AI Diary Ghostwriter
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-black text-[#FDC800] px-2 py-0.5 rounded border border-[#FDC800]/40 font-black">
+                      M-03 // VOICE AI
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    Injects messy, raw, stream-of-consciousness spoken voice draft directly into Today&apos;s drawer for instant 1-tap AI literary polishing and quote peeling.
+                  </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={onInjectGhostwriterSample}
+                    className="w-full py-2 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Inject Draft &amp; Open Journal</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* BENTO 4: MONTHLY EXECUTIVE DOSSIER */}
+              <div className="bg-[#13131A] border-2 border-[#38BDF8]/70 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#38BDF8] text-black flex items-center justify-center shrink-0">
+                        <BarChart3 className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        4. Monthly AI Dossier
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-black text-[#38BDF8] px-2 py-0.5 rounded border border-[#38BDF8]/40 font-black">
+                      M-04 // INTELLIGENCE
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    30-Day behavioral evaluation with tough-love homie mentor analysis, persona archetype classification, and weekly phase velocity curves.
+                  </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => onOpenMonthlyDossier?.(2026, 9)}
+                    className="w-full py-2 px-3 bg-[#38BDF8] hover:bg-sky-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <BarChart3 className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Launch Sept 2026 Dossier</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* BENTO 5: TRANQUILITY SANCTUARY */}
+              <div className="bg-[#13131A] border-2 border-[#86EFAC]/70 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#86EFAC] text-black flex items-center justify-center shrink-0">
+                        <Compass className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        5. Tranquility Sanctuary
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-black text-[#86EFAC] px-2 py-0.5 rounded border border-[#86EFAC]/40 font-black">
+                      M-05 // STASIS
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    Acute 7-Day to 14-Day nervous system recovery stasis. Vagus Nerve 4-2-6 Pacer Orb, Somatic Grounding Garden, and frozen shielded streaks.
+                  </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={onOpenSanctuary}
+                    className="w-full py-2 px-3 bg-[#86EFAC] hover:bg-emerald-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Compass className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Enter Sanctuary Reset</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* BENTO 6: RANSOM TIME-LOCK CAPSULE */}
+              <div className="bg-[#13131A] border-2 border-[#F59E0B]/70 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#F59E0B] text-black flex items-center justify-center shrink-0">
+                        <Hourglass className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        6. Ransom Wax Capsule
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-black text-[#F59E0B] px-2 py-0.5 rounded border border-[#F59E0B]/40 font-black">
+                      M-06 // TIME-LOCK
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    Confidential letters to future self sealed with wax. Unlocked only by specific triggers: calendar date, slump detection, or milestone streak.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => onOpenCapsule?.('release')}
+                    className="flex-1 py-2 px-3 bg-[#F59E0B] hover:bg-amber-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <KeyRound className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Inspect Slump Capsule</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenCapsule?.('vault')}
+                    className="py-2 px-3 bg-neutral-900 hover:bg-neutral-800 text-white border-2 border-white/20 rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <span>Vault</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* BENTO 7: THERMAL RECEIPT OF TRUTH */}
+              <div className="bg-[#13131A] border-2 border-[#E5E7EB]/50 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center shrink-0">
+                        <Receipt className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        7. Thermal Receipt of Truth
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-black text-white px-2 py-0.5 rounded border border-white/30 font-black">
+                      M-07 // POS SLIP
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    Generates authentic micro-receipts with paper serration, barcode, discipline tax calculations, and behavioral solvency score.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => onOpenReceipt?.('solvent')}
+                    className="flex-1 py-2 px-3 bg-white hover:bg-neutral-200 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                    <span>Solvent (God-Mode)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenReceipt?.('debt')}
+                    className="flex-1 py-2 px-3 bg-neutral-900 hover:bg-neutral-800 text-white border-2 border-white/20 rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <AlertOctagon className="w-3.5 h-3.5 text-[#FF4D4D] stroke-[2.5]" />
+                    <span>Insolvent (Debt)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* BENTO 8: 30-DAY EXEMPLAR UNIVERSE */}
+              <div className="bg-[#13131A] border-2 border-[#FDC800] rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#FDC800] text-black flex items-center justify-center shrink-0">
+                        <Zap className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <span className="font-mono font-black text-xs uppercase text-white tracking-wide">
+                        8. 30-Day Sandbox Universe
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono bg-[#FDC800] text-black px-2 py-0.5 rounded font-black">
+                      M-08 // ZERO OVERWRITE
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-300 leading-relaxed">
+                    Toggle isolated 30-day exemplary month (Sept 2026). Populates calendar, streaks, and AI dossier. Real diary is 100% shielded.
+                  </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={onToggleDemoSandbox}
+                    className={`w-full py-2 px-3 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      isDemoSandboxActive
+                        ? 'bg-[#FF4D4D] hover:bg-red-500 text-black'
+                        : 'bg-[#FDC800] hover:bg-yellow-400 text-black'
+                    }`}
+                  >
+                    {isDemoSandboxActive ? (
+                      <>
+                        <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Exit Sandbox (Restore Real Diary)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Populate 30-Day Exemplary Month</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Utility Bar: Resilience Fault Boundary Test */}
+            <div className="bg-[#14151E] border border-white/15 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-neutral-400 font-mono text-xs">
+              <div className="flex items-center gap-2 text-[11px]">
+                <Activity className="w-4 h-4 text-[#00E599]" />
+                <span>4-State Resilience Engine: 88 passing tests, zero unhandled rejections</span>
+              </div>
+              <button
+                type="button"
+                onClick={onTriggerErrorTest}
+                className="py-1 px-3 bg-neutral-900 hover:bg-[#FF4D4D] hover:text-black border border-white/20 text-neutral-300 rounded-lg text-[10px] font-black uppercase transition-colors cursor-pointer self-stretch sm:self-auto text-center"
+              >
+                Simulate Controlled Fault
+              </button>
+            </div>
+          </div>
+
+          {/* Footer Controls */}
+          <div className="pt-2 border-t border-white/10 flex items-center justify-between shrink-0">
+            <span className="font-mono text-[10px] text-neutral-500">
+              TRINNO LABS // EXHIBITION ENGINE V2.4
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-1.5 px-4 bg-white hover:bg-neutral-200 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all"
+            >
+              Close Console
+            </button>
           </div>
         </motion.div>
       </motion.div>

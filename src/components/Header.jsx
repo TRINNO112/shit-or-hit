@@ -131,13 +131,32 @@ export default function Header({
     { id: 'studio', label: 'CREATIVE STUDIO', shortLabel: 'STUDIO', icon: Palette },
   ];
 
+  const logoTapRef = useRef({ count: 0, timer: null });
+  const handleSecretLogoClick = () => {
+    logoTapRef.current.count += 1;
+    if (logoTapRef.current.timer) clearTimeout(logoTapRef.current.timer);
+    if (logoTapRef.current.count >= 3) {
+      logoTapRef.current.count = 0;
+      try { soundEngine.playSuccessChime(); } catch (e) {}
+      if (onOpenBehavioralLab) onOpenBehavioralLab();
+    } else {
+      logoTapRef.current.timer = setTimeout(() => {
+        logoTapRef.current.count = 0;
+      }, 700);
+    }
+  };
+
   return (
     <header className="w-full max-w-7xl 2xl:max-w-8xl 3xl:max-w-[1880px] 4k:max-w-[2400px] mx-auto py-3 sm:py-4 3xl:py-5 flex flex-col xl:flex-row items-center justify-between gap-3 sm:gap-4 3xl:gap-6">
       
       {/* Top / Left Row: Brand + Right Controls on Tablet */}
       <div className="w-full xl:w-auto flex items-center justify-between gap-3 shrink-0">
-        {/* 1. Brand */}
-        <div className="flex items-center gap-3 3xl:gap-4 shrink-0">
+        {/* 1. Brand (Secret Triple-Click opens Exhibition Suite) */}
+        <div 
+          onClick={handleSecretLogoClick}
+          className="flex items-center gap-3 3xl:gap-4 shrink-0 cursor-pointer select-none"
+          title="Trinno Core OS"
+        >
           <div className="w-10 h-10 3xl:w-12 3xl:h-12 4k:w-14 4k:h-14 rounded-2xl bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000000] shrink-0 p-1">
             <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
           </div>
@@ -377,21 +396,6 @@ export default function Header({
           </button>
         )}
 
-
-        {/* Exhibition Demo & AI Showcase Studio */}
-        {onOpenBehavioralLab && (
-          <button
-            onClick={() => {
-              try { soundEngine.playClick(); } catch (e) {}
-              onOpenBehavioralLab();
-            }}
-            title="Exhibition Master Demo & AI Showcase Studio (1-Tap Simulation)"
-            className="px-2.5 py-1.5 rounded-xl bg-[#FFE66D] hover:bg-[#FDC800] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0 flex items-center gap-1.5 font-mono text-xs font-black active:translate-x-px"
-          >
-            <FlaskConical className="w-4 h-4 text-black stroke-[2.5]" />
-            <span className="hidden 2xl:inline">DEMO HUB</span>
-          </button>
-        )}
 
         {/* Settings Button */}
         {onOpenSettings && (

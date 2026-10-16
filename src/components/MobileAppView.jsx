@@ -200,6 +200,24 @@ export default function MobileAppView({
       }, 700);
     }
   };
+
+  // 🧪 Stealth Exhibition Demo Hub (Secret 3-Tap on Brand Logo)
+  const logoTapCountRef = useRef(0);
+  const logoTapTimerRef = useRef(null);
+  const handleLogoSecretTap = (e) => {
+    e.stopPropagation();
+    logoTapCountRef.current += 1;
+    if (logoTapTimerRef.current) clearTimeout(logoTapTimerRef.current);
+    if (logoTapCountRef.current >= 3) {
+      logoTapCountRef.current = 0;
+      try { soundEngine.playSuccessChime(); } catch (err) {}
+      if (onOpenBehavioralLab) onOpenBehavioralLab();
+    } else {
+      logoTapTimerRef.current = setTimeout(() => {
+        logoTapCountRef.current = 0;
+      }, 700);
+    }
+  };
   
   // Multi-Sphere State for Mobile
   const [sphereModeActive, setSphereModeActive] = useState(false);
@@ -839,7 +857,11 @@ export default function MobileAppView({
         className="sticky top-0 z-40 bg-[#FFFDF5]/95 backdrop-blur-md border-b-2 border-black px-2.5 py-2 sm:px-4 sm:py-3 flex items-center justify-between shadow-[0_2px_0px_#000000] gap-1.5 cursor-pointer"
       >
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0 p-0.5">
+          <div 
+            onClick={handleLogoSecretTap}
+            className="w-8 h-8 rounded-xl bg-white border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_#000000] shrink-0 p-0.5 cursor-pointer active:scale-95 transition-transform"
+            title="Trinno Core"
+          >
             <ShieldVoltIcon className="w-full h-full" color="#FDC800" />
           </div>
           <div className="min-w-0">
@@ -923,21 +945,6 @@ export default function MobileAppView({
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
           </button>
-
-          {/* Exhibition Master Demo & AI Showcase Studio */}
-          {onOpenBehavioralLab && (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                soundEngine.playClick();
-                onOpenBehavioralLab();
-              }}
-              className="p-1.5 sm:p-2 rounded-xl bg-[#FFE66D] hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer shrink-0 transition-colors text-black"
-              title="Exhibition Master Demo & AI Showcase Studio"
-            >
-              <FlaskConical className="w-4 h-4 text-black stroke-[2.5]" />
-            </button>
-          )}
 
           {/* Settings Button (Opens Quick Drawer) */}
           <button

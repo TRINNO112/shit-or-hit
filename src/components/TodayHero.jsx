@@ -1932,17 +1932,6 @@ export default function TodayHero({
                   )}
                 </div>
 
-                {/* 1-Tap Sample Draft for Live Exhibition Demonstration */}
-                <button
-                  type="button"
-                  onClick={handleLoadSampleDraft}
-                  title="Load realistic unpolished student draft for live AI polish demonstration"
-                  className="px-2.5 py-1.5 bg-[#00E599]/20 hover:bg-[#00E599]/40 text-emerald-950 border-2 border-black rounded-xl text-[10px] font-mono font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px transition-all flex items-center gap-1 shrink-0"
-                >
-                  <Sparkles className="w-3 h-3 stroke-[2.5] text-emerald-800" />
-                  <span>SAMPLE DRAFT</span>
-                </button>
-
                 {/* In-Place Tactile AI Polish Button (Zero Layout Shift) */}
                 <button
                   type="button"
