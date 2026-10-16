@@ -22,7 +22,8 @@ export default function Header({
   onOpenRehab,
   onOpenIconLab,
   isAcademicMode = false,
-  onOpenGuardianContact = null
+  onOpenGuardianContact = null,
+  onOpenBehavioralLab = null
 }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -376,6 +377,21 @@ export default function Header({
           </button>
         )}
 
+
+        {/* Exhibition Demo & AI Showcase Studio */}
+        {onOpenBehavioralLab && (
+          <button
+            onClick={() => {
+              try { soundEngine.playClick(); } catch (e) {}
+              onOpenBehavioralLab();
+            }}
+            title="Exhibition Master Demo & AI Showcase Studio (1-Tap Simulation)"
+            className="px-2.5 py-1.5 rounded-xl bg-[#FFE66D] hover:bg-[#FDC800] border-2 border-black text-black shadow-[1.5px_1.5px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all cursor-pointer shrink-0 flex items-center gap-1.5 font-mono text-xs font-black active:translate-x-px"
+          >
+            <FlaskConical className="w-4 h-4 text-black stroke-[2.5]" />
+            <span className="hidden 2xl:inline">DEMO HUB</span>
+          </button>
+        )}
 
         {/* Settings Button */}
         {onOpenSettings && (

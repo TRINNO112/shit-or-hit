@@ -18,7 +18,8 @@ import {
   Check,
   FileText,
   ChevronRight,
-  Info
+  Info,
+  FlaskConical
 } from 'lucide-react';
 import { 
   getGuardianConfig, 
@@ -31,12 +32,28 @@ import {
 } from '../services/api';
 import { soundEngine } from '../services/soundEngine';
 
+export const MOCK_SLUMP_ENTRIES = {
+  '2026-10-14': {
+    rating: 1,
+    notes: 'Severe migraine and fever all afternoon. Could not keep eyes open during accounts class, failed to complete homework.',
+    tags: ['Health', 'Friction'],
+    habits: {}
+  },
+  '2026-10-15': {
+    rating: 2,
+    notes: 'Late night insomnia, panic about exam backlog, slept only 3 hours. Extreme exhaustion and mental fatigue.',
+    tags: ['Sleep Deficit', 'Overwhelm'],
+    habits: {}
+  }
+};
+
 export default function GuardianContactModal({ 
   isOpen, 
   onClose, 
   entries = {}, 
   todayStr = null, 
-  user = null 
+  user = null,
+  initialSimulateSlump = false
 }) {
   const [config, setConfig] = useState(() => getGuardianConfig());
   const [briefing, setBriefing] = useState(null);
@@ -44,19 +61,35 @@ export default function GuardianContactModal({
   const [dispatchStatus, setDispatchStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [statusMessage, setStatusMessage] = useState('');
   const [quota, setQuota] = useState(() => getGuardianEmailQuota());
+  const [isDemoSimulation, setIsDemoSimulation] = useState(initialSimulateSlump);
 
   useEffect(() => {
     if (isOpen) {
+      setIsDemoSimulation(initialSimulateSlump);
       const currentConfig = getGuardianConfig();
       setConfig(currentConfig);
-      const generated = generateGuardianBriefing(entries, currentConfig, todayStr);
+      const targetEntries = initialSimulateSlump ? { ...entries, ...MOCK_SLUMP_ENTRIES } : entries;
+      const targetDate = initialSimulateSlump ? '2026-10-15' : todayStr;
+      const generated = generateGuardianBriefing(targetEntries, currentConfig, targetDate);
       setBriefing(generated);
       setDispatchStatus('idle');
       setStatusMessage('');
       setQuota(getGuardianEmailQuota());
       setIsDossierModalOpen(false);
     }
-  }, [isOpen, entries, todayStr]);
+  }, [isOpen, entries, todayStr, initialSimulateSlump]);
+
+  const toggleSimulation = () => {
+    try { soundEngine.playClick(); } catch (e) {}
+    const next = !isDemoSimulation;
+    setIsDemoSimulation(next);
+    const targetEntries = next ? { ...entries, ...MOCK_SLUMP_ENTRIES } : entries;
+    const targetDate = next ? '2026-10-15' : todayStr;
+    const generated = generateGuardianBriefing(targetEntries, config, targetDate);
+    setBriefing(generated);
+    setStatusMessage(next ? 'Exhibition Slump Simulation Active (2-Day Slump Ingested)' : 'Restored real diary entries');
+    setTimeout(() => setStatusMessage(''), 3000);
+  };
 
   const handleSaveConfig = (e) => {
     if (e) e.preventDefault();
@@ -64,7 +97,9 @@ export default function GuardianContactModal({
       soundEngine.playClick();
       const updated = saveGuardianConfig(config);
       setConfig(updated);
-      const regenerated = generateGuardianBriefing(entries, updated, todayStr);
+      const targetEntries = isDemoSimulation ? { ...entries, ...MOCK_SLUMP_ENTRIES } : entries;
+      const targetDate = isDemoSimulation ? '2026-10-15' : todayStr;
+      const regenerated = generateGuardianBriefing(targetEntries, updated, targetDate);
       setBriefing(regenerated);
       setStatusMessage('Guardian protocol settings saved.');
       setTimeout(() => setStatusMessage(''), 3000);
@@ -81,7 +116,9 @@ export default function GuardianContactModal({
     const updatedConfig = { ...config, categories: updatedCategories };
     setConfig(updatedConfig);
     saveGuardianConfig(updatedConfig);
-    const regenerated = generateGuardianBriefing(entries, updatedConfig, todayStr);
+    const targetEntries = isDemoSimulation ? { ...entries, ...MOCK_SLUMP_ENTRIES } : entries;
+    const targetDate = isDemoSimulation ? '2026-10-15' : todayStr;
+    const regenerated = generateGuardianBriefing(targetEntries, updatedConfig, targetDate);
     setBriefing(regenerated);
   };
 
@@ -90,11 +127,30 @@ export default function GuardianContactModal({
     const updatedConfig = { ...config, slumpThresholdDays: days };
     setConfig(updatedConfig);
     saveGuardianConfig(updatedConfig);
-    const regenerated = generateGuardianBriefing(entries, updatedConfig, todayStr);
+    const targetEntries = isDemoSimulation ? { ...entries, ...MOCK_SLUMP_ENTRIES } : entries;
+    const targetDate = isDemoSimulation ? '2026-10-15' : todayStr;
+    const regenerated = generateGuardianBriefing(targetEntries, updatedConfig, targetDate);
     setBriefing(regenerated);
   };
 
   const handleEmailDispatch = async (isTest = false) => {
+    // If in Demo Simulation mode and not explicit test, simulate safe delivery without burning real quota!
+    if (isDemoSimulation && !isTest) {
+      setDispatchStatus('sending');
+      setStatusMessage('Simulating Two-Phase Gemini AI analysis & parent briefing verification...');
+      try { soundEngine.playClick(); } catch (e) {}
+      setTimeout(() => {
+        setDispatchStatus('success');
+        try { soundEngine.playSuccess(); } catch (e) {}
+        setStatusMessage('[EXHIBITION DEMO VERIFIED] Simulated parent crisis briefing dispatched! Zero quota consumed.');
+        setTimeout(() => {
+          setDispatchStatus('idle');
+          setStatusMessage('');
+        }, 5000);
+      }, 1200);
+      return;
+    }
+
     const currentQuota = getGuardianEmailQuota();
     if (!currentQuota.canSend) {
       setDispatchStatus('error');
@@ -125,7 +181,9 @@ export default function GuardianContactModal({
       // Two-Phase Dispatch Mechanism:
       // Phase 1: Gemini analyzes notes & trigger context.
       // Phase 2: If underwhelmed/offline, deterministic hardcoded rule engine seamlessly executes.
-      const activeBriefing = await generateTwoPhaseGuardianBriefing(entries, config, todayStr);
+      const targetEntries = isDemoSimulation ? { ...entries, ...MOCK_SLUMP_ENTRIES } : entries;
+      const targetDate = isDemoSimulation ? '2026-10-15' : todayStr;
+      const activeBriefing = await generateTwoPhaseGuardianBriefing(targetEntries, config, targetDate);
       setBriefing(activeBriefing);
 
       const res = await dispatchGuardianSOS({
@@ -218,6 +276,11 @@ export default function GuardianContactModal({
                   <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FDC800] border border-black rounded text-black">
                     PARENT EMERGENCY TRIAGE
                   </span>
+                  {isDemoSimulation && (
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FF4D4D] border border-black rounded text-white animate-pulse">
+                      DEMO SLUMP SIMULATION ACTIVE
+                    </span>
+                  )}
                 </div>
                 <h3 className="font-display font-black text-base sm:text-xl uppercase text-black leading-tight truncate mt-0.5">
                   Guardian SOS &amp; Family Triage Protocol
@@ -231,6 +294,32 @@ export default function GuardianContactModal({
               className="p-1.5 rounded-xl bg-neutral-100 hover:bg-[#FF4D4D] hover:text-white border-2 border-black shadow-[1.5px_1.5px_0px_#000000] cursor-pointer transition-colors shrink-0"
             >
               <X className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          </div>
+
+          {/* Exhibition Slump Simulation Mode Banner */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2.5 bg-amber-50 border-2 border-dashed border-amber-600 rounded-2xl font-mono text-xs shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <FlaskConical className="w-4 h-4 text-amber-700 shrink-0 stroke-[2.5]" />
+              <div className="min-w-0">
+                <span className="font-black text-amber-950 block">
+                  {isDemoSimulation ? 'EXHIBITION DEMO: 2-Day Slump & Health Crisis Simulation' : 'LIVE DATA MODE: Scanning Real Diary Entries'}
+                </span>
+                <span className="text-[10px] text-amber-800 block truncate">
+                  {isDemoSimulation ? 'Mock 1★ fever + 2★ sleep deficit loaded safely. Zero cloud writes.' : 'Scans user entries for slumps or acute health trigger keywords.'}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={toggleSimulation}
+              className={`py-1.5 px-3 rounded-xl border-2 border-black font-mono text-[10px] font-black uppercase cursor-pointer shadow-[1.5px_1.5px_0px_#000000] transition-all shrink-0 active:translate-x-px ${
+                isDemoSimulation 
+                  ? 'bg-[#FF4D4D] text-white hover:bg-red-600' 
+                  : 'bg-[#FDC800] text-black hover:bg-yellow-400'
+              }`}
+            >
+              {isDemoSimulation ? 'RESET TO REAL DATA' : 'SIMULATE 2-DAY SLUMP'}
             </button>
           </div>
 

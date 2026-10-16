@@ -104,6 +104,9 @@ const moodSvgPaths = {
   5: "M12,1.5 L15,8 L22,8.5 L16.5,13.5 L18.5,20.5 L12,16.5 L5.5,20.5 L7.5,13.5 L2,8.5 L9,8 Z"
 };
 
+// Exemplary unpolished draft for exhibition & evaluator live demonstration
+export const SAMPLE_RAW_DRAFT = "bro today was completely cooked woke up 90 mins late with heavy brain fog from last night sleep deficit skipped my accounts test homework and spent 2 hours doomscrolling reels on the couch mind felt like complete mush and then felt guilty all evening";
+
 export default function TodayHero({
   todayStr,
   currentEntry,
@@ -567,6 +570,7 @@ export default function TodayHero({
         localStorage.setItem(noteClosedKey, 'true');
       } catch (e) { }
     }
+
     setSyncedBadge(true);
     // Smooth animation: show saved state on the button, then smoothly close the writing box
     setTimeout(() => {
@@ -579,6 +583,29 @@ export default function TodayHero({
   const handleNoteChange = (newVal) => {
     setNoteText(newVal);
   };
+
+  const handleLoadSampleDraft = useCallback(() => {
+    try { soundEngine.playClick(); } catch (e) {}
+    setShowNote(true);
+    setNoteText(SAMPLE_RAW_DRAFT);
+    setHistoryStack(prev => [...prev, SAMPLE_RAW_DRAFT]);
+    setHistoryIdx(prev => prev + 1);
+    if (typeof window !== 'undefined') {
+      try { localStorage.removeItem(noteClosedKey); } catch (e) {}
+    }
+  }, [noteClosedKey]);
+
+  useEffect(() => {
+    const handleInjectedSample = () => {
+      handleLoadSampleDraft();
+      setTimeout(() => {
+        const el = document.getElementById('today-reflection-container');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    };
+    window.addEventListener('trinno:load-sample-draft', handleInjectedSample);
+    return () => window.removeEventListener('trinno:load-sample-draft', handleInjectedSample);
+  }, [handleLoadSampleDraft]);
 
   const handleAIEnhance = async (overridePrompt = null) => {
     const hasSphereNotes = Object.values(spheresData).some(s => s.notes && s.notes.trim());
@@ -1709,6 +1736,7 @@ export default function TodayHero({
       <AnimatePresence>
         {showNote && (
           <motion.div
+            id="today-reflection-container"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -1903,6 +1931,17 @@ export default function TodayHero({
                     </button>
                   )}
                 </div>
+
+                {/* 1-Tap Sample Draft for Live Exhibition Demonstration */}
+                <button
+                  type="button"
+                  onClick={handleLoadSampleDraft}
+                  title="Load realistic unpolished student draft for live AI polish demonstration"
+                  className="px-2.5 py-1.5 bg-[#00E599]/20 hover:bg-[#00E599]/40 text-emerald-950 border-2 border-black rounded-xl text-[10px] font-mono font-black uppercase shadow-[1.5px_1.5px_0px_#000000] cursor-pointer active:translate-x-px active:translate-y-px transition-all flex items-center gap-1 shrink-0"
+                >
+                  <Sparkles className="w-3 h-3 stroke-[2.5] text-emerald-800" />
+                  <span>SAMPLE DRAFT</span>
+                </button>
 
                 {/* In-Place Tactile AI Polish Button (Zero Layout Shift) */}
                 <button

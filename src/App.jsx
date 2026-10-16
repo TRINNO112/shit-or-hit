@@ -486,6 +486,8 @@ export default function App() {
   const [autopsyDate, setAutopsyDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [autopsyRating, setAutopsyRating] = useState(1);
   const [autopsyExistingData, setAutopsyExistingData] = useState(null);
+  const [autopsyNotes, setAutopsyNotes] = useState('');
+  const [guardianInitialSimulate, setGuardianInitialSimulate] = useState(false);
   const [isBehavioralLabOpen, setIsBehavioralLabOpen] = useState(() => previewModal === 'lab');
   const [simulatedCrash, setSimulatedCrash] = useState(false);
   const [isP2PSyncOpen, setIsP2PSyncOpen] = useState(() => previewModal === 'sync' || previewModal === 'transfer' || previewModal === 'data-transfer');
@@ -1103,11 +1105,42 @@ export default function App() {
           'Score minimum 3-stars tomorrow to sever the consecutive rough day chain.'
         ]
       });
+      setAutopsyNotes('');
     } else {
       setAutopsyExistingData(null);
+      setAutopsyNotes('Woke up 2 hours late with heavy brain fog from last night sleep deficit. Spent 3 hours doomscrolling on social media instead of preparing for my accounting exam. Missed workout and felt completely defeated and overwhelmed.');
     }
     setIsAutopsyOpen(true);
   }, [todayStr]);
+
+  const handleOpenGuardianSimulation = useCallback(() => {
+    soundEngine.playClick();
+    setIsBehavioralLabOpen(false);
+    setGuardianInitialSimulate(true);
+    setIsGuardianContactOpen(true);
+  }, []);
+
+  const handleOpenMonthlyDossierFromLab = useCallback((year = 2026, month = 9) => {
+    soundEngine.playClick();
+    setIsBehavioralLabOpen(false);
+    setReportTargetMonth({ year, month });
+    setIsMonthlyReportOpen(true);
+  }, []);
+
+  const handleInjectGhostwriterSample = useCallback(() => {
+    soundEngine.playSuccessChime();
+    setIsBehavioralLabOpen(false);
+    setActiveDesktopTab('today');
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('trinno:load-sample-draft'));
+    }, 100);
+  }, []);
+
+  const handleOpenSanctuaryFromLab = useCallback(() => {
+    soundEngine.playClick();
+    setIsBehavioralLabOpen(false);
+    setShowSanctuary(true);
+  }, []);
 
   const handleTriggerErrorTest = useCallback(() => {
     soundEngine.playRoughTone();
@@ -1703,6 +1736,7 @@ export default function App() {
             isAcademicMode={isAcademicMode}
             toggleAcademicMode={toggleAcademicMode}
             onOpenGuardianContact={() => setIsGuardianContactOpen(true)}
+            onOpenBehavioralLab={() => setIsBehavioralLabOpen(true)}
             user={currentUser}
             sphereSettingsVer={sphereSettingsVer}
           />
@@ -1725,6 +1759,7 @@ export default function App() {
                 onSyncRefresh={loadData}
                 isAcademicMode={isAcademicMode}
                 onOpenGuardianContact={() => setIsGuardianContactOpen(true)}
+                onOpenBehavioralLab={() => setIsBehavioralLabOpen(true)}
               />
             </div>
           </div>
@@ -2087,12 +2122,13 @@ export default function App() {
                 onClose={() => setIsAutopsyOpen(false)}
                 entryDate={autopsyDate}
                 rating={autopsyRating}
+                notes={autopsyNotes}
                 existingAutopsy={autopsyExistingData}
                 onSaveAutopsy={() => setIsAutopsyOpen(false)}
               />
             )}
 
-            {/* 🧪 Behavioral Trilogy State Inspector & Dev Lab */}
+            {/* 🧪 Exhibition Master Demo & AI Showcase Studio */}
             {isBehavioralLabOpen && (
               <BehavioralLabModal
                 key="behavioral-lab-modal"
@@ -2101,6 +2137,12 @@ export default function App() {
                 onOpenReceipt={handleOpenReceiptFromLab}
                 onOpenCapsule={handleOpenCapsuleFromLab}
                 onOpenAutopsy={handleOpenAutopsyFromLab}
+                onOpenGuardianSimulation={handleOpenGuardianSimulation}
+                onOpenMonthlyDossier={handleOpenMonthlyDossierFromLab}
+                onInjectGhostwriterSample={handleInjectGhostwriterSample}
+                onOpenSanctuary={handleOpenSanctuaryFromLab}
+                onToggleDemoSandbox={triggerPopulateDemoData}
+                isDemoSandboxActive={isDemoSandbox}
                 onTriggerErrorTest={handleTriggerErrorTest}
               />
             )}
@@ -2128,10 +2170,14 @@ export default function App() {
               <GuardianContactModal
                 key="guardian-contact-modal"
                 isOpen={isGuardianContactOpen}
-                onClose={() => setIsGuardianContactOpen(false)}
+                onClose={() => {
+                  setIsGuardianContactOpen(false);
+                  setGuardianInitialSimulate(false);
+                }}
                 entries={entries}
                 todayStr={todayStr}
                 user={currentUser}
+                initialSimulateSlump={guardianInitialSimulate}
               />
             )}
 

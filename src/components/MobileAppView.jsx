@@ -54,7 +54,8 @@ import {
   Sliders,
   Loader2,
   GitBranch,
-  ArrowDown
+  ArrowDown,
+  FlaskConical
 } from 'lucide-react';
 import HitRateInfoModal from './HitRateInfoModal';
 import { 
@@ -148,6 +149,7 @@ export default function MobileAppView({
   isAcademicMode = false,
   toggleAcademicMode = null,
   onOpenGuardianContact = null,
+  onOpenBehavioralLab = null,
   user: userProp = null
 }) {
   const [activeTab, setActiveTabState] = useState(() => {
@@ -921,6 +923,21 @@ export default function MobileAppView({
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
           </button>
+
+          {/* Exhibition Master Demo & AI Showcase Studio */}
+          {onOpenBehavioralLab && (
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                soundEngine.playClick();
+                onOpenBehavioralLab();
+              }}
+              className="p-1.5 sm:p-2 rounded-xl bg-[#FFE66D] hover:bg-[#FDC800] border-2 border-black shadow-[1.5px_1.5px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer shrink-0 transition-colors text-black"
+              title="Exhibition Master Demo & AI Showcase Studio"
+            >
+              <FlaskConical className="w-4 h-4 text-black stroke-[2.5]" />
+            </button>
+          )}
 
           {/* Settings Button (Opens Quick Drawer) */}
           <button
