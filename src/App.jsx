@@ -2262,14 +2262,14 @@ export default function App() {
                     handleOpenMonthlyReport({ year: demoToastInfo.year || 2026, month: demoToastInfo.month || 9 });
                     setDemoToastInfo(null);
                   }}
-                  className="flex-1 py-1.5 px-3 bg-[#00E599] hover:bg-[#00cc88] border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all text-center"
+                  className="flex-1 py-1.5 px-3 bg-[#00E599] hover:bg-[#00cc88] border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer transition-all text-center"
                 >
                   VIEW DOSSIER NOW
                 </button>
                 <button
                   type="button"
                   onClick={exitDemoSandbox}
-                  className="py-1.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono font-bold text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all flex items-center gap-1.5"
+                  className="py-1.5 px-3 bg-white hover:bg-neutral-100 border-2 border-black rounded-xl font-mono font-bold text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer transition-all flex items-center gap-1.5"
                 >
                   <RotateCcw className="w-3.5 h-3.5 stroke-2" />
                   EXIT DEMO
@@ -2279,7 +2279,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setDemoToastInfo(null)}
-                className="py-1.5 px-4 bg-black text-[#FDC800] border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all"
+                className="py-1.5 px-4 bg-black text-[#FDC800] border-2 border-black rounded-xl font-mono font-black text-xs uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer transition-all"
               >
                 DISMISS
               </button>

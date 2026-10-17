@@ -90,7 +90,7 @@ export default function BehavioralLabModal({
                   <span className="px-2 py-0.5 rounded bg-black text-[#FFE66D] text-[9px] font-mono font-black uppercase">
                     GCERT SUBTHEME 1(A)
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-[#FF4D4D] text-black border border-black text-[9px] font-mono font-black uppercase font-bold shadow-[1px_1px_0px_#000000]">
+                  <span className="px-2 py-0.5 rounded bg-[#FF4D4D] text-black border border-black text-[9px] font-mono font-black uppercase shadow-[1px_1px_0px_#000000]">
                     STEALTH ACTIVE
                   </span>
                 </div>
@@ -164,7 +164,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenAutopsy?.('inquest');
                     }}
-                    className="flex-1 py-2 px-3 bg-[#FF4D4D] hover:bg-red-500 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 py-2 px-3 bg-[#FF4D4D] hover:bg-red-500 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Crosshair className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Launch 1★ Inquest</span>
@@ -175,7 +175,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenAutopsy?.('verdict');
                     }}
-                    className="py-2 px-3 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1"
+                    className="py-2 px-3 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all cursor-pointer flex items-center justify-center gap-1"
                   >
                     <span>Verdict</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -211,7 +211,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenGuardianSimulation?.();
                     }}
-                    className="w-full py-2 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 px-3 bg-[#00E599] hover:bg-emerald-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <HeartHandshake className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Simulate Slump Broadcast</span>
@@ -247,7 +247,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onInjectGhostwriterSample?.();
                     }}
-                    className="w-full py-2 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 px-3 bg-[#FDC800] hover:bg-yellow-400 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Inject Draft &amp; Open Journal</span>
@@ -283,7 +283,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenMonthlyDossier?.(2026, 9);
                     }}
-                    className="w-full py-2 px-3 bg-[#BAE6FD] hover:bg-sky-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 px-3 bg-[#BAE6FD] hover:bg-sky-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <BarChart3 className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Launch Sept 2026 Dossier</span>
@@ -319,7 +319,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenSanctuary?.();
                     }}
-                    className="w-full py-2 px-3 bg-[#A7F3D0] hover:bg-emerald-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 px-3 bg-[#A7F3D0] hover:bg-emerald-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Compass className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Enter Sanctuary Reset</span>
@@ -355,7 +355,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenCapsule?.('release');
                     }}
-                    className="flex-1 py-2 px-3 bg-[#FED7AA] hover:bg-orange-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 py-2 px-3 bg-[#FED7AA] hover:bg-orange-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <KeyRound className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Inspect Slump Capsule</span>
@@ -366,7 +366,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenCapsule?.('vault');
                     }}
-                    className="py-2 px-3 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1"
+                    className="py-2 px-3 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all cursor-pointer flex items-center justify-center gap-1"
                   >
                     <span>Vault</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -402,7 +402,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenReceipt?.('solvent');
                     }}
-                    className="flex-1 py-2 px-3 bg-white hover:bg-neutral-200 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                    className="flex-1 py-2 px-3 bg-white hover:bg-neutral-200 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <TrendingUp className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
                     <span>Solvent (God-Mode)</span>
@@ -413,7 +413,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onOpenReceipt?.('debt');
                     }}
-                    className="flex-1 py-2 px-3 bg-[#FFF0F0] hover:bg-red-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+                    className="flex-1 py-2 px-3 bg-[#FFF0F0] hover:bg-red-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <AlertOctagon className="w-3.5 h-3.5 text-red-600 stroke-[2.5]" />
                     <span>Insolvent (Debt)</span>
@@ -449,7 +449,7 @@ export default function BehavioralLabModal({
                       try { soundEngine.playClick(); } catch (e) {}
                       onToggleDemoSandbox?.();
                     }}
-                    className={`w-full py-2 px-3 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`w-full py-2 px-3 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       isDemoSandboxActive
                         ? 'bg-[#FF4D4D] hover:bg-red-500 text-black'
                         : 'bg-[#FFE66D] hover:bg-yellow-300 text-black'
@@ -502,7 +502,7 @@ export default function BehavioralLabModal({
                 try { soundEngine.playClick(); } catch (e) {}
                 onClose();
               }}
-              className="py-1.5 px-4 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px active:shadow-none cursor-pointer transition-all"
+              className="py-1.5 px-4 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer transition-all"
             >
               Close Console
             </button>

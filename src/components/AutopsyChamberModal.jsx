@@ -272,10 +272,10 @@ export default function AutopsyChamberModal({
                     <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-black text-[#FF4D4D] rounded">
                       FORENSIC INQUEST
                     </span>
-                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FDC800] border border-black rounded text-black font-bold">
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FDC800] border border-black rounded text-black">
                       INCIDENT CASE #{entryDate.replace(/-/g, '')}
                     </span>
-                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FF4D4D] text-black border border-black rounded font-bold">
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 bg-[#FF4D4D] text-black border border-black rounded">
                       {rating}★ MELTDOWN
                     </span>
                   </div>
@@ -483,7 +483,7 @@ export default function AutopsyChamberModal({
                                 }`}
                               >
                                 <span className="leading-snug">{opt}</span>
-                                {isSelected && <Check className="w-4 h-4 text-black shrink-0 stroke-[3]" />}
+                                {isSelected && <Check className="w-4 h-4 text-black shrink-0 stroke-3" />}
                               </button>
                             );
                           })}
@@ -520,7 +520,7 @@ export default function AutopsyChamberModal({
                     type="button"
                     onClick={handleSaveAndSeal}
                     disabled={!allQuestionsAnswered}
-                    className="w-full py-3.5 px-4 bg-[#FF4D4D] hover:bg-red-500 disabled:bg-neutral-200 disabled:text-neutral-400 text-black font-mono font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl border-3 border-black shadow-[4px_4px_0px_#000000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                    className="w-full py-3.5 px-4 enabled:bg-[#FF4D4D] enabled:hover:bg-red-500 disabled:bg-neutral-200 enabled:text-black disabled:text-neutral-400 font-mono font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl border-3 border-black shadow-[4px_4px_0px_#000000] enabled:active:translate-x-1 enabled:active:translate-y-1 transition-all flex items-center justify-center gap-2 enabled:cursor-pointer disabled:cursor-not-allowed"
                   >
                     <FolderLock className="w-4 h-4 stroke-[2.5]" />
                     <span>
@@ -602,7 +602,7 @@ export default function AutopsyChamberModal({
                     onClick={onClose}
                     className="w-full sm:flex-1 py-3 px-4 bg-[#00E599] text-black hover:bg-emerald-400 border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px"
                   >
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <Check className="w-3.5 h-3.5 stroke-3" />
                     <span>Close Case File</span>
                   </button>
                 </div>
