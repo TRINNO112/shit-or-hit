@@ -162,12 +162,12 @@ export default function Header({
           </div>
           <div>
             <h1 className="font-display font-black text-lg sm:text-xl 3xl:text-2xl 4k:text-3xl text-black tracking-tight leading-none uppercase whitespace-nowrap">
-              {isAcademicMode ? 'DAILY VERDICT' : 'SHIT OR HIT'}
+              DAILY VERDICT
             </h1>
             <span className="text-[10px] 3xl:text-xs font-mono font-bold text-neutral-500 block mt-0.5 whitespace-nowrap">
               {isAcademicMode
                 ? 'COGNITIVE REFLECTION & TELEMETRY ENGINE'
-                : isWhitelisted ? `Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Daily Verdict OS'}
+                : isWhitelisted ? `Cloud Sync (${getUserDisplayName(user?.email, user?.displayName) || 'Trinno'})` : 'Behavioral Dossier OS'}
             </span>
           </div>
         </div>

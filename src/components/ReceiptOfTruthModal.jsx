@@ -277,7 +277,7 @@ export default function ReceiptOfTruthModal({
 
     ctx.fillStyle = INK;
     ctx.font = display(34);
-    ctx.fillText('SHIT OR HIT', 540, curY); curY += 34;
+    ctx.fillText('DAILY VERDICT', 540, curY); curY += 34;
     ctx.font = mono(700, 18);
     ctx.fillText(statementMode === 'monthly' ? 'Monthly Life Debt Statement' : 'Daily Performance Slip', 540, curY); curY += 26;
     ctx.fillStyle = '#66614F';
@@ -665,7 +665,7 @@ export default function ReceiptOfTruthModal({
 
                 <div className="rot-paper-content">
                   <div className="rot-masthead">
-                    <div className="rot-display rot-masthead-title">Shit or Hit</div>
+                    <div className="rot-display rot-masthead-title">Daily Verdict</div>
                     <div className="rot-masthead-sub">{statementMode === 'monthly' ? 'Monthly Life Debt Statement' : 'Daily Performance Audit Slip'}</div>
                     <div className="rot-masthead-meta">{statementMode === 'monthly' ? monthLabel : dateStr} &middot; Ref {transId}</div>
                   </div>

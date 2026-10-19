@@ -87,7 +87,7 @@ export default function AutopsyChamberModal({
     setIsLoading(true);
     setErrorMsg('');
     setStage('scanning');
-    try { soundEngine?.playRoughTone?.(); } catch (e) {}
+    try { soundEngine?.playRoughTone?.(); } catch (e) { }
 
     try {
       const res = await getAutopsyAnalysis({
@@ -102,7 +102,7 @@ export default function AutopsyChamberModal({
       if (res?.success && res?.autopsy) {
         setAutopsyData(res.autopsy);
         setStage('interrogating');
-        try { soundEngine?.playSuccessChime?.(); } catch (e) {}
+        try { soundEngine?.playSuccessChime?.(); } catch (e) { }
       } else {
         throw new Error('Could not parse autopsy response');
       }
@@ -110,7 +110,7 @@ export default function AutopsyChamberModal({
       console.warn('Autopsy retrieval exception:', err);
       setErrorMsg(formatAiErrorMessage(err, 'autopsy'));
       setStage('failed');
-      try { soundEngine?.playRoughTone?.(); } catch (e) {}
+      try { soundEngine?.playRoughTone?.(); } catch (e) { }
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +129,7 @@ export default function AutopsyChamberModal({
   }, [isOpen, existingAutopsy, entryDate, rating]);
 
   const handleSelectAnswer = (qId, optionText) => {
-    try { soundEngine?.playClick?.(); } catch (e) {}
+    try { soundEngine?.playClick?.(); } catch (e) { }
     setUserAnswers(prev => ({
       ...prev,
       [qId]: optionText
@@ -137,7 +137,7 @@ export default function AutopsyChamberModal({
   };
 
   const handleSaveAndSeal = () => {
-    try { soundEngine?.playCapsuleSeal?.(); } catch (e) {}
+    try { soundEngine?.playCapsuleSeal?.(); } catch (e) { }
     const finalReport = {
       ...autopsyData,
       userAnswers,
@@ -149,7 +149,7 @@ export default function AutopsyChamberModal({
       onSaveAutopsy(finalReport);
     }
     setStage('completed');
-    try { soundEngine?.playSuccessChime?.(); } catch (e) {}
+    try { soundEngine?.playSuccessChime?.(); } catch (e) { }
   };
 
   // Dynamically tailor interrogations according to user's notes and skipped anchors
@@ -379,7 +379,7 @@ export default function AutopsyChamberModal({
             {/* STAGE 2: VISCERAL INTERROGATION INQUEST */}
             {stage === 'interrogating' && (
               <div className="flex-1 overflow-y-auto space-y-4 pr-1 mt-3 min-h-0 text-black">
-                
+
                 {/* Visual Evidence Toe-Tag */}
                 <div className="relative bg-white border-2 border-dashed border-red-400 rounded-2xl p-3.5 sm:p-4 text-xs font-mono space-y-2 shadow-[2px_2px_0px_#000000]">
                   <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[#FFFDF5] border-2 border-red-500 flex items-center justify-center">
@@ -451,18 +451,16 @@ export default function AutopsyChamberModal({
                     return (
                       <div
                         key={q.id}
-                        className={`border-2 border-black rounded-2xl p-3.5 sm:p-4 shadow-[3px_3px_0px_#000000] transition-colors space-y-2.5 ${
-                          hasAnswered
+                        className={`border-2 border-black rounded-2xl p-3.5 sm:p-4 shadow-[3px_3px_0px_#000000] transition-colors space-y-2.5 ${hasAnswered
                             ? 'bg-[#F0FDF4] border-black'
                             : 'bg-white'
-                        }`}
+                          }`}
                       >
                         <div className="font-mono text-xs sm:text-sm font-black text-black flex items-start gap-2">
-                          <span className={`w-5 h-5 rounded-md border border-black text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5 ${
-                            hasAnswered
+                          <span className={`w-5 h-5 rounded-md border border-black text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5 ${hasAnswered
                               ? 'bg-[#00E599] text-black'
                               : 'bg-black text-white'
-                          }`}>
+                            }`}>
                             {idx + 1}
                           </span>
                           <span className="leading-snug">{q.question}</span>
@@ -476,11 +474,10 @@ export default function AutopsyChamberModal({
                                 key={optIdx}
                                 type="button"
                                 onClick={() => handleSelectAnswer(q.id, opt)}
-                                className={`w-full text-left p-2.5 rounded-xl border-2 font-mono text-[11px] sm:text-xs transition-all cursor-pointer flex items-center justify-between gap-2 active:translate-x-px ${
-                                  isSelected
+                                className={`w-full text-left p-2.5 rounded-xl border-2 font-mono text-[11px] sm:text-xs transition-all cursor-pointer flex items-center justify-between gap-2 active:translate-x-px ${isSelected
                                     ? 'bg-[#FFE66D] text-black border-black shadow-[3px_3px_0px_#000000] font-black'
                                     : 'bg-[#FFFDF8] text-neutral-800 border-black/30 hover:border-black hover:bg-neutral-50 shadow-[1.5px_1.5px_0px_#000000]'
-                                }`}
+                                  }`}
                               >
                                 <span className="leading-snug">{opt}</span>
                                 {isSelected && <Check className="w-4 h-4 text-black shrink-0 stroke-3" />}
@@ -589,7 +586,7 @@ export default function AutopsyChamberModal({
                     type="button"
                     onClick={() => {
                       setStage('interrogating');
-                      try { soundEngine?.playClick?.(); } catch (e) {}
+                      try { soundEngine?.playClick?.(); } catch (e) { }
                     }}
                     className="w-full sm:flex-1 py-3 px-4 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center justify-center gap-2 active:translate-x-px"
                   >

@@ -1837,37 +1837,38 @@ export default function TodayHero({
             {/* Fullscreen Art Lightbox Modal */}
             {viewingFullArtwork && (
               <div 
-                className="fixed inset-0 z-100 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none"
+                className="fixed inset-0 z-100 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 select-none overflow-y-auto"
                 onClick={() => setViewingFullArtwork(false)}
               >
                 <div 
-                  className="relative max-w-2xl w-full bg-[#FFFDF8] border-3 border-black rounded-3xl shadow-[8px_8px_0px_#000000] p-4 sm:p-6 space-y-4 my-auto"
+                  className="relative max-w-md sm:max-w-lg w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col bg-[#FFFDF8] border-3 border-black rounded-2xl sm:rounded-3xl shadow-[4px_4px_0px_#000000] sm:shadow-[8px_8px_0px_#000000] p-3.5 sm:p-5 my-auto overflow-hidden space-y-3 sm:space-y-4"
                   onClick={e => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between border-b-2 border-black/15 pb-3">
+                  <div className="flex items-center justify-between border-b-2 border-black/15 pb-2.5 sm:pb-3 shrink-0">
                     <div>
                       <span className="text-[10px] font-mono font-black uppercase text-neutral-500">HORIZON ZEN COMPANION</span>
-                      <h3 className="font-display font-black text-lg sm:text-xl uppercase text-black">{activeCompanionTitle}</h3>
+                      <h3 className="font-display font-black text-base sm:text-xl uppercase text-black">{activeCompanionTitle}</h3>
                     </div>
                     <button
                       type="button"
                       onClick={() => setViewingFullArtwork(false)}
                       className="p-1.5 bg-[#FF4D4D] text-black border-2 border-black rounded-xl hover:bg-black hover:text-white cursor-pointer shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px"
+                      aria-label="Close artwork preview"
                     >
-                      <X className="w-5 h-5 stroke-[2.5]" />
+                      <X className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
                     </button>
                   </div>
 
-                  <div className="w-full aspect-4/3 rounded-2xl border-2.5 border-black overflow-hidden bg-neutral-900 shadow-[inset_0_0_12px_rgba(0,0,0,0.5)]">
+                  <div className="w-full flex-1 min-h-0 rounded-xl sm:rounded-2xl border-2 sm:border-2.5 border-black overflow-hidden bg-neutral-900 shadow-[inset_0_0_12px_rgba(0,0,0,0.5)] flex items-center justify-center">
                     <img
                       src={activeCompanionMascot}
                       alt={activeCompanionTitle}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full max-h-[48vh] sm:max-h-[54vh] object-contain"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <p className="text-xs font-mono text-neutral-700">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1 shrink-0">
+                    <p className="text-[11px] sm:text-xs font-mono text-neutral-700 leading-snug">
                       {activeCompanionMascot === mascotSanctuaryRain
                         ? "Gentle rain & warm tea on the veranda. Take your time writing without hurry."
                         : "Standing on the mountain summit. Look how far you have climbed."}
@@ -1881,7 +1882,7 @@ export default function TodayHero({
                           return current === 'rain' ? 'summit' : 'rain';
                         });
                       }}
-                      className="px-3 py-1.5 bg-[#FDC800] text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] cursor-pointer flex items-center gap-1.5 shrink-0"
+                      className="px-3.5 py-2 sm:py-1.5 bg-[#FDC800] hover:bg-amber-300 text-black border-2 border-black rounded-xl font-mono text-xs font-black uppercase shadow-[2px_2px_0px_#000000] active:translate-x-px active:translate-y-px cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
                     >
                       <RotateCw className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>Switch Art</span>

@@ -71,7 +71,7 @@ export default function PWAInstallBanner() {
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
-      console.log('SHIT OR HIT PWA successfully installed!');
+      console.log('DAILY VERDICT PWA successfully installed!');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -147,7 +147,7 @@ export default function PWAInstallBanner() {
                 </div>
                 <div className="min-w-0">
                   <h4 className="font-display font-black text-xs sm:text-sm text-black uppercase leading-tight truncate">
-                    Install SHIT OR HIT App
+                    Install DAILY VERDICT App
                   </h4>
                   <p className="text-[10px] sm:text-xs font-mono text-neutral-800 font-bold truncate">
                     1-tap standalone app access & full offline storage

@@ -302,7 +302,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
     if (selectedFormat === 'phone') {
       // top ~560px is reserved for the lockscreen clock
       tape(-40, 610, W + 80, 74, -2.5);
-      T(`SHIT OR HIT  /  ${yearData.year}`, 70, 790, 32, th.sub, { font: FONT_M, weight: 800 });
+      T(`DAILY VERDICT  /  ${yearData.year}`, 70, 790, 32, th.sub, { font: FONT_M, weight: 800 });
       T(String(yearData.year), 62, 985, 250, th.text);
       T(arch.emoji, W - 70, 950, 190, th.text, { align: 'right' });
       T(arch.name, 70, 1060, 50, th.light ? '#B38F00' : th.accent);
@@ -318,7 +318,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
     // ===== DESKTOP 4K =====
     else if (selectedFormat === 'desktop') {
       const L = 200;
-      T(`SHIT OR HIT  /  DAILY VERDICT OS`, L, 300, 46, th.sub, { font: FONT_M, weight: 800 });
+      T(`DAILY VERDICT OS  /  ${yearData.year}`, L, 300, 46, th.sub, { font: FONT_M, weight: 800 });
       T(String(yearData.year), L - 12, 760, 520, th.text);
       T(`${arch.emoji}  ${arch.name}`, L, 900, 96, th.light ? '#B38F00' : th.accent);
 
@@ -332,7 +332,7 @@ export default function YearInPixelsWallpaperEngine({ userEntries = {} }) {
 
     // ===== SQUARE =====
     else {
-      T('SHIT OR HIT  /  DAILY VERDICT OS', 70, 96, 28, th.sub, { font: FONT_M, weight: 800 });
+      T('DAILY VERDICT OS', 70, 96, 28, th.sub, { font: FONT_M, weight: 800 });
       T(String(yearData.year), 62, 250, 170, th.text);
       T(arch.emoji, W - 70, 235, 130, th.text, { align: 'right' });
       T(`${arch.name}  •  ${yearData.totalLogged} LOGGED  •  ${yearData.longestStreak}D HIT STREAK`, 70, 305, 28, th.light ? '#B38F00' : th.accent, { font: FONT_M, weight: 800 });

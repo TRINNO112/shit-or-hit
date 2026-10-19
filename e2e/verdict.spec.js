@@ -69,7 +69,7 @@ test.describe('Daily Verdict & Reflection E2E Flow', () => {
     await page.goto('/');
 
     // Wait for the app header to be visible
-    await expect(page.locator('h1', { hasText: 'SHIT OR HIT' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: /DAILY VERDICT|SHIT OR HIT/ })).toBeVisible();
 
     // Find and click the 4-star "Good" rating button
     const goodRatingBtn = page.locator('button[title*="Good (4/5)"]').first();
